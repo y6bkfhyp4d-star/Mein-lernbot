@@ -1,0 +1,38 @@
+MEIN LERNBOT – iPhone-Paket
+
+WICHTIG:
+Dies ist eine installierbare PWA (Progressive Web App), keine native Swift-App.
+Sie wird über Safari zum Home-Bildschirm hinzugefügt und startet danach in einer
+eigenen App-Ansicht. Für die Installation muss das Paket über HTTPS bereitgestellt
+werden; das bloße Öffnen der HTML-Datei aus der Dateien-App reicht nicht.
+
+DATEIEN:
+- index.html: Oberfläche
+- app.js: Lernlogik und lokaler Speicher
+- manifest.webmanifest: App-Metadaten
+- sw.js: Offline-Cache
+- icon-192.png / icon-512.png: App-Symbole
+- chatbot_terminal.py: separate Python-Terminalversion (a-Shell)
+
+INSTALLATION AUF DEM IPHONE:
+1. Lade das ZIP herunter und entpacke es.
+2. Die enthaltenen Dateien müssen gemeinsam auf einem HTTPS-Webhost liegen.
+   Du kannst dafür einen statischen Hosting-Dienst verwenden (z.B. GitHub Pages).
+3. Öffne die HTTPS-Adresse in Safari.
+4. Tippe auf Teilen -> Zum Home-Bildschirm.
+5. Aktiviere falls angezeigt „Als Web-App öffnen“ und tippe Hinzufügen.
+6. Starte „Mein LernBot“ über das neue Symbol. Öffne die App einmal mit Internet,
+   damit die Offline-Dateien gespeichert werden. Danach ist sie offline nutzbar.
+
+DATENSCHUTZ:
+Das gelernte Wissen und der Chatverlauf werden in localStorage auf diesem iPhone
+gespeichert. Lösche Safari-Websitedaten nicht, wenn du die Daten behalten willst.
+Nutze im Menü „Wissen exportieren“, um eine Sicherung zu speichern.
+
+GRENZEN:
+- Eine PWA ist keine native iOS-App und kann nicht alle nativen iOS-Funktionen nutzen.
+- Die Oberfläche und Lernlogik laufen in JavaScript im iOS-WebKit. Ein Browser kann
+  Python nicht direkt ausführen. Die Python-Datei ist deshalb eine separate
+  a-Shell-Terminalversion, nicht die Laufzeit der iPhone-PWA.
+- Der Bot ist ein einfacher lokaler Lernbot, kein großes Sprachmodell.
+- Notfallhinweise ersetzen keine professionelle Erste Hilfe. Bei akuter Gefahr 112.
