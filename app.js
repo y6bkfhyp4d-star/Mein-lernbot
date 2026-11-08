@@ -1,3 +1,4 @@
+
 (() => {
   "use strict";
 
@@ -19,45 +20,68 @@
     ["Wer bist du Was kannst du", "Ich bin dein lokaler LernBot. Ich speichere Wissen auf diesem Gerät und kann aus deinen Eingaben lernen. Ich habe kein eigenes Internet."]
   ];
 
-  const help = `So kannst du mir etwas beibringen:
+  const help = `SO KANNST DU MIT MIR ARBEITEN
 
-1. „Ich bringe dir bei: Ein Okapi ist ein Waldtier.“
-2. „Merke dir: Die Hauptstadt von Frankreich ist Paris.“
-3. Wenn ich falsch liege: „Nein, das stimmt nicht.“
-4. Danach kannst du mir die richtige Antwort geben.
-5. „Was weißt du?“ zeigt mein gespeichertes Wissen.
-6. „Vergiss: Paris“ löscht einen Eintrag.
-7. „Hilfe“ zeigt diese Übersicht.
+LERNEN:
+„Ich bringe dir bei: Ein Okapi ist ein Waldtier.“
+„Merke dir: Die Hauptstadt von Frankreich ist Paris.“
 
-Du kannst ganz normal mit mir schreiben.
-Wenn ich etwas nicht weiß, frage ich dich nach der Antwort.
-Ich speichere dein Wissen auf diesem Gerät.`;
+KORRIGIEREN:
+„Nein, das stimmt nicht.“
+„Richtig ist: ...“
 
+FRAGEN:
+„Was ist ein Okapi?“
+„Was weißt du?“
+
+WEITERE BEFEHLE:
+„Hilfe“ – zeigt diese Übersicht.
+„Vergiss: Okapi“ – löscht einen Eintrag.
+„Verlauf löschen“ – löscht den Chatverlauf.
+„Grundwissen laden“ – ergänzt mein Grundwissen.
+
+Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
+
+  // Bestehende Daten laden – niemals automatisch zurücksetzen.
   let data;
 
   try {
     data = JSON.parse(localStorage.getItem(KEY) || "null");
-  } catch (e) {}
+  } catch (e) {
+    data = null;
+  }
 
-  if (!data || typeof data !== "object") {
-    data = { qa: [], classes: [], log: [], pending: null, theme: "dark" };
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    data = {
+      qa: [],
+      classes: [],
+      log: [],
+      pending: null,
+      theme: "dark"
+    };
   }
 
   data.qa = Array.isArray(data.qa) ? data.qa : [];
   data.classes = Array.isArray(data.classes) ? data.classes : [];
   data.log = Array.isArray(data.log) ? data.log : [];
 
+  // Alte Einträge bleiben kompatibel.
+  data.qa = data.qa.filter(x => x && typeof x === "object" && typeof x.k === "string");
+
   function save() {
     data.log = data.log.slice(-150);
+
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
+      return true;
     } catch (e) {
-      alert("Speicher voll oder nicht verfügbar. Bitte exportiere dein Wissen.");
+      alert("Speichern fehlgeschlagen. Bitte exportiere dein Wissen.");
+      return false;
     }
   }
 
   function norm(s) {
-    return String(s)
+    return String(s ?? "")
       .toLocaleLowerCase("de")
       .replace(/[^\p{L}\p{N}\s]/gu, " ")
       .replace(/\s+/g, " ")
@@ -74,9 +98,9 @@ Ich speichere dein Wissen auf diesem Gerät.`;
       .filter(w => w.length > 1 && !stop.has(w))
       .map(w => {
         if (w.length > 6) {
-          for (const x of ["ern", "en", "er", "es", "e", "n", "s"]) {
-            if (w.endsWith(x) && w.length - x.length >= 4) {
-              return w.slice(0, -x.length);
+          for (const end of ["ern", "en", "er", "es", "e", "n", "s"]) {
+            if (w.endsWith(end) && w.length - end.length >= 4) {
+              return w.slice(0, -end.length);
             }
           }
         }
@@ -84,17 +108,10 @@ Ich speichere dein Wissen auf diesem Gerät.`;
       });
   }
 
-  function grams(s) {
-    s = " " + norm(s) + " ";
-    const a = [];
-    for (let i = 0; i < s.length - 2; i++) a.push(s.slice(i, i + 3));
-    return a;
-  }
-
   function counts(a) {
-    const m = {};
-    a.forEach(x => (m[x] = (m[x] || 0) + 1));
-    return m;
+    const result = {};
+    a.forEach(x => result[x] = (result[x] || 0) + 1);
+    return result;
   }
 
   function cosine(a, b) {
@@ -102,49 +119,95 @@ Ich speichere dein Wissen auf diesem Gerät.`;
     const dot = keys.reduce((v, k) => v + a[k] * (b[k] || 0), 0);
     const na = Math.sqrt(keys.reduce((v, k) => v + a[k] ** 2, 0));
     const nb = Math.sqrt(Object.values(b).reduce((v, x) => v + x * x, 0));
+
     return na && nb ? dot / (na * nb) : 0;
   }
 
+  function grams(s) {
+    s = " " + norm(s) + " ";
+    const result = [];
+
+    for (let i = 0; i < s.length - 2; i++) {
+      result.push(s.slice(i, i + 3));
+    }
+
+    return result;
+  }
+
   function sim(a, b) {
-    return 0.68 * cosine(counts(toks(a)), counts(toks(b))) + 0.32 * cosine(counts(grams(a)), counts(grams(b)));
+    const ta = toks(a);
+    const tb = toks(b);
+
+    const tokenScore = cosine(counts(ta), counts(tb));
+    const gramScore = cosine(counts(grams(a)), counts(grams(b)));
+
+    return 0.68 * tokenScore + 0.32 * gramScore;
+  }
+
+  function entryTexts(entry) {
+    return [
+      entry.k,
+      ...(Array.isArray(entry.aliases) ? entry.aliases : [])
+    ].filter(Boolean);
   }
 
   function findQuestion(q) {
     const nq = norm(q);
-    return data.qa.findIndex(x => norm(x.k) === nq);
+
+    return data.qa.findIndex(x =>
+      entryTexts(x).some(k => norm(k) === nq)
+    );
   }
 
   function best(q) {
-    let bi = -1,
-      bs = 0;
-    data.qa.forEach((x, i) => {
-      const s = sim(q, x.k || "");
-      if (s > bs) {
-        bs = s;
-        bi = i;
+    let bestIndex = -1;
+    let bestScore = 0;
+
+    data.qa.forEach((entry, i) => {
+      const score = Math.max(
+        ...entryTexts(entry).map(k => sim(q, k))
+      );
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = i;
       }
     });
-    return { i: bi, s: bs };
+
+    return { i: bestIndex, s: bestScore };
   }
 
   function lastUserQuestion() {
     for (let i = data.log.length - 1; i >= 0; i--) {
-      if (data.log[i] && data.log[i].role === "user") return data.log[i].text;
+      const item = data.log[i];
+
+      if (item && item.role === "user") {
+        return item.text;
+      }
     }
+
     return null;
   }
 
   function addSeed() {
     const known = new Set(data.qa.map(x => norm(x.k)));
-    let n = 0;
+    let added = 0;
+
     seed.forEach(([k, a]) => {
       if (!known.has(norm(k))) {
-        data.qa.push({ k, a, source: "seed" });
-        n++;
+        data.qa.push({
+          k,
+          a,
+          aliases: [],
+          source: "seed"
+        });
+
+        added++;
       }
     });
+
     save();
-    return n;
+    return added;
   }
 
   if (!data.seeded) {
@@ -153,26 +216,55 @@ Ich speichere dein Wissen auf diesem Gerät.`;
     save();
   }
 
-  function learn(q, a) {
-    q = String(q || "").trim();
-    a = String(a || "").trim();
+  // Wissen speichern oder vorhandenes Wissen verbessern.
+  function learn(question, answer, aliases = []) {
+    question = String(question || "").trim();
+    answer = String(answer || "").trim();
 
-    if (!q || !a) return "Frage und Antwort dürfen nicht leer sein.";
-
-    const existing = findQuestion(q);
-    if (existing >= 0) {
-      data.qa[existing] = { ...data.qa[existing], k: q, a, source: "user" };
-    } else {
-      const b = best(q);
-      if (b.i >= 0 && b.s > 0.94) {
-        data.qa[b.i] = { ...data.qa[b.i], k: q, a, source: "user" };
-      } else {
-        data.qa.push({ k: q, a, source: "user" });
-      }
+    if (!question || !answer) {
+      return "Frage und Antwort dürfen nicht leer sein.";
     }
 
+    const existing = findQuestion(question);
+    const entry = existing >= 0 ? data.qa[existing] : null;
+
+    if (entry) {
+      entry.k = question;
+      entry.a = answer;
+      entry.source = "user";
+      entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
+    } else {
+      data.qa.push({
+        k: question,
+        a: answer,
+        aliases: [],
+        source: "user"
+      });
+    }
+
+    const target = existing >= 0 ? entry : data.qa[data.qa.length - 1];
+
+    aliases.forEach(alias => {
+      alias = String(alias || "").trim();
+
+      if (
+        alias &&
+        norm(alias) !== norm(target.k) &&
+        !target.aliases.some(x => norm(x) === norm(alias))
+      ) {
+        target.aliases.push(alias);
+      }
+    });
+
     save();
-    return "Danke! Das habe ich gelernt. Ich habe jetzt " + data.qa.length + " Wissenseinträge. Frag mich später danach!";
+
+    return "Danke! Das habe ich gelernt.\n\nFrage: " +
+      question +
+      "\nAntwort: " +
+      answer +
+      "\n\nIch habe jetzt " +
+      data.qa.length +
+      " Wissenseinträge.";
   }
 
   function setPending(kind, payload) {
@@ -184,10 +276,46 @@ Ich speichere dein Wissen auf diesem Gerät.`;
     if (typeof data.pending === "string") {
       return { kind: "answer", question: data.pending };
     }
-    return data.pending && typeof data.pending === "object" ? data.pending : null;
+
+    return data.pending && typeof data.pending === "object"
+      ? data.pending
+      : null;
   }
 
-  function classify(t) {
+  // Erkennt einfache Fakten wie:
+  // "Ein Okapi ist ein Waldtier."
+  function parseFact(text) {
+    const match = text.match(
+      /^(.+?)\s+(ist|sind|war|heißt|bedeutet|liegt in|lebt in|besteht aus)\s+(.+)[.!?]*$/i
+    );
+
+    if (!match) return null;
+
+    const subject = match[1].trim();
+    const answer = match[3].trim().replace(/[.!?]+$/, "");
+
+    if (!subject || !answer) return null;
+
+    return {
+      question: "Was ist " + subject + "?",
+      answer,
+      original: text
+    };
+  }
+
+  function learnFact(text) {
+    const fact = parseFact(text);
+
+    if (!fact) return null;
+
+    return learn(
+      fact.question,
+      fact.answer,
+      [fact.original]
+    );
+  }
+
+  function classify(text) {
     const groups = {};
 
     data.classes.forEach(x => {
@@ -200,57 +328,62 @@ Ich speichere dein Wissen auf diesem Gerät.`;
       return "Ich brauche Beispiele aus mindestens zwei Kategorien.";
     }
 
-    const words = toks(t);
-    const vocab = new Set();
+    const words = toks(text);
+    const vocabulary = new Set();
 
-    Object.values(groups)
-      .flat()
-      .forEach(x => {
-        toks(x).forEach(w => vocab.add(w));
-      });
+    Object.values(groups).flat().forEach(x => {
+      toks(x).forEach(w => vocabulary.add(w));
+    });
 
     const total = data.classes.length;
 
-    const scores = names
-      .map(n => {
-        const c = {};
-        let count = 0;
+    const scores = names.map(name => {
+      const countsByWord = {};
+      let count = 0;
 
-        groups[n].forEach(x => {
-          toks(x).forEach(w => {
-            c[w] = (c[w] || 0) + 1;
-            count++;
-          });
+      groups[name].forEach(x => {
+        toks(x).forEach(w => {
+          countsByWord[w] = (countsByWord[w] || 0) + 1;
+          count++;
         });
+      });
 
-        let s = Math.log(groups[n].length / total);
+      let score = Math.log(groups[name].length / total);
 
-        words.forEach(w => {
-          s += Math.log(((c[w] || 0) + 0.5) / (count + 0.5 * (vocab.size + 1)));
-        });
+      words.forEach(w => {
+        score += Math.log(
+          ((countsByWord[w] || 0) + 0.5) /
+          (count + 0.5 * (vocabulary.size + 1))
+        );
+      });
 
-        return [n, s / Math.sqrt(Math.max(1, words.length))];
-      })
-      .sort((a, b) => b[1] - a[1]);
+      return [name, score / Math.sqrt(Math.max(1, words.length))];
+    }).sort((a, b) => b[1] - a[1]);
 
-    const ex = scores.map(x => Math.exp(Math.max(-30, (x[1] - scores[0][1]) * 2.5)));
-    const z = ex.reduce((a, b) => a + b, 0);
+    const exp = scores.map(x =>
+      Math.exp(Math.max(-30, (x[1] - scores[0][1]) * 2.5))
+    );
 
-    return "Ich tippe auf: " + scores[0][0] + " (" + Math.round((ex[0] / z) * 100) + " %).";
+    const totalExp = exp.reduce((a, b) => a + b, 0);
+    const confidence = Math.round(exp[0] / totalExp * 100);
+
+    return "Ich tippe auf: " + scores[0][0] +
+      " (" + confidence + " %).";
   }
 
-  function handle(t) {
-    const low = t.toLocaleLowerCase("de");
-    let m;
+  function handle(text, previousQuestion) {
+    const low = text.toLocaleLowerCase("de");
+    let match;
 
-    if (/(selbstmord|suizid|umbringen|nicht mehr leben|sterben (will|möchte)|töten will|ritzen|selbstverletz)/i.test(t)) {
+    // Sicherheitsrelevante Eingaben.
+    if (/(selbstmord|suizid|umbringen|nicht mehr leben|sterben (will|möchte)|töten will|ritzen|selbstverletz)/i.test(text)) {
       return "Das klingt ernst. Bitte bleib damit nicht allein und sprich mit einer vertrauten Person. Die TelefonSeelsorge erreichst du kostenlos unter 0800 111 0 111, 0800 111 0 222 oder 116 123. Bei unmittelbarer Gefahr ruf 112.";
     }
 
     if (/^(hilfe|help|\?)$/.test(low)) return help;
 
-    if (/^(wer bist du|was kannst du|wer bist du\?)$/i.test(t)) {
-      return "Ich bin dein lokaler LernBot. Ich kann dir Wissen beibringen, Fragen beantworten und aus deinen Eingaben lernen. Tippe „hilfe“, um alle Befehle zu sehen.";
+    if (/^(wer bist du|was kannst du)\??$/i.test(text)) {
+      return "Ich bin dein lokaler LernBot. Ich kann Wissen speichern, Fragen beantworten, Zusammenhänge anhand gespeicherter Beispiele erkennen und aus deinen Eingaben lernen. Ich habe kein eigenes Internet und bin noch keine vollwertige Sprachmodell-KI.";
     }
 
     if (low === "grundwissen laden") {
@@ -263,9 +396,12 @@ Ich speichere dein Wissen auf diesem Gerät.`;
       return "Chatverlauf gelöscht. Dein gelerntes Wissen bleibt erhalten.";
     }
 
-    if (/^(was weißt du|was hast du gelernt|zeig.*gelernt)/i.test(t)) {
+    if (/^(was weißt du|was hast du gelernt|zeig.*gelernt)/i.test(text)) {
       return data.qa.length
-        ? "Das habe ich gelernt:\n" + data.qa.map(x => "• " + x.k + " → " + (x.a || "(nur gemerkt)")).join("\n")
+        ? "Das habe ich gelernt:\n" +
+          data.qa.map(x =>
+            "• " + x.k + " → " + (x.a || "(nur gemerkt)")
+          ).join("\n")
         : "Noch nichts gelernt.";
     }
 
@@ -274,61 +410,96 @@ Ich speichere dein Wissen auf diesem Gerät.`;
     }
 
     if (low === "alles löschen") {
+      if (!confirm("Wirklich alle gelernten Einträge und Kategorien löschen? Exportiere dein Wissen vorher, wenn du es behalten möchtest.")) {
+        return "Löschen abgebrochen. Dein Wissen bleibt erhalten.";
+      }
+
       data.qa = [];
       data.classes = [];
       data.pending = null;
       save();
+
       return "Dein gelerntes Wissen und die Kategorien wurden gelöscht.";
     }
 
-    if (m = t.match(/^vergiss\s*:?\s+(.+)$/i)) {
-      const b = best(m[1]);
-      if (b.i < 0 || b.s < 0.28) return "Dazu finde ich nichts.";
-      const x = data.qa.splice(b.i, 1)[0];
-      save();
-      return "Vergessen: „" + x.k + "“";
-    }
+    // Einzelnen Eintrag vergessen.
+    if (match = text.match(/^vergiss\s*:?\s+(.+)$/i)) {
+      const b = best(match[1]);
 
-    if (m = t.match(/^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s+(.+)$/i)) {
-      const b = m[1];
-      const c = b.match(/^kategorie\s+([^:]+?)\s*:\s*(.+)$/i);
-
-      if (c) {
-        data.classes.push({ t: c[2], c: c[1] });
-        save();
-        return "Gespeichert: „" + c[2] + "“ gehört zu „" + c[1] + "“.";
+      if (b.i < 0 || b.s < 0.28) {
+        return "Dazu finde ich keinen passenden Eintrag.";
       }
 
-      const p = b.match(/^(.+?)\s*(?:=>|->|=| ist | bedeutet | heißt )\s*(.+)$/i);
-      if (p) return learn(p[1], p[2]);
+      const deleted = data.qa.splice(b.i, 1)[0];
+      save();
 
-      setPending("teach_question", { answer: b });
-      return "Gerne! Was genau soll ich mir dazu merken? Formuliere es bitte als Frage oder Thema.";
+      return "Vergessen: „" + deleted.k + "“";
     }
 
-    if (m = t.match(/^(?:ich bringe dir bei|ich bring dir bei|ich möchte dir beibringen|ich will dir beibringen|pass auf|merk dir bitte)\s*:?\s*(.+)$/i)) {
-      const rest = m[1];
-      const p = rest.match(/^(.+?)\s*(?:=|=>|->|\sist\s|\sbedeutet\s|\sheißt\s)(.+)$/i);
-      if (p) return learn(p[1], p[2]);
+    // Kategorien lernen.
+    if (match = text.match(/^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s*kategorie\s+([^:]+?)\s*:\s*(.+)$/i)) {
+      data.classes.push({
+        t: match[2].trim(),
+        c: match[1].trim()
+      });
 
-      setPending("teach_question", { answer: rest });
-      return "Okay, ich höre zu. Was ist die richtige Erklärung oder Antwort dazu?";
+      save();
+
+      return "Gespeichert: „" + match[2] +
+        "“ gehört zu „" + match[1] + "“.";
     }
 
-    if (m = t.match(/^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i)) {
-      const rest = m[1];
-      const p = rest.match(/^(.+?)\s*(?:=|\sist\s|\sbedeutet\s|\sheißt\s)(.+)$/i);
-      if (p) return learn(p[1], p[2]);
+    // Explizite Lehrversuche.
+    if (match = text.match(/^(?:ich bringe dir bei|ich bring dir bei|ich möchte dir beibringen|ich will dir beibringen|pass auf|merk dir bitte|merke dir|lern|lerne)\s*:?\s*(.+)$/i)) {
+      const fact = learnFact(match[1].trim());
 
-      setPending("teach_question", { answer: rest });
-      return "Danke! Zu welcher Frage oder welchem Begriff gehört diese Erklärung?";
+      if (fact) return fact;
+
+      setPending("teach_fact", {
+        topic: match[1].trim()
+      });
+
+      return "Sehr gerne! Was soll ich über „" +
+        match[1].trim() +
+        "“ lernen? Erkläre es mir in einem Satz.";
     }
 
-    if (m = t.match(/^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i)) {
-      return classify(m[1]);
+    // Alternative Lehrformulierung.
+    if (match = text.match(/^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i)) {
+      const fact = learnFact(match[1].trim());
+
+      if (fact) return fact;
+
+      if (previousQuestion) {
+        return learn(previousQuestion, match[1]);
+      }
+
+      setPending("teach_fact", {
+        topic: match[1].trim()
+      });
+
+      return "Zu welchem Begriff oder welcher Frage gehört diese Erklärung?";
     }
 
+    // Direkte Fakten als Lehrversuch erkennen.
+    const directFact = parseFact(text);
+
+    if (directFact && getPending()?.kind === "teach_fact") {
+      return learn(
+        directFact.question,
+        directFact.answer,
+        [directFact.original]
+      );
+    }
+
+    // Klassifikation.
+    if (match = text.match(/^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i)) {
+      return classify(match[1]);
+    }
+
+    // Auf eine vorherige Antwort warten.
     const pending = getPending();
+
     if (pending) {
       if (/^(abbrechen|egal|stop|lass es)$/i.test(low)) {
         data.pending = null;
@@ -338,51 +509,80 @@ Ich speichere dein Wissen auf diesem Gerät.`;
 
       if (pending.kind === "answer") {
         data.pending = null;
-        return learn(pending.question, t) + "\nAuf „" + pending.question + "“ werde ich künftig so antworten: „" + t + "“";
+        save();
+
+        return learn(pending.question, text);
       }
 
-      if (pending.kind === "teach_question") {
+      if (pending.kind === "teach_fact") {
         data.pending = null;
-        return learn(t, pending.answer);
+        save();
+
+        return learn(
+          "Was ist " + pending.topic + "?",
+          text
+        );
       }
 
       if (pending.kind === "correction") {
         data.pending = null;
-        return learn(pending.question, t);
+        save();
+
+        return learn(pending.question, text);
       }
     }
 
-    if (m = t.match(/^(?:nein[, ]+)?(?:richtig ist|korrekt ist|stattdessen|das ist richtig)\s*:?\s*(.+)$/i)) {
-      const previous = lastUserQuestion();
-      if (previous) return learn(previous, m[1]);
-    }
-
-    if (/^(nein|falsch|das stimmt nicht|nicht ganz|du liegst falsch|das ist falsch|stimmt nicht)\b/i.test(t)) {
-      const previous = lastUserQuestion();
-      if (previous) {
-        setPending("correction", { question: previous });
-        return "Danke für die Korrektur. Was wäre denn richtig? Ich speichere deine Antwort zu deiner vorherigen Frage.";
+    // Explizite Korrektur.
+    if (match = text.match(/^(?:nein[, ]+)?(?:richtig ist|korrekt ist|stattdessen|die richtige antwort ist)\s*:?\s*(.+)$/i)) {
+      if (previousQuestion) {
+        return learn(previousQuestion, match[1]);
       }
-      return "Was genau soll ich korrigieren? Schreib mir bitte die richtige Information.";
+
+      return "Welche meiner Antworten möchtest du korrigieren?";
     }
 
-    const b = best(t);
-    if (b.i >= 0 && b.s >= 0.34) {
-      const x = data.qa[b.i];
-      const a = x.a || "Das habe ich gelernt: " + x.k;
-      return b.s < 0.43 ? "Ich bin nicht ganz sicher, aber vielleicht meinst du:\n" + a : a;
+    if (/^(nein|falsch|das stimmt nicht|nicht ganz|du liegst falsch|das ist falsch|stimmt nicht)\b/i.test(text)) {
+      if (previousQuestion) {
+        setPending("correction", {
+          question: previousQuestion
+        });
+
+        return "Danke für die Korrektur! Was wäre denn richtig? Ich werde meine Antwort verbessern.";
+      }
+
+      return "Was genau soll ich korrigieren? Erkläre mir bitte die richtige Information.";
     }
 
-    setPending("answer", { question: t });
-    return "Das weiß ich noch nicht sicher. Du kannst mir die Antwort einfach erklären – ich speichere sie dann zu deiner Frage. Was ist die richtige Antwort?";
+    // Gespeichertes Wissen suchen.
+    const result = best(text);
+
+    if (result.i >= 0 && result.s >= 0.34) {
+      const entry = data.qa[result.i];
+
+      const answer = entry.a || "Das habe ich gelernt: " + entry.k;
+
+      if (result.s < 0.43) {
+        return "Ich bin mir nicht ganz sicher, aber vielleicht meinst du:\n" + answer;
+      }
+
+      return answer;
+    }
+
+    // Wenn unbekannt: gezielt nach der Antwort fragen.
+    setPending("answer", {
+      question: text
+    });
+
+    return "Das weiß ich noch nicht sicher.\n\nDu kannst es mir beibringen. Was ist die richtige Antwort?";
   }
 
   function bubble(role, text, store = true) {
-    const d = document.createElement("div");
-    d.className = "msg " + role;
-    d.textContent = text;
+    const element = document.createElement("div");
 
-    $("log").appendChild(d);
+    element.className = "msg " + role;
+    element.textContent = text;
+
+    $("log").appendChild(element);
     $("log").scrollTop = $("log").scrollHeight;
 
     if (store) {
@@ -393,15 +593,23 @@ Ich speichere dein Wissen auf diesem Gerät.`;
 
   function send(text) {
     text = (text ?? $("input").value).trim();
+
     if (!text) return;
 
     $("input").value = "";
+
+    // Vor der neuen Nachricht die vorherige Frage sichern.
+    const previousQuestion = lastUserQuestion();
+
     bubble("user", text);
-    bubble("bot", handle(text));
+
+    const response = handle(text, previousQuestion);
+
+    bubble("bot", response);
   }
 
-  $("bar").addEventListener("submit", e => {
-    e.preventDefault();
+  $("bar").addEventListener("submit", event => {
+    event.preventDefault();
     send();
   });
 
@@ -409,102 +617,142 @@ Ich speichere dein Wissen auf diesem Gerät.`;
     $("drawer").classList.toggle("open");
   };
 
-  document.querySelectorAll("[data-msg]").forEach(b => {
-    b.onclick = () => send(b.dataset.msg);
+  document.querySelectorAll("[data-msg]").forEach(button => {
+    button.onclick = () => send(button.dataset.msg);
   });
 
-  document.querySelectorAll("[data-cmd]").forEach(b => {
-    b.onclick = () => {
-      const c = b.dataset.cmd;
+  document.querySelectorAll("[data-cmd]").forEach(button => {
+    button.onclick = () => {
+      const command = button.dataset.cmd;
+
       $("drawer").classList.remove("open");
 
-      if (c === "theme") {
+      if (command === "theme") {
         document.body.classList.toggle("light");
         return;
       }
-if (c === "refresh") {
-  $("status").textContent = "Suche nach Updates ...";
 
-  (async () => {
-    try {
-      const reg = await navigator.serviceWorker.getRegistration();
+      if (command === "refresh") {
+        $("status").textContent = "Suche nach Updates ...";
 
-      if (reg) {
-        await reg.update();
-      }
+        (async () => {
+          try {
+            const registration =
+              await navigator.serviceWorker.getRegistration();
 
-      $("status").textContent = "App wird aktualisiert ...";
+            if (registration) {
+              await registration.update();
+            }
 
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+            $("status").textContent = "App wird aktualisiert ...";
 
-    } catch (e) {
-      $("status").textContent = "Update fehlgeschlagen. Bitte Internet prüfen.";
-    }
-  })();
+            setTimeout(() => location.reload(), 1500);
+          } catch (error) {
+            $("status").textContent =
+              "Update fehlgeschlagen. Bitte Internet prüfen.";
+          }
+        })();
 
-  return;
-}
-      if (c === "export") {
-        const blob = new Blob([JSON.stringify({ qa: data.qa, classes: data.classes }, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "mein-lernbot-wissen.json";
-        a.click();
-        URL.revokeObjectURL(url);
         return;
       }
 
-      if (c === "import") {
+      if (command === "export") {
+        const backup = {
+          version: 2,
+          qa: data.qa,
+          classes: data.classes
+        };
+
+        const blob = new Blob(
+          [JSON.stringify(backup, null, 2)],
+          { type: "application/json" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "mein-lernbot-wissen.json";
+        link.click();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        return;
+      }
+
+      if (command === "import") {
         $("filepick").click();
         return;
       }
 
-      send(c);
+      send(command);
     };
   });
 
   const picker = document.createElement("input");
+
   picker.type = "file";
   picker.accept = ".json,application/json";
   picker.hidden = true;
   picker.id = "filepick";
+
   document.body.appendChild(picker);
 
   picker.onchange = () => {
-    const f = picker.files[0];
-    if (!f) return;
+    const file = picker.files[0];
 
-    const r = new FileReader();
+    if (!file) return;
 
-    r.onload = () => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
       try {
-        const x = JSON.parse(r.result);
+        const imported = JSON.parse(reader.result);
 
-        if (!Array.isArray(x.qa) || !Array.isArray(x.classes)) {
-          throw Error();
+        if (
+          !Array.isArray(imported.qa) ||
+          !Array.isArray(imported.classes) ||
+          !confirm("Der Import ersetzt dein bisheriges Wissen. Hast du vorher ein Backup erstellt?")
+        ) {
+          bubble("bot", "Import abgebrochen. Dein bisheriges Wissen bleibt erhalten.");
+          picker.value = "";
+          return;
         }
 
-        data.qa = x.qa;
-        data.classes = x.classes;
+        data.qa = imported.qa.filter(
+          x => x && typeof x === "object" && typeof x.k === "string"
+        );
+
+        data.classes = imported.classes;
         save();
-        bubble("bot", "Wissen importiert.");
-      } catch (e) {
-        bubble("bot", "Datei konnte nicht importiert werden.");
+
+        bubble("bot", "Wissen erfolgreich importiert.");
+      } catch (error) {
+        bubble("bot", "Die Datei konnte nicht importiert werden.");
       }
+
+      picker.value = "";
     };
 
-    r.readAsText(f);
+    reader.readAsText(file);
   };
 
+  // Vorhandenen Chatverlauf wiederherstellen.
   if (data.log.length) {
-    data.log.forEach(x => bubble(x.role, x.text, false));
+    data.log.forEach(item => {
+      if (item && typeof item.text === "string") {
+        bubble(item.role === "user" ? "user" : "bot", item.text, false);
+      }
+    });
   } else {
-    bubble("bot", "Hallo! Ich bin dein LernBot. Du kannst mir Fragen stellen oder Wissen beibringen.", false);
+    bubble(
+      "bot",
+      "Hallo! Ich bin dein LernBot. Du kannst mir Fragen stellen oder Wissen beibringen.",
+      false
+    );
   }
 
+  // Service Worker registrieren.
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("./sw.js").catch(() => {});
