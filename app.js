@@ -33,12 +33,11 @@ Du kannst ganz normal mit mir schreiben.
 Wenn ich etwas nicht weiß, frage ich dich nach der Antwort.
 Ich speichere dein Wissen auf diesem Gerät.`;
 
-    let data;
+  let data;
 
-  // Einmaliger Neustart: alte Testdaten entfernen
-  localStorage.removeItem(KEY);
-
-  data = null;
+  try {
+    data = JSON.parse(localStorage.getItem(KEY) || "null");
+  } catch (e) {}
 
   if (!data || typeof data !== "object") {
     data = { qa: [], classes: [], log: [], pending: null, theme: "dark" };
