@@ -422,7 +422,30 @@ Ich speichere dein Wissen auf diesem Gerät.`;
         document.body.classList.toggle("light");
         return;
       }
+if (c === "refresh") {
+  $("status").textContent = "Suche nach Updates ...";
 
+  (async () => {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+
+      if (reg) {
+        await reg.update();
+      }
+
+      $("status").textContent = "App wird aktualisiert ...";
+
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
+
+    } catch (e) {
+      $("status").textContent = "Update fehlgeschlagen. Bitte Internet prüfen.";
+    }
+  })();
+
+  return;
+}
       if (c === "export") {
         const blob = new Blob([JSON.stringify({ qa: data.qa, classes: data.classes }, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
