@@ -1,4 +1,5 @@
 
+
 (() => {
   "use strict";
 
@@ -26,6 +27,9 @@ LERNEN:
 „Ich bringe dir bei: Ein Okapi ist ein Waldtier.“
 „Merke dir: Die Hauptstadt von Frankreich ist Paris.“
 
+ALTERNATIVE FRAGEN:
+„Alternative Frage: Was ist ein Okapi? = Zu welcher Tierart gehört das Okapi?“
+
 KORRIGIEREN:
 „Nein, das stimmt nicht.“
 „Richtig ist: ...“
@@ -42,7 +46,7 @@ WEITERE BEFEHLE:
 
 Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
-  // Bestehende Daten laden – niemals automatisch zurücksetzen.
+  // Vorhandene Daten laden und schützen.
   let data;
 
   try {
@@ -64,8 +68,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
   data.qa = Array.isArray(data.qa) ? data.qa : [];
   data.classes = Array.isArray(data.classes) ? data.classes : [];
   data.log = Array.isArray(data.log) ? data.log : [];
-
-  // Alte Einträge bleiben kompatibel.
   data.qa = data.qa.filter(x => x && typeof x === "object" && typeof x.k === "string");
 
   function save() {
@@ -80,6 +82,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     }
   }
 
+  // Texte vereinheitlichen.
   function norm(s) {
     return String(s ?? "")
       .toLocaleLowerCase("de")
@@ -88,8 +91,9 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       .trim();
   }
 
+  // Wörter, die für die Bedeutung einer Frage meist unwichtig sind.
   const stop = new Set(
-    "der die das den dem des ein eine einen einem einer ist sind war was wer wie wo wann und oder von zu in im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also".split(" ")
+    "der die das den dem des ein eine einen einem einer ist sind war was wer wie wo wann und oder von zu im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also welcher welche welches gehört tierart art frage antwort bedeutet dasselbe gleich".split(" ")
   );
 
   function toks(s) {
@@ -110,7 +114,11 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
   function counts(a) {
     const result = {};
-    a.forEach(x => result[x] = (result[x] || 0) + 1);
+
+    a.forEach(x => {
+      result[x] = (result[x] || 0) + 1;
+    });
+
     return result;
   }
 
@@ -134,28 +142,42 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     return result;
   }
 
+  // Verbesserte Ähnlichkeitserkennung.
   function sim(a, b) {
-    const ta = toks(a);
-    const tb = toks(b);
+    const ta = [...new Set(toks(a))];
+    const tb = [...new Set(toks(b))];
 
-    const tokenScore = cosine(counts(ta), counts(tb));
-    const gramScore = cosine(counts(grams(a)), counts(grams(b)));
+    if (!ta.length || !tb.length) return 0;
 
-    return 0.68 * tokenScore + 0.32 * gramScore;
+    const ca = counts(ta);
+    const cb = counts(tb);
+
+    const tokenScore = cosine(ca, cb);
+    const common = ta.filter(w => tb.includes(w)).length;
+    const overlap = common / Math.min(ta.length, tb.length);
+
+    const gramScore = cosine(
+      counts(grams(a)),
+      counts(grams(b))
+    );
+
+    return 0.45 * tokenScore +
+           0.40 * overlap +
+           0.15 * gramScore;
   }
 
   function entryTexts(entry) {
     return [
       entry.k,
       ...(Array.isArray(entry.aliases) ? entry.aliases : [])
-    ].filter(Boolean);
+    ].filter(x => typeof x === "string" && x.trim());
   }
 
   function findQuestion(q) {
     const nq = norm(q);
 
-    return data.qa.findIndex(x =>
-      entryTexts(x).some(k => norm(k) === nq)
+    return data.qa.findIndex(entry =>
+      entryTexts(entry).some(k => norm(k) === nq)
     );
   }
 
@@ -164,9 +186,10 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     let bestScore = 0;
 
     data.qa.forEach((entry, i) => {
-      const score = Math.max(
-        ...entryTexts(entry).map(k => sim(q, k))
-      );
+      const texts = entryTexts(entry);
+      if (!texts.length) return;
+
+      const score = Math.max(...texts.map(k => sim(q, k)));
 
       if (score > bestScore) {
         bestScore = score;
@@ -216,7 +239,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     save();
   }
 
-  // Wissen speichern oder vorhandenes Wissen verbessern.
+  // Wissen speichern.
   function learn(question, answer, aliases = []) {
     question = String(question || "").trim();
     answer = String(answer || "").trim();
@@ -226,33 +249,34 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     }
 
     const existing = findQuestion(question);
-    const entry = existing >= 0 ? data.qa[existing] : null;
+    let entry;
 
-    if (entry) {
-      entry.k = question;
+    if (existing >= 0) {
+      entry = data.qa[existing];
       entry.a = answer;
       entry.source = "user";
-      entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
     } else {
-      data.qa.push({
+      entry = {
         k: question,
         a: answer,
         aliases: [],
         source: "user"
-      });
+      };
+
+      data.qa.push(entry);
     }
 
-    const target = existing >= 0 ? entry : data.qa[data.qa.length - 1];
+    entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
 
     aliases.forEach(alias => {
       alias = String(alias || "").trim();
 
       if (
         alias &&
-        norm(alias) !== norm(target.k) &&
-        !target.aliases.some(x => norm(x) === norm(alias))
+        norm(alias) !== norm(entry.k) &&
+        !entry.aliases.some(x => norm(x) === norm(alias))
       ) {
-        target.aliases.push(alias);
+        entry.aliases.push(alias);
       }
     });
 
@@ -265,6 +289,35 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       "\n\nIch habe jetzt " +
       data.qa.length +
       " Wissenseinträge.";
+  }
+
+  // Eine alternative Frage zu einem vorhandenen Eintrag hinzufügen.
+  function addAlias(original, alternative) {
+    const index = findQuestion(original);
+
+    if (index < 0) {
+      return "Diese ursprüngliche Frage kenne ich noch nicht. Bitte prüfe die Formulierung.";
+    }
+
+    const entry = data.qa[index];
+
+    if (norm(alternative) === norm(entry.k)) {
+      return "Diese Frage ist bereits die Hauptfrage des Eintrags.";
+    }
+
+    entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
+
+    if (entry.aliases.some(x => norm(x) === norm(alternative))) {
+      return "Diese alternative Frage kenne ich bereits.";
+    }
+
+    entry.aliases.push(alternative.trim());
+    save();
+
+    return "Sehr gut! Ich habe eine alternative Frage gespeichert.\n\n" +
+      "Hauptfrage: " + entry.k +
+      "\nAlternative: " + alternative +
+      "\nAntwort: " + entry.a;
   }
 
   function setPending(kind, payload) {
@@ -282,8 +335,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       : null;
   }
 
-  // Erkennt einfache Fakten wie:
-  // "Ein Okapi ist ein Waldtier."
+  // Einfache Fakten erkennen.
   function parseFact(text) {
     const match = text.match(
       /^(.+?)\s+(ist|sind|war|heißt|bedeutet|liegt in|lebt in|besteht aus)\s+(.+)[.!?]*$/i
@@ -296,8 +348,11 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
     if (!subject || !answer) return null;
 
+    const normalizedSubject =
+      subject.charAt(0).toLocaleLowerCase("de") + subject.slice(1);
+
     return {
-      question: "Was ist " + subject + "?",
+      question: "Was ist " + normalizedSubject + "?",
       answer,
       original: text
     };
@@ -383,7 +438,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     if (/^(hilfe|help|\?)$/.test(low)) return help;
 
     if (/^(wer bist du|was kannst du)\??$/i.test(text)) {
-      return "Ich bin dein lokaler LernBot. Ich kann Wissen speichern, Fragen beantworten, Zusammenhänge anhand gespeicherter Beispiele erkennen und aus deinen Eingaben lernen. Ich habe kein eigenes Internet und bin noch keine vollwertige Sprachmodell-KI.";
+      return "Ich bin dein lokaler LernBot. Ich kann Wissen speichern, alternative Fragen erkennen und aus deinen Eingaben lernen. Ich habe kein eigenes Internet und bin noch keine vollwertige Sprachmodell-KI.";
     }
 
     if (low === "grundwissen laden") {
@@ -400,7 +455,8 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return data.qa.length
         ? "Das habe ich gelernt:\n" +
           data.qa.map(x =>
-            "• " + x.k + " → " + (x.a || "(nur gemerkt)")
+            "• " + x.k + " → " + (x.a || "(nur gemerkt)") +
+            (x.aliases?.length ? "\n  Alternative Fragen: " + x.aliases.join("; ") : "")
           ).join("\n")
         : "Noch nichts gelernt.";
     }
@@ -434,6 +490,20 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       save();
 
       return "Vergessen: „" + deleted.k + "“";
+    }
+
+    // Alternative Fragen erkennen.
+    if (match = text.match(
+      /^(?:alternative frage|gleichbedeutende frage)\s*:\s*(.+?)\s*(?:=|->|bedeutet dasselbe wie|ist dasselbe wie)\s*(.+)$/i
+    )) {
+      return addAlias(match[2], match[1]);
+    }
+
+    // Auch natürliche Formulierungen erkennen.
+    if (match = text.match(
+      /^(.+?)\s+(?:bedeutet dasselbe wie|ist dasselbe wie|meint dasselbe wie)\s+(.+)[.!?]*$/i
+    )) {
+      return addAlias(match[2].replace(/[.!?]+$/, ""), match[1].trim());
     }
 
     // Kategorien lernen.
@@ -510,7 +580,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       if (pending.kind === "answer") {
         data.pending = null;
         save();
-
         return learn(pending.question, text);
       }
 
@@ -527,7 +596,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       if (pending.kind === "correction") {
         data.pending = null;
         save();
-
         return learn(pending.question, text);
       }
     }
@@ -558,10 +626,9 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
     if (result.i >= 0 && result.s >= 0.34) {
       const entry = data.qa[result.i];
-
       const answer = entry.a || "Das habe ich gelernt: " + entry.k;
 
-      if (result.s < 0.43) {
+      if (result.s < 0.48) {
         return "Ich bin mir nicht ganz sicher, aber vielleicht meinst du:\n" + answer;
       }
 
@@ -598,7 +665,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
     $("input").value = "";
 
-    // Vor der neuen Nachricht die vorherige Frage sichern.
     const previousQuestion = lastUserQuestion();
 
     bubble("user", text);
@@ -658,7 +724,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
       if (command === "export") {
         const backup = {
-          version: 2,
+          version: 3,
           qa: data.qa,
           classes: data.classes
         };
