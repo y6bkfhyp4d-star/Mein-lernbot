@@ -1046,13 +1046,8 @@ Ich speichere mein Wissen auf diesem Gerät.`;
         data.qa[result.i].a;
     }
 
-    // Unbekannte Frage.
-    setPending("answer", {
-      question: text
-    });
-
-    return "Das weiß ich noch nicht sicher.\n\n" +
-      "Du kannst es mir beibringen. Was ist die richtige Antwort?";
+// Unbekannte Fragen an die verbundene KI weitergeben.
+return null;
   }
 
   // --------------------------------------------------
@@ -1074,21 +1069,79 @@ Ich speichere mein Wissen auf diesem Gerät.`;
     }
   }
 
-  function send(text) {
-    text = String(text ?? $("input").value).trim();
+  let busy = false;
 
-    if (!text) return;
+async function send(text) {
+  text = String(text ?? $("input").value).trim();
+  if (!text || busy) return;
 
-    $("input").value = "";
+  $("input").value = "";
 
-    const previousQuestion = lastUserQuestion();
+  const previousLog = data.log.slice();
+  const previousQuestion = lastUserQuestion();
 
-    bubble("user", text);
+  bubble("user", text);
 
-    const response = handle(text, previousQuestion);
+  const response = handle(text, previousQuestion);
 
+  if (response !== null) {
     bubble("bot", response);
+    return;
   }
+
+  busy = true;
+  const loading = bubble("bot", "Ich denke nach ...", false);
+
+  try {
+    const context = data.facts.slice(-30)
+      .map(f => `${f.subject} | ${f.property}: ${f.value}`)
+      .join("\n");
+
+    const history = previousLog.slice(-10).map(item => ({
+      role: item.role === "bot" || item.role === "assistant"
+        ? "assistant"
+        : "user",
+      content: item.text
+    }));
+
+    const result = await fetch(
+      "https://mein-lernbot.vercel.app/api/chat",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message:
+            "Gespeichertes Wissen:\n" + context +
+            "\n\nNutzerfrage: " + text,
+          history
+        })
+      }
+    );
+
+    const answer = await result.json();
+
+    if (!result.ok) {
+      throw new Error(answer.error || "KI-Anfrage fehlgeschlagen.");
+    }
+
+    if (!answer.answer) {
+      throw new Error("Die KI hat keine Antwort geliefert.");
+    }
+
+    loading.textContent = answer.answer;
+    data.log.push({ role: "bot", text: answer.answer });
+    save();
+
+  } catch (error) {
+    loading.textContent =
+      "Ich kann die KI gerade nicht erreichen: " + error.message;
+    data.log.push({ role: "bot", text: loading.textContent });
+    save();
+
+  } finally {
+    busy = false;
+  }
+}
 
   // --------------------------------------------------
   // 14. EINGABEN UND MENÜ
