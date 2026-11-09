@@ -1076,7 +1076,28 @@ let activeController = null;
 
 async function send(text) {
   text = String(text ?? $("input").value).trim();
-  if (!text || busy) return;
+if (!text) return;
+
+if (/^(abbrechen|stop|stopp|egal)$/i.test(text)) {
+  if (activeController) {
+    activeController.abort();
+  }
+
+  if (busy) {
+    busy = false;
+    activeController = null;
+    bubble("bot", "Anfrage abgebrochen.");
+  } else {
+    data.pending = null;
+    save();
+    bubble("bot", "Alles klar. Wir lassen das.");
+  }
+
+  $("input").value = "";
+  return;
+}
+
+if (busy) return;
 
   $("input").value = "";
 
