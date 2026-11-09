@@ -1,73 +1,74 @@
-
 (() => {
 "use strict";
 
+/* ==========================================
+   LERNBOT 2.0 – MULTI-BRAIN-SYSTEM
+   7 spezialisierte Module + Meta-KI
+   ========================================== */
+
 const $ = id => document.getElementById(id);
 const KEY = "meinLernBot.v1";
-const API = "https://mein-lernbot.vercel.app/api/chat";
+const VERSION = 2;
 
 const seed = [
-["Hallo Hi Guten Tag", "Hallo! Schön, dass du da bist. Tippe „hilfe“, um zu sehen, was ich kann."],
-["Notfall", "Bei akuter Gefahr zuerst 112 anrufen. Polizei: 110."],
-["Notruf Nummer Polizei Feuerwehr Krankenwagen", "112: Rettungsdienst und Feuerwehr. 110: Polizei. 116 117: ärztlicher Bereitschaftsdienst."],
-["Herzstillstand Wiederbelebung Reanimation", "Bei Bewusstlosigkeit und keiner normalen Atmung sofort 112 wählen und den Anweisungen der Leitstelle folgen."],
-["Bewusstlos Seitenlage", "Bei Bewusstlosigkeit 112 rufen und Atmung prüfen. Bei normaler Atmung stabile Seitenlage, sofern keine Verletzung dagegenspricht."],
-["Blutung Wunde blutet", "Bei starker Blutung 112 rufen und direkten, festen Druck auf die Wunde ausüben."],
-["Verbrennung verbrannt Verbrühung", "Von der Hitzequelle entfernen. Keine Eiswürfel oder Hausmittel verwenden. Bei größeren Verbrennungen 112 rufen."],
-["Schlaganfall", "Mögliche Zeichen: hängender Mundwinkel, Schwäche auf einer Seite, Sprach- oder Sehstörungen. Sofort 112 rufen."],
-["Herzinfarkt Brustschmerzen", "Bei Verdacht auf Herzinfarkt sofort 112 rufen."],
-["Vergiftung Gift", "Kein Erbrechen auslösen und keine Hausmittel geben. Bei schweren Symptomen 112 rufen."],
-["Brand Feuer brennt", "Menschen warnen, Gebäude verlassen, Türen schließen und keinen Aufzug benutzen. Von draußen 112 rufen."],
-["Wer bist du Was kannst du", "Ich bin dein lokaler LernBot. Ich speichere Wissen auf diesem Gerät, lerne aus Eingaben und kann kostenlos verschiedene Wissensquellen durchsuchen."]
+["Hallo Hi Guten Tag","Hallo! Schön, dass du da bist. Ich bin dein LernBot 2.0!"],
+["Notfall","Bei akuter Gefahr zuerst 112 anrufen. Polizei: 110."],
+["Notruf Nummer Polizei Feuerwehr Krankenwagen","112: Rettungsdienst und Feuerwehr. 110: Polizei. 116 117: ärztlicher Bereitschaftsdienst."],
+["Herzstillstand Wiederbelebung Reanimation","Bei Bewusstlosigkeit und keiner normalen Atmung sofort 112 wählen und den Anweisungen der Leitstelle folgen."],
+["Bewusstlos Seitenlage","Bei Bewusstlosigkeit 112 rufen und Atmung prüfen. Bei normaler Atmung stabile Seitenlage, sofern keine Verletzung dagegenspricht."],
+["Blutung Wunde blutet","Bei starker Blutung 112 rufen und direkten, festen Druck auf die Wunde ausüben."],
+["Verbrennung verbrannt Verbrühung","Von der Hitzequelle entfernen. Keine Eiswürfel oder Hausmittel verwenden. Bei größeren Verbrennungen 112 rufen."],
+["Schlaganfall","Mögliche Zeichen: hängender Mundwinkel, Schwäche auf einer Seite, Sprach- oder Sehstörungen. Sofort 112 rufen."],
+["Herzinfarkt Brustschmerzen","Bei Verdacht auf Herzinfarkt sofort 112 rufen."],
+["Vergiftung Gift","Kein Erbrechen auslösen und keine Hausmittel geben. Bei schweren Symptomen 112 rufen."],
+["Brand Feuer brennt","Menschen warnen, Gebäude verlassen, Türen schließen und keinen Aufzug benutzen. Von draußen 112 rufen."],
+["Wer bist du Was kannst du","Ich bin dein lokaler LernBot mit mehreren spezialisierten KI-Modulen."]
 ];
 
-const help = `SO KANNST DU MIT MIR ARBEITEN
+const help = `LERNBOT 2.0 – HILFE
 
 LERNEN:
 „Ein Okapi ist ein Säugetier.“
 „Ein Okapi lebt im Regenwald.“
-Du kannst auch ganze Texte oder Artikel einfügen.
+Du kannst ganze Texte einfügen.
 
 FRAGEN:
 „Was ist ein Okapi?“
 „Wo lebt ein Okapi?“
-„Was weißt du über ein Okapi?“
-
-KORRIGIEREN:
-„Nein, das stimmt nicht.“
-„Richtig ist: ...“
+„Was weißt du über Okapi?“
 
 RECHERCHE:
 „Suche: Okapi“
 „Recherchiere: Albert Einstein“
-„Was ist künstliche Intelligenz?“
+„Google: Okapi“
 
 SELBSTREFLEXION:
 „Selbstreflexion“
 „Reflektiere Okapi“
-„Prüfe dein Wissen über Okapi“
+„Prüfe dein Wissen“
 
-GOOGLE:
-„Google: Okapi“
+KI-TEAM:
+„Teamstatus“
+„Zeige deine Module“
+„Meta-Analyse“
+„Verbesserungsvorschläge“
 
-BEFEHLE:
-„Hilfe“
+WISSEN:
 „Was weißt du?“
 „Vergiss: Okapi“
-„Verlauf löschen“
 „Grundwissen laden“
-„Abbrechen“
+„Verlauf löschen“
+„Alles löschen“
 
-Ich speichere Wissen lokal auf diesem Gerät.
-Für Recherche nutze ich kostenlose öffentliche Wissensquellen.
+Die Module arbeiten lokal zusammen.
+Recherche nutzt kostenlose öffentliche Quellen.
 `;
 
 let data;
 try {
   data = JSON.parse(localStorage.getItem(KEY) || "null");
-} catch {
-  data = null;
-}
+} catch { data = null; }
+
 if (!data || typeof data !== "object" || Array.isArray(data)) data = {};
 
 data.qa = Array.isArray(data.qa) ? data.qa : [];
@@ -76,6 +77,9 @@ data.classes = Array.isArray(data.classes) ? data.classes : [];
 data.log = Array.isArray(data.log) ? data.log : [];
 data.pending = data.pending ?? null;
 data.theme = data.theme || "dark";
+data.agentStats = data.agentStats || {};
+data.improvements = Array.isArray(data.improvements) ? data.improvements : [];
+data.audit = Array.isArray(data.audit) ? data.audit : [];
 
 data.qa = data.qa.filter(x => x && typeof x.k === "string");
 data.facts = data.facts.filter(x =>
@@ -90,6 +94,8 @@ data.log = data.log.filter(x => x && typeof x.text === "string");
 
 function save() {
   data.log = data.log.slice(-150);
+  data.audit = data.audit.slice(-300);
+  data.improvements = data.improvements.slice(-100);
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
     return true;
@@ -99,535 +105,751 @@ function save() {
   }
 }
 
-function norm(text) {
-  return String(text ?? "")
-    .toLocaleLowerCase("de")
+function norm(s) {
+  return String(s ?? "").toLocaleLowerCase("de")
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/\s+/g, " ").trim();
 }
 
-function clean(text) {
-  return String(text ?? "").trim().replace(/[.!?]+$/, "").trim();
+function clean(s) {
+  return String(s ?? "").trim().replace(/[.!?]+$/, "").trim();
 }
 
-function subjectClean(text) {
-  return clean(text).replace(
+function subjectClean(s) {
+  return clean(s).replace(
     /^(der|die|das|ein|eine|einen|einem|einer|eines)\s+/i, ""
   ).trim();
 }
 
-function sameSubject(a, b) {
+function sameSubject(a,b) {
   return norm(subjectClean(a)) === norm(subjectClean(b));
 }
 
-const stop = new Set(
-  "der die das den dem des ein eine einen einem einer eines ist sind war was wer wie wo wann warum weshalb wieso und oder von zu im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also welcher welche welches gehört frage antwort bedeutet dasselbe gleich".split(" ")
-);
-
-function toks(text) {
-  return norm(text).split(" ")
-    .filter(w => w.length > 1 && !stop.has(w))
-    .map(w => {
-      if (w.length > 6) {
-        for (const end of ["ern", "en", "er", "es", "e", "n", "s"]) {
-          if (w.endsWith(end) && w.length - end.length >= 4) {
-            return w.slice(0, -end.length);
-          }
-        }
-      }
-      return w;
-    });
+function logAudit(agent, action, detail = "") {
+  data.audit.push({
+    agent, action, detail: String(detail).slice(0,300),
+    time: Date.now()
+  });
 }
 
-function counts(words) {
-  const out = {};
-  words.forEach(w => out[w] = (out[w] || 0) + 1);
-  return out;
+function countAgent(name) {
+  data.agentStats[name] = (data.agentStats[name] || 0) + 1;
 }
 
-function cosine(a, b) {
-  const keys = Object.keys(a);
-  const dot = keys.reduce((s, k) => s + a[k] * (b[k] || 0), 0);
-  const na = Math.sqrt(keys.reduce((s, k) => s + a[k] ** 2, 0));
-  const nb = Math.sqrt(Object.values(b).reduce((s, v) => s + v ** 2, 0));
-  return na && nb ? dot / (na * nb) : 0;
+function agentReport() {
+  const names = Object.keys(AGENTS);
+  return names.map(name =>
+    `${AGENTS[name].icon} ${name}: ${data.agentStats[name] || 0} Einsätze`
+  ).join("\n");
 }
 
-function grams(text) {
-  const s = " " + norm(text) + " ";
-  const out = [];
-  for (let i = 0; i < s.length - 2; i++) out.push(s.slice(i, i + 3));
-  return out;
-}
+/* ==========================================
+   GEMEINSAMER WISSENSSPEICHER
+   ========================================== */
 
-function similarity(a, b) {
-  const ta = [...new Set(toks(a))];
-  const tb = [...new Set(toks(b))];
-  if (!ta.length || !tb.length) return 0;
-  const token = cosine(counts(ta), counts(tb));
-  const overlap = ta.filter(w => tb.includes(w)).length / Math.min(ta.length, tb.length);
-  const gram = cosine(counts(grams(a)), counts(grams(b)));
-  return 0.45 * token + 0.40 * overlap + 0.15 * gram;
-}
-
-// --------------------------------------------------
-// FRAGEERKENNUNG
-// --------------------------------------------------
-
-function questionType(q) {
-  const s = norm(q);
-  if (/\b(wo|wohin|woher)\b/.test(s)) return "ort";
-  if (/\b(wann|welches jahr|wie lange)\b/.test(s)) return "zeit";
-  if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) return "menge";
-  if (/\b(wie groß|wie schwer|wie alt)\b/.test(s)) return "eigenschaft";
-  return "allgemein";
-}
-
-function requestedProperty(q) {
-  const s = norm(q);
-  if (/\b(in welchem land|welches land|in welchem staat)\b/.test(s)) return "land";
-  if (/\b(wo lebt|wo wohnt|lebensraum|wo kommt.*vor)\b/.test(s)) return "lebensraum";
-  if (/\b(woher kommt|herkunft)\b/.test(s)) return "herkunft";
-  if (/\b(was frisst|was isst|ernährung|nahrung)\b/.test(s)) return "nahrung";
-  if (/\b(hauptstadt)\b/.test(s)) return "hauptstadt";
-  if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) return "menge";
-  if (/\b(zu welcher tierart|welcher familie|gehört zu)\b/.test(s)) return "tierart";
-  if (/^(was ist|wer ist|was bedeutet|was versteht man unter)\b/.test(s)) return "definition";
-  return null;
-}
-
-function extractSubject(q) {
-  let s = clean(q);
-  const patterns = [
-    /^(?:in welchem land|welches land|in welchem staat)\s+(?:lebt|wohnt)\s+/i,
-    /^(?:zu welcher tierart|zu welcher familie)\s+gehört\s+/i,
-    /^(?:was frisst|was isst|was bedeutet|was ist|wer ist|wo lebt|wo wohnt|woher kommt|wann war|wie viele|wie viel)\s+/i,
-    /^(?:was weißt du über|erzähle mir etwas über|erzähl mir etwas über|reflektiere|prüfe dein wissen über)\s+/i
-  ];
-  patterns.forEach(p => s = s.replace(p, ""));
-  return subjectClean(s);
-}
-
-// --------------------------------------------------
-// FAKTEN SPEICHERN
-// --------------------------------------------------
-
-function addFact(subject, property, value, source = "user") {
+function addFact(subject, property, value, source = "user", confidence = 0.65) {
   subject = subjectClean(subject);
   property = norm(property);
   value = clean(value);
+
   if (!subject || !property || !value) return false;
 
   const index = data.facts.findIndex(f =>
-    sameSubject(f.subject, subject) && norm(f.property) === property
+    sameSubject(f.subject,subject) &&
+    norm(f.property) === property
   );
 
-  const fact = { subject, property, value, source, updated: Date.now() };
+  const fact = {
+    subject, property, value, source,
+    confidence: Math.max(0,Math.min(1,Number(confidence) || 0.5)),
+    updated: Date.now()
+  };
 
-  if (index >= 0) data.facts[index] = { ...data.facts[index], ...fact };
-  else data.facts.push(fact);
+  if (index >= 0) {
+    const old = data.facts[index];
+
+    if (norm(old.value) !== norm(value)) {
+      old.previous = old.value;
+      old.conflict = true;
+      old.value = value;
+      old.source = source;
+      old.confidence = fact.confidence;
+      old.updated = Date.now();
+    } else {
+      old.confidence = Math.max(old.confidence || 0, fact.confidence);
+      old.updated = Date.now();
+    }
+  } else {
+    data.facts.push(fact);
+  }
 
   save();
   return true;
 }
 
+function getFacts(subject) {
+  return data.facts.filter(f => sameSubject(f.subject,subject));
+}
+
 function getFact(subject, property) {
   return data.facts.find(f =>
-    sameSubject(f.subject, subject) &&
+    sameSubject(f.subject,subject) &&
     norm(f.property) === norm(property)
   ) || null;
 }
 
-function parseFact(text) {
-  const s = String(text || "").trim();
-  if (!s || s.includes("?")) return null;
+/* ==========================================
+   TEXTVERARBEITUNG
+   ========================================== */
 
-  if (/^(was|wer|wie|wo|woher|wohin|wann|warum|weshalb|wieso|welcher|welche|welches)\b/i.test(s)) {
-    return null;
-  }
+const STOP = new Set(
+"der die das den dem des ein eine einen einem einer eines ist sind war was wer wie wo wann warum weshalb wieso und oder von zu im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also welcher welche welches gehört frage antwort bedeutet dasselbe gleich".split(" ")
+);
 
-  let m;
-
-  m = s.match(/^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "hauptstadt", value: clean(m[2]) };
-
-  m = s.match(/^(.+?)\s+(lebt|wohnt|befindet sich)\s+(?:in|im|am|auf|unter|bei|zwischen)\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "lebensraum", value: clean(m[3]) };
-
-  m = s.match(/^(.+?)\s+(?:bewohnt|besiedelt)\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "lebensraum", value: clean(m[2]) };
-
-  m = s.match(/^(.+?)\s+kommt\s+aus\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "herkunft", value: clean(m[2]) };
-
-  m = s.match(/^(.+?)\s+(?:frisst|isst|ernährt\s+sich\s+von)\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "nahrung", value: clean(m[2]) };
-
-  m = s.match(/^(.+?)\s+gehört\s+zu\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "familie", value: clean(m[2]) };
-
-  m = s.match(/^(.+?)\s+(?:ist|sind|war|heißt|bedeutet)\s+(.+)[.!?]*$/i);
-  if (m) return { subject: subjectClean(m[1]), property: "definition", value: clean(m[2]) };
-
-  return null;
+function tokens(s) {
+  return norm(s).split(" ").filter(w => w.length > 1 && !STOP.has(w));
 }
 
-// --------------------------------------------------
-// TEXTANALYSE UND LERNEN
-// --------------------------------------------------
+function similarity(a,b) {
+  const x = new Set(tokens(a));
+  const y = new Set(tokens(b));
+  if (!x.size || !y.size) return 0;
+  let common = 0;
+  x.forEach(w => { if (y.has(w)) common++; });
+  return common / Math.max(x.size,y.size);
+}
 
 function splitSentences(text) {
   return String(text || "")
-    .replace(/\r/g, "\n")
-    .replace(/https?:\/\/\S+/gi, " ")
-    .replace(/Quelle:\s*Wikipedia[^\n]*/gi, " ")
-    .replace(/Hinweis: Meine Haupt-KI[^\n]*/gi, " ")
-    .replace(/^\s*(?:FAKTEN|WISSEN|QUELLE).*$/gim, " ")
+    .replace(/\r/g,"\n")
+    .replace(/https?:\/\/\S+/gi," ")
     .split(/(?<=[.!?])\s+|\n+/)
     .map(x => x.trim())
     .filter(x => x.length > 12);
 }
 
+function parseFact(text) {
+  const s = clean(text);
+  if (!s || s.includes("?")) return null;
+  if (/^(was|wer|wie|wo|wann|warum|weshalb|wieso)\b/i.test(s)) return null;
+
+  let m;
+
+  const patterns = [
+    [/^die hauptstadt von (.+?) ist (.+)$/i,"hauptstadt",1,2],
+    [/^(.+?) (?:lebt|wohnt|befindet sich) (?:in|im|am|auf|bei) (.+)$/i,"lebensraum",1,2],
+    [/^(.+?) (?:bewohnt|besiedelt) (.+)$/i,"lebensraum",1,2],
+    [/^(.+?) kommt aus (.+)$/i,"herkunft",1,2],
+    [/^(.+?) (?:frisst|isst|ernährt sich von) (.+)$/i,"nahrung",1,2],
+    [/^(.+?) gehört zu (.+)$/i,"familie",1,2],
+    [/^(.+?) ist (.+)$/i,"definition",1,2]
+  ];
+
+  for (const [regex,property,a,b] of patterns) {
+    m = s.match(regex);
+    if (m) return {
+      subject: subjectClean(m[a]),
+      property,
+      value: clean(m[b])
+    };
+  }
+  return null;
+}
+
+/* ==========================================
+   MINI-KI 1: LERN-KI
+   ========================================== */
+
 function extractArticleFacts(text, defaultSubject = "") {
-  const sentences = splitSentences(text);
   const found = [];
-  const seen = new Set();
-  let currentSubject = defaultSubject || "";
+  let subject = defaultSubject;
 
-  function remember(subject, property, value) {
-    subject = subjectClean(subject);
+  function put(property,value) {
     value = clean(value);
-    property = norm(property);
-
-    if (!subject || !property || !value || value.length < 2) return;
-
-    const key = norm(subject) + "|" + property + "|" + norm(value);
-    if (seen.has(key)) return;
-    seen.add(key);
-
-    const existing = found.find(f =>
-      sameSubject(f.subject, subject) && f.property === property
-    );
-
-    if (existing) {
-      if (!norm(existing.value).includes(norm(value))) {
-        existing.value += "; " + value;
-      }
+    if (!subject || !value || value.length < 2) return;
+    const old = found.find(f => f.property === property);
+    if (old) {
+      if (!norm(old.value).includes(norm(value))) old.value += "; " + value;
     } else {
-      found.push({ subject, property, value });
+      found.push({subject,property,value});
     }
   }
 
-  for (const original of sentences) {
-    const s = original.replace(/<[^>]*>/g, " ")
-      .replace(/\s+/g, " ").trim();
-
-    if (!s || s.length > 700) continue;
-    if (/^(hinweis|quelle|literatur|weblinks|einzelnachweise)/i.test(s)) continue;
-
+  for (const sentence of splitSentences(text)) {
+    const s = sentence.replace(/<[^>]*>/g," ").trim();
     let m;
 
-    // Gegenstand erkennen.
-    m = s.match(/^(?:das|der|die|ein|eine)\s+([\p{L}-]{3,})\b/iu);
-    if (m && !/^(es|sie|ihm|ihnen)$/i.test(m[1])) {
-      currentSubject = m[1];
-    }
+    m = s.match(/^(?:das|der|die|ein|eine)\s+([\p{L}-]{3,})/iu);
+    if (m && !/^(es|sie|er)$/i.test(m[1])) subject = m[1];
 
-    if (!currentSubject) {
-      m = s.match(/^([\p{Lu}][\p{L}-]{2,})\b/u);
-      if (m && !/^(es|sie|er)$/i.test(m[1])) currentSubject = m[1];
-    }
+    if (!subject) continue;
 
-    if (!currentSubject) continue;
-    const subject = currentSubject;
-
-    // Definition: auch Zusätze wie "auch Waldgiraffe genannt" erkennen.
     m = s.match(/^(?:das|der|die)\s+[\p{L}-]+(?:,\s*[^,]+,)?\s+(?:ist|sind)\s+(.+?)(?:[.!?]|$)/iu);
-    if (m) remember(subject, "definition", m[1]);
+    if (m) put("definition",m[1]);
 
-    // Familie und biologische Einordnung.
     m = s.match(/familie\s+der\s+([\p{L}\s-]+?)(?:[,.]|$)/iu);
-    if (m) remember(subject, "familie", m[1]);
+    if (m) put("familie",m[1]);
 
-    m = s.match(/(?:gehört|zählt)\s+(?:zu|zur|zum)\s+(?:der\s+)?([\p{L}\s-]+?)(?:[,.]|$)/iu);
-    if (m) remember(subject, "familie", m[1]);
+    m = s.match(/(?:lebt|wohnt|bewohnt)\s+(?:im|in|am|auf|bei)\s+(.+?)(?:[.!?]|$)/iu);
+    if (m) put("lebensraum",m[1]);
 
-    // Lebensraum.
-    m = s.match(/(?:lebt|wohnt|bewohnt)\s+(?:im|in|am|auf|unter|bei)\s+(.+?)(?:[.!?]|$)/iu);
-    if (m) remember(subject, "lebensraum", m[1]);
-
-    // Herkunft und Verbreitung.
     m = s.match(/(?:kommt|stammt)\s+aus\s+(.+?)(?:[.!?]|$)/iu);
-    if (m) remember(subject, "herkunft", m[1]);
+    if (m) put("herkunft",m[1]);
 
-    m = s.match(/(?:verbreitet|vorkommend)\s+(?:in|auf)\s+(.+?)(?:[.!?]|$)/iu);
-    if (m) remember(subject, "verbreitung", m[1]);
+    m = s.match(/(?:frisst|isst|ernährt sich von)\s+(.+?)(?:[.!?]|$)/iu);
+    if (m) put("nahrung",m[1]);
 
-    // Nahrung.
-    m = s.match(/(?:frisst|isst|ernährt\s+sich\s+von)\s+(.+?)(?:[.!?]|$)/iu);
-    if (m) remember(subject, "nahrung", m[1]);
-
-    // Aussehen und Farbe.
     m = s.match(/(?:ist|sind)\s+(.+?)\s+gefärbt/iu);
-    if (m) remember(subject, "aussehen", m[1] + " gefärbt");
+    if (m) put("aussehen",m[1] + " gefärbt");
 
     m = s.match(/hat\s+(.+?)(?:[.!?]|$)/iu);
     if (m && /fell|streifen|flecken|beine|flügel|ohren|schwanz|muster|federn|hörner/i.test(m[1])) {
-      remember(subject, "aussehen", m[1]);
+      put("aussehen",m[1]);
     }
 
-    m = s.match(/(?:gekennzeichnet|charakterisiert)\s+(?:ist\s+es\s+)?durch\s+(.+?)(?:[.!?]|$)/iu);
-    if (m) remember(subject, "aussehen", m[1]);
+    m = s.match(/(?:gilt als|ist|sind)\s+(stark\s+)?(gefährdet|bedroht|vom aussterben bedroht)/iu);
+    if (m) put("gefährdung",(m[1] || "") + m[2]);
 
-    // Gefährdung.
-    m = s.match(/(?:gilt\s+als|ist|sind)\s+(stark\s+)?(gefährdet|vom\s+aussterben\s+bedroht|bedroht)/iu);
-    if (m) remember(subject, "gefährdung", (m[1] || "") + m[2]);
+    m = s.match(/(?:näher\s+)?verwandt\s+mit\s+(.+?)(?:[,.]|$)/iu);
+    if (m) put("verwandtschaft",m[1]);
 
-    // Verwandtschaft.
-    m = s.match(/(?:verwandt|näher verwandt)\s+mit\s+(.+?)(?:[,.]|$)/iu);
-    if (m) remember(subject, "verwandtschaft", m[1]);
+    m = s.match(/(?:im jahr(?:e)?|seit)\s+(\d{4})\s+(?:beschrieben|entdeckt|erforscht|benannt)/iu);
+    if (m) put("beschrieben",m[1]);
 
-    // Jahreszahlen.
-    m = s.match(/(?:im\s+jahr(?:e)?|seit)\s+(\d{4})\s+(?:beschrieben|entdeckt|erforscht|benannt)/iu);
-    if (m) remember(subject, "beschrieben", m[1]);
-
-    // Direkte Fakten als zusätzliche Möglichkeit.
     const direct = parseFact(s);
-    if (direct && sameSubject(direct.subject, subject)) {
-      remember(subject, direct.property, direct.value);
+    if (direct && sameSubject(direct.subject,subject)) {
+      put(direct.property,direct.value);
     }
   }
 
   return found;
 }
 
-function learnArticle(text, source = "user", defaultSubject = "") {
-  const facts = extractArticleFacts(text, defaultSubject);
+function learnArticle(text, source = "user", subject = "") {
+  const facts = extractArticleFacts(text,subject);
   if (!facts.length) return null;
 
-  let added = 0;
-
+  let changed = 0;
   facts.forEach(f => {
-    const existing = getFact(f.subject, f.property);
-    if (!existing || norm(existing.value) !== norm(f.value)) added++;
-    addFact(f.subject, f.property, f.value, source);
+    const old = getFact(f.subject,f.property);
+    if (!old || norm(old.value) !== norm(f.value)) changed++;
+    addFact(f.subject,f.property,f.value,source,
+      source === "user" ? 0.75 : 0.55);
   });
 
-  return { facts, added, total: data.facts.length };
+  countAgent("Lern-KI");
+  logAudit("Lern-KI","Text gelernt",facts.length + " Fakten");
+  return {facts,changed};
 }
 
 function learnFact(text) {
   const article = learnArticle(text);
-
-  if (article && article.facts.length > 1) {
+  if (article) {
     data.pending = null;
     save();
-
-    return `Ich habe den Text analysiert und ${article.facts.length} Fakten erkannt!
+    return `Ich habe ${article.facts.length} Fakten erkannt:
 
 ${article.facts.map(f =>
   `• ${f.subject} | ${f.property} | ${f.value}`
 ).join("\n")}
 
-Neu hinzugefügt oder aktualisiert: ${article.added}
-Gesamt: ${data.facts.length} Fakten.`;
+Neu oder aktualisiert: ${article.changed}
+Gesamt gespeichert: ${data.facts.length}`;
   }
 
-  const fact = parseFact(text);
-  if (!fact) return null;
-
-  addFact(fact.subject, fact.property, fact.value);
+  const f = parseFact(text);
+  if (!f) return null;
+  addFact(f.subject,f.property,f.value);
   data.pending = null;
-  save();
+  return `Gelernt!
 
-  return `Danke! Das habe ich gelernt.
+${f.subject} | ${f.property} | ${f.value}`;
+}
 
-Gegenstand: ${fact.subject}
-Eigenschaft: ${fact.property}
-Wissen: ${fact.value}
+/* ==========================================
+   MINI-KI 2: FRAGE-ANTWORT-KI
+   ========================================== */
 
-Ich habe jetzt ${data.facts.length} Fakten und ${data.qa.length} Frage-Antwort-Einträge.`;
+function questionType(q) {
+  const s = norm(q);
+  if (/\b(wo|wohin|woher)\b/.test(s)) return "ort";
+  if (/\b(wann|welches jahr|wie lange)\b/.test(s)) return "zeit";
+  if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) return "menge";
+  return "allgemein";
+}
+
+function requestedProperty(q) {
+  const s = norm(q);
+  if (/\b(wo lebt|wo wohnt|lebensraum)\b/.test(s)) return "lebensraum";
+  if (/\b(woher kommt|herkunft)\b/.test(s)) return "herkunft";
+  if (/\b(was frisst|was isst|nahrung)\b/.test(s)) return "nahrung";
+  if (/\b(welcher familie|familie|gehört zu)\b/.test(s)) return "familie";
+  if (/\b(wie gefährdet|gefährdung|bedroht)\b/.test(s)) return "gefährdung";
+  if (/\b(wie sieht|aussehen|farbe)\b/.test(s)) return "aussehen";
+  if (/\b(wann|welches jahr|beschrieben)\b/.test(s)) return "beschrieben";
+  if (/^(was ist|wer ist|was bedeutet)\b/.test(s)) return "definition";
+  return null;
+}
+
+function extractSubject(q) {
+  return subjectClean(String(q)
+    .replace(/^(was weißt du über|erzähle mir etwas über|erzähl mir etwas über|reflektiere|prüfe dein wissen über)\s+/i,"")
+    .replace(/^(was ist|wer ist|wo lebt|wo wohnt|woher kommt|was frisst|was isst|wann wurde|wie sieht)\s+/i,"")
+    .replace(/[?!.]+$/,""));
 }
 
 function answerFromFacts(q) {
-  const property = requestedProperty(q);
-  const subject = extractSubject(q);
-  if (!property || !subject) return null;
-
-  let fact = getFact(subject, property);
-  if (!fact && property === "tierart") fact = getFact(subject, "definition");
-  if (!fact && property === "definition") fact = getFact(subject, "tierart");
-
-  return fact?.value || null;
+  const p = requestedProperty(q);
+  const s = extractSubject(q);
+  if (!p || !s) return null;
+  const f = getFact(s,p);
+  return f ? f.value : null;
 }
 
 function answerAboutSubject(q) {
-  const subject = extractSubject(q);
-  if (!subject) return null;
-
-  const facts = data.facts.filter(f => sameSubject(f.subject, subject));
+  const s = extractSubject(q);
+  const facts = getFacts(s);
   if (!facts.length) return null;
-
-  return `Das weiß ich über ${subject}:\n` +
+  return `Das weiß ich über ${s}:\n` +
     facts.map(f => `• ${f.property}: ${f.value}`).join("\n");
-}
-
-// --------------------------------------------------
-// FRAGE-ANTWORT-WISSEN
-// --------------------------------------------------
-
-function entryTexts(e) {
-  return [e.k, ...(Array.isArray(e.aliases) ? e.aliases : [])]
-    .filter(x => typeof x === "string" && x.trim());
 }
 
 function findQuestion(q) {
   return data.qa.findIndex(e =>
-    entryTexts(e).some(k => norm(k) === norm(q))
+    norm(e.k) === norm(q) ||
+    (e.aliases || []).some(a => norm(a) === norm(q))
   );
 }
 
-function best(q) {
-  let index = -1;
-  let score = 0;
-  const type = questionType(q);
+function learnQA(q,a) {
+  const index = findQuestion(q);
+  if (index >= 0) data.qa[index].a = a;
+  else data.qa.push({k:q,a,aliases:[],source:"user"});
+  save();
+  return "Frage und Antwort gespeichert.";
+}
 
-  data.qa.forEach((entry, i) => {
-    entryTexts(entry).forEach(candidate => {
-      if (questionType(candidate) !== type) return;
-      const current = similarity(q, candidate);
-      if (current > score) {
-        score = current;
-        index = i;
+/* ==========================================
+   MINI-KI 3: ANALYSE-KI
+   ========================================== */
+
+function analyzeKnowledge(subject = "") {
+  const facts = subject ? getFacts(subject) : data.facts;
+  const groups = {};
+  facts.forEach(f => {
+    (groups[norm(f.subject) + "|" + norm(f.property)] ||= []).push(f);
+  });
+
+  const duplicates = [];
+  const conflicts = [];
+
+  Object.values(groups).forEach(group => {
+    if (group.length > 1) {
+      const values = new Set(group.map(f => norm(f.value)));
+      if (values.size === 1) duplicates.push(group[0]);
+      else conflicts.push(group);
+    }
+  });
+
+  const incomplete = facts.filter(f =>
+    f.value.length < 4 || /^(unbekannt|keine angabe|etc)$/i.test(f.value)
+  );
+
+  countAgent("Analyse-KI");
+  logAudit("Analyse-KI","Wissen analysiert",facts.length + " Fakten");
+
+  return {facts,duplicates,conflicts,incomplete};
+}
+
+/* ==========================================
+   MINI-KI 4: RECHERCHE-KI
+   ========================================== */
+
+async function wikipediaSearch(query,signal) {
+  const url = "https://de.wikipedia.org/w/api.php?" +
+    new URLSearchParams({
+      action:"query",list:"search",srsearch:query,
+      srlimit:"5",format:"json",origin:"*"
+    });
+
+  const r = await fetch(url,{signal});
+  if (!r.ok) throw new Error("Wikipedia nicht erreichbar.");
+  const j = await r.json();
+  const page = j.query?.search?.[0];
+  if (!page) return null;
+
+  const title = page.title;
+  const summaryURL =
+    "https://de.wikipedia.org/api/rest_v1/page/summary/" +
+    encodeURIComponent(title);
+
+  const sr = await fetch(summaryURL,{signal});
+  if (!sr.ok) {
+    return {
+      title,
+      answer:page.snippet.replace(/<[^>]*>/g,""),
+      url:"https://de.wikipedia.org/wiki/" + encodeURIComponent(title)
+    };
+  }
+
+  const summary = await sr.json();
+  return {
+    title:summary.title || title,
+    answer:summary.extract || page.snippet,
+    url:summary.content_urls?.desktop?.page ||
+      "https://de.wikipedia.org/wiki/" + encodeURIComponent(title)
+  };
+}
+
+async function wikidataSearch(query,signal) {
+  const url = "https://www.wikidata.org/w/api.php?" +
+    new URLSearchParams({
+      action:"wbsearchentities",search:query,
+      language:"de",uselang:"de",format:"json",origin:"*"
+    });
+  const r = await fetch(url,{signal});
+  if (!r.ok) throw new Error("Wikidata nicht erreichbar.");
+  const j = await r.json();
+  return (j.search || []).slice(0,4);
+}
+
+async function openLibrarySearch(query,signal) {
+  const url = "https://openlibrary.org/search.json?" +
+    new URLSearchParams({q:query,limit:"4"});
+  const r = await fetch(url,{signal});
+  if (!r.ok) throw new Error("Open Library nicht erreichbar.");
+  const j = await r.json();
+  return (j.docs || []).slice(0,4);
+}
+
+async function crossrefSearch(query,signal) {
+  const url = "https://api.crossref.org/works?" +
+    new URLSearchParams({
+      query,rows:"4",select:"title,author,published,DOI"
+    });
+  const r = await fetch(url,{signal});
+  if (!r.ok) throw new Error("Crossref nicht erreichbar.");
+  const j = await r.json();
+  return (j.message?.items || []).slice(0,4);
+}
+
+async function researchAll(query,signal) {
+  countAgent("Recherche-KI");
+  logAudit("Recherche-KI","Recherche gestartet",query);
+
+  const results = await Promise.allSettled([
+    wikipediaSearch(query,signal),
+    wikidataSearch(query,signal),
+    openLibrarySearch(query,signal),
+    crossrefSearch(query,signal)
+  ]);
+
+  if (signal.aborted) throw new DOMException("Abgebrochen","AbortError");
+
+  const wiki = results[0].status === "fulfilled" ? results[0].value : null;
+  const wd = results[1].status === "fulfilled" ? results[1].value : [];
+  const books = results[2].status === "fulfilled" ? results[2].value : [];
+  const papers = results[3].status === "fulfilled" ? results[3].value : [];
+
+  let successful = results.filter(r => r.status === "fulfilled").length;
+  let out = `RECHERCHE: ${query}\n\n`;
+
+  if (wiki) {
+    out += `WIKIPEDIA:\n${wiki.answer}\nQuelle: ${wiki.url}\n\n`;
+    const learned = learnArticle(wiki.answer,"wikipedia",wiki.title);
+    if (learned) out += `Lern-KI: ${learned.facts.length} Fakten erkannt.\n\n`;
+  }
+
+  if (wd.length) {
+    out += "WIKIDATA:\n";
+    wd.forEach(x => out += `• ${x.label}: ${x.description || "Keine Beschreibung"}\n${x.concepturi || ""}\n`);
+    out += "\n";
+  }
+
+  if (books.length) {
+    out += "OPEN LIBRARY – BÜCHER:\n";
+    books.forEach(x => out +=
+      `• ${x.title} | ${(x.author_name || []).join(", ")} | ${x.first_publish_year || "Unbekannt"}\nhttps://openlibrary.org${x.key}\n`
+    );
+    out += "\n";
+  }
+
+  if (papers.length) {
+    out += "CROSSREF – PUBLIKATIONEN:\n";
+    papers.forEach(x => out +=
+      `• ${x.title?.[0] || "Ohne Titel"} | ${x.DOI ? "https://doi.org/" + x.DOI : ""}\n`
+    );
+    out += "\n";
+  }
+
+  out += `Erfolgreich abgefragte Dienste: ${successful}/4.\n`;
+  out += "Eine erfolgreiche Abfrage bedeutet nicht, dass die Quellen den Inhalt gegenseitig bestätigt haben.";
+
+  countAgent("Zentrale KI");
+  return out;
+}
+
+/* ==========================================
+   MINI-KI 5: SELBSTREFLEXIONS-KI
+   ========================================== */
+
+const EXPECTED = {
+  tierwissen:["definition","familie","lebensraum","aussehen","nahrung","gefährdung","verwandtschaft"],
+  person:["definition","geburt","beruf","leistung","herkunft"],
+  ort:["definition","land","lage","einwohner","geschichte"],
+  allgemein:["definition","ursache","wirkung","beispiele","bedeutung"]
+};
+
+function detectTopicType(facts) {
+  const all = norm(facts.map(f => f.property).join(" "));
+  if (/lebensraum|nahrung|gefährdung|tierart|verwandtschaft/.test(all)) return "tierwissen";
+  if (/geburt|beruf|leistung/.test(all)) return "person";
+  if (/einwohner|lage|hauptstadt/.test(all)) return "ort";
+  return "allgemein";
+}
+
+function selfReflection(subject = "") {
+  countAgent("Reflexions-KI");
+
+  const facts = subject ? getFacts(subject) : data.facts;
+  const qa = subject
+    ? data.qa.filter(e => norm(e.k + " " + e.a).includes(norm(subject)))
+    : data.qa;
+
+  const analysis = analyzeKnowledge(subject);
+  const sources = {};
+  const properties = {};
+  const topics = {};
+
+  facts.forEach(f => {
+    sources[f.source || "unbekannt"] = (sources[f.source || "unbekannt"] || 0) + 1;
+    properties[f.property] = (properties[f.property] || 0) + 1;
+    topics[f.subject] = (topics[f.subject] || 0) + 1;
+  });
+
+  const type = detectTopicType(facts);
+  const expected = EXPECTED[type] || EXPECTED.allgemein;
+  const missing = expected.filter(p => !properties[p]);
+
+  const sourceCount = Object.keys(sources).length;
+  const confidence = facts.length
+    ? Math.round(facts.reduce((s,f) => s + (f.confidence ?? 0.5),0) / facts.length * 100)
+    : 0;
+
+  const completeness = expected.length
+    ? Math.round((expected.length - missing.length) / expected.length * 100)
+    : 0;
+
+  const lines = [
+    "🪞 MAXIMALE SELBSTREFLEXION",
+    "================================",
+    "",
+    "1. WISSENSSTAND",
+    `Gespeicherte Fakten: ${facts.length}`,
+    `Frage-Antwort-Einträge: ${qa.length}`,
+    `Verschiedene Eigenschaften: ${Object.keys(properties).length}`,
+    `Bekannte Themen: ${Object.keys(topics).length}`,
+    `Unterschiedliche Quellenarten: ${sourceCount}`,
+    `Durchschnittlicher interner Vertrauenswert: ${confidence}%`,
+    "",
+    "2. QUELLENANALYSE"
+  ];
+
+  Object.entries(sources).forEach(([k,v]) => lines.push(`• ${k}: ${v}`));
+  if (!sourceCount) lines.push("• Keine Quellen gespeichert.");
+
+  lines.push("", "3. WISSENSBEREICHE");
+  Object.entries(properties).forEach(([k,v]) => lines.push(`• ${k}: ${v}`));
+
+  lines.push("", "4. VOLLSTÄNDIGKEITSPRÜFUNG");
+  lines.push(`Erkannte Themenart: ${type}`);
+  lines.push(`Interne Themenabdeckung: ${completeness}%`);
+  if (missing.length) lines.push("Mögliche Wissenslücken: " + missing.join(", "));
+  else lines.push("Alle erwarteten Eigenschaftsbereiche sind vertreten.");
+
+  lines.push("", "5. QUALITÄTSPRÜFUNG");
+  lines.push(`Mögliche Dubletten: ${analysis.duplicates.length}`);
+  lines.push(`Mögliche Widersprüche: ${analysis.conflicts.length}`);
+  lines.push(`Unvollständige Einträge: ${analysis.incomplete.length}`);
+
+  analysis.conflicts.forEach(group => {
+    lines.push("⚠ Widerspruch bei " + group[0].subject + " / " + group[0].property);
+    group.forEach(f => lines.push("  • " + f.value));
+  });
+
+  lines.push("", "6. MEINE EINSCHÄTZUNG");
+
+  if (!facts.length && !qa.length) {
+    lines.push("Ich habe noch kein ausreichendes Wissen.");
+  } else if (facts.length < 3) {
+    lines.push("Ich verfüge nur über eine kleine Wissensbasis.");
+  } else if (missing.length > 3) {
+    lines.push("Ich habe Grundlagen, aber deutliche Wissenslücken.");
+  } else {
+    lines.push("Ich habe mehrere Informationen gespeichert.");
+  }
+
+  lines.push(
+    "• Ein gespeicherter Fakt ist nicht automatisch wahr.",
+    "• Ein interner Vertrauenswert ist keine wissenschaftliche Bestätigung.",
+    "• Eine Quelle kann veraltet oder fehlerhaft sein.",
+    "• Mehrere Treffer sind nicht automatisch unabhängige Bestätigungen.",
+    "• Ich darf fehlendes Wissen nicht erfinden."
+  );
+
+  lines.push("", "7. MEINE NÄCHSTEN LERNZIELE");
+  if (missing.length) {
+    missing.slice(0,5).forEach(p => lines.push(`• Recherche zu: ${p}`));
+  } else {
+    lines.push("• Weitere Quellen finden.");
+    lines.push("• Bestehende Fakten auf Aktualität prüfen.");
+    lines.push("• Neue Zusammenhänge lernen.");
+  }
+
+  lines.push("", "8. SYSTEMSTATUS");
+  lines.push(`Faktenbank: ${data.facts.length} Einträge`);
+  lines.push(`Lernverlauf: ${data.audit.length} Aktivitäten`);
+  lines.push(`Verbesserungsvorschläge: ${data.improvements.length}`);
+
+  logAudit("Reflexions-KI","Selbstreflexion erstellt",subject || "Gesamtwissen");
+  save();
+
+  return lines.join("\n");
+}
+
+/* ==========================================
+   MINI-KI 6: OPTIMIERUNGS-KI
+   ========================================== */
+
+function optimizeSystem() {
+  countAgent("Optimierungs-KI");
+
+  const a = analyzeKnowledge();
+  const suggestions = [];
+
+  if (!data.facts.length) suggestions.push("Mehr Grundwissen sammeln.");
+  if (a.duplicates.length) suggestions.push("Doppelte Fakten zusammenführen.");
+  if (a.conflicts.length) suggestions.push("Widersprüchliche Fakten überprüfen.");
+  if (a.incomplete.length) suggestions.push("Unvollständige Fakten ergänzen.");
+  if (!data.facts.some(f => f.source === "wikipedia")) {
+    suggestions.push("Eine Recherche durchführen, um externes Wissen aufzubauen.");
+  }
+  if (data.qa.length < 5) suggestions.push("Mehr typische Fragen und Antworten lernen.");
+  if (data.audit.length > 200) suggestions.push("Aktivitätsprotokoll regelmäßig auswerten.");
+
+  if (!suggestions.length) {
+    suggestions.push("Keine dringenden strukturellen Verbesserungen erkannt.");
+    suggestions.push("Neue Themen und unabhängige Quellen erschließen.");
+  }
+
+  suggestions.forEach(s => {
+    if (!data.improvements.includes(s)) data.improvements.push(s);
+  });
+
+  logAudit("Optimierungs-KI","System geprüft",suggestions.length + " Vorschläge");
+  save();
+
+  return "🛠️ OPTIMIERUNGSBERICHT\n\n" +
+    suggestions.map((s,i) => `${i+1}. ${s}`).join("\n") +
+    "\n\nDie Optimierungs-KI verändert den Programmcode nicht automatisch. Sie erstellt sichere Verbesserungsvorschläge.";
+}
+
+/* ==========================================
+   MINI-KI 7: ANTWORT-KI
+   ========================================== */
+
+function answerAgent(q) {
+  countAgent("Antwort-KI");
+
+  const direct = answerFromFacts(q);
+  if (direct) return direct;
+
+  const about = answerAboutSubject(q);
+  if (about && /was weißt du|erzähle|erzähl/i.test(q)) return about;
+
+  const index = findQuestion(q);
+  if (index >= 0) return data.qa[index].a;
+
+  let best = null;
+  let score = 0;
+
+  data.qa.forEach(e => {
+    const s = similarity(q,e.k);
+    if (s > score) {
+      score = s;
+      best = e;
+    }
+    (e.aliases || []).forEach(alias => {
+      const x = similarity(q,alias);
+      if (x > score) {
+        score = x;
+        best = e;
       }
     });
   });
 
-  return { i: index, s: score };
-}
-
-function learn(q, a, aliases = []) {
-  q = String(q || "").trim();
-  a = String(a || "").trim();
-  if (!q || !a) return "Frage und Antwort dürfen nicht leer sein.";
-
-  let index = findQuestion(q);
-  let entry;
-
-  if (index >= 0) {
-    entry = data.qa[index];
-    entry.a = a;
-    entry.source = "user";
-  } else {
-    entry = { k: q, a, aliases: [], source: "user" };
-    data.qa.push(entry);
+  if (best && score >= 0.55) return best.a;
+  if (best && score >= 0.4) {
+    return "Ich bin mir nicht ganz sicher. Vielleicht meinst du:\n" + best.a;
   }
 
-  entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
-  aliases.forEach(alias => {
-    alias = String(alias || "").trim();
-    if (alias && !entry.aliases.some(x => norm(x) === norm(alias))) {
-      entry.aliases.push(alias);
-    }
-  });
-
-  save();
-  return `Danke! Das habe ich gelernt.
-
-Frage: ${q}
-Antwort: ${a}
-
-Ich habe jetzt ${data.qa.length} Frage-Antwort-Einträge.`;
+  return null;
 }
 
-function addAlias(original, alternative) {
-  const index = findQuestion(original);
-  if (index < 0) return "Diese ursprüngliche Frage kenne ich noch nicht.";
+/* ==========================================
+   META-KI – KOORDINIERT DAS TEAM
+   ========================================== */
 
-  const entry = data.qa[index];
-  alternative = String(alternative || "").trim();
-  if (!alternative) return "Die alternative Frage ist leer.";
+const AGENTS = {
+  "Zentrale KI":{icon:"🧠",task:"Verteilt Aufgaben und koordiniert."},
+  "Lern-KI":{icon:"📚",task:"Lernt und speichert Fakten."},
+  "Recherche-KI":{icon:"🌐",task:"Sucht in öffentlichen Quellen."},
+  "Analyse-KI":{icon:"🔍",task:"Prüft Fakten und Widersprüche."},
+  "Reflexions-KI":{icon:"🪞",task:"Erkennt Wissenslücken."},
+  "Optimierungs-KI":{icon:"🛠️",task:"Entwickelt Verbesserungsvorschläge."},
+  "Antwort-KI":{icon:"💬",task:"Formuliert Antworten."}
+};
 
-  if (questionType(entry.k) !== questionType(alternative)) {
-    return "Diese Frage klingt nach einer anderen Frageart. Ich speichere sie nicht.";
-  }
-  if (norm(alternative) === norm(entry.k)) return "Diese Frage ist bereits die Hauptfrage.";
-
-  entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
-  if (entry.aliases.some(x => norm(x) === norm(alternative))) {
-    return "Diese alternative Frage kenne ich bereits.";
-  }
-
-  entry.aliases.push(alternative);
-  save();
-
-  return `Alternative Frage gespeichert.
-
-Hauptfrage: ${entry.k}
-Alternative: ${alternative}
-Antwort: ${entry.a}`;
+function teamStatus() {
+  return "🤖 MEIN KI-TEAM\n\n" +
+    Object.entries(AGENTS).map(([name,a]) =>
+      `${a.icon} ${name}\n${a.task}\nEinsätze: ${data.agentStats[name] || 0}`
+    ).join("\n\n") +
+    "\n\nGemeinsamer Wissensspeicher: " + data.facts.length + " Fakten.";
 }
 
-// --------------------------------------------------
-// KATEGORIEN
-// --------------------------------------------------
+function metaAnalysis() {
+  countAgent("Zentrale KI");
+  const a = analyzeKnowledge();
+  const suggestions = [];
 
-function classify(text) {
-  const groups = {};
-  data.classes.forEach(item => (groups[item.c] ??= []).push(item.t));
+  if (a.conflicts.length) suggestions.push("Widersprüche im Wissensspeicher prüfen.");
+  if (a.duplicates.length) suggestions.push("Dubletten bereinigen.");
+  if (a.incomplete.length) suggestions.push("Unvollständige Fakten vervollständigen.");
+  if (data.facts.length < 10) suggestions.push("Wissensbasis ausbauen.");
+  if (!suggestions.length) suggestions.push("Derzeit keine größeren Probleme erkannt.");
 
-  const names = Object.keys(groups);
-  if (names.length < 2) return "Ich brauche Beispiele aus mindestens zwei Kategorien.";
-
-  const words = toks(text);
-  const vocabulary = new Set();
-  Object.values(groups).flat().forEach(item =>
-    toks(item).forEach(w => vocabulary.add(w))
-  );
-
-  const total = data.classes.length;
-
-  const scores = names.map(name => {
-    const wc = {};
-    let count = 0;
-
-    groups[name].forEach(item => toks(item).forEach(w => {
-      wc[w] = (wc[w] || 0) + 1;
-      count++;
-    }));
-
-    let score = Math.log(groups[name].length / total);
-    words.forEach(w => {
-      score += Math.log(
-        ((wc[w] || 0) + 0.5) /
-        (count + 0.5 * (vocabulary.size + 1))
-      );
-    });
-
-    return [name, score / Math.sqrt(Math.max(1, words.length))];
-  }).sort((a, b) => b[1] - a[1]);
-
-  const exp = scores.map(x => Math.exp(Math.max(-30, (x[1] - scores[0][1]) * 2.5)));
-  const confidence = Math.round(exp[0] / exp.reduce((a, b) => a + b, 0) * 100);
-  return `Ich tippe auf: ${scores[0][0]} (${confidence} %).`;
+  return "🧬 META-KI – SYSTEMANALYSE\n\n" +
+    "Die Meta-KI hat die anderen Module ausgewertet.\n\n" +
+    "TEAMAKTIVITÄT:\n" + agentReport() +
+    "\n\nERKANNTE AUFGABEN:\n" +
+    suggestions.map(x => "• " + x).join("\n") +
+    "\n\nDie Meta-KI kann Aufgaben verteilen und Regeln verbessern, aber keine eigenen Programmänderungen ohne Freigabe installieren.";
 }
 
-// --------------------------------------------------
-// GRUNDWISSEN
-// --------------------------------------------------
+/* ==========================================
+   GRUNDWISSEN UND WISSENSLISTE
+   ========================================== */
 
 function addSeed() {
-  const known = new Set(data.qa.map(x => norm(x.k)));
   let added = 0;
-
-  seed.forEach(([k, a]) => {
+  const known = new Set(data.qa.map(e => norm(e.k)));
+  seed.forEach(([k,a]) => {
     if (!known.has(norm(k))) {
-      data.qa.push({ k, a, aliases: [], source: "seed" });
+      data.qa.push({k,a,aliases:[],source:"seed"});
       added++;
     }
   });
-
   save();
   return added;
 }
@@ -638,340 +860,46 @@ if (!data.seeded) {
   save();
 }
 
-// --------------------------------------------------
-// WISSEN ANZEIGEN UND SELBSTREFLEXION
-// --------------------------------------------------
-
 function showKnowledge() {
-  const lines = [];
-
-  if (data.facts.length) {
-    lines.push("FAKTEN:");
-    data.facts.forEach(f =>
-      lines.push(`• ${f.subject} | ${f.property} | ${f.value}`)
-    );
-  }
-
-  if (data.qa.length) {
-    lines.push("\nFRAGE-ANTWORT-EINTRÄGE:");
-    data.qa.forEach(e => {
-      lines.push(`• ${e.k} → ${e.a || "(nur gemerkt)"}`);
-      if (e.aliases?.length) lines.push("  Alternative: " + e.aliases.join("; "));
-    });
-  }
-
-  if (data.classes.length) {
-    lines.push("\nKATEGORIEN:");
-    data.classes.forEach(c => lines.push(`• ${c.t} → ${c.c}`));
-  }
-
-  return lines.length ? lines.join("\n") : "Ich habe noch nichts gelernt.";
-}
-
-function selfReflection(subject = "") {
-  const facts = subject
-    ? data.facts.filter(f => sameSubject(f.subject, subject))
-    : data.facts;
-
-  const qa = subject
-    ? data.qa.filter(e =>
-        norm(e.k).includes(norm(subject)) ||
-        norm(e.a).includes(norm(subject))
-      )
-    : data.qa;
-
-  if (!facts.length && !qa.length) {
-    return `Ich habe zu „${subject || "meinem gesamten Wissen"}“ noch keine gespeicherten Fakten.
-
-Meine Einschätzung:
-• Wissensstand: noch nicht ausreichend
-• Quellenlage: keine gespeicherten Quellen
-• Sicherheit: keine verlässliche Antwort möglich
-
-Ich sollte erst recherchieren oder etwas dazulernen.`;
-  }
-
-  const sources = {};
-  const properties = {};
-
-  facts.forEach(f => {
-    const source = f.source || "unbekannt";
-    sources[source] = (sources[source] || 0) + 1;
-    properties[f.property] = (properties[f.property] || 0) + 1;
-  });
-
-  const lines = [
-    "MEINE SELBSTREFLEXION",
-    "",
-    "Gespeicherte Fakten: " + facts.length,
-    "Frage-Antwort-Einträge: " + qa.length,
-    "Unterschiedliche Eigenschaften: " + Object.keys(properties).length,
-    "",
-    "QUELLEN:"
-  ];
-
-  if (!Object.keys(sources).length) {
-    lines.push("• Keine Quellenangaben vorhanden.");
-  } else {
-    Object.entries(sources).forEach(([name, count]) =>
-      lines.push(`• ${name}: ${count}`)
-    );
-  }
-
-  lines.push("", "ERKANNTE WISSENSBEREICHE:");
-
-  if (!Object.keys(properties).length) {
-    lines.push("• Wissen liegt hauptsächlich in Frage-Antwort-Einträgen.");
-  } else {
-    Object.entries(properties).forEach(([name, count]) =>
-      lines.push(`• ${name}: ${count}`)
-    );
-  }
-
-  lines.push("", "MEINE EINSCHÄTZUNG:");
-
-  if (facts.length < 3) {
-    lines.push("• Ich habe noch wenig Faktenwissen.");
-  } else if (facts.length < 8) {
-    lines.push("• Ich habe einige Fakten, aber noch Wissenslücken.");
-  } else {
-    lines.push("• Ich habe mehrere Fakten gespeichert.");
-  }
-
-  lines.push(
-    "• Gespeicherte Fakten sind nicht automatisch wahr.",
-    "• Ich kann die tatsächliche Richtigkeit nicht allein durch Speichern beweisen.",
-    "• Widersprüchliche oder veraltete Informationen müssen überprüft werden.",
-    "• Fehlende Informationen darf ich nicht erfinden."
+  const out = ["GESPEICHERTES WISSEN"];
+  data.facts.forEach(f =>
+    out.push(`• ${f.subject} | ${f.property} | ${f.value}`)
   );
-
-  return lines.join("\n");
+  out.push("", "FRAGE-ANTWORT-WISSEN");
+  data.qa.forEach(e => out.push(`• ${e.k} → ${e.a}`));
+  out.push("", "KATEGORIEN");
+  data.classes.forEach(c => out.push(`• ${c.t} → ${c.c}`));
+  return out.join("\n");
 }
 
-// --------------------------------------------------
-// KOSTENLOSE INTERNETQUELLEN
-// --------------------------------------------------
+/* ==========================================
+   KATEGORIEN
+   ========================================== */
 
-async function wikipediaSearch(query, signal) {
-  const searchURL =
-    "https://de.wikipedia.org/w/api.php?action=query&list=search" +
-    "&srsearch=" + encodeURIComponent(query) +
-    "&srlimit=5&format=json&origin=*";
-
-  const response = await fetch(searchURL, {
-    signal,
-    headers: { Accept: "application/json" }
+function classify(text) {
+  if (!data.classes.length) return "Ich brauche erst Beispiele aus Kategorien.";
+  const scores = {};
+  data.classes.forEach(c => {
+    scores[c.c] = (scores[c.c] || 0) +
+      similarity(text,c.t);
   });
-
-  if (!response.ok) throw new Error("Wikipedia-Suche nicht erreichbar.");
-
-  const result = await response.json();
-  const pages = result.query?.search || [];
-  if (!pages.length) return null;
-
-  const page = pages[0];
-  const title = page.title;
-  const summaryURL =
-    "https://de.wikipedia.org/api/rest_v1/page/summary/" +
-    encodeURIComponent(title);
-
-  const summaryResponse = await fetch(summaryURL, {
-    signal,
-    headers: { Accept: "application/json" }
-  });
-
-  if (!summaryResponse.ok) {
-    return {
-      answer: page.snippet.replace(/<[^>]*>/g, ""),
-      title,
-      url: "https://de.wikipedia.org/wiki/" + encodeURIComponent(title)
-    };
-  }
-
-  const summary = await summaryResponse.json();
-
-  return {
-    answer: summary.extract || page.snippet.replace(/<[^>]*>/g, ""),
-    title: summary.title || title,
-    url: summary.content_urls?.desktop?.page ||
-      "https://de.wikipedia.org/wiki/" + encodeURIComponent(title)
-  };
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  if (!sorted.length || sorted[0][1] === 0) return "Ich kann das noch nicht sicher einordnen.";
+  return `Ich tippe auf: ${sorted[0][0]}.`;
 }
 
-async function wikidataSearch(query, signal) {
-  const url = "https://www.wikidata.org/w/api.php?" +
-    new URLSearchParams({
-      action: "wbsearchentities",
-      search: query,
-      language: "de",
-      uselang: "de",
-      format: "json",
-      origin: "*"
-    });
-
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error("Wikidata nicht erreichbar.");
-
-  const json = await response.json();
-
-  return (json.search || []).slice(0, 4).map(item => ({
-    title: item.label || "Unbekannt",
-    description: item.description || "Keine Beschreibung",
-    url: item.concepturi || "https://www.wikidata.org/"
-  }));
-}
-
-async function openLibrarySearch(query, signal) {
-  const url = "https://openlibrary.org/search.json?" +
-    new URLSearchParams({ q: query, limit: "4" });
-
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error("Open Library nicht erreichbar.");
-
-  const json = await response.json();
-
-  return (json.docs || []).slice(0, 4).map(item => ({
-    title: item.title || "Unbekannt",
-    author: (item.author_name || []).join(", "),
-    year: item.first_publish_year || "Unbekannt",
-    url: "https://openlibrary.org" + (item.key || "")
-  }));
-}
-
-async function crossrefSearch(query, signal) {
-  const url = "https://api.crossref.org/works?" +
-    new URLSearchParams({
-      query,
-      rows: "4",
-      select: "title,author,published,DOI,type"
-    });
-
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error("Crossref nicht erreichbar.");
-
-  const json = await response.json();
-
-  return (json.message?.items || []).slice(0, 4).map(item => ({
-    title: item.title?.[0] || "Ohne Titel",
-    author: (item.author || []).slice(0, 3)
-      .map(a => [a.given, a.family].filter(Boolean).join(" "))
-      .join(", "),
-    year: item.published?.["date-parts"]?.[0]?.[0] || "Unbekannt",
-    url: item.DOI ? "https://doi.org/" + item.DOI : ""
-  }));
-}
-
-async function researchAll(query, signal) {
-  const results = await Promise.allSettled([
-    wikipediaSearch(query, signal),
-    wikidataSearch(query, signal),
-    openLibrarySearch(query, signal),
-    crossrefSearch(query, signal)
-  ]);
-
-  if (signal.aborted) throw new DOMException("Abgebrochen", "AbortError");
-
-  const wiki = results[0].status === "fulfilled" ? results[0].value : null;
-  const wikidata = results[1].status === "fulfilled" ? results[1].value : [];
-  const books = results[2].status === "fulfilled" ? results[2].value : [];
-  const studies = results[3].status === "fulfilled" ? results[3].value : [];
-
-  let successful = 0;
-  let output = `RECHERCHE: ${query}\n\n`;
-
-  if (wiki) {
-    successful++;
-    output += "WIKIPEDIA:\n" +
-      wiki.answer + "\nQuelle: " + wiki.url + "\n\n";
-  }
-
-  if (wikidata.length) {
-    successful++;
-    output += "WIKIDATA:\n";
-    wikidata.forEach(item => {
-      output += `• ${item.title}: ${item.description}\n${item.url}\n`;
-    });
-    output += "\n";
-  }
-
-  if (books.length) {
-    successful++;
-    output += "OPEN LIBRARY – BÜCHER:\n";
-    books.forEach(item => {
-      output += `• ${item.title} | ${item.author} | ${item.year}\n${item.url}\n`;
-    });
-    output += "\n";
-  }
-
-  if (studies.length) {
-    successful++;
-    output += "CROSSREF – WISSENSCHAFTLICHE VERÖFFENTLICHUNGEN:\n";
-    studies.forEach(item => {
-      output += `• ${item.title} | ${item.author} | ${item.year}\n`;
-      if (item.url) output += item.url + "\n";
-    });
-    output += "\n";
-  }
-
-  output += "GOOGLE-SUCHE:\nhttps://www.google.com/search?q=" +
-    encodeURIComponent(query) + "\n\n";
-
-  output += `Erfolgreich abgefragte Quellen: ${successful}/4.\n`;
-
-  if (!successful) {
-    return output +
-      "\nDie Wissensquellen konnten gerade nicht erreicht werden. " +
-      "Über den Google-Link kannst du die Suche trotzdem öffnen.";
-  }
-
-  if (wiki?.answer) {
-    const learned = learnArticle(wiki.answer, "wikipedia", wiki.title);
-    if (learned) {
-      output += `\nAutomatisch erkannte Fakten: ${learned.facts.length}.`;
-      output += `\nNeu hinzugefügt oder aktualisiert: ${learned.added}.`;
-    }
-  }
-
-  return output;
-}
-
-function isSearchRequest(text) {
-  return /^(suche|recherchiere|google|wiki|wikipedia)\s*:/i.test(text);
-}
-
-function searchQuery(text) {
-  return text.replace(
-    /^(suche|recherchiere|google|wiki|wikipedia)\s*:/i,
-    ""
-  ).trim();
-}
-
-// --------------------------------------------------
-// HAUPTLOGIK
-// --------------------------------------------------
+/* ==========================================
+   HAUPTLOGIK
+   ========================================== */
 
 function getPending() {
-  if (typeof data.pending === "string") {
-    return { kind: "answer", question: data.pending };
-  }
-  return data.pending && typeof data.pending === "object" ? data.pending : null;
+  return data.pending && typeof data.pending === "object"
+    ? data.pending : null;
 }
 
-function setPending(kind, payload) {
-  data.pending = { kind, ...payload };
-  save();
-}
-
-function lastUserQuestion() {
-  for (let i = data.log.length - 1; i >= 0; i--) {
-    if (data.log[i]?.role === "user") return data.log[i].text;
-  }
-  return null;
-}
-
-function handle(text, previousQuestion) {
+function handle(text,previousQuestion) {
   const low = norm(text);
-  let match;
+  let m;
 
   if (/(selbstmord|suizid|umbringen|nicht mehr leben|sterben (will|möchte)|töten will|ritzen|selbstverletz)/i.test(text)) {
     return "Das klingt ernst. Bitte bleib damit nicht allein und sprich mit einer vertrauten Person. Die TelefonSeelsorge erreichst du kostenlos unter 0800 111 0 111, 0800 111 0 222 oder 116 123. Bei unmittelbarer Gefahr ruf 112.";
@@ -979,227 +907,154 @@ function handle(text, previousQuestion) {
 
   if (/^(hilfe|help|\?)$/.test(low)) return help;
 
+  if (/^(teamstatus|zeige deine module|zeige dein team)$/i.test(text)) return teamStatus();
+  if (/^(meta analyse|meta analyse starten)$/i.test(text)) return metaAnalysis();
+  if (/^(verbesserungsvorschläge|system optimieren|optimiere dich)$/i.test(text)) return optimizeSystem();
+
   if (/^(selbstreflexion|reflektiere dich|prüfe dein wissen)$/i.test(text)) {
     return selfReflection();
   }
 
-  if (match = text.match(/^(?:reflektiere|prüfe dein wissen über)\s+(.+)$/i)) {
-    return selfReflection(match[1]);
+  if (m = text.match(/^(?:reflektiere|prüfe dein wissen über)\s+(.+)$/i)) {
+    return selfReflection(m[1]);
   }
 
-  if (match = text.match(/^google\s*:\s*(.+)$/i)) {
-    const url = "https://www.google.com/search?q=" + encodeURIComponent(match[1]);
-    window.open(url, "_blank", "noopener");
+  if (m = text.match(/^google\s*:\s*(.+)$/i)) {
+    window.open("https://www.google.com/search?q=" + encodeURIComponent(m[1]),"_blank","noopener");
     return "Ich habe die Google-Suche geöffnet.";
   }
 
   if (/^(wer bist du|was kannst du)\??$/i.test(text)) {
-    return "Ich bin dein lokaler LernBot. Ich kann Fakten speichern, lange Texte analysieren, Fragen beantworten, alternative Fragen lernen, Kategorien erkennen, mein gespeichertes Wissen reflektieren und kostenlose Wissensquellen durchsuchen.";
+    return "Ich bin LernBot 2.0. Mein Team besteht aus einer zentralen KI und spezialisierten Lern-, Recherche-, Analyse-, Reflexions-, Optimierungs- und Antwort-Modulen.";
   }
 
-  if (low === "grundwissen laden") {
-    return "Grundwissen ergänzt: " + addSeed() + " neue Einträge.";
-  }
+  if (low === "grundwissen laden") return "Grundwissen ergänzt: " + addSeed() + " neue Einträge.";
 
   if (low === "verlauf löschen") {
     data.log = [];
     save();
-    return "Chatverlauf gelöscht. Dein gelerntes Wissen bleibt erhalten.";
+    return "Chatverlauf gelöscht. Dein Wissen bleibt erhalten.";
   }
 
-  if (/^(was weißt du|was hast du gelernt|zeig.*gelernt)/i.test(text)) {
-    return showKnowledge();
-  }
+  if (/^(was weißt du|was hast du gelernt|zeig.*gelernt)/i.test(text)) return showKnowledge();
 
-  if (low === "vergiss alles") {
-    return "Zum Schutz vor versehentlichem Löschen: Tippe „ALLES LÖSCHEN“ zum Bestätigen.";
-  }
+  if (low === "vergiss alles") return "Tippe „ALLES LÖSCHEN“, um dein gesamtes Wissen zu entfernen.";
 
   if (low === "alles löschen") {
-    if (!confirm("Wirklich alle Fakten, Frage-Antwort-Einträge und Kategorien löschen?")) {
-      return "Löschen abgebrochen.";
-    }
+    if (!confirm("Wirklich alle Fakten, Fragen und Kategorien löschen?")) return "Löschen abgebrochen.";
     data.qa = [];
     data.facts = [];
     data.classes = [];
     data.pending = null;
     save();
-    return "Dein gelerntes Wissen und die Kategorien wurden gelöscht.";
+    return "Wissen gelöscht.";
   }
 
-  if (match = text.match(/^vergiss\s*:?\s+(.+)$/i)) {
-    const target = subjectClean(match[1]);
-    const oldQA = data.qa.length;
-    const oldFacts = data.facts.length;
-
-    data.qa = data.qa.filter(e =>
-      !entryTexts(e).some(q => norm(q).includes(norm(target)))
-    );
-    data.facts = data.facts.filter(f => !sameSubject(f.subject, target));
-
-    const deleted = oldQA - data.qa.length + oldFacts - data.facts.length;
+  if (m = text.match(/^vergiss\s*:?\s+(.+)$/i)) {
+    const target = norm(m[1]);
+    const old = data.facts.length + data.qa.length;
+    data.facts = data.facts.filter(f => !sameSubject(f.subject,target));
+    data.qa = data.qa.filter(e => !norm(e.k).includes(target));
     save();
-
-    return deleted
-      ? `${deleted} passende Einträge zu „${target}“ vergessen.`
-      : "Dazu habe ich keinen passenden Eintrag gefunden.";
+    return `${old - data.facts.length - data.qa.length} Einträge entfernt.`;
   }
 
-  if (match = text.match(
-    /^(?:alternative frage|gleichbedeutende frage)\s*:\s*(.+?)\s*(?:=|->|bedeutet dasselbe wie|ist dasselbe wie)\s*(.+)$/i
-  )) {
-    return addAlias(match[1], match[2]);
-  }
-
-  if (match = text.match(
-    /^(.+?)\s+(?:bedeutet dasselbe wie|ist dasselbe wie|meint dasselbe wie)\s+(.+)[.!?]*$/i
-  )) {
-    return addAlias(match[2].replace(/[.!?]+$/, ""), match[1].trim());
-  }
-
-  if (match = text.match(
-    /^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s*kategorie\s+([^:]+?)\s*:\s*(.+)$/i
-  )) {
-    data.classes.push({ t: match[2].trim(), c: match[1].trim() });
+  if (m = text.match(/^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s*kategorie\s+([^:]+?)\s*:\s*(.+)$/i)) {
+    data.classes.push({t:m[2].trim(),c:m[1].trim()});
     save();
-    return `Gespeichert: „${match[2]}“ gehört zu „${match[1]}“.`;
+    return `Gespeichert: ${m[2]} gehört zu ${m[1]}.`;
   }
 
-  if (match = text.match(
-    /^(?:ich bringe dir bei|ich bring dir bei|ich möchte dir beibringen|ich will dir beibringen|pass auf|merk dir bitte|merke dir|lern|lerne)\s*:?\s*(.+)$/i
-  )) {
-    const fact = learnFact(match[1].trim());
-    if (fact) return fact;
-
-    setPending("teach_fact", { topic: match[1].trim() });
-    return `Sehr gerne! Was soll ich über „${match[1].trim()}“ lernen?`;
+  if (m = text.match(/^(?:ich bringe dir bei|ich bring dir bei|ich möchte dir beibringen|pass auf|merk dir bitte|merke dir|lern|lerne)\s*:?\s*(.+)$/i)) {
+    const result = learnFact(m[1]);
+    if (result) return result;
+    data.pending = {kind:"teach",topic:m[1]};
+    save();
+    return `Was soll ich über ${m[1]} lernen?`;
   }
 
-  if (match = text.match(
-    /^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i
-  )) {
-    const fact = learnFact(match[1].trim());
-    if (fact) return fact;
-    if (previousQuestion) return learn(previousQuestion, match[1]);
-
-    setPending("teach_fact", { topic: match[1].trim() });
-    return "Zu welchem Begriff oder welcher Frage gehört diese Erklärung?";
+  if (m = text.match(/^(?:richtig ist|korrekt ist|stattdessen|die richtige antwort ist)\s*:?\s*(.+)$/i)) {
+    if (previousQuestion) return learnQA(previousQuestion,m[1]);
+    return learnFact(m[1]) || "Welche Aussage soll ich korrigieren?";
   }
 
-  // Lange Texte zuerst automatisch analysieren.
-  if (text.length > 220 && splitSentences(text).length >= 2) {
-    const article = learnArticle(text, "user");
-
-    if (article && article.facts.length) {
-      data.pending = null;
-      save();
-
-      return `Ich habe deinen Text automatisch ausgewertet!
-
-Erkannte Fakten:
-${article.facts.map(f =>
-  `• ${f.subject} | ${f.property} | ${f.value}`
-).join("\n")}
-
-Neue oder aktualisierte Fakten: ${article.added}
-Insgesamt gespeichert: ${data.facts.length} Fakten.`;
+  if (text.length > 180 && splitSentences(text).length >= 2) {
+    const result = learnArticle(text,"user");
+    if (result) {
+      return `Lern-KI hat ${result.facts.length} Fakten erkannt:\n` +
+        result.facts.map(f => `• ${f.subject} | ${f.property} | ${f.value}`).join("\n") +
+        `\n\nNeu oder aktualisiert: ${result.changed}`;
     }
   }
 
-  const directFact = parseFact(text);
-  if (directFact) return learnFact(text);
+  const direct = parseFact(text);
+  if (direct) return learnFact(text);
 
-  if (match = text.match(/^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i)) {
-    return classify(match[1]);
-  }
+  if (m = text.match(/^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i)) return classify(m[1]);
 
   const pending = getPending();
-
   if (pending) {
     if (/^(abbrechen|egal|stop|stopp|lass es)$/i.test(low)) {
       data.pending = null;
       save();
-      return "Alles klar. Wir lassen das.";
+      return "Alles klar. Abgebrochen.";
     }
 
-    if (pending.kind === "answer" || pending.kind === "correction") {
+    if (pending.kind === "teach") {
+      const result = learnArticle(text,"user",pending.topic);
       data.pending = null;
       save();
-      return learn(pending.question, text);
-    }
-
-    if (pending.kind === "teach_fact") {
-      const article = learnArticle(text, "user", pending.topic);
-
-      if (article && article.facts.length) {
-        data.pending = null;
-        save();
-        return `Gelernt! Ich habe ${article.facts.length} Fakten zu ${pending.topic} erkannt.`;
-      }
-
-      const fact = learnFact(text);
-      if (fact) return fact;
-
-      data.pending = null;
-      save();
-      return learn("Was ist " + pending.topic + "?", text);
+      if (result) return `Gelernt! ${result.facts.length} Fakten zu ${pending.topic} gespeichert.`;
+      return learnQA("Was ist " + pending.topic + "?",text);
     }
   }
 
-  if (match = text.match(
-    /^(?:nein[, ]+)?(?:richtig ist|korrekt ist|stattdessen|die richtige antwort ist)\s*:?\s*(.+)$/i
-  )) {
-    if (previousQuestion) return learn(previousQuestion, match[1]);
-    return "Welche meiner Antworten möchtest du korrigieren?";
-  }
-
-  if (/^(nein|falsch|das stimmt nicht|nicht ganz|du liegst falsch|das ist falsch|stimmt nicht)\b/i.test(text)) {
+  if (/^(nein|falsch|das stimmt nicht|nicht ganz|du liegst falsch)\b/i.test(text)) {
     if (previousQuestion) {
-      setPending("correction", { question: previousQuestion });
-      return "Danke für die Korrektur! Was wäre denn richtig?";
+      data.pending = {kind:"correction",question:previousQuestion};
+      save();
+      return "Was wäre denn richtig?";
     }
-    return "Was genau soll ich korrigieren?";
   }
 
-  const factAnswer = answerFromFacts(text);
-  if (factAnswer) return factAnswer;
+  const answer = answerAgent(text);
+  if (answer) return answer;
 
   if (/^(was weißt du über|erzähle mir etwas über|erzähl mir etwas über)\b/i.test(text)) {
-    const answer = answerAboutSubject(text);
-    if (answer) return answer;
-  }
-
-  const result = best(text);
-
-  if (result.i >= 0 && result.s >= 0.50) {
-    return data.qa[result.i].a || "Das habe ich gelernt.";
-  }
-
-  if (result.i >= 0 && result.s >= 0.38) {
-    return "Ich bin mir nicht ganz sicher, aber vielleicht meinst du:\n" +
-      data.qa[result.i].a;
+    return "Dazu habe ich noch keine ausreichenden Fakten. Du kannst „Suche: " + extractSubject(text) + "“ eingeben.";
   }
 
   return null;
 }
 
-// --------------------------------------------------
-// CHATANZEIGE
-// --------------------------------------------------
+/* ==========================================
+   RECHERCHEBEFEHLE
+   ========================================== */
 
-function bubble(role, text, store = true) {
-  const element = document.createElement("div");
-  element.className = "msg " + role;
-  element.textContent = text;
-  $("log").appendChild(element);
+function isSearchRequest(text) {
+  return /^(suche|recherchiere|wiki|wikipedia)\s*:/i.test(text);
+}
+
+function searchQuery(text) {
+  return text.replace(/^(suche|recherchiere|wiki|wikipedia)\s*:/i,"").trim();
+}
+
+/* ==========================================
+   CHAT
+   ========================================== */
+
+function bubble(role,text,store = true) {
+  const el = document.createElement("div");
+  el.className = "msg " + role;
+  el.textContent = text;
+  $("log").appendChild(el);
   $("log").scrollTop = $("log").scrollHeight;
 
   if (store) {
-    data.log.push({ role, text });
+    data.log.push({role,text});
     save();
   }
-
-  return element;
+  return el;
 }
 
 let busy = false;
@@ -1214,13 +1069,12 @@ async function send(text) {
       activeController.abort();
       activeController = null;
       busy = false;
-      bubble("bot", "Anfrage abgebrochen.");
+      bubble("bot","Anfrage abgebrochen.");
     } else {
       data.pending = null;
       save();
-      bubble("bot", "Alles klar. Wir lassen das.");
+      bubble("bot","Alles klar.");
     }
-
     $("input").value = "";
     return;
   }
@@ -1228,108 +1082,65 @@ async function send(text) {
   if (busy) return;
   $("input").value = "";
 
-  const previousLog = data.log.slice();
-  const previousQuestion = lastUserQuestion();
+  const previous = data.log.slice();
+  const previousQuestion = [...previous].reverse().find(x => x.role === "user")?.text;
 
-  bubble("user", text);
+  bubble("user",text);
 
-  const response = handle(text, previousQuestion);
-
+  const response = handle(text,previousQuestion);
   if (response !== null) {
-    bubble("bot", response);
+    bubble("bot",response);
     return;
   }
 
   busy = true;
-  const loading = bubble("bot", "Ich recherchiere ...", false);
+  const loading = bubble("bot","🧠 Das KI-Team arbeitet ...",false);
   const controller = new AbortController();
   activeController = controller;
 
   try {
-    let answerText = null;
+    let answer;
 
     if (isSearchRequest(text)) {
       const query = searchQuery(text);
       if (!query) throw new Error("Bitte gib einen Suchbegriff ein.");
-
-      answerText = await researchAll(query, controller.signal);
-
+      answer = await researchAll(query,controller.signal);
     } else {
-      try {
-        const context = data.facts.slice(-40)
-          .map(f => `${f.subject} | ${f.property}: ${f.value}`)
-          .join("\n");
+      // Meta-KI: erst vorhandenes Wissen prüfen.
+      answer = answerAgent(text);
 
-        const history = previousLog.slice(-12).map(item => ({
-          role: item.role === "bot" || item.role === "assistant"
-            ? "assistant"
-            : "user",
-          content: item.text
-        }));
-
-        const result = await fetch(API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          body: JSON.stringify({
-            message:
-              "Du bist ein hilfreicher deutscher Lernassistent. " +
-              "Berücksichtige das gespeicherte Wissen. " +
-              "Erfinde keine Fakten und sage ehrlich, wenn du etwas nicht weißt.\n\n" +
-              "Gespeichertes Wissen:\n" + context +
-              "\n\nNutzerfrage: " + text,
-            history
-          })
-        });
-
-        const answer = await result.json();
-
-        if (!result.ok) throw new Error(answer.error || "KI-Anfrage fehlgeschlagen.");
-        if (!answer.answer) throw new Error("Keine Antwort erhalten.");
-
-        answerText = answer.answer;
-
-      } catch (apiError) {
-        if (apiError.name === "AbortError") throw apiError;
-
-        const wiki = await wikipediaSearch(text, controller.signal);
+      // Wenn nichts bekannt ist, kostenlose Recherche versuchen.
+      if (!answer) {
+        const wiki = await wikipediaSearch(text,controller.signal);
 
         if (wiki) {
-          answerText = wiki.answer +
-            "\n\nHinweis: Meine Haupt-KI war nicht erreichbar. " +
-            "Diese Antwort stammt aus der Wikipedia-Recherche.\n\n" +
-            "Quelle: " + wiki.title + "\n" + wiki.url;
-
-          const learned = learnArticle(wiki.answer, "wikipedia", wiki.title);
+          const learned = learnArticle(wiki.answer,"wikipedia",wiki.title);
+          answer = wiki.answer +
+            "\n\nQuelle: " + wiki.title + "\n" + wiki.url;
 
           if (learned) {
-            answerText += `\n\nIch habe automatisch ${learned.facts.length} Fakten erkannt und gespeichert.`;
+            answer += `\n\nLern-KI: ${learned.facts.length} Fakten gespeichert.`;
           }
         } else {
-          throw new Error(
-            "Haupt-KI nicht erreichbar und keine passende Wikipedia-Seite gefunden. " +
-            "Details: " + apiError.message
-          );
+          answer = "Dazu habe ich noch kein Wissen gefunden. Versuche „Suche: " + text + "“.";
         }
       }
     }
 
     if (controller.signal.aborted) return;
 
-    loading.textContent = answerText;
-    data.log.push({ role: "bot", text: answerText });
+    loading.textContent = answer;
+    data.log.push({role:"bot",text:answer});
     save();
 
   } catch (error) {
     if (error.name === "AbortError") {
       loading.textContent = "Anfrage abgebrochen.";
     } else {
-      loading.textContent = "Ich kann die Anfrage gerade nicht beantworten: " + error.message;
+      loading.textContent = "Recherche fehlgeschlagen: " + error.message;
     }
-
-    data.log.push({ role: "bot", text: loading.textContent });
+    data.log.push({role:"bot",text:loading.textContent});
     save();
-
   } finally {
     if (activeController === controller) {
       activeController = null;
@@ -1338,18 +1149,16 @@ async function send(text) {
   }
 }
 
-// --------------------------------------------------
-// EINGABEN UND MENÜ
-// --------------------------------------------------
+/* ==========================================
+   MENÜ UND EINGABEN
+   ========================================== */
 
-$("bar").addEventListener("submit", event => {
-  event.preventDefault();
+$("bar").addEventListener("submit",e => {
+  e.preventDefault();
   send();
 });
 
-$("menu").onclick = () => {
-  $("drawer").classList.toggle("open");
-};
+$("menu").onclick = () => $("drawer").classList.toggle("open");
 
 document.querySelectorAll("[data-msg]").forEach(button => {
   button.onclick = () => send(button.dataset.msg);
@@ -1369,42 +1178,38 @@ document.querySelectorAll("[data-cmd]").forEach(button => {
 
     if (command === "refresh") {
       $("status").textContent = "Suche nach Updates ...";
-
       (async () => {
         try {
           const registration = await navigator.serviceWorker.getRegistration();
           if (registration) await registration.update();
           $("status").textContent = "App wird aktualisiert ...";
-          setTimeout(() => location.reload(), 1200);
+          setTimeout(() => location.reload(),1200);
         } catch {
-          $("status").textContent = "Update fehlgeschlagen. Bitte Internet prüfen.";
+          $("status").textContent = "Update fehlgeschlagen.";
         }
       })();
-
       return;
     }
 
     if (command === "export") {
       const backup = {
-        version: 7,
-        qa: data.qa,
-        facts: data.facts,
-        classes: data.classes,
-        log: data.log,
-        theme: data.theme
+        version:VERSION,
+        qa:data.qa,
+        facts:data.facts,
+        classes:data.classes,
+        log:data.log,
+        theme:data.theme,
+        agentStats:data.agentStats,
+        improvements:data.improvements,
+        audit:data.audit
       };
-
-      const blob = new Blob(
-        [JSON.stringify(backup, null, 2)],
-        { type: "application/json" }
-      );
-
+      const blob = new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "mein-lernbot-wissen.json";
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mein-lernbot-2-backup.json";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url),1000);
       return;
     }
 
@@ -1417,9 +1222,9 @@ document.querySelectorAll("[data-cmd]").forEach(button => {
   };
 });
 
-// --------------------------------------------------
-// IMPORT
-// --------------------------------------------------
+/* ==========================================
+   IMPORT / EXPORT
+   ========================================== */
 
 const picker = document.createElement("input");
 picker.type = "file";
@@ -1433,97 +1238,68 @@ picker.onchange = () => {
   if (!file) return;
 
   const reader = new FileReader();
-
   reader.onload = () => {
     try {
       const imported = JSON.parse(reader.result);
-
-      if (
-        !Array.isArray(imported.qa) ||
-        !Array.isArray(imported.classes) ||
-        !confirm("Der Import ersetzt dein bisheriges Wissen. Hast du vorher ein Backup erstellt?")
-      ) {
-        bubble("bot", "Import abgebrochen. Dein bisheriges Wissen bleibt erhalten.");
+      if (!Array.isArray(imported.qa) ||
+          !Array.isArray(imported.classes) ||
+          !confirm("Import ersetzt dein bisheriges Wissen. Fortfahren?")) {
+        bubble("bot","Import abgebrochen.");
         picker.value = "";
         return;
       }
 
-      data.qa = imported.qa.filter(x =>
-        x && typeof x === "object" && typeof x.k === "string"
-      );
-
-      data.facts = Array.isArray(imported.facts)
-        ? imported.facts.filter(x =>
-            x && typeof x.subject === "string" &&
-            typeof x.property === "string" &&
-            typeof x.value === "string"
-          )
-        : [];
-
+      data.qa = imported.qa.filter(x => x && typeof x.k === "string");
+      data.facts = Array.isArray(imported.facts) ? imported.facts.filter(x =>
+        x && typeof x.subject === "string" &&
+        typeof x.property === "string" &&
+        typeof x.value === "string"
+      ) : [];
       data.classes = imported.classes.filter(x =>
-        x && typeof x === "object" &&
-        typeof x.t === "string" && typeof x.c === "string"
+        x && typeof x.t === "string" && typeof x.c === "string"
       );
-
-      if (Array.isArray(imported.log)) {
-        data.log = imported.log.filter(x =>
-          x && typeof x.text === "string"
-        ).slice(-150);
-      }
-
-      if (["dark", "light"].includes(imported.theme)) {
-        data.theme = imported.theme;
-      }
-
+      data.log = Array.isArray(imported.log) ? imported.log.slice(-150) : [];
+      data.agentStats = imported.agentStats || {};
+      data.improvements = Array.isArray(imported.improvements) ? imported.improvements : [];
+      data.audit = Array.isArray(imported.audit) ? imported.audit : [];
+      data.theme = imported.theme || "dark";
       data.pending = null;
       save();
 
       $("log").innerHTML = "";
-
-      data.log.forEach(item => {
-        bubble(item.role === "user" ? "user" : "bot", item.text, false);
-      });
-
-      bubble("bot", "Wissen erfolgreich importiert.");
-
+      data.log.forEach(x => bubble(x.role === "user" ? "user" : "bot",x.text,false));
+      bubble("bot","Wissen und KI-Team-Daten erfolgreich importiert.");
     } catch {
-      bubble("bot", "Die Datei konnte nicht importiert werden.");
+      bubble("bot","Datei konnte nicht importiert werden.");
     }
-
     picker.value = "";
   };
-
   reader.readAsText(file);
 };
 
-// --------------------------------------------------
-// CHAT WIEDERHERSTELLEN
-// --------------------------------------------------
+/* ==========================================
+   CHAT WIEDERHERSTELLEN
+   ========================================== */
 
-if (data.theme === "light") {
-  document.body.classList.add("light");
-}
+if (data.theme === "light") document.body.classList.add("light");
 
 if (data.log.length) {
-  data.log.forEach(item => {
-    bubble(item.role === "user" ? "user" : "bot", item.text, false);
-  });
+  data.log.forEach(x => bubble(x.role === "user" ? "user" : "bot",x.text,false));
 } else {
-  bubble(
-    "bot",
-    "Hallo! Ich bin dein LernBot. Du kannst mir Fragen stellen oder Wissen beibringen.",
-    false
-  );
+  bubble("bot","Hallo! Ich bin LernBot 2.0. Mein KI-Team ist bereit. Tippe „Teamstatus“, um deine Module kennenzulernen.",false);
 }
 
-// --------------------------------------------------
-// SERVICE WORKER
-// --------------------------------------------------
+/* ==========================================
+   SERVICE WORKER
+   ========================================== */
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+  window.addEventListener("load",() => {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   });
 }
+
+logAudit("Zentrale KI","System gestartet","LernBot 2.0 Multi-Brain");
+save();
 
 })();
