@@ -1,4 +1,3 @@
-
 (() => {
   "use strict";
 
@@ -48,6 +47,7 @@ WEITERE BEFEHLE:
 „Vergiss: Okapi“ – löscht passende Einträge.
 „Verlauf löschen“ – löscht den Chatverlauf.
 „Grundwissen laden“ – ergänzt das Grundwissen.
+„Abbrechen“ – bricht eine laufende Anfrage ab.
 
 Ich speichere mein Wissen auf diesem Gerät.`;
 
@@ -300,7 +300,7 @@ Ich speichere mein Wissen auf diesem Gerät.`;
   }
 
   // --------------------------------------------------
-  // 4. FAKTEN SPEICHERN
+  // 4. FAKTE SPEICHERN
   // --------------------------------------------------
 
   function addFact(subject, property, value, source = "user") {
@@ -356,14 +356,12 @@ Ich speichere mein Wissen auf diesem Gerät.`;
 
     if (!clean || clean.includes("?")) return null;
 
-    // Fragen und Frageanfänge niemals als Fakten lernen.
     if (/^(was|wer|wie|wo|woher|wohin|wann|warum|weshalb|wieso|welcher|welche|welches)\b/i.test(clean)) {
       return null;
     }
 
     let match;
 
-    // Hauptstadt: "Die Hauptstadt von Frankreich ist Paris."
     match = clean.match(
       /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+)[.!?]*$/i
     );
@@ -377,7 +375,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       };
     }
 
-    // Lebensraum: "Ein Okapi lebt im Regenwald."
     match = clean.match(
       /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf|unter|bei|zwischen)\s+(.+)[.!?]*$/i
     );
@@ -391,7 +388,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       };
     }
 
-    // Herkunft: "Ein Okapi kommt aus dem Kongo."
     match = clean.match(
       /^(.+?)\s+kommt\s+aus\s+(.+)[.!?]*$/i
     );
@@ -405,7 +401,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       };
     }
 
-    // Ernährung: "Ein Okapi frisst Blätter."
     match = clean.match(
       /^(.+?)\s+(?:frisst|isst|ernährt\s+sich\s+von)\s+(.+)[.!?]*$/i
     );
@@ -419,7 +414,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       };
     }
 
-    // Zugehörigkeit: "Ein Okapi gehört zu den Giraffenartigen."
     match = clean.match(
       /^(.+?)\s+gehört\s+zu\s+(.+)[.!?]*$/i
     );
@@ -433,7 +427,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       };
     }
 
-    // Definition: "Ein Okapi ist ein Säugetier."
     match = clean.match(
       /^(.+?)\s+(?:ist|sind|war|heißt|bedeutet)\s+(.+)[.!?]*$/i
     );
@@ -459,8 +452,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
     const fact = parseFact(text);
     if (!fact) return null;
 
-    const pending = getPending();
-
     if (!addFact(
       fact.subject,
       fact.property,
@@ -483,7 +474,7 @@ Ich speichere mein Wissen auf diesem Gerät.`;
   }
 
   // --------------------------------------------------
-  // 6. FAKTEN ABFRAGEN
+  // 6. FAKTE ABFRAGEN
   // --------------------------------------------------
 
   function answerFromFacts(question) {
@@ -494,7 +485,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
 
     let fact = getFact(subject, property);
 
-    // Eine Definition kann auch eine Tierart beantworten.
     if (!fact && property === "tierart") {
       fact = getFact(subject, "definition");
     }
@@ -817,7 +807,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
     const low = norm(text);
     let match;
 
-    // Sicherheitsantwort.
     if (/(selbstmord|suizid|umbringen|nicht mehr leben|sterben (will|möchte)|töten will|ritzen|selbstverletz)/i.test(text)) {
       return "Das klingt ernst. Bitte bleib damit nicht allein und sprich mit einer vertrauten Person. Die TelefonSeelsorge erreichst du kostenlos unter 0800 111 0 111, 0800 111 0 222 oder 116 123. Bei unmittelbarer Gefahr ruf 112.";
     }
@@ -862,7 +851,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       return "Dein gelerntes Wissen und die Kategorien wurden gelöscht.";
     }
 
-    // Eintrag vergessen.
     if (match = text.match(/^vergiss\s*:?\s+(.+)$/i)) {
       const target = cleanSubject(match[1]);
       const oldQA = data.qa.length;
@@ -888,7 +876,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
         : "Dazu habe ich keinen passenden Eintrag gefunden.";
     }
 
-    // Alternative Fragen.
     if (match = text.match(
       /^(?:alternative frage|gleichbedeutende frage)\s*:\s*(.+?)\s*(?:=|->|bedeutet dasselbe wie|ist dasselbe wie)\s*(.+)$/i
     )) {
@@ -904,7 +891,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       );
     }
 
-    // Kategorie lernen.
     if (match = text.match(
       /^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s*kategorie\s+([^:]+?)\s*:\s*(.+)$/i
     )) {
@@ -919,7 +905,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
         "“ gehört zu „" + match[1] + "“.";
     }
 
-    // Explizit etwas beibringen.
     if (match = text.match(
       /^(?:ich bringe dir bei|ich bring dir bei|ich möchte dir beibringen|ich will dir beibringen|pass auf|merk dir bitte|merke dir|lern|lerne)\s*:?\s*(.+)$/i
     )) {
@@ -936,7 +921,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
         "“ lernen? Erkläre es mir in einem Satz.";
     }
 
-    // Korrekte Antwort ausdrücklich beibringen.
     if (match = text.match(
       /^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i
     )) {
@@ -956,14 +940,12 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       return "Zu welchem Begriff oder welcher Frage gehört diese Erklärung?";
     }
 
-    // Direkte Faktenaussagen erkennen.
     const directFact = parseFact(text);
 
     if (directFact) {
       return learnFact(text);
     }
 
-    // Kategorien abfragen.
     if (match = text.match(
       /^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i
     )) {
@@ -973,7 +955,7 @@ Ich speichere mein Wissen auf diesem Gerät.`;
     const pending = getPending();
 
     if (pending) {
-      if (/^(abbrechen|egal|stop|lass es)$/i.test(low)) {
+      if (/^(abbrechen|egal|stop|stopp|lass es)$/i.test(low)) {
         data.pending = null;
         save();
         return "Alles klar. Wir lassen das.";
@@ -987,6 +969,10 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       }
 
       if (pending.kind === "teach_fact") {
+        const fact = learnFact(text);
+
+        if (fact) return fact;
+
         data.pending = null;
         save();
 
@@ -1004,7 +990,6 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       }
     }
 
-    // Korrektur.
     if (match = text.match(
       /^(?:nein[, ]+)?(?:richtig ist|korrekt ist|stattdessen|die richtige antwort ist)\s*:?\s*(.+)$/i
     )) {
@@ -1027,14 +1012,12 @@ Ich speichere mein Wissen auf diesem Gerät.`;
       return "Was genau soll ich korrigieren? Erkläre mir bitte die richtige Information.";
     }
 
-    // Zuerst gezielt in der Fakten-Datenbank suchen.
     const factAnswer = answerFromFacts(text);
 
     if (factAnswer) {
       return factAnswer;
     }
 
-    // Danach die Frage-Antwort-Datenbank verwenden.
     const result = best(text);
 
     if (result.i >= 0 && result.s >= 0.50) {
@@ -1046,126 +1029,152 @@ Ich speichere mein Wissen auf diesem Gerät.`;
         data.qa[result.i].a;
     }
 
-// Unbekannte Fragen an die verbundene KI weitergeben.
-return null;
+    return null;
   }
 
   // --------------------------------------------------
-  // 13. CHATANZEIGE
+  // 13. CHATANZEIGE UND ABbrechen-FUNKTION
   // --------------------------------------------------
 
-function bubble(role, text, store = true) {
-  const element = document.createElement("div");
+  function bubble(role, text, store = true) {
+    const element = document.createElement("div");
 
-  element.className = "msg " + role;
-  element.textContent = text;
+    element.className = "msg " + role;
+    element.textContent = text;
 
-  $("log").appendChild(element);
-  $("log").scrollTop = $("log").scrollHeight;
+    $("log").appendChild(element);
+    $("log").scrollTop = $("log").scrollHeight;
 
-  if (store) {
-    data.log.push({ role, text });
-    save();
+    if (store) {
+      data.log.push({ role, text });
+      save();
+    }
+
+    return element;
   }
-
-  return element;
-}
 
   let busy = false;
-let activeController = null;
+  let activeController = null;
 
-async function send(text) {
-  text = String(text ?? $("input").value).trim();
-if (!text) return;
+  async function send(text) {
+    text = String(text ?? $("input").value).trim();
 
-if (/^(abbrechen|stop|stopp|egal)$/i.test(text)) {
-  if (activeController) {
-    activeController.abort();
-  }
+    if (!text) return;
 
-  if (busy) {
-    busy = false;
-    activeController = null;
-    bubble("bot", "Anfrage abgebrochen.");
-  } else {
-    data.pending = null;
-    save();
-    bubble("bot", "Alles klar. Wir lassen das.");
-  }
+    // Eine laufende KI-Anfrage abbrechen.
+    if (/^(abbrechen|stop|stopp|egal)$/i.test(text)) {
+      if (busy && activeController) {
+        activeController.abort();
+        activeController = null;
+        busy = false;
 
-  $("input").value = "";
-  return;
-}
+        bubble("bot", "Anfrage abgebrochen.");
+      } else {
+        data.pending = null;
+        save();
 
-if (busy) return;
-
-  $("input").value = "";
-
-  const previousLog = data.log.slice();
-  const previousQuestion = lastUserQuestion();
-
-  bubble("user", text);
-
-  const response = handle(text, previousQuestion);
-
-  if (response !== null) {
-    bubble("bot", response);
-    return;
-  }
-
-  busy = true;
-  const loading = bubble("bot", "Ich denke nach ...", false);
-
-  try {
-    const context = data.facts.slice(-30)
-      .map(f => `${f.subject} | ${f.property}: ${f.value}`)
-      .join("\n");
-
-    const history = previousLog.slice(-10).map(item => ({
-      role: item.role === "bot" || item.role === "assistant"
-        ? "assistant"
-        : "user",
-      content: item.text
-    }));
-
-    const result = await fetch(
-      "https://mein-lernbot.vercel.app/api/chat",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message:
-            "Gespeichertes Wissen:\n" + context +
-            "\n\nNutzerfrage: " + text,
-          history
-        })
+        bubble("bot", "Alles klar. Wir lassen das.");
       }
+
+      $("input").value = "";
+      return;
+    }
+
+    if (busy) return;
+
+    $("input").value = "";
+
+    const previousLog = data.log.slice();
+    const previousQuestion = lastUserQuestion();
+
+    bubble("user", text);
+
+    const response = handle(text, previousQuestion);
+
+    if (response !== null) {
+      bubble("bot", response);
+      return;
+    }
+
+    busy = true;
+
+    const loading = bubble(
+      "bot",
+      "Ich denke nach ...",
+      false
     );
 
-    const answer = await result.json();
+    const controller = new AbortController();
+    activeController = controller;
 
-    if (!result.ok) {
-      throw new Error(answer.error || "KI-Anfrage fehlgeschlagen.");
+    try {
+      const context = data.facts.slice(-30)
+        .map(f => `${f.subject} | ${f.property}: ${f.value}`)
+        .join("\n");
+
+      const history = previousLog.slice(-10).map(item => ({
+        role: item.role === "bot" || item.role === "assistant"
+          ? "assistant"
+          : "user",
+        content: item.text
+      }));
+
+      const result = await fetch(
+        "https://mein-lernbot.vercel.app/api/chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            message:
+              "Gespeichertes Wissen:\n" + context +
+              "\n\nNutzerfrage: " + text,
+            history
+          })
+        }
+      );
+
+      const answer = await result.json();
+
+      if (!result.ok) {
+        throw new Error(answer.error || "KI-Anfrage fehlgeschlagen.");
+      }
+
+      if (!answer.answer) {
+        throw new Error("Die KI hat keine Antwort geliefert.");
+      }
+
+      loading.textContent = answer.answer;
+      data.log.push({
+        role: "bot",
+        text: answer.answer
+      });
+
+      save();
+
+    } catch (error) {
+      if (error.name === "AbortError") {
+        // Die Abbruchmeldung wurde bereits angezeigt.
+      } else {
+        loading.textContent =
+          "Ich kann die KI gerade nicht erreichen: " + error.message;
+
+        data.log.push({
+          role: "bot",
+          text: loading.textContent
+        });
+
+        save();
+      }
+
+    } finally {
+      // Nur die eigene Anfrage darf den Status zurücksetzen.
+      if (activeController === controller) {
+        activeController = null;
+        busy = false;
+      }
     }
-
-    if (!answer.answer) {
-      throw new Error("Die KI hat keine Antwort geliefert.");
-    }
-
-    loading.textContent = answer.answer;
-    data.log.push({ role: "bot", text: answer.answer });
-    save();
-
-  } catch (error) {
-    loading.textContent =
-      "Ich kann die KI gerade nicht erreichen: " + error.message;
-    data.log.push({ role: "bot", text: loading.textContent });
-    save();
-
-  } finally {
-    busy = false;
   }
-}
 
   // --------------------------------------------------
   // 14. EINGABEN UND MENÜ
@@ -1216,6 +1225,7 @@ if (busy) return;
             $("status").textContent = "App wird aktualisiert ...";
 
             setTimeout(() => location.reload(), 1200);
+
           } catch (error) {
             $("status").textContent =
               "Update fehlgeschlagen. Bitte Internet prüfen.";
@@ -1323,6 +1333,7 @@ if (busy) return;
         save();
 
         bubble("bot", "Wissen erfolgreich importiert.");
+
       } catch (error) {
         bubble("bot", "Die Datei konnte nicht importiert werden.");
       }
