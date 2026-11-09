@@ -2,16 +2,21 @@
 "use strict";
 
 /* ==========================================
-   LERNBOT 2.0 – MULTI-BRAIN-SYSTEM
-   7 spezialisierte Module + Meta-KI
+   LERNBOT 3.0 – MULTI-BRAIN-SYSTEM
+   8 Module + Code-KI
    ========================================== */
 
 const $ = id => document.getElementById(id);
 const KEY = "meinLernBot.v1";
-const VERSION = 2;
+const VERSION = 3;
+
+// Quellcode der eigenen Datei erfassen
+const CURRENT_SCRIPT = document.currentScript;
+let ownCode = CURRENT_SCRIPT?.textContent || "";
+const ownScriptURL = CURRENT_SCRIPT?.src || "";
 
 const seed = [
-["Hallo Hi Guten Tag","Hallo! Schön, dass du da bist. Ich bin dein LernBot 2.0!"],
+["Hallo Hi Guten Tag","Hallo! Schön, dass du da bist. Ich bin dein LernBot 3.0!"],
 ["Notfall","Bei akuter Gefahr zuerst 112 anrufen. Polizei: 110."],
 ["Notruf Nummer Polizei Feuerwehr Krankenwagen","112: Rettungsdienst und Feuerwehr. 110: Polizei. 116 117: ärztlicher Bereitschaftsdienst."],
 ["Herzstillstand Wiederbelebung Reanimation","Bei Bewusstlosigkeit und keiner normalen Atmung sofort 112 wählen und den Anweisungen der Leitstelle folgen."],
@@ -25,7 +30,7 @@ const seed = [
 ["Wer bist du Was kannst du","Ich bin dein lokaler LernBot mit mehreren spezialisierten KI-Modulen."]
 ];
 
-const help = `LERNBOT 2.0 – HILFE
+const help = `LERNBOT 3.0 – HILFE
 
 LERNEN:
 „Ein Okapi ist ein Säugetier.“
@@ -49,9 +54,15 @@ SELBSTREFLEXION:
 
 KI-TEAM:
 „Teamstatus“
-„Zeige deine Module“
 „Meta-Analyse“
 „Verbesserungsvorschläge“
+
+NEUE CODE-KI:
+„Code prüfen“
+„Codebericht“
+„Code-Vorschläge“
+„Programmierwissen“
+„Code-KI“
 
 WISSEN:
 „Was weißt du?“
@@ -61,13 +72,16 @@ WISSEN:
 „Alles löschen“
 
 Die Module arbeiten lokal zusammen.
-Recherche nutzt kostenlose öffentliche Quellen.
+Die Code-KI prüft den Programmcode und schlägt Änderungen vor.
+Sie verändert niemals selbstständig deinen Programmcode.
 `;
 
 let data;
 try {
   data = JSON.parse(localStorage.getItem(KEY) || "null");
-} catch { data = null; }
+} catch {
+  data = null;
+}
 
 if (!data || typeof data !== "object" || Array.isArray(data)) data = {};
 
@@ -80,6 +94,8 @@ data.theme = data.theme || "dark";
 data.agentStats = data.agentStats || {};
 data.improvements = Array.isArray(data.improvements) ? data.improvements : [];
 data.audit = Array.isArray(data.audit) ? data.audit : [];
+data.codeProposals = Array.isArray(data.codeProposals) ? data.codeProposals : [];
+data.pendingCodeProposal = data.pendingCodeProposal || null;
 
 data.qa = data.qa.filter(x => x && typeof x.k === "string");
 data.facts = data.facts.filter(x =>
@@ -96,6 +112,8 @@ function save() {
   data.log = data.log.slice(-150);
   data.audit = data.audit.slice(-300);
   data.improvements = data.improvements.slice(-100);
+  data.codeProposals = data.codeProposals.slice(-30);
+
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
     return true;
@@ -137,8 +155,7 @@ function countAgent(name) {
 }
 
 function agentReport() {
-  const names = Object.keys(AGENTS);
-  return names.map(name =>
+  return Object.keys(AGENTS).map(name =>
     `${AGENTS[name].icon} ${name}: ${data.agentStats[name] || 0} Einsätze`
   ).join("\n");
 }
@@ -233,8 +250,6 @@ function parseFact(text) {
   if (!s || s.includes("?")) return null;
   if (/^(was|wer|wie|wo|wann|warum|weshalb|wieso)\b/i.test(s)) return null;
 
-  let m;
-
   const patterns = [
     [/^die hauptstadt von (.+?) ist (.+)$/i,"hauptstadt",1,2],
     [/^(.+?) (?:lebt|wohnt|befindet sich) (?:in|im|am|auf|bei) (.+)$/i,"lebensraum",1,2],
@@ -246,7 +261,7 @@ function parseFact(text) {
   ];
 
   for (const [regex,property,a,b] of patterns) {
-    m = s.match(regex);
+    const m = s.match(regex);
     if (m) return {
       subject: subjectClean(m[a]),
       property,
@@ -370,14 +385,6 @@ ${f.subject} | ${f.property} | ${f.value}`;
    MINI-KI 2: FRAGE-ANTWORT-KI
    ========================================== */
 
-function questionType(q) {
-  const s = norm(q);
-  if (/\b(wo|wohin|woher)\b/.test(s)) return "ort";
-  if (/\b(wann|welches jahr|wie lange)\b/.test(s)) return "zeit";
-  if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) return "menge";
-  return "allgemein";
-}
-
 function requestedProperty(q) {
   const s = norm(q);
   if (/\b(wo lebt|wo wohnt|lebensraum)\b/.test(s)) return "lebensraum";
@@ -436,6 +443,7 @@ function learnQA(q,a) {
 function analyzeKnowledge(subject = "") {
   const facts = subject ? getFacts(subject) : data.facts;
   const groups = {};
+
   facts.forEach(f => {
     (groups[norm(f.subject) + "|" + norm(f.property)] ||= []).push(f);
   });
@@ -448,6 +456,17 @@ function analyzeKnowledge(subject = "") {
       const values = new Set(group.map(f => norm(f.value)));
       if (values.size === 1) duplicates.push(group[0]);
       else conflicts.push(group);
+    }
+  });
+
+  // Frühere Werte berücksichtigen, die addFact gespeichert hat.
+  facts.forEach(f => {
+    if (f.conflict && f.previous) {
+      conflicts.push([{
+        ...f,
+        value:f.previous,
+        source:"früherer Wert"
+      },f]);
     }
   });
 
@@ -551,7 +570,7 @@ async function researchAll(query,signal) {
   const books = results[2].status === "fulfilled" ? results[2].value : [];
   const papers = results[3].status === "fulfilled" ? results[3].value : [];
 
-  let successful = results.filter(r => r.status === "fulfilled").length;
+  const successful = results.filter(r => r.status === "fulfilled").length;
   let out = `RECHERCHE: ${query}\n\n`;
 
   if (wiki) {
@@ -751,7 +770,7 @@ function optimizeSystem() {
 
   return "🛠️ OPTIMIERUNGSBERICHT\n\n" +
     suggestions.map((s,i) => `${i+1}. ${s}`).join("\n") +
-    "\n\nDie Optimierungs-KI verändert den Programmcode nicht automatisch. Sie erstellt sichere Verbesserungsvorschläge.";
+    "\n\nDie Optimierungs-KI verändert den Programmcode nicht automatisch.";
 }
 
 /* ==========================================
@@ -797,6 +816,419 @@ function answerAgent(q) {
 }
 
 /* ==========================================
+   MINI-KI 8: CODE-KI
+   ========================================== */
+
+// Diese KI untersucht den tatsächlichen Quellcode.
+// Sie führt ihn nicht erneut aus und verändert ihn nicht.
+
+async function getOwnSource() {
+  if (ownCode && ownCode.trim().length > 100) return ownCode;
+
+  if (ownScriptURL) {
+    try {
+      const response = await fetch(ownScriptURL,{cache:"no-store"});
+      if (response.ok) {
+        ownCode = await response.text();
+        return ownCode;
+      }
+    } catch {}
+  }
+
+  return "";
+}
+
+function codeCheckRules(source) {
+  const findings = [];
+
+  function add(level,title,problem,location,recommendation,risk,test) {
+    findings.push({
+      level,title,problem,location,
+      recommendation,risk,test
+    });
+  }
+
+  if (!source || source.length < 100) {
+    add(
+      "kritisch",
+      "Quellcode nicht lesbar",
+      "Die Code-KI konnte den vollständigen Quellcode nicht erfassen.",
+      "Quellcode-Erfassung",
+      "Den Code direkt in die HTML-Datei einbetten oder die JavaScript-Datei über die Code-Datei-Funktion laden.",
+      "Die Code-KI kann sonst nur eingeschränkt prüfen.",
+      "Code prüfen ausführen und kontrollieren, ob die erkannte Quellcodegröße über 100 Zeichen liegt."
+    );
+    return findings;
+  }
+
+  if (/\beval\s*\(/.test(source) || /\bnew\s+Function\s*\(/.test(source)) {
+    add(
+      "hoch",
+      "Dynamische Codeausführung",
+      "Der Code enthält eval() oder new Function(). Damit kann Text als Programmcode ausgeführt werden.",
+      "Suche nach eval() oder new Function()",
+      "Prüfen, ob die dynamische Ausführung wirklich notwendig ist. Wenn möglich durch feste Funktionen ersetzen.",
+      "Kann bei ungeprüften Eingaben Sicherheitsprobleme verursachen.",
+      "Nach der Änderung alle Funktionen testen, die vorher dynamischen Code verwendet haben."
+    );
+  }
+
+  if (/\binnerHTML\s*=/.test(source)) {
+    add(
+      "mittel",
+      "HTML wird dynamisch eingefügt",
+      "Der Code verwendet innerHTML. Bei ungeprüften Benutzereingaben kann das ein Sicherheitsrisiko sein.",
+      "Suche nach innerHTML =",
+      "Für reine Textausgaben textContent verwenden. HTML nur mit geprüften und sicheren Inhalten erzeugen.",
+      "Mögliche Cross-Site-Scripting-Schwachstelle.",
+      "Benutzereingaben mit HTML-Zeichen testen und kontrollieren, dass sie nur als Text erscheinen."
+    );
+  }
+
+  if (/\bdocument\.write\s*\(/.test(source)) {
+    add(
+      "mittel",
+      "document.write gefunden",
+      "document.write kann die Seite überschreiben und ist in modernen Anwendungen meist unnötig.",
+      "Suche nach document.write()",
+      "DOM-Methoden wie createElement() und appendChild() verwenden.",
+      "Kann die Seite oder den Inhalt beschädigen.",
+      "Seite nach der Änderung vollständig testen."
+    );
+  }
+
+  if (/api[_-]?key\s*[:=]\s*["'][^"']{8,}/i.test(source) ||
+      /sk-[A-Za-z0-9_-]{15,}/.test(source)) {
+    add(
+      "kritisch",
+      "Möglicher API-Schlüssel im Quellcode",
+      "Es sieht so aus, als könnte ein geheimer Schlüssel direkt im Programm stehen.",
+      "Suche nach API-Key-Variablen oder Schlüsselmustern",
+      "Geheimnisse niemals im Browsercode speichern. Falls ein echter Schlüssel veröffentlicht wurde, ihn sofort widerrufen.",
+      "Jeder Besucher könnte den Schlüssel auslesen.",
+      "Quellcode und veröffentlichte Dateien auf geheime Schlüssel prüfen."
+    );
+  }
+
+  if (!/try\s*\{/.test(source) || !/catch\s*(?:\([^)]*\))?\s*\{/.test(source)) {
+    add(
+      "niedrig",
+      "Fehlerbehandlung prüfen",
+      "Die Code-KI hat keine vollständige Kombination aus try/catch erkannt.",
+      "Fehlerbehandlung",
+      "Asynchrone und externe Funktionen mit sinnvoller Fehlerbehandlung absichern.",
+      "Fehler können unbemerkt bleiben oder die Anwendung unterbrechen.",
+      "Netzwerkverbindung deaktivieren und Fehlerfälle testen."
+    );
+  }
+
+  if (/fetch\s*\(/.test(source) && !/AbortController/.test(source)) {
+    add(
+      "mittel",
+      "Abbrechbare Netzwerkanfragen prüfen",
+      "Es werden Netzwerkabfragen verwendet, aber kein AbortController wurde erkannt.",
+      "Netzwerkfunktionen",
+      "Bei längeren Anfragen Abbruchmöglichkeiten und Zeitlimits vorsehen.",
+      "Anfragen können unnötig lange laufen.",
+      "Eine langsame Anfrage starten und prüfen, ob sie abgebrochen werden kann."
+    );
+  }
+
+  if (/localStorage/.test(source) && !/JSON\.parse/.test(source)) {
+    add(
+      "niedrig",
+      "Speicherformat prüfen",
+      "LocalStorage wird genutzt, aber JSON.parse wurde nicht erkannt.",
+      "Speicherverwaltung",
+      "Gespeicherte Daten beim Laden auf gültige Werte prüfen.",
+      "Beschädigte Daten können die Anwendung stören.",
+      "Mit ungültigen gespeicherten Daten testen."
+    );
+  }
+
+  if (/localStorage/.test(source) && !/QuotaExceededError|Speichern fehlgeschlagen|catch/.test(source)) {
+    add(
+      "niedrig",
+      "Speichergrenze beachten",
+      "Der Browser kann das LocalStorage-Limit erreichen.",
+      "Speicherverwaltung",
+      "Speicherfehler abfangen und regelmäßig Backups ermöglichen.",
+      "Neue Daten könnten nicht mehr gespeichert werden.",
+      "Mit vielen gespeicherten Daten testen."
+    );
+  }
+
+  if (/addEventListener\s*\(/.test(source) && !/removeEventListener\s*\(/.test(source)) {
+    add(
+      "niedrig",
+      "Event-Listener prüfen",
+      "Listener werden registriert, aber keine Entfernung wurde erkannt.",
+      "Event-Verwaltung",
+      "Bei dynamisch erzeugten Bereichen prüfen, ob Listener mehrfach registriert werden.",
+      "Kann zu mehrfachen Aktionen führen.",
+      "Ansicht mehrfach öffnen und schließen und auf doppelte Aktionen achten."
+    );
+  }
+
+  if (/fetch\s*\(/.test(source) && !/response\.ok|\.ok\)/.test(source)) {
+    add(
+      "mittel",
+      "HTTP-Fehlerprüfung prüfen",
+      "Die Code-KI hat keine eindeutige Prüfung des HTTP-Status erkannt.",
+      "Netzwerkfunktionen",
+      "Nach fetch() den HTTP-Status kontrollieren, bevor die Antwort verarbeitet wird.",
+      "Fehlerhafte Serverantworten könnten als normale Daten behandelt werden.",
+      "Eine ungültige URL testen."
+    );
+  }
+
+  if (!/textContent/.test(source)) {
+    add(
+      "niedrig",
+      "Sichere Textausgabe prüfen",
+      "Die Code-KI hat textContent nicht gefunden.",
+      "Ausgabe und Benutzeroberfläche",
+      "Für normale Textausgaben textContent bevorzugen.",
+      "Unsichere HTML-Ausgabe kann zu Sicherheitsproblemen führen.",
+      "Eingaben mit HTML-Zeichen testen."
+    );
+  }
+
+  if (!/serviceWorker/.test(source)) {
+    add(
+      "niedrig",
+      "Offline-Unterstützung prüfen",
+      "Ein Service Worker wurde nicht erkannt.",
+      "Offline-Funktionen",
+      "Falls Offline-Nutzung gewünscht ist, einen Service Worker ergänzen.",
+      "Die Anwendung funktioniert möglicherweise nicht offline.",
+      "Nach einer passenden Umsetzung die App ohne Internet testen."
+    );
+  }
+
+  if (!/meta\s*analyse|metaanalyse/i.test(source)) {
+    add(
+      "mittel",
+      "Meta-Analyse-Befehl fehlt möglicherweise",
+      "Der Code enthält keine erkennbare Meta-Analyse-Befehlsbehandlung.",
+      "Hauptlogik / handle()",
+      "Meta-Analyse-Befehle vor der allgemeinen Recherche abfangen.",
+      "Die Eingabe könnte versehentlich als normale Recherche behandelt werden.",
+      "Meta-Analyse und Meta-Analyse starten testen."
+    );
+  }
+
+  if (/^(?![\s\S]*document\.currentScript)/.test(source)) {
+    // Nur ein Hinweis, kein Fehler.
+  }
+
+  return findings;
+}
+
+function createCodeProposal(finding) {
+  const proposal = {
+    id:Date.now(),
+    title:finding.title,
+    level:finding.level,
+    problem:finding.problem,
+    location:finding.location,
+    recommendation:finding.recommendation,
+    risk:finding.risk,
+    test:finding.test,
+    status:"wartet auf Freigabe",
+    created:Date.now()
+  };
+
+  data.codeProposals.push(proposal);
+  data.pendingCodeProposal = proposal.id;
+  save();
+  return proposal;
+}
+
+function formatCodeProposal(p) {
+  return `VORSCHLAG DER CODE-KI
+
+Thema: ${p.title}
+Priorität: ${p.level}
+
+PROBLEM:
+${p.problem}
+
+FUNDSTELLE:
+${p.location}
+
+VORGESCHLAGENE ÄNDERUNG:
+${p.recommendation}
+
+RISIKO:
+${p.risk}
+
+TEST:
+${p.test}
+
+STATUS:
+${p.status}
+
+WICHTIG:
+Dieser Vorschlag wurde noch nicht umgesetzt.
+Die Code-KI darf den Programmcode nicht selbst verändern.`;
+}
+
+async function inspectCode() {
+  countAgent("Code-KI");
+  logAudit("Code-KI","Codeprüfung gestartet","Quellcode wird analysiert");
+
+  const source = await getOwnSource();
+
+  if (!source) {
+    return `🔧 CODE-KI
+
+Ich konnte den Quellcode nicht automatisch auslesen.
+
+Mögliche Gründe:
+• Dein JavaScript liegt in einer externen Datei.
+• Der Browser stellt den Quellcode nicht bereit.
+• Die Datei wurde nicht direkt eingebunden.
+
+Du kannst die Datei über „Code-Datei laden“ bereitstellen.
+
+Ich werde ohne echten Quellcode keine konkreten Fehler behaupten.`;
+  }
+
+  const findings = codeCheckRules(source);
+  const critical = findings.filter(x => x.level === "kritisch").length;
+  const high = findings.filter(x => x.level === "hoch").length;
+  const medium = findings.filter(x => x.level === "mittel").length;
+  const low = findings.filter(x => x.level === "niedrig").length;
+
+  let out = `🔧 CODE-KI – SYSTEMPRÜFUNG
+
+Quellcode erfasst: Ja
+Erkannte Zeichen: ${source.length}
+Erkannte Zeilen: ${source.split("\n").length}
+
+ERGEBNIS:
+Kritisch: ${critical}
+Hoch: ${high}
+Mittel: ${medium}
+Niedrig: ${low}
+
+`;
+
+  if (!findings.length) {
+    out += "Bei den eingebauten Prüfregeln wurden keine Auffälligkeiten gefunden.\n";
+    out += "Das bedeutet nicht, dass der Code fehlerfrei oder perfekt ist.";
+  } else {
+    out += "ERKANNTE PUNKTE:\n\n";
+
+    findings.forEach((f,i) => {
+      out += `${i+1}. [${f.level.toUpperCase()}] ${f.title}\n`;
+      out += `${f.problem}\n`;
+      out += `Fundstelle: ${f.location}\n`;
+      out += `Vorschlag: ${f.recommendation}\n\n`;
+    });
+
+    const first = findings[0];
+    const proposal = createCodeProposal(first);
+
+    out += `\nMEIN ERSTER VERBESSERUNGSVORSCHLAG:\n`;
+    out += formatCodeProposal(proposal);
+    out += `\n\nDarf ich dir diesen Vorschlag zur Prüfung vorlegen?\n`;
+    out += `Antworte mit „Code-Vorschlag freigeben“ oder „Code-Vorschlag ablehnen“.`;
+  }
+
+  logAudit("Code-KI","Codeprüfung abgeschlossen",findings.length + " Auffälligkeiten");
+  save();
+  return out;
+}
+
+function showCodeProposal() {
+  const p = data.codeProposals[data.codeProposals.length - 1];
+  if (!p) return "Es gibt noch keinen Code-Vorschlag. Tippe zuerst „Code prüfen“.";
+  return formatCodeProposal(p) +
+    "\n\nAntworte mit „Code-Vorschlag freigeben“ oder „Code-Vorschlag ablehnen“.";
+}
+
+function approveCodeProposal() {
+  const p = data.codeProposals.find(x => x.id === data.pendingCodeProposal);
+  if (!p) return "Es gibt keinen offenen Code-Vorschlag.";
+
+  p.status = "vom Benutzer zur Prüfung freigegeben";
+  save();
+
+  return `Du hast den Vorschlag zur Prüfung freigegeben.
+
+Hier ist der vollständige Vorschlag:
+
+${formatCodeProposal(p)}
+
+Kopiere diesen Text und sende ihn an ChatGPT.
+ChatGPT soll prüfen, ob die Änderung sinnvoll, sicher und mit deinem bestehenden Code vereinbar ist.
+
+Die Freigabe bedeutet NICHT, dass der Code bereits verändert wurde.`;
+}
+
+function rejectCodeProposal() {
+  const p = data.codeProposals.find(x => x.id === data.pendingCodeProposal);
+  if (p) p.status = "abgelehnt";
+  data.pendingCodeProposal = null;
+  save();
+  return "Der Vorschlag wurde abgelehnt. Dein Programmcode bleibt unverändert.";
+}
+
+function programmerKnowledge() {
+  countAgent("Code-KI");
+  logAudit("Code-KI","Programmierquellen angezeigt","Kostenlose Dokumentationen");
+
+  return `📚 KOSTENLOSE PROGRAMMIERQUELLEN
+
+JAVASCRIPT:
+MDN Web Docs:
+https://developer.mozilla.org/de/docs/Web/JavaScript
+
+JavaScript.info:
+https://javascript.info/
+
+HTML:
+https://developer.mozilla.org/de/docs/Web/HTML
+
+CSS:
+https://developer.mozilla.org/de/docs/Web/CSS
+
+PYTHON:
+Offizielle Python-Dokumentation:
+https://docs.python.org/3/
+
+SICHERHEIT:
+OWASP Cheat Sheet Series:
+https://cheatsheetseries.owasp.org/
+
+WEB-STANDARDS:
+W3C:
+https://www.w3.org/
+
+PROGRAMMIERBEISPIELE:
+GitHub:
+https://github.com/
+
+FRAGEN UND FEHLER:
+Stack Overflow:
+https://stackoverflow.com/
+
+Die Quellen sind kostenlos lesbar.
+Einige Dienste begrenzen automatische Abfragen oder benötigen für bestimmte Funktionen einen Zugang.
+
+Die Code-KI kann diese Quellen als Wissensgrundlage nutzen.
+Sie kann aber nicht automatisch jede Webseite lesen oder ein vollständiges Sprachmodell ersetzen.
+
+Sie soll bei jedem Vorschlag unterscheiden zwischen:
+• Sicher erkanntem Fehler
+• Wahrscheinlichem Problem
+• Möglicher Verbesserung
+• Noch nicht überprüfter Idee`;
+}
+
+/* ==========================================
    META-KI – KOORDINIERT DAS TEAM
    ========================================== */
 
@@ -807,7 +1239,8 @@ const AGENTS = {
   "Analyse-KI":{icon:"🔍",task:"Prüft Fakten und Widersprüche."},
   "Reflexions-KI":{icon:"🪞",task:"Erkennt Wissenslücken."},
   "Optimierungs-KI":{icon:"🛠️",task:"Entwickelt Verbesserungsvorschläge."},
-  "Antwort-KI":{icon:"💬",task:"Formuliert Antworten."}
+  "Antwort-KI":{icon:"💬",task:"Formuliert Antworten."},
+  "Code-KI":{icon:"💻",task:"Untersucht den Programmcode und schlägt sichere Verbesserungen vor."}
 };
 
 function teamStatus() {
@@ -880,8 +1313,7 @@ function classify(text) {
   if (!data.classes.length) return "Ich brauche erst Beispiele aus Kategorien.";
   const scores = {};
   data.classes.forEach(c => {
-    scores[c.c] = (scores[c.c] || 0) +
-      similarity(text,c.t);
+    scores[c.c] = (scores[c.c] || 0) + similarity(text,c.t);
   });
   const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
   if (!sorted.length || sorted[0][1] === 0) return "Ich kann das noch nicht sicher einordnen.";
@@ -907,11 +1339,29 @@ function handle(text,previousQuestion) {
 
   if (/^(hilfe|help|\?)$/.test(low)) return help;
 
-  if (/^(teamstatus|zeige deine module|zeige dein team)$/i.test(text)) return teamStatus();
-  if (/^(meta analyse|meta analyse starten)$/i.test(text)) return metaAnalysis();
-  if (/^(verbesserungsvorschläge|system optimieren|optimiere dich)$/i.test(text)) return optimizeSystem();
+  if (/^(teamstatus|zeige deine module|zeige dein team)$/.test(low)) return teamStatus();
 
-  if (/^(selbstreflexion|reflektiere dich|prüfe dein wissen)$/i.test(text)) {
+  // Normalisierung behebt auch den bisherigen Meta-Analyse-Befehl.
+  if (/^meta\s*analyse(?:\s+starten)?$/.test(low)) return metaAnalysis();
+
+  if (/^(verbesserungsvorschläge|system optimieren|optimiere dich)$/.test(low)) return optimizeSystem();
+
+  if (/^(code prüfen|code prüfen lassen|codebericht|code ki|code-ki)$/.test(low)) {
+    return inspectCode();
+  }
+
+  if (/^(code vorschläge|code vorschlag|letzter code vorschlag)$/.test(low)) {
+    return showCodeProposal();
+  }
+
+  if (/^code vorschlag freigeben$/.test(low)) return approveCodeProposal();
+  if (/^code vorschlag ablehnen$/.test(low)) return rejectCodeProposal();
+
+  if (/^(programmierwissen|programmiersprachen|code quellen)$/.test(low)) {
+    return programmerKnowledge();
+  }
+
+  if (/^(selbstreflexion|reflektiere dich|prüfe dein wissen)$/.test(low)) {
     return selfReflection();
   }
 
@@ -925,7 +1375,7 @@ function handle(text,previousQuestion) {
   }
 
   if (/^(wer bist du|was kannst du)\??$/i.test(text)) {
-    return "Ich bin LernBot 2.0. Mein Team besteht aus einer zentralen KI und spezialisierten Lern-, Recherche-, Analyse-, Reflexions-, Optimierungs- und Antwort-Modulen.";
+    return "Ich bin LernBot 3.0. Mein Team besteht aus einer zentralen KI und spezialisierten Lern-, Recherche-, Analyse-, Reflexions-, Optimierungs-, Antwort- und Code-Modulen.";
   }
 
   if (low === "grundwissen laden") return "Grundwissen ergänzt: " + addSeed() + " neue Einträge.";
@@ -1088,8 +1538,26 @@ async function send(text) {
   bubble("user",text);
 
   const response = handle(text,previousQuestion);
+
   if (response !== null) {
-    bubble("bot",response);
+    if (response instanceof Promise) {
+      busy = true;
+      const loading = bubble("bot","💻 Code-KI prüft ...",false);
+      try {
+        const answer = await response;
+        loading.textContent = answer;
+        data.log.push({role:"bot",text:answer});
+        save();
+      } catch (error) {
+        loading.textContent = "Code-KI-Fehler: " + error.message;
+        data.log.push({role:"bot",text:loading.textContent});
+        save();
+      } finally {
+        busy = false;
+      }
+    } else {
+      bubble("bot",response);
+    }
     return;
   }
 
@@ -1106,10 +1574,8 @@ async function send(text) {
       if (!query) throw new Error("Bitte gib einen Suchbegriff ein.");
       answer = await researchAll(query,controller.signal);
     } else {
-      // Meta-KI: erst vorhandenes Wissen prüfen.
       answer = answerAgent(text);
 
-      // Wenn nichts bekannt ist, kostenlose Recherche versuchen.
       if (!answer) {
         const wiki = await wikipediaSearch(text,controller.signal);
 
@@ -1148,6 +1614,43 @@ async function send(text) {
     }
   }
 }
+
+/* ==========================================
+   CODE-DATEI LADEN
+   ========================================== */
+
+// Falls der Browser den eigenen Quellcode nicht automatisch bereitstellt,
+// kann die Code-KI eine JavaScript-Datei direkt vom Benutzer erhalten.
+
+const codePicker = document.createElement("input");
+codePicker.type = "file";
+codePicker.accept = ".js,.txt,text/javascript,text/plain";
+codePicker.hidden = true;
+document.body.appendChild(codePicker);
+
+codePicker.onchange = () => {
+  const file = codePicker.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    ownCode = String(reader.result || "");
+    bubble("bot",
+      `Code-Datei geladen: ${file.name}\n` +
+      `Zeichen: ${ownCode.length}\n` +
+      `Du kannst jetzt „Code prüfen“ eingeben.`
+    );
+    codePicker.value = "";
+  };
+
+  reader.onerror = () => {
+    bubble("bot","Die Code-Datei konnte nicht gelesen werden.");
+    codePicker.value = "";
+  };
+
+  reader.readAsText(file);
+};
 
 /* ==========================================
    MENÜ UND EINGABEN
@@ -1201,13 +1704,14 @@ document.querySelectorAll("[data-cmd]").forEach(button => {
         theme:data.theme,
         agentStats:data.agentStats,
         improvements:data.improvements,
-        audit:data.audit
+        audit:data.audit,
+        codeProposals:data.codeProposals
       };
       const blob = new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "mein-lernbot-2-backup.json";
+      a.download = "mein-lernbot-3-backup.json";
       a.click();
       setTimeout(() => URL.revokeObjectURL(url),1000);
       return;
@@ -1215,6 +1719,11 @@ document.querySelectorAll("[data-cmd]").forEach(button => {
 
     if (command === "import") {
       $("filepick").click();
+      return;
+    }
+
+    if (command === "codefile") {
+      codePicker.click();
       return;
     }
 
@@ -1241,6 +1750,7 @@ picker.onchange = () => {
   reader.onload = () => {
     try {
       const imported = JSON.parse(reader.result);
+
       if (!Array.isArray(imported.qa) ||
           !Array.isArray(imported.classes) ||
           !confirm("Import ersetzt dein bisheriges Wissen. Fortfahren?")) {
@@ -1262,8 +1772,10 @@ picker.onchange = () => {
       data.agentStats = imported.agentStats || {};
       data.improvements = Array.isArray(imported.improvements) ? imported.improvements : [];
       data.audit = Array.isArray(imported.audit) ? imported.audit : [];
+      data.codeProposals = Array.isArray(imported.codeProposals) ? imported.codeProposals : [];
       data.theme = imported.theme || "dark";
       data.pending = null;
+      data.pendingCodeProposal = null;
       save();
 
       $("log").innerHTML = "";
@@ -1286,7 +1798,7 @@ if (data.theme === "light") document.body.classList.add("light");
 if (data.log.length) {
   data.log.forEach(x => bubble(x.role === "user" ? "user" : "bot",x.text,false));
 } else {
-  bubble("bot","Hallo! Ich bin LernBot 2.0. Mein KI-Team ist bereit. Tippe „Teamstatus“, um deine Module kennenzulernen.",false);
+  bubble("bot","Hallo! Ich bin LernBot 3.0. Mein KI-Team ist bereit. Tippe „Teamstatus“, um deine Module kennenzulernen.",false);
 }
 
 /* ==========================================
@@ -1299,7 +1811,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-logAudit("Zentrale KI","System gestartet","LernBot 2.0 Multi-Brain");
+logAudit("Zentrale KI","System gestartet","LernBot 3.0 Multi-Brain");
 save();
 
 })();
