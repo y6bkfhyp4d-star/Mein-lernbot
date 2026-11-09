@@ -714,7 +714,6 @@ function graphReport(subject) {
    ===================================================== */
 
    
-
 /* =====================================================
    LERNBOT 6.0 – TEIL 2/3
    AGENTEN, RECHERCHE, DOKUMENTE, PROJEKTE
@@ -768,16 +767,10 @@ function agentRun(name, fn) {
   logAudit(name, "Agent ausgeführt");
 
   try {
-    if (typeof fn !== "function") {
-      throw new Error("Ungültige Agentenfunktion.");
-    }
-
     return fn();
-
   } catch (error) {
     console.error(name, error);
     return `Fehler in ${name}: ${error.message}`;
-
   } finally {
     save();
   }
@@ -785,19 +778,13 @@ function agentRun(name, fn) {
 
 async function agentRunAsync(name, fn) {
   countAgent(name);
-  logAudit(name, "Agent gestartet");
+  logAudit(name, "Agent ausgeführt");
 
   try {
-    if (typeof fn !== "function") {
-      throw new Error("Ungültige Agentenfunktion.");
-    }
-
     return await fn();
-
   } catch (error) {
     console.error(name, error);
     return `Fehler in ${name}: ${error.message}`;
-
   } finally {
     save();
   }
@@ -837,28 +824,27 @@ function analyzeKnowledge() {
       `Eigenschaftsarten: ${properties.size}`,
       `Wissensverbindungen: ${data.relationships.length}`,
       `Erinnerungen: ${data.memory.length}`,
+      `Dokumente: ${data.documents.length}`,
+      `Projekte: ${data.projects.length}`,
+      `Aufgaben: ${data.tasks.length}`,
       `Erkannte Konflikte: ${conflicts.length}`,
       "",
-      "Agentenstatistik:",
-      ...Object.entries(data.agentStats).map(([key, value]) =>
-        `${key}: ${Number(value) || 0}`
+      "AGENTENSTATISTIK",
+      ...Object.entries(data.agentStats).map(
+        ([key, value]) => `${key}: ${value}`
       )
     ].join("\n");
   });
 }
 
 function findRelatedFacts(query, limit = 10) {
-  const q = safeText(query);
-
-  if (!q) return [];
-
   limit = Math.max(1, Math.min(100, Number(limit) || 10));
 
   return data.facts
     .map(f => ({
       fact: f,
       score: similarity(
-        q,
+        query,
         `${f.subject} ${f.property} ${f.value}`
       )
     }))
@@ -869,7 +855,7 @@ function findRelatedFacts(query, limit = 10) {
 }
 
 function explainTopic(topic) {
-  topic = safeText(topic, 1000);
+  topic = safeText(topic, 500);
 
   if (!topic) {
     return "Bitte gib ein Thema an.";
@@ -924,15 +910,11 @@ function explainTopic(topic) {
    ===================================================== */
 
 async function fetchJSON(url, timeout = 10000) {
-  if (typeof fetch !== "function") {
-    throw new Error("Dieser Browser unterstützt fetch nicht.");
-  }
-
   const controller = new AbortController();
-
-  const timer = setTimeout(() => {
-    controller.abort();
-  }, timeout);
+  const timer = setTimeout(
+    () => controller.abort(),
+    timeout
+  );
 
   try {
     const response = await fetch(url, {
@@ -954,51 +936,64 @@ async function fetchJSON(url, timeout = 10000) {
 }
 
 function encodeQuery(query) {
-  return encodeURIComponent(safeText(query, 500));
+  return encodeURIComponent(
+    safeText(query, 500)
+  );
 }
 
 async function searchWikipedia(query) {
   const url =
     "https://de.wikipedia.org/w/api.php" +
-    "?action=query&generator=search" +
+    "?action=query" +
+    "&generator=search" +
     "&gsrsearch=" + encodeQuery(query) +
-    "&gsrlimit=5&prop=extracts" +
-    "&exintro=1&explaintext=1&format=json&origin=*";
+    "&gsrlimit=5" +
+    "&prop=extracts" +
+    "&exintro=1" +
+    "&explaintext=1" +
+    "&format=json" +
+    "&origin=*";
 
   const json = await fetchJSON(url);
-
   const pages = Object.values(
     json.query?.pages || {}
   );
 
-  return pages.map(p => ({
-    title: safeText(p.title, 500),
-    text: safeText(p.extract, 3000),
+  return pages.map(page => ({
+    title: safeText(page.title, 500),
+    text: safeText(page.extract, 3000),
     url:
       "https://de.wikipedia.org/wiki/" +
-      encodeURIComponent(p.title.replace(/ /g, "_")),
+      encodeURIComponent(
+        String(page.title || "").replace(/ /g, "_")
+      ),
     source: "Wikipedia"
-  }));
+  })).filter(item => item.title && item.text);
 }
 
 async function searchWikidata(query) {
   const url =
     "https://www.wikidata.org/w/api.php" +
-    "?action=wbsearchentities&search=" +
-    encodeQuery(query) +
-    "&language=de&format=json&origin=*";
+    "?action=wbsearchentities" +
+    "&search=" + encodeQuery(query) +
+    "&language=de" +
+    "&format=json" +
+    "&origin=*";
 
   const json = await fetchJSON(url);
 
-  return arr(json.search).slice(0, 5).map(item => ({
-    title: safeText(item.label, 500),
-    text: safeText(
-      item.description || "Keine Beschreibung verfügbar.",
-      2000
-    ),
-    url: safeText(item.concepturi, 1000),
-    source: "Wikidata"
-  }));
+  return arr(json.search)
+    .slice(0, 5)
+    .map(item => ({
+      title: safeText(item.label, 500),
+      text: safeText(
+        item.description || "Keine Beschreibung verfügbar.",
+        3000
+      ),
+      url: safeText(item.concepturi, 1000),
+      source: "Wikidata"
+    }))
+    .filter(item => item.title);
 }
 
 async function searchOpenLibrary(query) {
@@ -1009,19 +1004,24 @@ async function searchOpenLibrary(query) {
 
   const json = await fetchJSON(url);
 
-  return arr(json.docs).slice(0, 5).map(item => ({
-    title: safeText(item.title || "Unbekannter Titel", 500),
-    text: [
-      arr(item.author_name).join(", "),
-      item.first_publish_year
-        ? "Erstveröffentlichung: " + item.first_publish_year
-        : ""
-    ].filter(Boolean).join(" – "),
-    url: item.key
-      ? "https://openlibrary.org" + item.key
-      : "",
-    source: "Open Library"
-  }));
+  return arr(json.docs)
+    .slice(0, 5)
+    .map(item => ({
+      title: safeText(
+        item.title || "Unbekannter Titel",
+        500
+      ),
+      text: [
+        arr(item.author_name).join(", "),
+        item.first_publish_year
+          ? "Erstveröffentlichung: " + item.first_publish_year
+          : ""
+      ].filter(Boolean).join(" – "),
+      url: item.key
+        ? "https://openlibrary.org" + item.key
+        : "",
+      source: "Open Library"
+    }));
 }
 
 async function research(query) {
@@ -1040,63 +1040,40 @@ async function research(query) {
       ["Wikidata", () => searchWikidata(query)]
     ];
 
-    /* Buchthemen zusätzlich in Open Library suchen */
-
-    if (
-      /\b(buch|bücher|roman|autor|autorin|isbn|literatur)\b/i.test(query)
-    ) {
-      searches.push([
-        "Open Library",
-        () => searchOpenLibrary(query)
-      ]);
-    }
-
     for (const [name, search] of searches) {
       try {
         const found = await search();
-        results.push(...found);
-
+        results.push(...arr(found));
       } catch (error) {
         errors.push(`${name}: ${error.message}`);
       }
     }
 
-    /* Leere Ergebnisse entfernen */
-
-    const cleaned = results.filter(item =>
-      item && item.title && item.text
-    );
-
-    /* Doppelte Titel entfernen */
-
     const unique = [];
     const seen = new Set();
 
-    cleaned.forEach(item => {
+    for (const item of results) {
       const key = normalize(item.title);
 
-      if (key && !seen.has(key)) {
-        seen.add(key);
-        unique.push(item);
-      }
-    });
+      if (!key || seen.has(key)) continue;
+
+      seen.add(key);
+      unique.push(item);
+    }
 
     if (!unique.length) {
       return [
         "Ich konnte keine Rechercheergebnisse abrufen.",
-        "",
-        errors.join("\n"),
+        ...errors,
         "",
         "Prüfe deine Internetverbindung oder versuche es später erneut."
-      ].filter(Boolean).join("\n");
+      ].join("\n");
     }
 
-    /* Recherche auch als durchsuchbaren Dokumenttext speichern */
-
-    const combinedText = unique.map(item => [
+    const content = unique.map(item => [
       item.title,
       item.text,
-      "Quelle: " + item.source,
+      `Quelle: ${item.source}`,
       item.url
     ].filter(Boolean).join("\n")).join("\n\n");
 
@@ -1104,18 +1081,17 @@ async function research(query) {
       id: uid(),
       title: "Recherche: " + query,
       type: "research",
-      content: combinedText,
-      results: unique,
       created: now(),
-      length: combinedText.length
+      content,
+      results: unique
     };
 
     data.documents.push(document);
 
     logAudit(
       "Recherche-KI",
-      "Recherche abgeschlossen",
-      `${unique.length} Ergebnisse für ${query}`
+      "Recherche gespeichert",
+      query
     );
 
     save();
@@ -1123,14 +1099,19 @@ async function research(query) {
     return [
       `RECHERCHE: ${query}`,
       "",
-      ...unique.map((r, i) =>
-        `${i + 1}. ${r.title}\n${r.text}\nQuelle: ${r.source}\n${r.url}`
-      ),
+      ...unique.map((item, index) => [
+        `${index + 1}. ${item.title}`,
+        item.text,
+        `Quelle: ${item.source}`,
+        item.url
+      ].filter(Boolean).join("\n")),
       "",
       errors.length
         ? "Nicht erreichbare Quellen:\n" + errors.join("\n")
-        : ""
-    ].filter(Boolean).join("\n\n");
+        : "Alle abgefragten Quellen wurden verarbeitet.",
+      "",
+      `Gespeichert als Dokument: ${document.id}`
+    ].join("\n\n");
   });
 }
 
@@ -1171,14 +1152,15 @@ function importDocumentText(text, filename = "Textimport") {
       `Datei: ${filename}`,
       `Zeichen: ${text.length}`,
       `Wörter: ${tokenize(text).length}`,
+      `Dokument-ID: ${entry.id}`,
       "",
-      "Die Inhalte sind jetzt im Dokumentenspeicher verfügbar."
+      "Der Inhalt ist jetzt im Dokumentenspeicher verfügbar."
     ].join("\n");
   });
 }
 
 function searchDocuments(query) {
-  const q = safeText(query);
+  const q = safeText(query, 1000);
 
   if (!q) return [];
 
@@ -1188,14 +1170,14 @@ function searchDocuments(query) {
       typeof d.content === "string" &&
       d.content.length > 0
     )
-    .map(d => ({
-      document: d,
+    .map(document => ({
+      document,
       score: similarity(
         q,
-        `${d.title || ""} ${d.content}`
+        `${document.title || ""} ${document.content}`
       )
     }))
-    .filter(x => x.score > 0.03)
+    .filter(item => item.score > 0.03)
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 }
@@ -1208,59 +1190,33 @@ function summarizeDocument(id) {
   );
 
   if (!doc) {
-    return "Dokument nicht gefunden.";
+    return "Dokument nicht gefunden oder ohne Textinhalt.";
   }
 
-  const sentences = (
-    doc.content
-      .replace(/\s+/g, " ")
-      .match(/[^.!?]+[.!?]+/g) || [doc.content]
-  )
-    .map(s => s.trim())
-    .filter(Boolean);
+  const sentences = doc.content
+    .replace(/\s+/g, " ")
+    .match(/[^.!?]+[.!?]+/g) || [doc.content];
 
-  if (!sentences.length) {
-    return "Das Dokument enthält keinen zusammenfassbaren Text.";
-  }
+  const ranked = sentences
+    .map(sentence => {
+      const words = tokenize(sentence);
 
-  /* Häufige Begriffe als einfache Relevanzhilfe */
+      return {
+        sentence: sentence.trim(),
+        score: words.length
+      };
+    })
+    .filter(item => item.sentence);
 
-  const frequency = {};
-
-  sentences.forEach(sentence => {
-    tokenize(sentence).forEach(word => {
-      frequency[word] = (frequency[word] || 0) + 1;
-    });
-  });
-
-  const ranked = sentences.map((sentence, index) => {
-    const words = tokenize(sentence);
-
-    const score = words.reduce(
-      (sum, word) => sum + (frequency[word] || 0),
-      0
-    );
-
-    return {
-      sentence,
-      index,
-      score: words.length
-        ? score / Math.sqrt(words.length)
-        : 0
-    };
-  });
-
-  const selected = ranked
+  const summary = ranked
     .sort((a, b) => b.score - a.score)
     .slice(0, 8)
-    .sort((a, b) => a.index - b.index);
+    .map(item => "• " + item.sentence);
 
   return [
     `ZUSAMMENFASSUNG: ${doc.title || "Dokument"}`,
     "",
-    ...selected.map(x => "• " + x.sentence),
-    "",
-    "Hinweis: Automatisch ausgewählte Kernaussagen, keine vollständige KI-Zusammenfassung."
+    ...summary
   ].join("\n");
 }
 
@@ -1295,7 +1251,10 @@ function createProject(name, description = "") {
 
   save();
 
-  return `Projekt erstellt: ${name}\nProjekt-ID: ${project.id}`;
+  return [
+    `Projekt erstellt: ${name}`,
+    `Projekt-ID: ${project.id}`
+  ].join("\n");
 }
 
 function createTask(title, projectId = null, due = null) {
@@ -1305,16 +1264,11 @@ function createTask(title, projectId = null, due = null) {
     return "Bitte gib eine Aufgabe an.";
   }
 
-  if (projectId !== null) {
-    projectId = safeText(projectId, 200);
-
-    const projectExists = data.projects.some(p =>
-      p.id === projectId
-    );
-
-    if (!projectExists) {
-      return "Das angegebene Projekt wurde nicht gefunden.";
-    }
+  if (
+    projectId &&
+    !data.projects.some(p => p.id === projectId)
+  ) {
+    return "Das angegebene Projekt wurde nicht gefunden.";
   }
 
   const task = {
@@ -1341,18 +1295,10 @@ function createTask(title, projectId = null, due = null) {
 }
 
 function completeTask(id) {
-  id = safeText(id, 200);
-
-  const task = data.tasks.find(t =>
-    t.id === id
-  );
+  const task = data.tasks.find(t => t.id === id);
 
   if (!task) {
     return "Aufgabe nicht gefunden.";
-  }
-
-  if (task.done) {
-    return `Die Aufgabe ist bereits erledigt: ${task.title}`;
   }
 
   task.done = true;
@@ -1374,19 +1320,21 @@ function listProjects() {
     return "Noch keine Projekte vorhanden.";
   }
 
-  return data.projects.map(p => {
-    const tasks = data.tasks.filter(t =>
-      t.projectId === p.id
+  return data.projects.map(project => {
+    const tasks = data.tasks.filter(
+      task => task.projectId === project.id
     );
 
-    const done = tasks.filter(t => t.done).length;
+    const done = tasks.filter(
+      task => task.done
+    ).length;
 
     return [
-      p.name,
-      `Status: ${p.status || "aktiv"}`,
+      project.name,
+      `Status: ${project.status || "unbekannt"}`,
       `Aufgaben: ${done}/${tasks.length} erledigt`,
-      p.description || "",
-      `Projekt-ID: ${p.id}`
+      project.description || "",
+      `ID: ${project.id}`
     ].filter(Boolean).join("\n");
   }).join("\n\n");
 }
@@ -1396,14 +1344,16 @@ function listTasks() {
     return "Noch keine Aufgaben vorhanden.";
   }
 
-  return data.tasks.map(t =>
-    [
-      `${t.done ? "[X]" : "[ ]"} ${t.title}`,
-      `ID: ${t.id}`,
-      t.projectId ? `Projekt: ${t.projectId}` : "",
-      t.due ? `Fällig: ${t.due}` : ""
-    ].filter(Boolean).join("\n")
-  ).join("\n\n");
+  return data.tasks.map(task => [
+    `${task.done ? "[X]" : "[ ]"} ${task.title}`,
+    `ID: ${task.id}`,
+    task.projectId
+      ? `Projekt-ID: ${task.projectId}`
+      : "Kein Projekt zugeordnet.",
+    task.due
+      ? `Fällig: ${task.due}`
+      : ""
+  ].filter(Boolean).join("\n")).join("\n\n");
 }
 
 /* =====================================================
@@ -1441,14 +1391,16 @@ function inspectCode(source) {
       advice: "API-Schlüssel niemals im Browsercode speichern."
     },
     {
-      name: "Möglicher fetch-Aufruf",
+      name: "Möglicher Netzwerkzugriff",
       regex: /\bfetch\s*\(/g,
       severity: "info",
       advice: "Netzwerkzugriffe mit try/catch absichern."
     }
   ];
 
-  rules.forEach(rule => {
+  for (const rule of rules) {
+    rule.regex.lastIndex = 0;
+
     let match;
 
     while ((match = rule.regex.exec(source)) !== null) {
@@ -1462,8 +1414,10 @@ function inspectCode(source) {
         severity: rule.severity,
         advice: rule.advice
       });
+
+      if (!rule.regex.global) break;
     }
-  });
+  }
 
   return findings;
 }
@@ -1471,12 +1425,12 @@ function inspectCode(source) {
 function inspectCodeReport(source) {
   const findings = inspectCode(source);
 
-  const critical = findings.filter(x =>
-    x.severity === "critical"
+  const critical = findings.filter(
+    item => item.severity === "critical"
   ).length;
 
-  const warnings = findings.filter(x =>
-    x.severity === "warning"
+  const warnings = findings.filter(
+    item => item.severity === "warning"
   ).length;
 
   return [
@@ -1486,12 +1440,12 @@ function inspectCodeReport(source) {
     `Kritisch: ${critical}`,
     `Warnungen: ${warnings}`,
     "",
-    ...findings.map(f =>
-      `[${f.severity.toUpperCase()}] Zeile ${f.line}: ${f.name}\n${f.advice}`
+    ...findings.map(item =>
+      `[${item.severity.toUpperCase()}] Zeile ${item.line}: ${item.name}\n${item.advice}`
     ),
     "",
     findings.length
-      ? "Hinweis: Statische Prüfhilfen, kein vollständiger JavaScript-Compiler."
+      ? "Das sind statische Prüfhilfen, kein vollständiger JavaScript-Compiler."
       : "Keine Treffer in den eingebauten Prüfregeln."
   ].join("\n");
 }
@@ -1503,7 +1457,7 @@ function inspectCodeReport(source) {
 function createSnapshot(label = "Manuelle Sicherung") {
   const snapshot = {
     id: uid(),
-    label: safeText(label, 200) || "Manuelle Sicherung",
+    label: safeText(label, 200),
     time: now(),
 
     facts: clone(data.facts),
@@ -1514,9 +1468,9 @@ function createSnapshot(label = "Manuelle Sicherung") {
     projects: clone(data.projects),
     tasks: clone(data.tasks),
     documents: clone(data.documents),
-    agentStats: clone(data.agentStats),
     settings: clone(data.settings),
-    theme: data.theme
+    theme: data.theme,
+    agentStats: clone(data.agentStats)
   };
 
   data.snapshots.push(snapshot);
@@ -1534,17 +1488,15 @@ function createSnapshot(label = "Manuelle Sicherung") {
 }
 
 function restoreSnapshot(id) {
-  id = safeText(id, 200);
-
-  const snapshot = data.snapshots.find(s =>
-    s.id === id
+  const snapshot = data.snapshots.find(
+    item => item.id === id
   );
 
   if (!snapshot) {
     return "Sicherung nicht gefunden.";
   }
 
-  const fields = [
+  const keys = [
     "facts",
     "qa",
     "classes",
@@ -1555,69 +1507,40 @@ function restoreSnapshot(id) {
     "documents"
   ];
 
-  for (const key of fields) {
-    if (!Array.isArray(snapshot[key])) {
-      return `Wiederherstellung abgebrochen: ${key} ist beschädigt.`;
-    }
-  }
-
-  /* Vorherigen Stand automatisch sichern */
-
-  const previous = {
-    facts: data.facts,
-    qa: data.qa,
-    classes: data.classes,
-    memory: data.memory,
-    relationships: data.relationships,
-    projects: data.projects,
-    tasks: data.tasks,
-    documents: data.documents
-  };
-
-  try {
-    for (const key of fields) {
+  for (const key of keys) {
+    if (Array.isArray(snapshot[key])) {
       data[key] = clone(snapshot[key]);
     }
-
-    if (obj(snapshot.agentStats)) {
-      data.agentStats = clone(snapshot.agentStats);
-    }
-
-    if (obj(snapshot.settings)) {
-      data.settings = {
-        ...data.settings,
-        ...clone(snapshot.settings)
-      };
-    }
-
-    if (typeof snapshot.theme === "string") {
-      data.theme = snapshot.theme;
-    }
-
-    if (!save()) {
-      throw new Error("Speichern der Wiederherstellung fehlgeschlagen.");
-    }
-
-    logAudit(
-      "Sicherungssystem",
-      "Sicherung wiederhergestellt",
-      snapshot.label
-    );
-
-    save();
-
-    return `Sicherung wiederhergestellt: ${snapshot.label}`;
-
-  } catch (error) {
-    Object.assign(data, previous);
-    save();
-
-    return `Wiederherstellung fehlgeschlagen: ${error.message}`;
   }
+
+  if (obj(snapshot.settings)) {
+    data.settings = {
+      ...clone(defaults.settings),
+      ...clone(snapshot.settings)
+    };
+  }
+
+  if (typeof snapshot.theme === "string") {
+    data.theme = snapshot.theme;
+  }
+
+  if (obj(snapshot.agentStats)) {
+    data.agentStats = clone(snapshot.agentStats);
+  }
+
+  logAudit(
+    "Sicherungssystem",
+    "Sicherung wiederhergestellt",
+    snapshot.label || id
+  );
+
+  save();
+
+  return `Sicherung wiederhergestellt: ${snapshot.label || id}`;
 }
 
 /* =====================================================
-   8. EXPORT UND IMPORT
+   8. EXPORT
    ===================================================== */
 
 function exportData() {
@@ -1625,123 +1548,91 @@ function exportData() {
     app: NAME,
     version: VERSION,
     exported: new Date().toISOString(),
-    data
+    data: clone(data)
   }, null, 2);
 }
+
+/* =====================================================
+   9. IMPORT – MIT DATENPRÜFUNG
+   ===================================================== */
 
 function importData(json) {
   let parsed;
 
   try {
-    parsed = JSON.parse(json);
+    parsed = typeof json === "string"
+      ? JSON.parse(json)
+      : json;
   } catch {
     return "Import fehlgeschlagen: Ungültiges JSON.";
   }
 
-  const incoming = obj(parsed?.data)
-    ? parsed.data
-    : parsed;
-
-  if (!obj(incoming)) {
+  if (!obj(parsed)) {
     return "Ungültiges Datenformat.";
   }
 
-  const arrayKeys = [
-    "facts",
-    "qa",
-    "classes",
-    "log",
-    "audit",
-    "improvements",
-    "codeProposals",
-    "projects",
-    "tasks",
-    "documents",
-    "relationships",
-    "memory",
-    "snapshots"
-  ];
+  const incoming = obj(parsed.data)
+    ? parsed.data
+    : parsed;
 
-  const replacements = {};
+  const arrayValidators = {
+    facts: item =>
+      obj(item) &&
+      typeof item.subject === "string" &&
+      typeof item.property === "string" &&
+      typeof item.value === "string",
 
-  /* Alle Arrays zuerst prüfen */
+    qa: item =>
+      obj(item) &&
+      typeof item.k === "string" &&
+      typeof item.a === "string",
 
-  for (const key of arrayKeys) {
+    relationships: item =>
+      obj(item) &&
+      typeof item.from === "string" &&
+      typeof item.to === "string" &&
+      typeof item.relation === "string",
+
+    memory: item =>
+      obj(item) &&
+      typeof item.content === "string" &&
+      typeof item.type === "string",
+
+    documents: item =>
+      obj(item) &&
+      typeof item.title === "string",
+
+    projects: item =>
+      obj(item) &&
+      typeof item.name === "string",
+
+    tasks: item =>
+      obj(item) &&
+      typeof item.title === "string",
+
+    classes: item => obj(item),
+    log: item => obj(item),
+    audit: item => obj(item),
+    improvements: item => obj(item),
+    codeProposals: item => obj(item),
+    snapshots: item => obj(item)
+  };
+
+  let imported = 0;
+  const rejected = [];
+
+  for (const [key, validator] of Object.entries(arrayValidators)) {
     if (incoming[key] === undefined) continue;
 
     if (!Array.isArray(incoming[key])) {
-      return `Import abgebrochen: ${key} ist kein gültiges Array.`;
+      rejected.push(key);
+      continue;
     }
 
-    replacements[key] = incoming[key].filter(obj);
-  }
+    const valid = incoming[key].filter(validator);
 
-  /* Fakten besonders prüfen */
-
-  if (replacements.facts) {
-    replacements.facts = replacements.facts.filter(f =>
-      typeof f.subject === "string" &&
-      typeof f.property === "string" &&
-      typeof f.value === "string"
-    );
-  }
-
-  if (replacements.qa) {
-    replacements.qa = replacements.qa.filter(q =>
-      typeof q.k === "string" &&
-      typeof q.a === "string"
-    );
-  }
-
-  if (replacements.memory) {
-    replacements.memory = replacements.memory.filter(m =>
-      typeof m.content === "string" &&
-      typeof m.type === "string"
-    );
-  }
-
-  if (replacements.relationships) {
-    replacements.relationships = replacements.relationships.filter(r =>
-      typeof r.from === "string" &&
-      typeof r.to === "string" &&
-      typeof r.relation === "string"
-    );
-  }
-
-  if (replacements.documents) {
-    replacements.documents = replacements.documents.filter(d =>
-      typeof d.title === "string" ||
-      typeof d.content === "string"
-    );
-  }
-
-  /* Objektfelder prüfen */
-
-  if (
-    incoming.agentStats !== undefined &&
-    !obj(incoming.agentStats)
-  ) {
-    return "Import abgebrochen: agentStats ist ungültig.";
-  }
-
-  if (
-    incoming.settings !== undefined &&
-    !obj(incoming.settings)
-  ) {
-    return "Import abgebrochen: settings ist ungültig.";
-  }
-
-  if (
-    incoming.theme !== undefined &&
-    typeof incoming.theme !== "string"
-  ) {
-    return "Import abgebrochen: theme ist ungültig.";
-  }
-
-  /* Erst nach erfolgreicher Prüfung übernehmen */
-
-  for (const [key, value] of Object.entries(replacements)) {
-    data[key] = clone(value);
+    data[key] = clone(valid);
+    imported++;
   }
 
   if (obj(incoming.agentStats)) {
@@ -1750,38 +1641,56 @@ function importData(json) {
     for (const [key, value] of Object.entries(incoming.agentStats)) {
       const number = Number(value);
 
-      if (Number.isFinite(number) && number >= 0) {
-        stats[key] = number;
+      if (
+        Number.isFinite(number) &&
+        number >= 0
+      ) {
+        stats[safeText(key, 100)] = number;
       }
     }
 
     data.agentStats = stats;
+    imported++;
   }
 
   if (obj(incoming.settings)) {
     data.settings = {
-      ...data.settings,
+      ...clone(defaults.settings),
       ...incoming.settings
     };
+
+    imported++;
   }
 
   if (typeof incoming.theme === "string") {
     data.theme = incoming.theme;
+    imported++;
   }
 
-  if (!save()) {
-    return "Daten wurden übernommen, konnten aber nicht dauerhaft gespeichert werden.";
+  if (!imported) {
+    return "Import abgebrochen: Keine gültigen Daten gefunden.";
   }
 
   logAudit(
     "Import-System",
-    "Datenimport abgeschlossen",
-    "JSON-Import"
+    "Daten importiert",
+    `${imported} Datenbereiche`
   );
 
-  save();
+  const saved = save();
 
-  return "Datenimport erfolgreich abgeschlossen.";
+  if (!saved) {
+    return "Import durchgeführt, aber das Speichern ist fehlgeschlagen.";
+  }
+
+  return [
+    "DATENIMPORT ABGESCHLOSSEN",
+    "",
+    `Importierte Datenbereiche: ${imported}`,
+    rejected.length
+      ? `Übersprungene ungültige Bereiche: ${rejected.join(", ")}`
+      : "Alle übermittelten Datenbereiche wurden geprüft."
+  ].join("\n");
 }
 
 /* =====================================================
