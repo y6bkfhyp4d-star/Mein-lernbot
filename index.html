@@ -1,50 +1,707 @@
+
 <!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#20201e">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <meta name="theme-color" content="#11111a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Mein LernBot">
+
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <title>Mein LernBot</title>
+
+  <title>Mein LernBot 6.0</title>
+
   <style>
-    :root{color-scheme:dark;--bg:#171715;--panel:#22221f;--text:#f4f1e9;--muted:#aaa69c;--line:#3b3934;--accent:#d46d4c;--user:#a94f36}
-    *{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:16px -apple-system,BlinkMacSystemFont,sans-serif}
-    body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}#app{height:100%;max-width:720px;margin:auto;display:flex;flex-direction:column}
-    header{padding:14px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--panel)}
-    header strong{font-size:18px}header small{display:block;color:var(--muted);margin-top:3px;font-size:12px}
-    #menu{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:8px 11px;font-size:18px}
-    #log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
-    .msg{max-width:86%;padding:11px 14px;border-radius:17px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.42}
-    .bot{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:5px}
-    .user{align-self:flex-end;background:var(--user);color:white;border-bottom-right-radius:5px}
-    #suggestions{display:flex;gap:7px;overflow:auto;padding:4px 14px 10px}
-    #suggestions button{white-space:nowrap;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:20px;padding:7px 12px}
-    #bar{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--panel)}
-    #input{min-width:0;flex:1;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:24px;padding:12px 15px;font:inherit;outline:none}
-    #send{border:0;background:var(--accent);color:white;border-radius:24px;padding:0 19px;font-weight:600}
-    #drawer{display:none;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap}
-    #drawer.open{display:flex}#drawer button{background:var(--bg);color:var(--text);border:1px solid var(--line);padding:9px 12px;border-radius:12px}
-    #status{font-size:11px;color:var(--muted);padding:0 16px 5px;background:var(--panel)}
+    :root {
+      color-scheme: dark;
+      --bg: #11111a;
+      --sidebar: #171722;
+      --panel: #20202e;
+      --panel2: #29293b;
+      --text: #f5f3ff;
+      --muted: #a5a2b8;
+      --line: #343348;
+      --accent: #a78bfa;
+      --accent2: #8b5cf6;
+      --user: #6941c6;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* SIDEBAR */
+
+    #drawer {
+      width: 275px;
+      min-width: 275px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding: 19px 13px;
+      overflow-y: auto;
+      background: var(--sidebar);
+      border-right: 1px solid var(--line);
+      z-index: 30;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 5px 8px 20px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #a78bfa, #7044d6);
+      color: white;
+      font-size: 23px;
+      font-weight: 800;
+      box-shadow: 0 5px 20px rgba(139, 92, 246, .25);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 16px;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .side-label {
+      padding: 13px 10px 5px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .side-button {
+      width: 100%;
+      min-height: 43px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      font-size: 13px;
+      transition: background .18s, border-color .18s;
+    }
+
+    .side-button:hover {
+      background: var(--panel2);
+    }
+
+    .side-button.active {
+      background: #30264c;
+      border-color: #59428b;
+      color: #dfd3ff;
+    }
+
+    .side-icon {
+      width: 22px;
+      flex: 0 0 22px;
+      text-align: center;
+      font-size: 17px;
+    }
+
+    .side-spacer {
+      flex: 1;
+      min-height: 15px;
+    }
+
+    .sidebar-footer {
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* MOBILE SIDEBAR BACKDROP */
+
+    #sidebar-backdrop {
+      display: none;
+    }
+
+    /* MAIN */
+
+    #main {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(
+          ellipse at 50% 0%,
+          rgba(139, 92, 246, .10),
+          transparent 55%
+        ),
+        var(--bg);
+    }
+
+    header {
+      min-height: 68px;
+      height: 68px;
+      flex: 0 0 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 23px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(23, 23, 34, .92);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .header-title strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .header-title small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    #menu {
+      width: 41px;
+      height: 41px;
+      flex: 0 0 41px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    #menu:hover {
+      background: var(--panel2);
+    }
+
+    .online {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #a8e6bd;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 9px rgba(74, 222, 128, .45);
+    }
+
+    /* CHAT */
+
+    #log {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 25px max(18px, calc((100% - 850px) / 2));
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 13px 16px;
+      border-radius: 17px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-bottom-left-radius: 5px;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: var(--user);
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    /* SUGGESTIONS */
+
+    #suggestions {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      padding: 10px 16px;
+    }
+
+    #suggestions button {
+      padding: 9px 15px;
+      border: 1px solid var(--line);
+      border-radius: 25px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      transition: .18s;
+    }
+
+    #suggestions button:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    /* INPUT AREA */
+
+    .input-area {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 9px 18px 5px;
+    }
+
+    #bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .15);
+    }
+
+    #input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    #input::placeholder {
+      color: #858197;
+    }
+
+    #send {
+      min-height: 43px;
+      padding: 10px 19px;
+      border: 0;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #a78bfa, #8053dc);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: filter .18s, transform .18s;
+    }
+
+    #send:hover {
+      filter: brightness(1.12);
+    }
+
+    #send:active {
+      transform: scale(.97);
+    }
+
+    #status {
+      padding: 7px 10px 10px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 10px;
+    }
+
+    /* TABLET & MOBILE */
+
+    @media (max-width: 760px) {
+      #drawer {
+        position: fixed;
+        top: env(safe-area-inset-top);
+        bottom: 0;
+        left: 0;
+        width: 285px;
+        min-width: 0;
+        max-width: 85vw;
+        height: auto;
+        transform: translateX(-105%);
+        transition: transform .25s ease;
+        box-shadow: 10px 0 35px rgba(0, 0, 0, .35);
+      }
+
+      #drawer.open {
+        transform: translateX(0);
+      }
+
+      #sidebar-backdrop.open {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        background: rgba(0, 0, 0, .62);
+      }
+
+      header {
+        padding: 0 13px;
+      }
+
+      #log {
+        padding: 18px 13px;
+      }
+
+      .msg {
+        max-width: 92%;
+      }
+
+      #suggestions {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 8px 12px;
+        scrollbar-width: none;
+      }
+
+      #suggestions::-webkit-scrollbar {
+        display: none;
+      }
+
+      .input-area {
+        padding: 7px 10px 2px;
+      }
+
+      #bar {
+        gap: 6px;
+      }
+
+      #input {
+        padding: 11px 9px;
+        font-size: 16px;
+      }
+
+      #send {
+        padding: 10px 14px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .online {
+        display: none;
+      }
+
+      .header-title small {
+        font-size: 10px;
+      }
+
+      #send {
+        padding: 10px 11px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
   </style>
 </head>
+
 <body>
 <div id="app">
-  <header><div><strong>Mein LernBot</strong><small>Dein lokaler, lernender Chatbot</small></div><button id="menu" aria-label="Menü">☰</button></header>
-  <nav id="drawer">
-    <button data-cmd="hilfe">Hilfe</button><button data-cmd="was weißt du?">Mein Wissen</button>
-    <button data-cmd="verlauf löschen">Chat leeren</button><button data-cmd="export">Wissen exportieren</button>
-    <button data-cmd="import">Wissen importieren</button><button data-cmd="theme">Darstellung wechseln</button>
-    <button data-cmd="refresh">App aktualisieren</button>
+
+  <!-- SIDEBAR -->
+  <nav id="drawer" aria-label="Hauptnavigation">
+
+    <div class="brand">
+      <div class="brand-icon">L</div>
+      <div>
+        <strong>Mein LernBot</strong>
+        <small>Version 6.0 · KI-Lernsystem</small>
+      </div>
+    </div>
+
+    <div class="side-label">Chat</div>
+
+    <button class="side-button active" type="button">
+      <span class="side-icon">✚</span>
+      Neuer Chat
+    </button>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">◷</span>
+      Chatverlauf
+    </button>
+
+    <div class="side-label">Arbeitsbereich</div>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">🧠</span>
+      Wissensspeicher
+    </button>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">🤖</span>
+      KI-Agenten
+    </button>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">▣</span>
+      Projekte
+    </button>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">▤</span>
+      Dokumente
+    </button>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">⌘</span>
+      Code-Labor
+    </button>
+
+    <div class="side-spacer"></div>
+
+    <div class="side-label">System</div>
+
+    <button class="side-button" type="button">
+      <span class="side-icon">⚙</span>
+      Einstellungen
+    </button>
+
+    <button class="side-button" type="button" data-cmd="theme">
+      <span class="side-icon">◐</span>
+      Design & Darstellung
+    </button>
+
+    <div class="sidebar-footer">
+
+      <button class="side-button" type="button" data-cmd="hilfe">
+        <span class="side-icon">?</span>
+        Hilfe
+      </button>
+
+      <button class="side-button" type="button" data-cmd="was weißt du?">
+        <span class="side-icon">✧</span>
+        Mein Wissen
+      </button>
+
+      <button class="side-button" type="button" data-cmd="export">
+        <span class="side-icon">⇧</span>
+        Daten exportieren
+      </button>
+
+      <button class="side-button" type="button" data-cmd="import">
+        <span class="side-icon">⇩</span>
+        Daten importieren
+      </button>
+
+      <button class="side-button" type="button" data-cmd="verlauf löschen">
+        <span class="side-icon">⌫</span>
+        Chat leeren
+      </button>
+
+      <button class="side-button" type="button" data-cmd="refresh">
+        <span class="side-icon">↻</span>
+        App aktualisieren
+      </button>
+
+    </div>
   </nav>
-  <main id="log" aria-live="polite"></main>
-  <div id="suggestions"><button data-msg="Hilfe">Hilfe</button><button data-msg="Notfall">Notfall</button><button data-msg="Was weißt du?">Was weißt du?</button></div>
-  <div id="status">Offline-fähig · Daten bleiben auf diesem Gerät</div>
-  <form id="bar"><input id="input" placeholder="Schreib etwas …" autocomplete="off"><button id="send">Senden</button></form>
+
+  <div id="sidebar-backdrop"></div>
+
+  <!-- HAUPTBEREICH -->
+  <div id="main">
+
+    <header>
+      <div class="header-left">
+
+        <button
+          id="menu"
+          type="button"
+          aria-label="Menü öffnen"
+          aria-controls="drawer"
+          aria-expanded="false"
+        >☰</button>
+
+        <div class="header-title">
+          <strong>Mein LernBot 6.0</strong>
+          <small>Dein persönlicher KI-Lernassistent</small>
+        </div>
+
+      </div>
+
+      <div class="online">
+        <span class="online-dot"></span>
+        Bereit
+      </div>
+    </header>
+
+    <!-- ZENTRALER CHAT -->
+    <div id="log" aria-live="polite" aria-relevant="additions"></div>
+
+    <!-- VORSCHLÄGE -->
+    <div id="suggestions">
+      <button type="button" data-msg="Hilfe">✧ Hilfe</button>
+      <button type="button" data-msg="Notfall">Notfall</button>
+      <button type="button" data-msg="Was weißt du?">🧠 Mein Wissen</button>
+    </div>
+
+    <!-- EINGABE -->
+    <div class="input-area">
+
+      <form id="bar">
+        <input
+          id="input"
+          type="text"
+          placeholder="Schreib deinem LernBot ..."
+          autocomplete="off"
+          enterkeyhint="send"
+        >
+
+        <button id="send" type="button">
+          Senden ↑
+        </button>
+      </form>
+
+      <div id="status">
+        Offline-fähig · Deine Daten bleiben auf diesem Gerät
+      </div>
+
+    </div>
+
+  </div>
 </div>
+
+<!-- MOBILE SIDEBAR -->
+<script>
+(() => {
+  "use strict";
+
+  const menu = document.getElementById("menu");
+  const drawer = document.getElementById("drawer");
+  const backdrop = document.getElementById("sidebar-backdrop");
+
+  if (!menu || !drawer || !backdrop) return;
+
+  function closeMenu() {
+    drawer.classList.remove("open");
+    backdrop.classList.remove("open");
+    menu.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleMenu() {
+    const isOpen = drawer.classList.toggle("open");
+    backdrop.classList.toggle("open", isOpen);
+    menu.setAttribute("aria-expanded", String(isOpen));
+  }
+
+  menu.addEventListener("click", toggleMenu);
+  backdrop.addEventListener("click", closeMenu);
+
+  drawer.addEventListener("click", event => {
+    if (
+      event.target.closest("button") &&
+      window.matchMedia("(max-width: 760px)").matches
+    ) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMenu();
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.matchMedia("(min-width: 761px)").matches) {
+      closeMenu();
+    }
+  });
+})();
+</script>
+
+<!-- BESTEHENDE LERNBOT-LOGIK -->
 <script src="app.js"></script>
+
 </body>
 </html>
