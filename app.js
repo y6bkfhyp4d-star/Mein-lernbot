@@ -1,29 +1,42 @@
 (() => {
 "use strict";
 
+   
+(() => {
+"use strict";
 
 /* =====================================================
    LERNBOT 6.0 – MULTI-AGENTEN LERNSYSTEM
    TEIL 1/3 – KERN, SPEICHER, GEDÄCHTNIS
+   ÜBERARBEITETE VERSION
    ===================================================== */
 
 const $ = id => document.getElementById(id);
+
 const KEY = "meinLernBot.v1";
 const VERSION = 6;
 const NAME = "LernBot 6.0";
 
 const now = () => Date.now();
-const arr = x => Array.isArray(x) ? x : [];
-const obj = x => x !== null && typeof x === "object" && !Array.isArray(x);
+
+const arr = value =>
+  Array.isArray(value) ? value : [];
+
+const obj = value =>
+  value !== null &&
+  typeof value === "object" &&
+  !Array.isArray(value);
 
 const uid = () =>
-  "LB-" + now().toString(36) +
-  "-" + Math.random().toString(36).slice(2, 8);
+  "LB-" +
+  now().toString(36) +
+  "-" +
+  Math.random().toString(36).slice(2, 9);
 
-const safeText = (v, max = 20000) =>
-  String(v ?? "").slice(0, max).trim();
+const safeText = (value, max = 20000) =>
+  String(value ?? "").slice(0, max).trim();
 
-const clone = value => {
+function clone(value) {
   try {
     if (typeof structuredClone === "function") {
       return structuredClone(value);
@@ -34,10 +47,11 @@ const clone = value => {
 
   try {
     return JSON.parse(JSON.stringify(value));
-  } catch {
+  } catch (error) {
+    console.warn("LernBot: Kopieren fehlgeschlagen.", error);
     return value;
   }
-};
+}
 
 /* =====================================================
    1. TEXTVERARBEITUNG
@@ -55,27 +69,34 @@ function normalize(text) {
 
 function tokenize(text) {
   const stop = new Set(
-    "der die das den dem des ein eine einer eines und oder ist sind war wie was wer wo wann warum ich du er sie es wir ihr mit von zu im am an auf für".split(" ")
+    "der die das den dem des ein eine einer eines einem und oder ist sind war wie was wer wo wann warum ich du er sie es wir ihr mit von zu im am an auf für als aber auch sich".split(" ")
   );
 
   return normalize(text)
     .split(" ")
-    .filter(x => x.length > 2 && !stop.has(x));
+    .filter(word =>
+      word.length > 2 &&
+      !stop.has(word)
+    );
 }
 
 function similarity(a, b) {
-  const aa = new Set(tokenize(a));
-  const bb = new Set(tokenize(b));
+  const first = new Set(tokenize(a));
+  const second = new Set(tokenize(b));
 
-  if (!aa.size || !bb.size) return 0;
+  if (!first.size || !second.size) {
+    return 0;
+  }
 
   let common = 0;
 
-  aa.forEach(x => {
-    if (bb.has(x)) common++;
-  });
+  for (const word of first) {
+    if (second.has(word)) {
+      common++;
+    }
+  }
 
-  return common / Math.max(aa.size, bb.size);
+  return common / Math.max(first.size, second.size);
 }
 
 /* =====================================================
@@ -84,42 +105,63 @@ function similarity(a, b) {
 
 let data = {};
 
-try {
-  const stored = localStorage.getItem(KEY);
-  data = stored ? JSON.parse(stored) : {};
-} catch (error) {
-  console.error("LernBot: Datenbank konnte nicht geladen werden.", error);
-  data = {};
-}
-
-if (!obj(data)) data = {};
-
 const defaults = {
   version: VERSION,
+
   facts: [],
   qa: [],
   classes: [],
   log: [],
   audit: [],
+
   agentStats: {},
+
   improvements: [],
   codeProposals: [],
+
   projects: [],
   tasks: [],
   documents: [],
   relationships: [],
   memory: [],
   snapshots: [],
+
   settings: {
     autoResearch: true,
     autoLearn: true,
     confirmChanges: true,
     maxHistory: 100
   },
+
   theme: "dark"
 };
 
-/* Fehlende Standardwerte ergänzen */
+/* Vorhandene Daten laden */
+
+try {
+  const stored = localStorage.getItem(KEY);
+
+  if (stored) {
+    const parsed = JSON.parse(stored);
+
+    if (obj(parsed)) {
+      data = parsed;
+    }
+  }
+} catch (error) {
+  console.error(
+    "LernBot: Datenbank konnte nicht geladen werden.",
+    error
+  );
+
+  data = {};
+}
+
+if (!obj(data)) {
+  data = {};
+}
+
+/* Fehlende Datenbereiche ergänzen */
 
 for (const [key, value] of Object.entries(defaults)) {
   if (data[key] === undefined || data[key] === null) {
@@ -127,7 +169,7 @@ for (const [key, value] of Object.entries(defaults)) {
   }
 }
 
-/* Datenstrukturen absichern */
+/* Array-Datenbereiche absichern */
 
 const arrayKeys = [
   "facts",
@@ -151,6 +193,8 @@ for (const key of arrayKeys) {
   }
 }
 
+/* Objekt-Datenbereiche absichern */
+
 if (!obj(data.agentStats)) {
   data.agentStats = {};
 }
@@ -159,61 +203,74 @@ if (!obj(data.settings)) {
   data.settings = {};
 }
 
-/* Einstellungen mit Standardwerten zusammenführen */
+/* Standardwerte übernehmen, bestehende Einstellungen behalten */
 
 data.settings = {
   ...clone(defaults.settings),
   ...data.settings
 };
 
+/* Theme absichern */
+
 if (typeof data.theme !== "string") {
   data.theme = "dark";
 }
 
-/* Einzelne Datenbankeinträge überprüfen */
+/* Datenbankversion aktualisieren */
 
-data.facts = data.facts.filter(x =>
-  obj(x) &&
-  typeof x.subject === "string" &&
-  typeof x.property === "string" &&
-  typeof x.value === "string"
-);
-
-data.qa = data.qa.filter(x =>
-  obj(x) &&
-  typeof x.k === "string" &&
-  typeof x.a === "string"
-);
-
-data.projects = data.projects.filter(obj);
-data.tasks = data.tasks.filter(obj);
-
-data.documents = data.documents.filter(x =>
-  obj(x) && typeof x === "object"
-);
-
-data.relationships = data.relationships.filter(x =>
-  obj(x) &&
-  typeof x.from === "string" &&
-  typeof x.to === "string" &&
-  typeof x.relation === "string"
-);
-
-data.memory = data.memory.filter(x =>
-  obj(x) &&
-  typeof x.content === "string" &&
-  typeof x.type === "string"
-);
-
-data.audit = data.audit.filter(obj);
-data.snapshots = data.snapshots.filter(obj);
-data.codeProposals = data.codeProposals.filter(obj);
-data.classes = data.classes.filter(obj);
-data.log = data.log.filter(obj);
-data.improvements = data.improvements.filter(obj);
+data.version = VERSION;
 
 /* =====================================================
-   3. SPEICHERSYSTEM
+   3. DATENVALIDIERUNG
+   ===================================================== */
+
+data.facts = data.facts.filter(item =>
+  obj(item) &&
+  typeof item.subject === "string" &&
+  typeof item.property === "string" &&
+  typeof item.value === "string"
+);
+
+data.qa = data.qa.filter(item =>
+  obj(item) &&
+  typeof item.k === "string" &&
+  typeof item.a === "string"
+);
+
+data.relationships = data.relationships.filter(item =>
+  obj(item) &&
+  typeof item.from === "string" &&
+  typeof item.to === "string" &&
+  typeof item.relation === "string"
+);
+
+data.memory = data.memory.filter(item =>
+  obj(item) &&
+  typeof item.content === "string" &&
+  typeof item.type === "string"
+);
+
+data.documents = data.documents.filter(item =>
+  obj(item)
+);
+
+data.projects = data.projects.filter(item =>
+  obj(item)
+);
+
+data.tasks = data.tasks.filter(item =>
+  obj(item)
+);
+
+data.classes = data.classes.filter(obj);
+data.log = data.log.filter(obj);
+data.audit = data.audit.filter(obj);
+data.improvements = data.improvements.filter(obj);
+data.codeProposals = data.codeProposals.filter(obj);
+data.snapshots = data.snapshots.filter(obj);
+
+/* =====================================================
+   4. SPEICHERSYSTEM
    ===================================================== */
 
 function save() {
@@ -225,13 +282,23 @@ function save() {
   data.snapshots = arr(data.snapshots).slice(-30);
 
   try {
-    localStorage.setItem(KEY, JSON.stringify(data));
+    localStorage.setItem(
+      KEY,
+      JSON.stringify(data)
+    );
+
     return true;
+
   } catch (error) {
-    console.error("LernBot Speicherfehler:", error);
+    console.error(
+      "LernBot: Speichern fehlgeschlagen.",
+      error
+    );
 
     if (typeof setStatus === "function") {
-      setStatus("Speicher voll – bitte Sicherung exportieren.");
+      setStatus(
+        "Speicherfehler – bitte Daten exportieren."
+      );
     }
 
     return false;
@@ -254,21 +321,42 @@ function logAudit(agent, action, detail = "") {
 
 function countAgent(name) {
   name = safeText(name, 100);
+
   if (!name) return;
 
-  const current = Number(data.agentStats[name]) || 0;
-  data.agentStats[name] = current + 1;
+  data.agentStats[name] =
+    (Number(data.agentStats[name]) || 0) + 1;
 }
 
 /* =====================================================
-   4. LANGZEITGEDÄCHTNIS
+   5. LANGZEITGEDÄCHTNIS
    ===================================================== */
 
 function remember(type, content, meta = {}) {
   type = safeText(type, 100);
   content = safeText(content, 10000);
 
-  if (!type || !content) return null;
+  if (!type || !content) {
+    return null;
+  }
+
+  const existing = data.memory.find(item =>
+    item.type === type &&
+    normalize(item.content) === normalize(content)
+  );
+
+  if (existing) {
+    existing.updated = now();
+
+    existing.meta = {
+      ...(obj(existing.meta) ? existing.meta : {}),
+      ...(obj(meta) ? clone(meta) : {})
+    };
+
+    save();
+
+    return existing;
+  }
 
   const entry = {
     id: uid(),
@@ -278,23 +366,6 @@ function remember(type, content, meta = {}) {
     created: now(),
     updated: now()
   };
-
-  const existing = data.memory.find(x =>
-    x.type === type &&
-    normalize(x.content) === normalize(content)
-  );
-
-  if (existing) {
-    existing.updated = now();
-
-    existing.meta = {
-      ...(obj(existing.meta) ? existing.meta : {}),
-      ...entry.meta
-    };
-
-    save();
-    return existing;
-  }
 
   data.memory.push(entry);
 
@@ -314,30 +385,35 @@ function searchMemory(query, limit = 8) {
 
   if (!q) return [];
 
-  limit = Math.max(1, Math.min(100, Number(limit) || 8));
+  limit = Math.max(
+    1,
+    Math.min(100, Number(limit) || 8)
+  );
 
   return data.memory
     .map(item => ({
       item,
-      score: similarity(q, item.content)
+      score: Math.max(
+        similarity(q, item.content),
+        similarity(q, item.type)
+      )
     }))
-    .filter(x => x.score > 0.08)
+    .filter(result => result.score > 0.08)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
-    .map(x => x.item);
+    .map(result => result.item);
 }
 
 function forgetMemory(query) {
   const q = normalize(query);
 
-  /* Schutz vor versehentlichem Löschen aller Erinnerungen */
-
   if (!q) return 0;
 
   const before = data.memory.length;
 
-  data.memory = data.memory.filter(x =>
-    !normalize(x.content).includes(q)
+  data.memory = data.memory.filter(item =>
+    !normalize(item.content).includes(q) &&
+    !normalize(item.type).includes(q)
   );
 
   const removed = before - data.memory.length;
@@ -356,13 +432,16 @@ function forgetMemory(query) {
 }
 
 /* =====================================================
-   5. WISSENSBANK
+   6. WISSENSBANK
    ===================================================== */
 
 function cleanSubject(text) {
   return safeText(text)
-    .replace(/^(der|die|das|ein|eine|einen|einem|einer)\s+/i, "")
-    .replace(/[.!?]+$/, "")
+    .replace(
+      /^(der|die|das|ein|eine|einen|einem|einer|eines)\s+/i,
+      ""
+    )
+    .replace(/[.!?,;:]+$/, "")
     .trim();
 }
 
@@ -372,10 +451,12 @@ function sameSubject(a, b) {
 }
 
 function getFacts(subject = "") {
-  if (!safeText(subject)) return data.facts;
+  if (!safeText(subject)) {
+    return data.facts;
+  }
 
-  return data.facts.filter(f =>
-    sameSubject(f.subject, subject)
+  return data.facts.filter(item =>
+    sameSubject(item.subject, subject)
   );
 }
 
@@ -389,27 +470,46 @@ function addFact(subject, property, value, source = "user") {
     return false;
   }
 
-  let existing = data.facts.find(f =>
-    sameSubject(f.subject, subject) &&
-    normalize(f.property) === property
+  let existing = data.facts.find(item =>
+    sameSubject(item.subject, subject) &&
+    normalize(item.property) === property
   );
 
   if (existing) {
     const oldValue = existing.value;
 
-    /* Nur echte Änderungen als Konflikt speichern */
-
     if (normalize(oldValue) !== normalize(value)) {
       existing.previous = oldValue;
       existing.conflict = true;
 
-      existing.alternatives = arr(existing.alternatives);
-
-      const alreadyExists = existing.alternatives.some(x =>
-        obj(x) && normalize(x.value) === normalize(value)
+      existing.alternatives = arr(
+        existing.alternatives
       );
 
-      if (!alreadyExists) {
+      const oldAlternativeExists =
+        existing.alternatives.some(item =>
+          obj(item) &&
+          normalize(item.value) === normalize(oldValue)
+        );
+
+      if (
+        oldValue &&
+        !oldAlternativeExists
+      ) {
+        existing.alternatives.push({
+          value: oldValue,
+          source: existing.source || "unbekannt",
+          time: now()
+        });
+      }
+
+      const newAlternativeExists =
+        existing.alternatives.some(item =>
+          obj(item) &&
+          normalize(item.value) === normalize(value)
+        );
+
+      if (!newAlternativeExists) {
         existing.alternatives.push({
           value,
           source,
@@ -431,6 +531,8 @@ function addFact(subject, property, value, source = "user") {
       value,
       source,
       confidence: source === "user" ? 1 : 0.7,
+      conflict: false,
+      alternatives: [],
       created: now(),
       updated: now()
     };
@@ -454,83 +556,125 @@ function addFact(subject, property, value, source = "user") {
 }
 
 /* =====================================================
-   6. FAKTEN ERKENNEN UND LERNEN
+   7. FAKTEN ERKENNEN UND LERNEN
    ===================================================== */
 
 function parseFact(text) {
   const s = safeText(text);
 
-  if (!s || s.includes("?")) return null;
+  if (!s || s.includes("?")) {
+    return null;
+  }
 
-  let m;
+  let match;
 
-  /* Hauptstadt */
+  /* Hauptstadt:
+     Die Hauptstadt von Deutschland ist Berlin.
+  */
 
-  m = s.match(
-    /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+)$/i
+  match = s.match(
+    /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+?)[.!]*$/i
   );
 
-  if (m) {
+  if (match) {
     return {
-      subject: cleanSubject(m[1]),
+      subject: cleanSubject(match[1]),
       property: "hauptstadt",
-      value: safeText(m[2]).replace(/[.!]+$/, "")
+      value: safeText(match[2])
     };
   }
 
-  /* Lebensraum */
+  /* Hauptstadt:
+     Deutschland hat die Hauptstadt Berlin.
+  */
 
-  m = s.match(
-    /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf)\s+(.+)$/i
+  match = s.match(
+    /^(.+?)\s+hat\s+(?:die\s+)?hauptstadt\s+(.+?)[.!]*$/i
   );
 
-  if (m) {
+  if (match) {
     return {
-      subject: cleanSubject(m[1]),
+      subject: cleanSubject(match[1]),
+      property: "hauptstadt",
+      value: safeText(match[2])
+    };
+  }
+
+  /* Lebensraum:
+     Der Fuchs lebt in Europa.
+  */
+
+  match = s.match(
+    /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf|unter)\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
       property: "lebensraum",
-      value: safeText(m[3]).replace(/[.!]+$/, "")
+      value: safeText(match[3])
     };
   }
 
-  /* Nahrung */
+  /* Nahrung:
+     Der Panda frisst Bambus.
+  */
 
-  m = s.match(
-    /^(.+?)\s+(frisst|isst)\s+(.+)$/i
+  match = s.match(
+    /^(.+?)\s+(frisst|isst|ernährt sich von)\s+(.+?)[.!]*$/i
   );
 
-  if (m) {
+  if (match) {
     return {
-      subject: cleanSubject(m[1]),
+      subject: cleanSubject(match[1]),
       property: "nahrung",
-      value: safeText(m[3]).replace(/[.!]+$/, "")
+      value: safeText(match[3])
     };
   }
 
-  /* Zugehörigkeit */
+  /* Zugehörigkeit:
+     Das Okapi gehört zu den Giraffenartigen.
+  */
 
-  m = s.match(
-    /^(.+?)\s+gehört\s+zu\s+(.+)$/i
+  match = s.match(
+    /^(.+?)\s+gehört\s+zu\s+(.+?)[.!]*$/i
   );
 
-  if (m) {
+  if (match) {
     return {
-      subject: cleanSubject(m[1]),
-      property: "zugehörigkeit",
-      value: safeText(m[2]).replace(/[.!]+$/, "")
+      subject: cleanSubject(match[1]),
+      property: "zugehoerigkeit",
+      value: safeText(match[2])
+    };
+  }
+
+  /* Zugehörigkeit:
+     Das Okapi ist ein Säugetier.
+  */
+
+  match = s.match(
+    /^(.+?)\s+ist\s+(?:ein|eine|einer|eines)\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "definition",
+      value: safeText(match[2])
     };
   }
 
   /* Allgemeine Definition */
 
-  m = s.match(
-    /^(.+?)\s+(?:ist|sind|heißt)\s+(.+)$/i
+  match = s.match(
+    /^(.+?)\s+(?:ist|sind|heißt|bedeutet)\s+(.+?)[.!]*$/i
   );
 
-  if (m) {
+  if (match) {
     return {
-      subject: cleanSubject(m[1]),
+      subject: cleanSubject(match[1]),
       property: "definition",
-      value: safeText(m[2]).replace(/[.!]+$/, "")
+      value: safeText(match[2])
     };
   }
 
@@ -540,7 +684,9 @@ function parseFact(text) {
 function learnFact(text) {
   const fact = parseFact(text);
 
-  if (!fact) return null;
+  if (!fact) {
+    return null;
+  }
 
   const success = addFact(
     fact.subject,
@@ -549,19 +695,23 @@ function learnFact(text) {
     "user"
   );
 
-  if (!success) return null;
+  if (!success) {
+    return null;
+  }
 
-  return `Gelernt und gespeichert!
-
-Thema: ${fact.subject}
-Eigenschaft: ${fact.property}
-Wissen: ${fact.value}
-
-Gespeicherte Fakten: ${data.facts.length}`;
+  return [
+    "Gelernt und gespeichert!",
+    "",
+    `Thema: ${fact.subject}`,
+    `Eigenschaft: ${fact.property}`,
+    `Wissen: ${fact.value}`,
+    "",
+    `Gespeicherte Fakten: ${data.facts.length}`
+  ].join("\n");
 }
 
 /* =====================================================
-   7. WISSEN ABRUFEN
+   8. WISSEN ABRUFEN
    ===================================================== */
 
 function answerFact(question) {
@@ -570,50 +720,118 @@ function answerFact(question) {
   if (!q) return null;
 
   let property = null;
+  let subject = "";
 
-  if (/\b(hauptstadt)\b/.test(q)) {
+  /* Eigenschaft erkennen */
+
+  if (/\bhauptstadt\b/.test(q)) {
     property = "hauptstadt";
   }
 
-  else if (/\b(wo lebt|wo wohnt|lebensraum)\b/.test(q)) {
+  else if (
+    /\b(wo lebt|wo wohnt|lebensraum|lebensgebiet|in welchem land lebt)\b/.test(q)
+  ) {
     property = "lebensraum";
   }
 
-  else if (/\b(was frisst|was isst|nahrung)\b/.test(q)) {
+  else if (
+    /\b(was frisst|was isst|nahrung|ernaehrung)\b/.test(q)
+  ) {
     property = "nahrung";
   }
 
-  else if (/\b(zu welcher|gehört zu|welche familie)\b/.test(q)) {
-    property = "zugehörigkeit";
+  else if (
+    /\b(zu welcher tierart|zu welcher familie|welcher familie|welcher tierart|gehoert zu|tierart)\b/.test(q)
+  ) {
+    property = "zugehoerigkeit";
   }
 
-  else if (/^(was ist|wer ist|was bedeutet)\b/.test(q)) {
+  else if (
+    /^(was ist|wer ist|was bedeutet|erklaere)\b/.test(q)
+  ) {
     property = "definition";
   }
 
   if (!property) return null;
 
-  let subject = safeText(question)
-    .replace(
-      /^(was ist|wer ist|was bedeutet|wo lebt|wo wohnt|was frisst|was isst|in welchem land|zu welcher tierart)\s+/i,
-      ""
-    )
-    .replace(/[?!.]+$/, "");
+  /* Thema aus der Frage extrahieren */
+
+  const patterns = {
+    hauptstadt: [
+      /^was ist die hauptstadt von (.+)$/,
+      /^was ist hauptstadt von (.+)$/,
+      /^hauptstadt von (.+)$/,
+      /^welche stadt ist die hauptstadt von (.+)$/
+    ],
+
+    lebensraum: [
+      /^wo lebt (?:der|die|das|ein|eine)?\s*(.+)$/,
+      /^wo wohnt (?:der|die|das|ein|eine)?\s*(.+)$/,
+      /^in welchem land lebt (?:der|die|das|ein|eine)?\s*(.+)$/,
+      /^lebensraum von (.+)$/
+    ],
+
+    nahrung: [
+      /^was frisst (?:der|die|das|ein|eine)?\s*(.+)$/,
+      /^was isst (?:der|die|das|ein|eine)?\s*(.+)$/,
+      /^nahrung von (.+)$/,
+      /^was ist die nahrung von (.+)$/
+    ],
+
+    zugehoerigkeit: [
+      /^zu welcher tierart gehoert (?:der|die|das)?\s*(.+)$/,
+      /^zu welcher familie gehoert (?:der|die|das)?\s*(.+)$/,
+      /^welcher familie gehoert (?:der|die|das)?\s*(.+)$/,
+      /^welcher tierart gehoert (?:der|die|das)?\s*(.+)$/,
+      /^zu welcher tierart gehoert (.+)$/,
+      /^zu welcher familie gehoert (.+)$/,
+      /^zu welcher familie gehoert das (.+)$/
+    ],
+
+    definition: [
+      /^was ist (.+)$/,
+      /^wer ist (.+)$/,
+      /^was bedeutet (.+)$/,
+      /^erklaere (.+)$/
+    ]
+  };
+
+  for (const pattern of patterns[property]) {
+    const match = q.match(pattern);
+
+    if (match && match[1]) {
+      subject = match[1].trim();
+      break;
+    }
+  }
+
+  /* Zusätzliche Fallback-Erkennung */
+
+  if (!subject) {
+    subject = q
+      .replace(
+        /^(was ist|wer ist|was bedeutet|erklaere)\s+/,
+        ""
+      )
+      .trim();
+  }
 
   subject = cleanSubject(subject);
 
   if (!subject) return null;
 
-  const fact = data.facts.find(f =>
-    sameSubject(f.subject, subject) &&
-    normalize(f.property) === property
+  /* Passenden Fakt suchen */
+
+  const fact = data.facts.find(item =>
+    sameSubject(item.subject, subject) &&
+    normalize(item.property) === property
   );
 
   return fact ? fact.value : null;
 }
 
 /* =====================================================
-   8. WISSENSÜBERSICHT
+   9. WISSENSÜBERSICHT
    ===================================================== */
 
 function knowledgeOverview() {
@@ -623,31 +841,50 @@ function knowledgeOverview() {
 
   const groups = {};
 
-  data.facts.forEach(f => {
-    (groups[f.subject] ||= []).push(f);
-  });
+  for (const fact of data.facts) {
+    const subject = fact.subject || "Unbekannt";
 
-  const lines = ["MEIN LANGZEITWISSEN"];
+    if (!groups[subject]) {
+      groups[subject] = [];
+    }
 
-  Object.entries(groups).forEach(([subject, facts]) => {
-    lines.push("", subject);
+    groups[subject].push(fact);
+  }
 
-    facts.forEach(f => {
-      lines.push(`• ${f.property}: ${f.value}`);
-    });
-  });
+  const lines = [
+    "MEIN LANGZEITWISSEN",
+    ""
+  ];
+
+  for (const [subject, facts] of Object.entries(groups)) {
+    lines.push(subject);
+
+    for (const fact of facts) {
+      lines.push(
+        `• ${fact.property}: ${fact.value}`
+      );
+
+      if (fact.conflict) {
+        lines.push(
+          "  Hinweis: Für diesen Fakt existieren unterschiedliche Angaben."
+        );
+      }
+    }
+
+    lines.push("");
+  }
 
   lines.push(
-    "",
     `Gesamt: ${data.facts.length} Fakten`,
-    `Erinnerungen: ${data.memory.length}`
+    `Erinnerungen: ${data.memory.length}`,
+    `Wissensverbindungen: ${data.relationships.length}`
   );
 
   return lines.join("\n");
 }
 
 /* =====================================================
-   9. WISSENSGRAPH
+   10. WISSENSGRAPH
    ===================================================== */
 
 function connectKnowledge(from, relation, to) {
@@ -659,13 +896,15 @@ function connectKnowledge(from, relation, to) {
     return false;
   }
 
-  const exists = data.relationships.some(r =>
-    sameSubject(r.from, from) &&
-    sameSubject(r.to, to) &&
-    normalize(r.relation) === normalize(relation)
+  const exists = data.relationships.some(item =>
+    sameSubject(item.from, from) &&
+    sameSubject(item.to, to) &&
+    normalize(item.relation) === normalize(relation)
   );
 
-  if (exists) return true;
+  if (exists) {
+    return true;
+  }
 
   data.relationships.push({
     id: uid(),
@@ -687,11 +926,13 @@ function connectKnowledge(from, relation, to) {
 }
 
 function graphFor(subject) {
-  if (!safeText(subject)) return [];
+  if (!safeText(subject)) {
+    return [];
+  }
 
-  return data.relationships.filter(r =>
-    sameSubject(r.from, subject) ||
-    sameSubject(r.to, subject)
+  return data.relationships.filter(item =>
+    sameSubject(item.from, subject) ||
+    sameSubject(item.to, subject)
   );
 }
 
@@ -702,11 +943,26 @@ function graphReport(subject) {
     return `Zu ${subject} habe ich noch keine Verbindungen gespeichert.`;
   }
 
-  return "WISSENSVERKNÜPFUNGEN\n\n" +
-    links.map(r =>
-      `${r.from} —${r.relation}→ ${r.to}`
-    ).join("\n");
+  return [
+    "WISSENSVERKNÜPFUNGEN",
+    "",
+    ...links.map(item =>
+      `${item.from} —${item.relation}→ ${item.to}`
+    )
+  ].join("\n");
 }
+
+/* =====================================================
+   11. INITIALISIERUNG ABSCHLIESSEN
+   ===================================================== */
+
+/*
+   Bestehende Daten bleiben erhalten.
+   Fehlende Bereiche werden ergänzt.
+   Die Datenbank wird auf Version 6 gesetzt.
+*/
+
+save();
 
 /* =====================================================
    TEIL 1 ENDE
