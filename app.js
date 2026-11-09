@@ -1097,11 +1097,30 @@ function importData(json) {
 
 /* =====================================================
    LERNBOT 6.0 – TEIL 3/3
-   CHAT, BEFEHLE, DATEIEN, OBERFLÄCHE UND SYSTEMSTART
+   FINAL: CHAT, BEFEHLE, DATEIEN, UI UND SYSTEMSTART
    ===================================================== */
 
 /* =====================================================
-   1. BENUTZEROBERFLÄCHE
+   1. STATUS-FALLBACK
+   Wird auch von save() aus Teil 1 benötigt.
+   ===================================================== */
+
+function setStatus(message) {
+  const status =
+    $("lb6-status") ||
+    $("status") ||
+    $("status-message");
+
+  if (status) {
+    status.textContent = String(message ?? "");
+  } else {
+    console.warn("[LernBot]", message);
+  }
+}
+
+
+/* =====================================================
+   2. BENUTZEROBERFLÄCHE
    ===================================================== */
 
 const UI = {
@@ -1147,7 +1166,7 @@ let lb6MessageCounter = 0;
 
 
 /* =====================================================
-   2. ALLGEMEINE HILFSFUNKTIONEN
+   3. ALLGEMEINE HILFSFUNKTIONEN
    ===================================================== */
 
 function lb6Text(value) {
@@ -1159,7 +1178,10 @@ function lb6Text(value) {
     return value;
   }
 
-  if (typeof value === "number" || typeof value === "boolean") {
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
     return String(value);
   }
 
@@ -1170,20 +1192,21 @@ function lb6Text(value) {
   }
 }
 
-function lb6Normalize(value) {
-  return normalize(String(value ?? ""));
-}
-
 function lb6Command(text, prefix) {
-  const original = String(text || "").trim();
-  const normalized = lb6Normalize(original);
-  const wanted = lb6Normalize(prefix);
+  const original = String(text ?? "").trim();
+  const colon = original.indexOf(":");
 
-  if (!normalized.startsWith(wanted)) {
+  if (colon < 0) {
     return null;
   }
 
-  return original.slice(prefix.length).trim();
+  const enteredPrefix = original.slice(0, colon + 1);
+
+  if (normalize(enteredPrefix) !== normalize(prefix)) {
+    return null;
+  }
+
+  return original.slice(colon + 1).trim();
 }
 
 function lb6Date(value) {
@@ -1199,7 +1222,7 @@ function lb6Date(value) {
 }
 
 function lb6Id(item) {
-  return String(item?.id || "");
+  return String(item?.id ?? "");
 }
 
 function lb6Title(item) {
@@ -1218,30 +1241,34 @@ function lb6RemoveTyping(element) {
   }
 }
 
+function lb6Error(error) {
+  return error?.message || String(error);
+}
+
 
 /* =====================================================
-   3. CHAT-NACHRICHTEN
+   4. CHAT-NACHRICHTEN
    ===================================================== */
 
 function addMessage(role, content) {
   const chat = UI.chat();
+  const messageText = lb6Text(content);
 
   if (!chat) {
-    console.log(`[LernBot ${role}]`, content);
+    console.log(`[LernBot ${role}]`, messageText);
     return null;
   }
 
   const message = document.createElement("div");
 
   message.className = "lb6-message lb6-" + role;
-
   message.dataset.messageId =
     "lb6-message-" + (++lb6MessageCounter);
 
   const body = document.createElement("div");
 
   body.className = "lb6-message-content";
-  body.textContent = lb6Text(content);
+  body.textContent = messageText;
 
   message.appendChild(body);
   chat.appendChild(message);
@@ -1277,7 +1304,7 @@ function clearChat() {
 
 
 /* =====================================================
-   4. DESIGN
+   5. DESIGN
    ===================================================== */
 
 function installStyles() {
@@ -1405,12 +1432,13 @@ function installStyles() {
     }
   `;
 
-  document.head.appendChild(style);
+  (document.head || document.documentElement).appendChild(style);
 }
 
 
 /* =====================================================
-   5. FALLBACK-OBERFLÄCHE
+   6. FALLBACK-OBERFLÄCHE
+   Erstellt nur HTML – keine doppelten Listener.
    ===================================================== */
 
 function createFallbackUI() {
@@ -1465,7 +1493,33 @@ function createFallbackUI() {
 
 
 /* =====================================================
-   6. WISSEN UND GEDÄCHTNIS
+   7. LERNEN UND RECHERCHIEREN
+   Diese beiden Funktionen fehlten im bisherigen Teil 3.
+   ===================================================== */
+
+function getLearningResponse(value) {
+  const content = safeText(value, 100000);
+
+  if (!content) {
+    return "Bitte gib einen Lerninhalt an.";
+  }
+
+  return learnFact(content);
+}
+
+async function getResearchResponse(query) {
+  const content = safeText(query, 1000);
+
+  if (!content) {
+    return "Bitte gib ein Recherchethema an.";
+  }
+
+  return await research(content);
+}
+
+
+/* =====================================================
+   8. GEDÄCHTNIS
    ===================================================== */
 
 function getMemoryList() {
@@ -1521,6 +1575,11 @@ function forgetResponse(value) {
   return `${removed} Erinnerung(en) wurden gelöscht.`;
 }
 
+
+/* =====================================================
+   9. WISSEN
+   ===================================================== */
+
 function getKnowledgeResponse(topic) {
   topic = safeText(topic, 500);
 
@@ -1528,16 +1587,24 @@ function getKnowledgeResponse(topic) {
     return "Bitte gib ein Thema an.";
   }
 
-  const result = explainTopic(topic);
+  const directAnswer = answerFact(topic);
 
-  if (result) return result;
+  if (directAnswer) {
+    return directAnswer;
+  }
+
+  const explanation = explainTopic(topic);
+
+  if (explanation) {
+    return explanation;
+  }
 
   return "Zu diesem Thema habe ich noch keine Informationen.";
 }
 
 
 /* =====================================================
-   7. DOKUMENTENVERWALTUNG
+   10. DOKUMENTENVERWALTUNG
    ===================================================== */
 
 function getDocumentList() {
@@ -1571,15 +1638,21 @@ function searchDocumentResponse(query) {
   }
 
   return results.map((result, index) => {
-    const document = result.document;
+    const document = result?.document;
+
+    if (!document) return null;
+
+    const score = Number(result.score);
 
     return [
       `${index + 1}. ${lb6Title(document)}`,
       `ID: ${lb6Id(document)}`,
-      `Trefferwert: ${result.score.toFixed(2)}`,
-      `Inhalt: ${safeText(document.content, 350)}`
+      `Trefferwert: ${
+        Number.isFinite(score) ? score.toFixed(2) : "Unbekannt"
+      }`,
+      `Inhalt: ${safeText(document.content || "", 350)}`
     ].join("\n");
-  }).join("\n\n");
+  }).filter(Boolean).join("\n\n");
 }
 
 function summarizeDocumentResponse(query) {
@@ -1615,7 +1688,7 @@ function summarizeDocumentResponse(query) {
 
 
 /* =====================================================
-   8. PROJEKTE UND AUFGABEN
+   11. PROJEKTE UND AUFGABEN
    ===================================================== */
 
 function getProjectResponse() {
@@ -1624,6 +1697,33 @@ function getProjectResponse() {
 
 function getTaskResponse() {
   return listTasks();
+}
+
+function createTaskResponse(title) {
+  title = safeText(title, 500);
+
+  if (!title) {
+    return "Bitte gib einen Aufgabentitel an.";
+  }
+
+  const previousIds = new Set(
+    arr(data.tasks).map(task => task.id)
+  );
+
+  const result = createTask(title);
+
+  const createdTask = arr(data.tasks).find(
+    task => !previousIds.has(task.id)
+  );
+
+  if (!createdTask) {
+    return lb6Text(result);
+  }
+
+  return (
+    lb6Text(result) +
+    "\nAufgaben-ID: " + createdTask.id
+  );
 }
 
 function completeTaskResponse(id) {
@@ -1650,7 +1750,7 @@ function completeTaskResponse(id) {
 
 
 /* =====================================================
-   9. SICHERUNGEN UND EXPORT
+   12. SICHERUNGEN UND EXPORT
    ===================================================== */
 
 function getSnapshotList() {
@@ -1676,7 +1776,7 @@ function createSnapshotResponse() {
   const newest = snapshots[snapshots.length - 1];
 
   return (
-    result +
+    lb6Text(result) +
     (newest ? "\nSicherungs-ID: " + newest.id : "")
   );
 }
@@ -1703,6 +1803,8 @@ function restoreSnapshotResponse(id) {
 }
 
 function downloadExport() {
+  let url = null;
+
   try {
     const json = exportData();
 
@@ -1715,7 +1817,8 @@ function downloadExport() {
       { type: "application/json;charset=utf-8" }
     );
 
-    const url = URL.createObjectURL(blob);
+    url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
 
     link.href = url;
@@ -1724,11 +1827,11 @@ function downloadExport() {
       new Date().toISOString().slice(0, 10) +
       ".json";
 
+    link.style.display = "none";
+
     document.body.appendChild(link);
     link.click();
     link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     return "Der JSON-Datenexport wurde gestartet.";
 
@@ -1737,14 +1840,21 @@ function downloadExport() {
 
     return (
       "Export fehlgeschlagen:\n" +
-      (error.message || String(error))
+      lb6Error(error)
     );
+
+  } finally {
+    if (url) {
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 1500);
+    }
   }
 }
 
 
 /* =====================================================
-   10. DATEIIMPORT
+   13. DATEIIMPORT
    ===================================================== */
 
 async function handleFileUpload(event) {
@@ -1774,8 +1884,14 @@ async function handleFileUpload(event) {
         throw new Error("Die JSON-Datei ist ungültig.");
       }
 
-      if (!obj(parsed)) {
-        throw new Error("Das JSON enthält kein gültiges Datenobjekt.");
+      if (
+        !parsed ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error(
+          "Das JSON enthält kein gültiges Datenobjekt."
+        );
       }
 
       result = importData(content);
@@ -1793,10 +1909,12 @@ async function handleFileUpload(event) {
   } catch (error) {
     lb6RemoveTyping(typing);
 
+    console.error("Dateiimport fehlgeschlagen:", error);
+
     addMessage(
       "assistant",
       "Dateiimport fehlgeschlagen:\n" +
-      (error.message || String(error))
+      lb6Error(error)
     );
 
   } finally {
@@ -1808,7 +1926,7 @@ async function handleFileUpload(event) {
 
 
 /* =====================================================
-   11. HILFE
+   14. HILFE
    ===================================================== */
 
 function getHelpText() {
@@ -1824,6 +1942,7 @@ Wissen: Okapi
 Erkläre: Photosynthese
 Wissensgraph: Okapi
 Wissensanalyse
+Analysiere: Okapi
 
 GEDÄCHTNIS
 Merke dir: Ich lerne gerne.
@@ -1865,7 +1984,7 @@ Du kannst auch normale Fragen stellen.
 
 
 /* =====================================================
-   12. ZENTRALE BEFEHLSVERARBEITUNG
+   15. ZENTRALE BEFEHLSVERARBEITUNG
    ===================================================== */
 
 async function handle(text) {
@@ -1953,7 +2072,9 @@ async function handle(text) {
     value = lb6Command(text, "Recherchiere:");
 
     if (value !== null) {
-      if (!value) return "Bitte gib ein Recherchethema an.";
+      if (!value) {
+        return "Bitte gib ein Recherchethema an.";
+      }
 
       return await getResearchResponse(value);
     }
@@ -2021,7 +2142,9 @@ async function handle(text) {
     value = lb6Command(text, "Projekt erstellen:");
 
     if (value !== null) {
-      if (!value) return "Bitte gib einen Projektnamen an.";
+      if (!value) {
+        return "Bitte gib einen Projektnamen an.";
+      }
 
       return createProject(value);
     }
@@ -2036,9 +2159,7 @@ async function handle(text) {
     value = lb6Command(text, "Aufgabe erstellen:");
 
     if (value !== null) {
-      if (!value) return "Bitte gib einen Aufgabentitel an.";
-
-      return createTask(value);
+      return createTaskResponse(value);
     }
 
     value = lb6Command(text, "Aufgabe erledigt:");
@@ -2141,7 +2262,9 @@ async function handle(text) {
 
     if (
       explanation &&
-      !explanation.includes("noch nicht genügend eigenes Wissen")
+      !String(explanation).includes(
+        "noch nicht genügend eigenes Wissen"
+      )
     ) {
       return explanation;
     }
@@ -2158,14 +2281,14 @@ async function handle(text) {
 
     return (
       "Bei der Verarbeitung ist ein Fehler aufgetreten:\n\n" +
-      (error.message || String(error))
+      lb6Error(error)
     );
   }
 }
 
 
 /* =====================================================
-   13. NACHRICHTEN SENDEN
+   16. NACHRICHTEN SENDEN
    ===================================================== */
 
 async function sendMessage() {
@@ -2178,9 +2301,9 @@ async function sendMessage() {
     return;
   }
 
-  const text = String(input.value || "").trim();
+  const messageText = String(input.value || "").trim();
 
-  if (!text) return;
+  if (!messageText) return;
 
   lb6Busy = true;
 
@@ -2192,12 +2315,12 @@ async function sendMessage() {
 
   input.value = "";
 
-  addMessage("user", text);
+  addMessage("user", messageText);
 
   const typing = addTyping();
 
   try {
-    const response = await handle(text);
+    const response = await handle(messageText);
 
     lb6RemoveTyping(typing);
 
@@ -2217,8 +2340,7 @@ async function sendMessage() {
 
     addMessage(
       "assistant",
-      "Unerwarteter Fehler:\n" +
-      (error.message || String(error))
+      "Unerwarteter Fehler:\n" + lb6Error(error)
     );
 
   } finally {
@@ -2228,13 +2350,15 @@ async function sendMessage() {
       send.disabled = false;
     }
 
-    input.focus();
+    if (document.activeElement !== input) {
+      input.focus();
+    }
   }
 }
 
 
 /* =====================================================
-   14. CHAT-EINRICHTUNG
+   17. CHAT-EINRICHTUNG
    ===================================================== */
 
 function setupChat() {
@@ -2270,15 +2394,13 @@ function setupChat() {
 
 
 /* =====================================================
-   15. DATEI-EINRICHTUNG
+   18. DATEI-EINRICHTUNG
    ===================================================== */
 
 function setupFileUpload() {
   const file = UI.file();
 
-  if (!file) return;
-
-  if (file.dataset.lb6Bound === "true") {
+  if (!file || file.dataset.lb6Bound === "true") {
     return;
   }
 
@@ -2289,7 +2411,7 @@ function setupFileUpload() {
 
 
 /* =====================================================
-   16. EXPORT-BUTTONS
+   19. EXPORT-BUTTONS
    ===================================================== */
 
 function setupExportButtons() {
@@ -2306,7 +2428,6 @@ function setupExportButtons() {
 
     button.addEventListener("click", () => {
       const result = downloadExport();
-
       addMessage("system", result);
     });
   });
@@ -2314,7 +2435,7 @@ function setupExportButtons() {
 
 
 /* =====================================================
-   17. SYSTEMSTART
+   20. SYSTEMSTART
    ===================================================== */
 
 function startLernBot() {
@@ -2356,14 +2477,14 @@ function startLernBot() {
     addMessage(
       "assistant",
       "Der LernBot konnte nicht vollständig gestartet werden:\n" +
-      (error.message || String(error))
+      lb6Error(error)
     );
   }
 }
 
 
 /* =====================================================
-   18. SYSTEMSTART AUSFÜHREN
+   21. SYSTEMSTART AUSFÜHREN
    ===================================================== */
 
 if (document.readyState === "loading") {
@@ -2376,9 +2497,9 @@ if (document.readyState === "loading") {
   startLernBot();
 }
 
+
 /* =====================================================
-   ENDE LERNBOT 6.0
+   ENDE LERNBOT 6.0 – TEIL 3/3
    ===================================================== */
 
 })();
-
