@@ -23,6 +23,7 @@
 
 LERNEN:
 „Ich bringe dir bei: Ein Okapi ist ein Waldtier.“
+„Ein Okapi lebt im Regenwald der Demokratischen Republik Kongo.“
 „Merke dir: Die Hauptstadt von Frankreich ist Paris.“
 
 ALTERNATIVE FRAGEN:
@@ -34,6 +35,7 @@ KORRIGIEREN:
 
 FRAGEN:
 „Was ist ein Okapi?“
+„Wo lebt ein Okapi?“
 „Was weißt du?“
 
 WEITERE BEFEHLE:
@@ -66,7 +68,9 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
   data.qa = Array.isArray(data.qa) ? data.qa : [];
   data.classes = Array.isArray(data.classes) ? data.classes : [];
   data.log = Array.isArray(data.log) ? data.log : [];
-  data.qa = data.qa.filter(x => x && typeof x === "object" && typeof x.k === "string");
+  data.qa = data.qa.filter(x =>
+    x && typeof x === "object" && typeof x.k === "string"
+  );
 
   function save() {
     data.log = data.log.slice(-150);
@@ -80,7 +84,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     }
   }
 
-  // Texte vereinheitlichen.
   function norm(s) {
     return String(s ?? "")
       .toLocaleLowerCase("de")
@@ -89,7 +92,18 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       .trim();
   }
 
-  // Wörter, die für die Bedeutung einer Frage meist unwichtig sind.
+  // Fragearten unterscheiden.
+  function questionType(q) {
+    const s = norm(q);
+
+    if (/\b(wo|wohin|woher)\b/.test(s)) return "ort";
+    if (/\b(wann|welches jahr|wie lange)\b/.test(s)) return "zeit";
+    if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) return "menge";
+    if (/\b(wie groß|wie schwer|wie alt)\b/.test(s)) return "eigenschaft";
+
+    return "allgemein";
+  }
+
   const stop = new Set(
     "der die das den dem des ein eine einen einem einer ist sind war was wer wie wo wann und oder von zu im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also welcher welche welches gehört tierart art frage antwort bedeutet dasselbe gleich".split(" ")
   );
@@ -112,11 +126,9 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
   function counts(a) {
     const result = {};
-
     a.forEach(x => {
       result[x] = (result[x] || 0) + 1;
     });
-
     return result;
   }
 
@@ -140,24 +152,16 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     return result;
   }
 
-  // Verbesserte Ähnlichkeitserkennung.
   function sim(a, b) {
     const ta = [...new Set(toks(a))];
     const tb = [...new Set(toks(b))];
 
     if (!ta.length || !tb.length) return 0;
 
-    const ca = counts(ta);
-    const cb = counts(tb);
-
-    const tokenScore = cosine(ca, cb);
+    const tokenScore = cosine(counts(ta), counts(tb));
     const common = ta.filter(w => tb.includes(w)).length;
     const overlap = common / Math.min(ta.length, tb.length);
-
-    const gramScore = cosine(
-      counts(grams(a)),
-      counts(grams(b))
-    );
+    const gramScore = cosine(counts(grams(a)), counts(grams(b)));
 
     return 0.45 * tokenScore +
            0.40 * overlap +
@@ -179,15 +183,22 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     );
   }
 
+  // Sucht nur innerhalb derselben Frageart.
   function best(q) {
     let bestIndex = -1;
     let bestScore = 0;
+    const requestedType = questionType(q);
 
     data.qa.forEach((entry, i) => {
       const texts = entryTexts(entry);
       if (!texts.length) return;
 
-      const score = Math.max(...texts.map(k => sim(q, k)));
+      let score = 0;
+
+      texts.forEach(k => {
+        if (questionType(k) !== requestedType) return;
+        score = Math.max(score, sim(q, k));
+      });
 
       if (score > bestScore) {
         bestScore = score;
@@ -222,7 +233,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
           aliases: [],
           source: "seed"
         });
-
         added++;
       }
     });
@@ -237,7 +247,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     save();
   }
 
-  // Wissen speichern.
   function learn(question, answer, aliases = []) {
     question = String(question || "").trim();
     answer = String(answer || "").trim();
@@ -260,7 +269,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
         aliases: [],
         source: "user"
       };
-
       data.qa.push(entry);
     }
 
@@ -289,7 +297,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       " Wissenseinträge.";
   }
 
-  // Eine alternative Frage zu einem vorhandenen Eintrag hinzufügen.
   function addAlias(original, alternative) {
     const index = findQuestion(original);
 
@@ -298,6 +305,13 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     }
 
     const entry = data.qa[index];
+    alternative = String(alternative || "").trim();
+
+    if (!alternative) return "Die alternative Frage ist leer.";
+
+    if (questionType(entry.k) !== questionType(alternative)) {
+      return "Diese Frage klingt nach einer anderen Frageart. Ich speichere sie lieber als eigenen Eintrag.";
+    }
 
     if (norm(alternative) === norm(entry.k)) {
       return "Diese Frage ist bereits die Hauptfrage des Eintrags.";
@@ -309,7 +323,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return "Diese alternative Frage kenne ich bereits.";
     }
 
-    entry.aliases.push(alternative.trim());
+    entry.aliases.push(alternative);
     save();
 
     return "Sehr gut! Ich habe eine alternative Frage gespeichert.\n\n" +
@@ -333,39 +347,79 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       : null;
   }
 
-  // Einfache Fakten erkennen.
+  // Fakten in natürliche Fragen umwandeln.
   function parseFact(text) {
-    const match = text.match(
-      /^(.+?)\s+(ist|sind|war|heißt|bedeutet|liegt in|lebt in|besteht aus)\s+(.+)[.!?]*$/i
+    let match;
+
+    // Ortsangaben: "Ein Okapi lebt im Regenwald."
+    match = text.match(
+      /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf|unter|bei|zwischen)\s+(.+)[.!?]*$/i
     );
 
-    if (!match) return null;
+    if (match) {
+      const subject = match[1].trim();
+      const answer = match[3].trim().replace(/[.!?]+$/, "");
 
-    const subject = match[1].trim();
-    const answer = match[3].trim().replace(/[.!?]+$/, "");
+      return {
+        question: "Wo lebt " + subject + "?",
+        answer,
+        original: text
+      };
+    }
 
-    if (!subject || !answer) return null;
+    // Herkunft: "Ein Okapi kommt aus dem Kongo."
+    match = text.match(
+      /^(.+?)\s+kommt\s+aus\s+(.+)[.!?]*$/i
+    );
 
-    const normalizedSubject =
-      subject.charAt(0).toLocaleLowerCase("de") + subject.slice(1);
+    if (match) {
+      return {
+        question: "Woher kommt " + match[1].trim() + "?",
+        answer: match[2].trim().replace(/[.!?]+$/, ""),
+        original: text
+      };
+    }
 
-    return {
-      question: "Was ist " + normalizedSubject + "?",
-      answer,
-      original: text
-    };
+    // Definitionen und einfache Fakten.
+    match = text.match(
+      /^(.+?)\s+(ist|sind|war|heißt|bedeutet)\s+(.+)[.!?]*$/i
+    );
+
+    if (match) {
+      const subject = match[1].trim();
+      const answer = match[3].trim().replace(/[.!?]+$/, "");
+
+      const normalizedSubject =
+        subject.charAt(0).toLocaleLowerCase("de") + subject.slice(1);
+
+      return {
+        question: "Was ist " + normalizedSubject + "?",
+        answer,
+        original: text
+      };
+    }
+
+    return null;
   }
 
   function learnFact(text) {
     const fact = parseFact(text);
-
     if (!fact) return null;
 
-    return learn(
-      fact.question,
-      fact.answer,
-      [fact.original]
-    );
+    const pending = getPending();
+    const aliases = [fact.original];
+
+    // Eine gerade gestellte passende Frage wird als Alternative gespeichert.
+    if (
+      pending?.kind === "answer" &&
+      questionType(pending.question) === questionType(fact.question)
+    ) {
+      aliases.push(pending.question);
+    }
+
+    data.pending = null;
+
+    return learn(fact.question, fact.answer, aliases);
   }
 
   function classify(text) {
@@ -428,7 +482,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
     const low = text.toLocaleLowerCase("de");
     let match;
 
-    // Sicherheitsrelevante Eingaben.
     if (/(selbstmord|suizid|umbringen|nicht mehr leben|sterben (will|möchte)|töten will|ritzen|selbstverletz)/i.test(text)) {
       return "Das klingt ernst. Bitte bleib damit nicht allein und sprich mit einer vertrauten Person. Die TelefonSeelsorge erreichst du kostenlos unter 0800 111 0 111, 0800 111 0 222 oder 116 123. Bei unmittelbarer Gefahr ruf 112.";
     }
@@ -476,7 +529,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return "Dein gelerntes Wissen und die Kategorien wurden gelöscht.";
     }
 
-    // Einzelnen Eintrag vergessen.
     if (match = text.match(/^vergiss\s*:?\s+(.+)$/i)) {
       const b = best(match[1]);
 
@@ -490,21 +542,22 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return "Vergessen: „" + deleted.k + "“";
     }
 
-    // Alternative Fragen erkennen.
+    // Explizite alternative Frage: Hauptfrage = alternative Frage.
     if (match = text.match(
       /^(?:alternative frage|gleichbedeutende frage)\s*:\s*(.+?)\s*(?:=|->|bedeutet dasselbe wie|ist dasselbe wie)\s*(.+)$/i
     )) {
-      return addAlias(match[2], match[1]);
+      return addAlias(match[1], match[2]);
     }
 
-    // Auch natürliche Formulierungen erkennen.
     if (match = text.match(
       /^(.+?)\s+(?:bedeutet dasselbe wie|ist dasselbe wie|meint dasselbe wie)\s+(.+)[.!?]*$/i
     )) {
-      return addAlias(match[2].replace(/[.!?]+$/, ""), match[1].trim());
+      return addAlias(
+        match[2].replace(/[.!?]+$/, ""),
+        match[1].trim()
+      );
     }
 
-    // Kategorien lernen.
     if (match = text.match(/^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s*kategorie\s+([^:]+?)\s*:\s*(.+)$/i)) {
       data.classes.push({
         t: match[2].trim(),
@@ -532,11 +585,10 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
         "“ lernen? Erkläre es mir in einem Satz.";
     }
 
-    // Alternative Lehrformulierung.
     if (match = text.match(/^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i)) {
-      const fact = learnFact(match[1].trim());
+      const fact = parseFact(match[1].trim());
 
-      if (fact) return fact;
+      if (fact) return learnFact(match[1].trim());
 
       if (previousQuestion) {
         return learn(previousQuestion, match[1]);
@@ -549,23 +601,18 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return "Zu welchem Begriff oder welcher Frage gehört diese Erklärung?";
     }
 
-    // Direkte Fakten als Lehrversuch erkennen.
+    // Direkte Fakten zuerst erkennen. So überschreibt eine Faktenaussage
+    // nicht versehentlich die Antwort auf eine andere offene Frage.
     const directFact = parseFact(text);
 
-    if (directFact && getPending()?.kind === "teach_fact") {
-      return learn(
-        directFact.question,
-        directFact.answer,
-        [directFact.original]
-      );
+    if (directFact) {
+      return learnFact(text);
     }
 
-    // Klassifikation.
     if (match = text.match(/^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i)) {
       return classify(match[1]);
     }
 
-    // Auf eine vorherige Antwort warten.
     const pending = getPending();
 
     if (pending) {
@@ -598,7 +645,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       }
     }
 
-    // Explizite Korrektur.
     if (match = text.match(/^(?:nein[, ]+)?(?:richtig ist|korrekt ist|stattdessen|die richtige antwort ist)\s*:?\s*(.+)$/i)) {
       if (previousQuestion) {
         return learn(previousQuestion, match[1]);
@@ -619,7 +665,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return "Was genau soll ich korrigieren? Erkläre mir bitte die richtige Information.";
     }
 
-    // Gespeichertes Wissen suchen.
     const result = best(text);
 
     if (result.i >= 0 && result.s >= 0.34) {
@@ -633,7 +678,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
       return answer;
     }
 
-    // Wenn unbekannt: gezielt nach der Antwort fragen.
     setPending("answer", {
       question: text
     });
@@ -658,7 +702,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
   function send(text) {
     text = (text ?? $("input").value).trim();
-
     if (!text) return;
 
     $("input").value = "";
@@ -740,7 +783,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
         link.click();
 
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-
         return;
       }
 
@@ -764,7 +806,6 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
 
   picker.onchange = () => {
     const file = picker.files[0];
-
     if (!file) return;
 
     const reader = new FileReader();
@@ -788,6 +829,7 @@ Ich lerne aus deinen Eingaben und speichere das Wissen auf diesem Gerät.`;
         );
 
         data.classes = imported.classes;
+        data.pending = null;
         save();
 
         bubble("bot", "Wissen erfolgreich importiert.");
