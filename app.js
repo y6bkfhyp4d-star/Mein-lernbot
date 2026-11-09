@@ -1054,20 +1054,22 @@ return null;
   // 13. CHATANZEIGE
   // --------------------------------------------------
 
-  function bubble(role, text, store = true) {
-    const element = document.createElement("div");
+function bubble(role, text, store = true) {
+  const element = document.createElement("div");
 
-    element.className = "msg " + role;
-    element.textContent = text;
+  element.className = "msg " + role;
+  element.textContent = text;
 
-    $("log").appendChild(element);
-    $("log").scrollTop = $("log").scrollHeight;
+  $("log").appendChild(element);
+  $("log").scrollTop = $("log").scrollHeight;
 
-    if (store) {
-      data.log.push({ role, text });
-      save();
-    }
+  if (store) {
+    data.log.push({ role, text });
+    save();
   }
+
+  return element;
+}
 
   let busy = false;
 
