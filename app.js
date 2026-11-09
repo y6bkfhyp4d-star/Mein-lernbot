@@ -1,9 +1,8 @@
-
 (() => {
 "use strict";
 
 /* ==========================================
-   LERNBOT 3.0 – MULTI-BRAIN-SYSTEM
+   LERNBOT 3.1 – MULTI-BRAIN-SYSTEM
    8 Module + verbesserte Code-KI
    ========================================== */
 
@@ -822,20 +821,164 @@ function answerAgent(q) {
 // Diese KI untersucht den tatsächlichen Quellcode.
 // Sie führt ihn nicht erneut aus und verändert ihn nicht.
 
-async function getOwnSource() {
-  if (ownCode && ownCode.trim().length > 100) return ownCode;
+/*
+  Die folgenden Hilfsfunktionen dienen der Quelltextanalyse.
+  Kommentare und Zeichenketten werden ausgeblendet, damit
+  Suchbegriffe in Erklärungen nicht als echte Codeaufrufe zählen.
+*/
 
-  if (ownScriptURL) {
-    try {
-      const response = await fetch(ownScriptURL,{cache:"no-store"});
-      if (response.ok) {
-        ownCode = await response.text();
-        return ownCode;
-      }
-    } catch {}
+function maskNonCode(source) {
+  const chars = String(source).split("");
+  const output = [...chars];
+
+  let state = "normal";
+  let quote = "";
+  let escaped = false;
+
+  function blank(index) {
+    if (output[index] !== "\n" && output[index] !== "\r") {
+      output[index] = " ";
+    }
   }
 
-  return "";
+  for (let i = 0; i < chars.length; i++) {
+    const current = chars[i];
+    const next = chars[i + 1];
+
+    if (state === "lineComment") {
+      if (current === "\n" || current === "\r") {
+        state = "normal";
+      } else {
+        blank(i);
+      }
+      continue;
+    }
+
+    if (state === "blockComment") {
+      blank(i);
+
+      if (current === "*" && next === "/") {
+        blank(i + 1);
+        i++;
+        state = "normal";
+      }
+      continue;
+    }
+
+    if (state === "string") {
+      blank(i);
+
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (current === "\\") {
+        escaped = true;
+        continue;
+      }
+
+      if (current === quote) {
+        state = "normal";
+      }
+      continue;
+    }
+
+    if (state === "template") {
+      blank(i);
+
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (current === "\\") {
+        escaped = true;
+        continue;
+      }
+
+      if (current === "`") {
+        state = "normal";
+      }
+      continue;
+    }
+
+    if (current === "/" && next === "/") {
+      blank(i);
+      blank(i + 1);
+      i++;
+      state = "lineComment";
+      continue;
+    }
+
+    if (current === "/" && next === "*") {
+      blank(i);
+      blank(i + 1);
+      i++;
+      state = "blockComment";
+      continue;
+    }
+
+    if (current === "'" || current === '"') {
+      quote = current;
+      blank(i);
+      state = "string";
+      continue;
+    }
+
+    if (current === "`") {
+      blank(i);
+      state = "template";
+    }
+  }
+
+  return output.join("");
+}
+
+/*
+  Der Scanner selbst wird aus dem Suchbereich entfernt.
+  Dadurch erkennt die Code-KI nicht ihre eigenen Suchmuster.
+*/
+
+function getSearchableCode(source) {
+  const start = source.indexOf("function maskNonCode(source)");
+  const end = source.indexOf("function createCodeProposal(finding)",start);
+
+  let searchable = source;
+
+  if (start >= 0 && end > start) {
+    searchable =
+      source.slice(0,start) +
+      "\n".repeat(source.slice(start,end).split("\n").length) +
+      source.slice(end);
+  }
+
+  return maskNonCode(searchable);
+}
+
+function findCodeMatches(source, regex) {
+  const searchable = getSearchableCode(source);
+  const lines = searchable.split(/\r?\n/);
+  const originalLines = source.split(/\r?\n/);
+  const hits = [];
+
+  lines.forEach((line,index) => {
+    regex.lastIndex = 0;
+
+    if (regex.test(line)) {
+      const original = originalLines[index] || "";
+
+      // Leere oder reine Kommentarzeilen nicht melden.
+      if (!original.trim()) return;
+
+      hits.push({
+        number:index + 1,
+        code:original.trim()
+      });
+    }
+  });
+
+  return hits;
 }
 
 function codeCheckRules(source) {
@@ -861,42 +1004,65 @@ function codeCheckRules(source) {
     return findings;
   }
 
-  if (/\beval\s*\(/.test(source) || /\bnew\s+Function\s*\(/.test(source)) {
+  const dynamicEval = findCodeMatches(source,/\beval\s*\(/);
+  const dynamicFunction = findCodeMatches(source,/\bnew\s+Function\s*\(/);
+
+  if (dynamicEval.length || dynamicFunction.length) {
     add(
       "hoch",
       "Dynamische Codeausführung",
-      "Der Code enthält eval() oder new Function(). Damit kann Text als Programmcode ausgeführt werden.",
-      "Suche nach eval() oder new Function()",
+      "Es wurde ein tatsächlicher Aufruf von eval() oder new Function() außerhalb erkannter Kommentare und Zeichenketten gefunden.",
+      [...dynamicEval,...dynamicFunction]
+        .map(x => `Zeile ${x.number}: ${x.code}`).join("\n"),
       "Prüfen, ob die dynamische Ausführung wirklich notwendig ist. Wenn möglich durch feste Funktionen ersetzen.",
       "Kann bei ungeprüften Eingaben Sicherheitsprobleme verursachen.",
-      "Nach der Änderung alle Funktionen testen, die vorher dynamischen Code verwendet haben."
+      "Die konkrete Eingabequelle und den ausgeführten Inhalt prüfen. Danach alle betroffenen Funktionen testen."
     );
   }
 
-  if (/\binnerHTML\s*=/.test(source)) {
+  const innerHTMLHits = findCodeMatches(source,/\.innerHTML\s*=/);
+  const unsafeInnerHTML = innerHTMLHits.filter(hit => {
+    const match = hit.code.match(/\.innerHTML\s*=\s*(.*)/);
+    if (!match) return true;
+
+    const value = match[1].trim();
+
+    // Einfache, fest eingetragene Textwerte wie "" sind kein
+    // automatischer Hinweis auf eine XSS-Schwachstelle.
+    const isStaticString =
+      /^(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*;?\s*$/.test(value);
+
+    return !isStaticString;
+  });
+
+  if (unsafeInnerHTML.length) {
     add(
       "mittel",
-      "HTML wird dynamisch eingefügt",
-      "Der Code verwendet innerHTML. Bei ungeprüften Benutzereingaben kann das ein Sicherheitsrisiko sein.",
-      "Suche nach innerHTML =",
-      "Für reine Textausgaben textContent verwenden. HTML nur mit geprüften und sicheren Inhalten erzeugen.",
-      "Mögliche Cross-Site-Scripting-Schwachstelle.",
-      "Benutzereingaben mit HTML-Zeichen testen und kontrollieren, dass sie nur als Text erscheinen."
+      "Dynamische HTML-Zuweisung",
+      "Es wurde eine innerHTML-Zuweisung gefunden, deren rechter Wert nicht eindeutig als einfacher fester Text erkennbar ist.",
+      unsafeInnerHTML.map(x => `Zeile ${x.number}: ${x.code}`).join("\n"),
+      "Prüfen, ob Benutzereingaben oder externe Inhalte in innerHTML gelangen. Für reine Textausgaben textContent verwenden.",
+      "Wenn nicht vertrauenswürdige Inhalte als HTML eingefügt werden, kann Cross-Site-Scripting möglich sein.",
+      "Die Herkunft des eingesetzten Inhalts prüfen und Eingaben mit HTML-Zeichen testen."
     );
   }
 
-  if (/\bdocument\.write\s*\(/.test(source)) {
+  const writeHits = findCodeMatches(source,/\bdocument\.write\s*\(/);
+
+  if (writeHits.length) {
     add(
       "mittel",
       "document.write gefunden",
-      "document.write kann die Seite überschreiben und ist in modernen Anwendungen meist unnötig.",
-      "Suche nach document.write()",
-      "DOM-Methoden wie createElement() und appendChild() verwenden.",
-      "Kann die Seite oder den Inhalt beschädigen.",
-      "Seite nach der Änderung vollständig testen."
+      "Ein tatsächlicher Aufruf von document.write() wurde erkannt.",
+      writeHits.map(x => `Zeile ${x.number}: ${x.code}`).join("\n"),
+      "Prüfen, ob document.write wirklich benötigt wird. Wenn möglich DOM-Methoden wie createElement() und appendChild() verwenden.",
+      "Kann den Seiteninhalt überschreiben oder unerwartetes Verhalten verursachen.",
+      "Die betroffene Seite nach einer möglichen Umstellung vollständig testen."
     );
   }
 
+  // API-Schlüssel müssen im Originaltext gesucht werden,
+  // weil echte Schlüssel normalerweise in Zeichenketten stehen.
   if (/api[_-]?key\s*[:=]\s*["'][^"']{8,}/i.test(source) ||
       /sk-[A-Za-z0-9_-]{15,}/.test(source)) {
     add(
@@ -910,7 +1076,9 @@ function codeCheckRules(source) {
     );
   }
 
-  if (!/try\s*\{/.test(source) || !/catch\s*(?:\([^)]*\))?\s*\{/.test(source)) {
+  const codeOnly = getSearchableCode(source);
+
+  if (!/try\s*\{/.test(codeOnly) || !/catch\s*(?:\([^)]*\))?\s*\{/.test(codeOnly)) {
     add(
       "niedrig",
       "Fehlerbehandlung prüfen",
@@ -922,7 +1090,7 @@ function codeCheckRules(source) {
     );
   }
 
-  if (/fetch\s*\(/.test(source) && !/AbortController/.test(source)) {
+  if (/fetch\s*\(/.test(codeOnly) && !/AbortController/.test(codeOnly)) {
     add(
       "mittel",
       "Abbrechbare Netzwerkanfragen prüfen",
@@ -934,7 +1102,7 @@ function codeCheckRules(source) {
     );
   }
 
-  if (/localStorage/.test(source) && !/JSON\.parse/.test(source)) {
+  if (/localStorage/.test(codeOnly) && !/JSON\.parse/.test(codeOnly)) {
     add(
       "niedrig",
       "Speicherformat prüfen",
@@ -946,7 +1114,8 @@ function codeCheckRules(source) {
     );
   }
 
-  if (/localStorage/.test(source) && !/QuotaExceededError|Speichern fehlgeschlagen|catch/.test(source)) {
+  if (/localStorage/.test(codeOnly) &&
+      !/QuotaExceededError|Speichern fehlgeschlagen|catch/.test(codeOnly)) {
     add(
       "niedrig",
       "Speichergrenze beachten",
@@ -958,19 +1127,12 @@ function codeCheckRules(source) {
     );
   }
 
-  if (/addEventListener\s*\(/.test(source) && !/removeEventListener\s*\(/.test(source)) {
-    add(
-      "niedrig",
-      "Event-Listener prüfen",
-      "Listener werden registriert, aber keine Entfernung wurde erkannt.",
-      "Event-Verwaltung",
-      "Bei dynamisch erzeugten Bereichen prüfen, ob Listener mehrfach registriert werden.",
-      "Kann zu mehrfachen Aktionen führen.",
-      "Ansicht mehrfach öffnen und schließen und auf doppelte Aktionen achten."
-    );
-  }
+  // addEventListener allein ist kein Fehler.
+  // Eine fehlende removeEventListener-Funktion ist ebenfalls
+  // kein Beweis für ein Speicherleck.
+  // Deshalb wird hier bewusst keine Warnung erzeugt.
 
-  if (/fetch\s*\(/.test(source) && !/response\.ok|\.ok\)/.test(source)) {
+  if (/fetch\s*\(/.test(codeOnly) && !/response\.ok|\.ok\)/.test(codeOnly)) {
     add(
       "mittel",
       "HTTP-Fehlerprüfung prüfen",
@@ -982,7 +1144,7 @@ function codeCheckRules(source) {
     );
   }
 
-  if (!/textContent/.test(source)) {
+  if (!/textContent/.test(codeOnly)) {
     add(
       "niedrig",
       "Sichere Textausgabe prüfen",
@@ -994,7 +1156,7 @@ function codeCheckRules(source) {
     );
   }
 
-  if (!/serviceWorker/.test(source)) {
+  if (!/serviceWorker/.test(codeOnly)) {
     add(
       "niedrig",
       "Offline-Unterstützung prüfen",
@@ -1006,7 +1168,7 @@ function codeCheckRules(source) {
     );
   }
 
-  if (!/meta\s*analyse|metaanalyse/i.test(source)) {
+  if (!/meta\s*analyse|metaanalyse/i.test(codeOnly)) {
     add(
       "mittel",
       "Meta-Analyse-Befehl fehlt möglicherweise",
@@ -1139,7 +1301,7 @@ Niedrig: ${low}
 }
 
 /* ==========================================
-   NEU: ERNEUTE CODEPRÜFUNG MIT FUNDSTELLEN
+   ERNEUTE CODEPRÜFUNG MIT FUNDSTELLEN
    ========================================== */
 
 async function inspectCodeReport() {
@@ -1157,43 +1319,30 @@ Danach kannst du die erneute Prüfung starten.`;
   }
 
   const lines = source.split(/\r?\n/);
-
-  // Die Prüfregeln der Code-KI selbst werden aus der Suche entfernt.
-  // So meldet sie ihre eigenen Suchmuster nicht als echte Codefehler.
-  const scannerStart = source.indexOf("function codeCheckRules(source)");
-  const scannerEnd = source.indexOf("function createCodeProposal",scannerStart);
-
-  let searchableSource = source;
-
-  if (scannerStart >= 0 && scannerEnd > scannerStart) {
-    searchableSource =
-      source.slice(0,scannerStart) +
-      "\n".repeat(source.slice(scannerStart,scannerEnd).split("\n").length) +
-      source.slice(scannerEnd);
-  }
-
-  const searchableLines = searchableSource.split(/\r?\n/);
+  const searchable = getSearchableCode(source);
+  const searchableLines = searchable.split(/\r?\n/);
+  const originalLines = source.split(/\r?\n/);
 
   const checks = [
     {
       name:"eval()",
-      regex:/\beval\s*\(/g
+      regex:/\beval\s*\(/
     },
     {
       name:"new Function()",
-      regex:/\bnew\s+Function\s*\(/g
+      regex:/\bnew\s+Function\s*\(/
     },
     {
       name:"document.write()",
-      regex:/\bdocument\.write\s*\(/g
+      regex:/\bdocument\.write\s*\(/
     },
     {
       name:"innerHTML-Zuweisung",
-      regex:/\.innerHTML\s*=/g
+      regex:/\.innerHTML\s*=/
     },
     {
       name:"addEventListener()",
-      regex:/\.addEventListener\s*\(/g
+      regex:/\.addEventListener\s*\(/
     }
   ];
 
@@ -1203,6 +1352,7 @@ Quellcode: ${source.length} Zeichen
 Zeilen: ${lines.length}
 
 Die internen Prüfregeln der Code-KI wurden bei dieser Suche ausgeklammert.
+Kommentare und normale Zeichenketten werden ebenfalls ignoriert.
 
 `;
 
@@ -1213,9 +1363,25 @@ Die internen Prüfregeln der Code-KI wurden bei dieser Suche ausgeklammert.
       check.regex.lastIndex = 0;
 
       if (check.regex.test(line)) {
+        const original = originalLines[index] || "";
+
+        if (!original.trim()) return;
+
+        // Eine feste leere oder feste Textzuweisung ist kein
+        // automatischer Hinweis auf eine XSS-Schwachstelle.
+        if (check.name === "innerHTML-Zuweisung") {
+          const match = original.match(/\.innerHTML\s*=\s*(.*)/);
+          const value = match?.[1]?.trim() || "";
+
+          const isStaticString =
+            /^(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*;?\s*$/.test(value);
+
+          if (isStaticString) return;
+        }
+
         hits.push({
           number:index + 1,
-          code:line.trim()
+          code:original.trim()
         });
       }
     });
@@ -1223,14 +1389,19 @@ Die internen Prüfregeln der Code-KI wurden bei dieser Suche ausgeklammert.
     report += `${check.name}\n`;
 
     if (!hits.length) {
-      report += "Keine Fundstelle außerhalb der internen Prüfregeln gefunden.\n\n";
+      report += "Keine Fundstelle außerhalb von Kommentaren, Zeichenketten und internen Prüfregeln gefunden.\n\n";
       return;
     }
 
     hits.forEach(hit => {
       report += `Zeile ${hit.number}:\n`;
       report += `${hit.code}\n`;
-      report += "Status: Fundstelle erkannt – manuelle Prüfung erforderlich.\n";
+
+      if (check.name === "addEventListener()") {
+        report += "Status: Normaler Listener-Aufruf – kein Fehler allein durch diese Verwendung.\n";
+      } else {
+        report += "Status: Fundstelle erkannt – manuelle Prüfung erforderlich.\n";
+      }
     });
 
     report += "\n";
@@ -1258,8 +1429,10 @@ Die internen Prüfregeln der Code-KI wurden bei dieser Suche ausgeklammert.
 ERGEBNIS UND GRENZEN
 
 • Die Fundstellen wurden anhand einfacher Suchregeln erkannt.
+• Kommentare und normale Zeichenketten werden bei der Suche ausgeblendet.
 • Ein Treffer beweist noch keine Sicherheitslücke.
-• Kommentare und Zeichenketten können weiterhin einzelne Fehlalarme verursachen.
+• Komplexe JavaScript-Ausdrücke können weiterhin falsch bewertet werden.
+• Die Code-KI führt den Quellcode nicht aus.
 • Die Code-KI kann die tatsächliche Programmlogik nicht vollständig verstehen.
 • Es wurde nichts am Programmcode verändert.`;
 
@@ -1472,8 +1645,8 @@ function handle(text,previousQuestion) {
 
   if (/^(verbesserungsvorschläge|system optimieren|optimiere dich)$/.test(low)) return optimizeSystem();
 
-  // Längere Code-KI-Aufträge werden jetzt ebenfalls erkannt.
-  // Einfache Befehle wie "Code prüfen" behalten die alte Prüfung.
+  // Längere Code-KI-Aufträge werden erkannt.
+  // Einfache Befehle wie "Code prüfen" behalten die Systemprüfung.
   if (
     /^\s*(?:suche\s*:\s*)?code[- ]?ki\s*:/i.test(text) ||
     /^suche\s*:\s*code\s*(?:prüfen|bericht)\b/i.test(text) ||
