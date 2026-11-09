@@ -1,41 +1,38 @@
 
-/* =========================================================
+/* ============================================================
    MEIN LERNBOT 6.0
-   MEISTERPRÜFER – CODE-DIAGNOSE 2.0
-   ---------------------------------------------------------
-   Rolle:
-   Strenger technischer Meister und Code-Prüfer.
+   TECHNISCHER MEISTERPRÜFER 4.0
+   ============================================================
 
-   Aufgaben:
-   - Fehleranalyse
-   - Syntaxprüfung
-   - Qualitätskontrolle
-   - Sicherheitsprüfung
-   - HTML/CSS/JS-Abgleich
-   - Speicher- und Datenprüfung
-   - Erkennung doppelter Funktionen
-   - Wartbarkeit und Performance
-   - Schweregradbewertung
-   - Reparaturvorschläge
-   - Automatischer Meister-Optimierungsprompt
+   Automatische Projektanalyse:
+   - HTML, JavaScript und CSS
+   - Eingebundene Dateien
+   - Lokale JavaScript-Imports
+   - Funktionen und Systemkomponenten
+   - Speicher und Gedächtnis
+   - Agenten und Schnittstellen
+   - Sicherheits- und Qualitätsprüfung
+   - Fehlerbericht
+   - Automatischer Optimierungsprompt
 
-   Keine kostenpflichtige API erforderlich.
-   Keine automatische Änderung von Projektdateien.
-   ========================================================= */
+   Keine kostenpflichtige API.
+   Keine automatische Änderung von Quelldateien.
+   ============================================================ */
 
 (() => {
   "use strict";
 
   if (window.CodeDiagnose) return;
 
-  const VERSION = "2.0";
+  const VERSION = "4.0";
 
   const state = {
     files: [],
     findings: [],
+    inventory: [],
     report: "",
     prompt: "",
-    lastRun: null
+    running: false
   };
 
   const SEVERITY = {
@@ -46,7 +43,7 @@
     info: 1
   };
 
-  const LABELS = {
+  const LABEL = {
     critical: "KRITISCH",
     high: "SCHWER",
     medium: "MITTEL",
@@ -54,1055 +51,881 @@
     info: "HINWEIS"
   };
 
-  const COLORS = {
-    critical: "#ff4545",
-    high: "#ff8a45",
-    medium: "#e8b84d",
-    low: "#75aaff",
-    info: "#a78bfa",
-    success: "#56c58a"
-  };
-
-  const $ = (tag, attrs = {}) => {
+  const $ = (tag, props = {}) => {
     const el = document.createElement(tag);
-
-    for (const [key, value] of Object.entries(attrs)) {
-      if (key === "text") el.textContent = value;
-      else if (key === "class") el.className = value;
-      else if (key === "style") Object.assign(el.style, value);
-      else el.setAttribute(key, value);
-    }
-
+    Object.assign(el, props);
     return el;
   };
 
   const normalize = value =>
-    String(value || "")
-      .replace(/\r\n/g, "\n")
-      .replace(/\r/g, "\n");
+    String(value || "").replace(/\r\n/g, "\n");
 
-  const lineAt = (source, index) =>
-    source.slice(0, index).split("\n").length;
+  const findAll = (source, regex) =>
+    [...source.matchAll(regex)];
 
-  const count = (source, regex) =>
-    (source.match(regex) || []).length;
-
-  const escapeHTML = value =>
-    String(value).replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
-
-  function addFinding(file, severity, category, title, detail, line = null, fix = "") {
+  function addFinding(level, category, title, detail, file = "Projekt") {
     state.findings.push({
-      file,
-      severity,
+      level,
       category,
       title,
       detail,
-      line,
-      fix,
-      id: "MP-" + String(state.findings.length + 1).padStart(3, "0")
+      file
     });
   }
 
-  function fileType(name) {
-    const lower = name.toLowerCase();
-
-    if (lower.endsWith(".js") || lower.endsWith(".mjs")) return "js";
-    if (lower.endsWith(".html") || lower.endsWith(".htm")) return "html";
-    if (lower.endsWith(".css")) return "css";
-    if (lower.endsWith(".json")) return "json";
-    if (lower.endsWith(".md")) return "md";
-
-    return "other";
+  function addInventory(category, name, status, detail = "") {
+    state.inventory.push({
+      category,
+      name,
+      status,
+      detail
+    });
   }
 
   function getFile(name) {
     return state.files.find(file => file.name === name);
   }
 
-  function getFiles(type) {
+  function filesOf(type) {
     return state.files.filter(file => file.type === type);
   }
 
-  /* =======================================================
-     1. GRUNDKONTROLLE
-     ======================================================= */
+  function typeOf(name) {
+    const path = name.toLowerCase().split("?")[0];
 
-  function inspectBasic(file) {
-    const code = file.content;
-    const lines = code.split("\n");
+    if (/\.(js|mjs|cjs)$/.test(path)) return "js";
+    if (/\.html?$/.test(path)) return "html";
+    if (/\.css$/.test(path)) return "css";
+    if (/\.json$/.test(path)) return "json";
 
-    if (!code.trim()) {
+    return "other";
+  }
+
+  /* ============================================================
+     1. SICHERER DATEIZUGRIFF
+     ============================================================ */
+
+  function resolveLocal(path, base) {
+    try {
+      const url = new URL(path, base);
+
+      if (url.origin !== location.origin) return null;
+      if (!["http:", "https:"].includes(url.protocol)) return null;
+
+      return url.href;
+    } catch {
+      return null;
+    }
+  }
+
+  async function fetchText(url) {
+    const response = await fetch(url, {
+      cache: "no-store",
+      credentials: "same-origin"
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    return response.text();
+  }
+
+  async function loadFile(url, type, depth = 0) {
+    if (state.files.some(file => file.url === url)) return;
+
+    if (depth > 8) {
       addFinding(
-        file.name, "high", "Datei",
-        "Datei ist leer",
-        "Die Datei enthält keinen Programmcode.",
-        1,
-        "Prüfen, ob die Datei versehentlich geleert wurde."
+        "medium",
+        "Projektstruktur",
+        "Importtiefe überschritten",
+        "Weitere Imports wurden nach acht Ebenen nicht mehr verfolgt.",
+        url
       );
       return;
     }
 
-    if (code.length > 1000000) {
-      addFinding(
-        file.name, "medium", "Größe",
-        "Sehr große Datei",
-        "Die Datei enthält über eine Million Zeichen. Wartbarkeit und Ladezeit prüfen."
-      );
-    }
+    try {
+      const content = normalize(await fetchText(url));
 
-    if (code.length > 500000) {
-      addFinding(
-        file.name, "low", "Wartbarkeit",
-        "Großer Quellcode",
-        "Eine Aufteilung in sinnvolle Module könnte die Wartbarkeit verbessern."
-      );
-    }
+      const file = {
+        name: new URL(url).pathname,
+        url,
+        type,
+        content,
+        size: content.length,
+        status: "geladen"
+      };
 
-    lines.forEach((line, index) => {
-      if (line.length > 300) {
-        addFinding(
-          file.name, "low", "Lesbarkeit",
-          "Sehr lange Codezeile",
-          "Die Zeile enthält mehr als 300 Zeichen.",
-          index + 1,
-          "Die Zeile sinnvoll auf mehrere Zeilen aufteilen."
-        );
+      state.files.push(file);
+
+      if (type === "js") {
+        await discoverJSImports(file, depth);
       }
 
-      if (/\s+$/.test(line)) {
-        addFinding(
-          file.name, "info", "Formatierung",
-          "Leerzeichen am Zeilenende",
-          "Unnötige Leerzeichen gefunden.",
-          index + 1,
-          "Nachgestellte Leerzeichen entfernen."
-        );
+      if (type === "css") {
+        await discoverCSSImports(file, depth);
       }
 
-      if (/\t/.test(line)) {
-        addFinding(
-          file.name, "info", "Formatierung",
-          "Tabulator gefunden",
-          "Prüfen, ob im Projekt einheitlich eingerückt wird.",
-          index + 1
-        );
-      }
-    });
-
-    if (!code.endsWith("\n")) {
+    } catch (error) {
       addFinding(
-        file.name, "info", "Formatierung",
-        "Dateiende ohne Zeilenumbruch",
-        "Die Datei endet nicht mit einem Zeilenumbruch."
+        "high",
+        "Dateizugriff",
+        "Datei konnte nicht gelesen werden",
+        url + " – " + error.message,
+        url
       );
     }
   }
 
-  /* =======================================================
-     2. JAVASCRIPT-SYNTAX
-     ======================================================= */
+  /* ============================================================
+     2. JAVASCRIPT-IMPORTS FINDEN
+     ============================================================ */
 
-  function inspectJavaScript(file) {
-    const code = file.content;
+  async function discoverJSImports(file, depth) {
+    const patterns = [
+      /\bimport\s+(?:[^'"]*?\s+from\s+)?["']([^"']+)["']/g,
+      /\bexport\s+[^'"]*?\s+from\s+["']([^"']+)["']/g,
+      /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g
+    ];
 
-    const hasModuleSyntax =
-      /^\s*(?:import\s|export\s)/m.test(code);
+    const imports = new Set();
 
-    if (hasModuleSyntax) {
-      addFinding(
-        file.name, "info", "Module",
-        "JavaScript-Modulsyntax erkannt",
-        "Die Datei enthält import/export. Die einfache Syntaxprüfung mit Function kann diese Syntax nicht vollständig prüfen."
-      );
-    } else {
-      try {
-        new Function(code);
-      } catch (error) {
-        const message = error && error.message
-          ? error.message
-          : "Unbekannter Syntaxfehler";
+    patterns.forEach(pattern => {
+      findAll(file.content, pattern).forEach(match => {
+        imports.add(match[1]);
+      });
+    });
 
+    for (const path of imports) {
+      if (!path.startsWith(".")) {
         addFinding(
-          file.name, "critical", "Syntax",
-          "JavaScript-Syntaxfehler",
-          message,
-          null,
-          "Den Syntaxfehler beheben und anschließend erneut prüfen."
+          "info",
+          "Abhängigkeiten",
+          "Paket oder externes Modul erkannt",
+          path + " wurde nicht automatisch aus einem CDN oder Paketverzeichnis geladen.",
+          file.name
+        );
+        continue;
+      }
+
+      const url = resolveLocal(path, file.url);
+
+      if (url) {
+        await loadFile(url, "js", depth + 1);
+      }
+    }
+  }
+
+  async function discoverCSSImports(file, depth) {
+    const imports = findAll(
+      file.content,
+      /@import\s+(?:url\()?["']([^"']+)["']/g
+    );
+
+    for (const match of imports) {
+      const path = match[1];
+
+      if (/^https?:\/\//i.test(path)) continue;
+
+      const url = resolveLocal(path, file.url);
+
+      if (url) {
+        await loadFile(url, "css", depth + 1);
+      }
+    }
+  }
+
+  /* ============================================================
+     3. HTML UND PROJEKTDATEIEN FINDEN
+     ============================================================ */
+
+  async function discoverProject() {
+    state.files = [];
+    state.findings = [];
+    state.inventory = [];
+
+    const htmlURL = new URL("./index.html", location.href).href;
+
+    let htmlContent;
+
+    try {
+      htmlContent = normalize(await fetchText(htmlURL));
+    } catch (error) {
+      addFinding(
+        "critical",
+        "Hauptdatei",
+        "index.html nicht erreichbar",
+        error.message
+      );
+      return;
+    }
+
+    const htmlFile = {
+      name: "index.html",
+      url: htmlURL,
+      type: "html",
+      content: htmlContent,
+      size: htmlContent.length,
+      status: "geladen"
+    };
+
+    state.files.push(htmlFile);
+
+    const doc = new DOMParser().parseFromString(
+      htmlContent,
+      "text/html"
+    );
+
+    const baseTag = doc.querySelector("base[href]");
+
+    const baseURL = baseTag
+      ? new URL(baseTag.getAttribute("href"), htmlURL).href
+      : htmlURL;
+
+    const discovered = new Map();
+
+    /* Scripts */
+    doc.querySelectorAll("script[src]").forEach(script => {
+      const src = script.getAttribute("src");
+      const url = resolveLocal(src, baseURL);
+
+      if (url) {
+        discovered.set(url, "js");
+      } else {
+        addFinding(
+          "info",
+          "Externe Abhängigkeiten",
+          "Externes Script nicht untersucht",
+          src
+        );
+      }
+    });
+
+    /* Stylesheets */
+    doc.querySelectorAll('link[rel~="stylesheet"][href]')
+      .forEach(link => {
+        const href = link.getAttribute("href");
+        const url = resolveLocal(href, baseURL);
+
+        if (url) {
+          discovered.set(url, "css");
+        } else {
+          addFinding(
+            "info",
+            "Externe Abhängigkeiten",
+            "Externes CSS nicht untersucht",
+            href
+          );
+        }
+      });
+
+    /* Inline-Scripts */
+    let inlineJS = 0;
+
+    doc.querySelectorAll("script:not([src])").forEach(script => {
+      if (!script.textContent.trim()) return;
+
+      inlineJS++;
+
+      state.files.push({
+        name: "index.html – Inline-JS-" + inlineJS,
+        url: htmlURL,
+        type: "js",
+        content: normalize(script.textContent),
+        size: script.textContent.length,
+        status: "aus HTML gelesen"
+      });
+    });
+
+    /* Inline-CSS */
+    let inlineCSS = 0;
+
+    doc.querySelectorAll("style").forEach(style => {
+      if (!style.textContent.trim()) return;
+
+      inlineCSS++;
+
+      state.files.push({
+        name: "index.html – Inline-CSS-" + inlineCSS,
+        url: htmlURL,
+        type: "css",
+        content: normalize(style.textContent),
+        size: style.textContent.length,
+        status: "aus HTML gelesen"
+      });
+    });
+
+    for (const [url, type] of discovered) {
+      await loadFile(url, type);
+    }
+
+    /* Bekannte Hauptdatei zusätzlich suchen */
+    const appURL = new URL("./app.js", htmlURL).href;
+
+    if (!state.files.some(file => file.url === appURL)) {
+      await loadFile(appURL, "js");
+
+      if (state.files.some(file => file.url === appURL)) {
+        addFinding(
+          "info",
+          "Projektstruktur",
+          "app.js separat gefunden",
+          "Die Datei wurde geladen, obwohl sie nicht über den erkannten Script-Pfad gefunden wurde."
         );
       }
     }
+  }
 
-    const opens = count(code, /\{/g);
-    const closes = count(code, /\}/g);
+  /* ============================================================
+     4. JAVASCRIPT-SYNTAX UND STRUKTUR
+     ============================================================ */
 
-    if (opens !== closes) {
+  function inspectJS(file) {
+    const code = file.content;
+
+    if (!code.trim()) return;
+
+    const isModule =
+      /^\s*(?:import\s|export\s)/m.test(code);
+
+    if (!isModule) {
+      try {
+        new Function(code);
+      } catch (error) {
+        addFinding(
+          "critical",
+          "JavaScript-Syntax",
+          "Syntaxfehler",
+          error.message,
+          file.name
+        );
+      }
+    } else {
       addFinding(
-        file.name, "critical", "Klammern",
-        "Geschweifte Klammern stimmen nicht überein",
-        `Öffnend: ${opens}, schließend: ${closes}. Diese Zählung ist ein Hinweis und berücksichtigt keine Zeichenketten oder Kommentare.`
+        "info",
+        "JavaScript-Syntax",
+        "ES-Modul erkannt",
+        "Die Syntaxprüfung über Function ist für ES-Module nicht vollständig geeignet.",
+        file.name
       );
     }
 
-    const parenOpen = count(code, /\(/g);
-    const parenClose = count(code, /\)/g);
+    const functions = findAll(
+      code,
+      /\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g
+    ).map(match => match[1]);
 
-    if (parenOpen !== parenClose) {
-      addFinding(
-        file.name, "high", "Klammern",
-        "Runde Klammern stimmen nicht überein",
-        `Öffnend: ${parenOpen}, schließend: ${parenClose}. Die einfache Zählung kann Zeichenketten und Kommentare falsch einordnen.`
-      );
-    }
-
-    const bracketOpen = count(code, /\[/g);
-    const bracketClose = count(code, /\]/g);
-
-    if (bracketOpen !== bracketClose) {
-      addFinding(
-        file.name, "medium", "Klammern",
-        "Eckige Klammern stimmen nicht überein",
-        `Öffnend: ${bracketOpen}, schließend: ${bracketClose}.`
-      );
-    }
-
-    const functions = [
-      ...code.matchAll(
-        /\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g
-      )
-    ];
-
-    const names = functions.map(match => match[1]);
     const seen = new Set();
 
-    names.forEach(name => {
+    functions.forEach(name => {
       if (seen.has(name)) {
         addFinding(
-          file.name, "high", "Doppelte Funktionen",
-          "Doppelte Funktionsdeklaration",
-          `Die Funktion "${name}" wurde mehrfach als function deklariert.`,
-          null,
-          "Prüfen, ob eine Funktion versehentlich doppelt vorhanden ist."
+          "medium",
+          "Doppelte Funktionen",
+          "Funktion mehrfach deklariert",
+          name,
+          file.name
         );
       }
 
       seen.add(name);
     });
 
-    const declarations = [
-      ...code.matchAll(
-        /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g
-      )
+    const checks = [
+      [/\beval\s*\(/, "high", "eval() gefunden", "Dynamische Codeausführung prüfen."],
+      [/document\.write\s*\(/, "medium", "document.write gefunden", "Kann die Seite überschreiben."],
+      [/innerHTML\s*=/, "medium", "innerHTML verwendet", "Ungeprüfte Inhalte können Sicherheitsrisiken verursachen."],
+      [/debugger\s*;/, "low", "Debugger gefunden", "Prüfen, ob die Anweisung entfernt werden sollte."],
+      [/localStorage\.clear\s*\(/, "high", "Gesamter LocalStorage wird gelöscht", "Risiko für Benutzerdaten prüfen."]
     ];
 
-    const declarationNames = new Map();
-
-    declarations.forEach(match => {
-      const name = match[1];
-      declarationNames.set(
-        name,
-        (declarationNames.get(name) || 0) + 1
-      );
-    });
-
-    declarationNames.forEach((amount, name) => {
-      if (amount > 1) {
-        addFinding(
-          file.name, "medium", "Variablen",
-          "Mehrfach deklarierter Variablenname",
-          `"${name}" wurde ${amount}-mal deklariert. Das kann innerhalb verschiedener Funktionen völlig korrekt sein; bitte den Gültigkeitsbereich prüfen.`
-        );
+    checks.forEach(([regex, level, title, detail]) => {
+      if (regex.test(code)) {
+        addFinding(level, "Sicherheit und Qualität", title, detail, file.name);
       }
     });
 
-    const dangerousPatterns = [
-      {
-        regex: /\beval\s*\(/g,
-        title: "eval() gefunden",
-        severity: "high",
-        detail: "eval() kann fremden Code ausführen und stellt ein Sicherheitsrisiko dar."
-      },
-      {
-        regex: /\bnew\s+Function\s*\(/g,
-        title: "Dynamische Codeausführung",
-        severity: "medium",
-        detail: "new Function() erstellt ausführbaren Code dynamisch. Verwendung prüfen."
-      },
-      {
-        regex: /\bdocument\.write\s*\(/g,
-        title: "document.write gefunden",
-        severity: "medium",
-        detail: "document.write kann den Seiteninhalt überschreiben."
-      },
-      {
-        regex: /\bdebugger\s*;/g,
-        title: "Debugger-Anweisung",
-        severity: "low",
-        detail: "Eine debugger-Anweisung ist möglicherweise noch im Produktivcode."
-      },
-      {
-        regex: /\binnerHTML\s*=/g,
-        title: "innerHTML-Zuweisung",
-        severity: "medium",
-        detail: "Bei ungeprüften Inhalten besteht XSS-Gefahr. textContent oder sichere DOM-Erstellung bevorzugen."
-      }
-    ];
-
-    dangerousPatterns.forEach(rule => {
-      let match;
-
-      while ((match = rule.regex.exec(code)) !== null) {
-        addFinding(
-          file.name,
-          rule.severity,
-          "Sicherheit",
-          rule.title,
-          rule.detail,
-          lineAt(code, match.index)
-        );
-      }
-    });
-
-    if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(code)) {
+    if (/-----BEGIN .*PRIVATE KEY-----/.test(code)) {
       addFinding(
-        file.name, "critical", "Geheimnisse",
+        "critical",
+        "Sicherheit",
         "Privater Schlüssel im Quellcode",
-        "Ein privater Schlüssel scheint im Quellcode enthalten zu sein. Sofort entfernen und gegebenenfalls widerrufen."
-      );
-    }
-
-    if (/(?:api[_-]?key|secret|token)\s*[:=]\s*["'][A-Za-z0-9_\-]{20,}["']/i.test(code)) {
-      addFinding(
-        file.name, "high", "Geheimnisse",
-        "Möglicherweise fest eingebauter API-Schlüssel",
-        "Eine Zeichenfolge sieht wie ein API-Schlüssel oder Geheimnis aus. Keine echten Schlüssel im Browsercode speichern."
-      );
-    }
-
-    if (/\bconsole\.(?:log|debug|info)\s*\(/.test(code)) {
-      addFinding(
-        file.name, "info", "Wartbarkeit",
-        "Console-Ausgaben vorhanden",
-        "Prüfen, ob Debug-Ausgaben im fertigen Produkt bleiben sollen."
-      );
-    }
-
-    if (/localStorage\.setItem/.test(code)) {
-      addFinding(
-        file.name, "info", "Speicher",
-        "Browser-Speicherung erkannt",
-        "Prüfen, ob Daten versioniert, validiert und gegen Datenverlust abgesichert werden."
-      );
-    }
-
-    if (/\bfetch\s*\(/.test(code) && !/\.catch\s*\(/.test(code)) {
-      addFinding(
-        file.name, "low", "Netzwerk",
-        "Fetch ohne erkennbares catch",
-        "Prüfen, ob Netzwerkfehler an allen relevanten Stellen abgefangen werden. Die Prüfung ist nur ein grober Hinweis."
-      );
-    }
-
-    if (/setInterval\s*\(/.test(code)) {
-      addFinding(
-        file.name, "low", "Performance",
-        "Intervall-Timer gefunden",
-        "Prüfen, ob Timer beendet werden und keine unnötige Dauerlast entsteht."
-      );
-    }
-
-    if (/addEventListener\s*\(/.test(code)) {
-      addFinding(
-        file.name, "info", "Ereignisse",
-        "Event-Listener gefunden",
-        "Prüfen, ob Listener mehrfach registriert werden oder bei Bedarf entfernt werden."
+        "Möglicherweise wurde ein privater Schlüssel veröffentlicht.",
+        file.name
       );
     }
 
     if (/\bTODO\b|\bFIXME\b|\bHACK\b/.test(code)) {
       addFinding(
-        file.name, "info", "Offene Arbeit",
-        "Offene Entwicklungsmarkierungen",
-        "TODO, FIXME oder HACK gefunden. Prüfen, ob unerledigte Arbeiten vorhanden sind."
+        "info",
+        "Offene Arbeiten",
+        "Entwicklungsmarkierungen",
+        "Unerledigte Aufgaben im Code prüfen.",
+        file.name
       );
     }
+
+    addInventory(
+      "JavaScript",
+      file.name,
+      "Vorhanden",
+      functions.length + " benannte Funktionsdeklarationen erkannt."
+    );
   }
 
-  /* =======================================================
-     3. HTML-PRÜFUNG
-     ======================================================= */
+  /* ============================================================
+     5. HTML-PRÜFUNG
+     ============================================================ */
 
   function inspectHTML(file) {
-    const code = file.content;
+    const doc = new DOMParser().parseFromString(
+      file.content,
+      "text/html"
+    );
 
-    if (!/<html\b/i.test(code)) {
+    if (!doc.querySelector("title")) {
       addFinding(
-        file.name, "medium", "HTML",
-        "HTML-Grundstruktur fehlt",
-        "Ein html-Element wurde nicht gefunden."
-      );
-    }
-
-    if (!/<meta\s+[^>]*charset=/i.test(code)) {
-      addFinding(
-        file.name, "low", "HTML",
-        "Zeichenkodierung nicht gefunden",
-        "Ein Meta-Charset-Element fehlt möglicherweise."
-      );
-    }
-
-    if (!/<meta\s+[^>]*name=["']viewport["']/i.test(code)) {
-      addFinding(
-        file.name, "low", "Mobile",
-        "Viewport-Meta-Tag fehlt",
-        "Die Darstellung auf Smartphones könnte beeinträchtigt sein."
-      );
-    }
-
-    if (!/<title\b/i.test(code)) {
-      addFinding(
-        file.name, "low", "HTML",
+        "low",
+        "HTML",
         "Seitentitel fehlt",
-        "Ein title-Element wurde nicht gefunden."
+        "Kein title-Element gefunden.",
+        file.name
       );
     }
 
-    const ids = [
-      ...code.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)
-    ].map(match => match[1]);
+    if (!doc.querySelector('meta[name="viewport"]')) {
+      addFinding(
+        "low",
+        "Mobile",
+        "Viewport fehlt",
+        "Mobile Darstellung überprüfen.",
+        file.name
+      );
+    }
+
+    const ids = [...doc.querySelectorAll("[id]")]
+      .map(element => element.id);
 
     const seen = new Set();
 
     ids.forEach(id => {
       if (seen.has(id)) {
         addFinding(
-          file.name, "high", "HTML",
-          "Doppelte HTML-ID",
-          `Die ID "${id}" ist mehrfach vorhanden. IDs sollten eindeutig sein.`
+          "high",
+          "HTML",
+          "Doppelte ID",
+          "Die ID #" + id + " ist mehrfach vorhanden.",
+          file.name
         );
       }
 
       seen.add(id);
     });
 
-    if (typeof DOMParser !== "undefined") {
-      const doc = new DOMParser().parseFromString(code, "text/html");
-
-      doc.querySelectorAll("img:not([alt])").forEach(() => {
+    doc.querySelectorAll("button").forEach(button => {
+      if (!button.hasAttribute("type")) {
         addFinding(
-          file.name, "low", "Barrierefreiheit",
-          "Bild ohne alt-Attribut",
-          "Mindestens ein Bild besitzt kein alt-Attribut."
-        );
-      });
-
-      doc.querySelectorAll("button").forEach(button => {
-        if (!button.getAttribute("type")) {
-          addFinding(
-            file.name, "low", "Formulare",
-            "Button ohne type-Attribut",
-            "Ein Button innerhalb eines Formulars kann ungewollt absenden. type explizit setzen."
-          );
-        }
-      });
-
-      doc.querySelectorAll("input, textarea, select").forEach(input => {
-        if (
-          input.id &&
-          !doc.querySelector(`label[for="${CSS.escape(input.id)}"]`) &&
-          !input.getAttribute("aria-label")
-        ) {
-          addFinding(
-            file.name, "low", "Barrierefreiheit",
-            "Formularfeld ohne erkennbare Beschriftung",
-            `Das Feld "${input.id}" hat kein passendes label oder aria-label.`
-          );
-        }
-      });
-    }
-
-    const scripts = [
-      ...code.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)
-    ];
-
-    scripts.forEach(match => {
-      const src = match[1];
-
-      if (/^https?:\/\//i.test(src)) {
-        addFinding(
-          file.name, "info", "Abhängigkeiten",
-          "Externes Script eingebunden",
-          `Externe Scriptquelle: ${src}. Herkunft und Vertrauenswürdigkeit prüfen.`
+          "low",
+          "HTML",
+          "Button ohne type",
+          "Buttontyp explizit festlegen.",
+          file.name
         );
       }
     });
+
+    addInventory(
+      "HTML",
+      file.name,
+      "Vorhanden",
+      ids.length + " HTML-IDs erkannt."
+    );
   }
 
-  /* =======================================================
-     4. CSS-PRÜFUNG
-     ======================================================= */
+  /* ============================================================
+     6. CSS-PRÜFUNG
+     ============================================================ */
 
   function inspectCSS(file) {
     const code = file.content;
 
-    if (count(code, /\{/g) !== count(code, /\}/g)) {
+    const opens = (code.match(/\{/g) || []).length;
+    const closes = (code.match(/\}/g) || []).length;
+
+    if (opens !== closes) {
       addFinding(
-        file.name, "high", "CSS",
+        "high",
+        "CSS",
         "CSS-Klammern stimmen nicht überein",
-        "Öffnende und schließende CSS-Blöcke zählen nicht überein."
+        "Öffnende und schließende Blöcke stimmen nicht überein.",
+        file.name
       );
     }
 
-    if (/!important/g.test(code)) {
+    if (/!important/.test(code)) {
       addFinding(
-        file.name, "info", "CSS",
+        "info",
+        "CSS",
         "!important verwendet",
-        "Prüfen, ob die CSS-Spezifität sauberer gelöst werden kann."
+        "Prüfen, ob eine sauberere CSS-Struktur möglich ist.",
+        file.name
       );
     }
 
-    if (/position\s*:\s*fixed/i.test(code)) {
-      addFinding(
-        file.name, "info", "Layout",
-        "Fix positionierte Elemente",
-        "Auf mobilen Geräten prüfen, ob fixierte Elemente Inhalte verdecken."
-      );
-    }
-
-    if (/overflow\s*:\s*hidden/i.test(code)) {
-      addFinding(
-        file.name, "info", "Layout",
-        "overflow:hidden gefunden",
-        "Prüfen, ob Inhalte versehentlich abgeschnitten werden."
-      );
-    }
-
-    const colors = code.match(/#[0-9a-f]{3,8}\b/gi) || [];
-
-    if (colors.length > 100) {
-      addFinding(
-        file.name, "low", "Design",
-        "Viele einzelne Farbwerte",
-        "CSS-Farbvariablen könnten das Design konsistenter machen."
-      );
-    }
+    addInventory(
+      "CSS",
+      file.name,
+      "Vorhanden",
+      code.length + " Zeichen."
+    );
   }
 
-  /* =======================================================
-     5. JSON-PRÜFUNG
-     ======================================================= */
+  /* ============================================================
+     7. DATEIÜBERGREIFENDE PRÜFUNG
+     ============================================================ */
 
-  function inspectJSON(file) {
-    try {
-      JSON.parse(file.content);
-    } catch (error) {
-      addFinding(
-        file.name, "critical", "JSON",
-        "Ungültiges JSON",
-        error.message,
-        null,
-        "JSON-Syntax korrigieren. Auf Kommas, Anführungszeichen und Klammern achten."
+  function inspectConnections() {
+    const html = getFile("index.html");
+
+    if (!html) return;
+
+    const jsFiles = filesOf("js");
+
+    const htmlIDs = new Set(
+      [...html.content.matchAll(/\bid=["']([^"']+)["']/gi)]
+        .map(match => match[1])
+    );
+
+    jsFiles.forEach(file => {
+      const selectors = findAll(
+        file.content,
+        /getElementById\s*\(\s*["']([^"']+)["']\s*\)/g
       );
-    }
-  }
 
-  /* =======================================================
-     6. DATEIÜBERGREIFENDE PRÜFUNG
-     ======================================================= */
+      selectors.forEach(match => {
+        const id = match[1];
 
-  function inspectCrossFiles() {
-    const htmlFiles = getFiles("html");
-    const jsFiles = getFiles("js");
-    const cssFiles = getFiles("css");
-
-    htmlFiles.forEach(html => {
-      const code = html.content;
-
-      const scriptSources = [
-        ...code.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)
-      ].map(match => match[1]);
-
-      scriptSources.forEach(src => {
-        if (/^(https?:|\/\/|data:)/i.test(src)) return;
-
-        const normalized = src.replace(/^\.\//, "");
-        const exists = state.files.some(file =>
-          file.name === normalized ||
-          file.name.endsWith("/" + normalized)
-        );
-
-        if (!exists) {
+        if (!htmlIDs.has(id)) {
           addFinding(
-            html.name, "high", "Dateiverknüpfung",
-            "Eingebundene JavaScript-Datei nicht gefunden",
-            `HTML bindet "${src}" ein, aber diese Datei wurde nicht mit ausgewählt.`
+            "medium",
+            "HTML/JavaScript-Verbindung",
+            "HTML-Element nicht erkannt",
+            "JavaScript sucht nach #" + id + ", aber diese ID wurde im Haupt-HTML nicht gefunden.",
+            file.name
           );
         }
-      });
-
-      const styles = [
-        ...code.matchAll(/<link\b[^>]*href=["']([^"']+\.css)["']/gi)
-      ].map(match => match[1]);
-
-      styles.forEach(src => {
-        const exists = cssFiles.some(file =>
-          file.name === src ||
-          file.name.endsWith("/" + src)
-        );
-
-        if (!exists && !/^https?:/i.test(src)) {
-          addFinding(
-            html.name, "medium", "Dateiverknüpfung",
-            "CSS-Datei nicht gefunden",
-            `HTML verweist auf "${src}", die Datei wurde nicht mit ausgewählt.`
-          );
-        }
-      });
-
-      jsFiles.forEach(js => {
-        const ids = [
-          ...js.content.matchAll(
-            /getElementById\s*\(\s*["']([^"']+)["']\s*\)/g
-          )
-        ].map(match => match[1]);
-
-        const htmlIds = new Set([
-          ...code.matchAll(/\bid=["']([^"']+)["']/gi)
-        ].map(match => match[1]));
-
-        ids.forEach(id => {
-          if (!htmlIds.has(id)) {
-            addFinding(
-              js.name, "medium", "HTML/JS-Abgleich",
-              "JavaScript-ID nicht im HTML gefunden",
-              `JavaScript sucht nach "#${id}", aber die ausgewählte HTML-Datei enthält diese ID nicht.`
-            );
-          }
-        });
       });
     });
-
-    if (!htmlFiles.length) {
-      addFinding(
-        "Projekt", "info", "Projektprüfung",
-        "Keine HTML-Datei ausgewählt",
-        "Der HTML/JavaScript-Abgleich konnte nicht vollständig durchgeführt werden."
-      );
-    }
-
-    if (!jsFiles.length) {
-      addFinding(
-        "Projekt", "info", "Projektprüfung",
-        "Keine JavaScript-Datei ausgewählt",
-        "Die JavaScript-Analyse konnte nicht durchgeführt werden."
-      );
-    }
   }
 
-  /* =======================================================
-     7. LERNBOT-SPEZIALPRÜFUNG
-     ======================================================= */
+  /* ============================================================
+     8. LERNBOT-SYSTEMPRÜFUNG
+     ============================================================ */
 
-  function inspectLernBot() {
-    const all = state.files.map(file => file.content).join("\n");
+  function inspectSystems() {
+    const js = filesOf("js")
+      .map(file => file.content)
+      .join("\n");
 
-    const checks = [
+    const systems = [
       {
-        pattern: /\bdata\.memory\b/,
-        title: "Gedächtnisspeicher",
-        detail: "Ein zentraler Memory-Speicher wurde gefunden."
+        name: "Gedächtnisspeicher",
+        regex: /\bdata\.memory\b|\bmemory\s*:/,
+        category: "Gedächtnis"
       },
       {
-        pattern: /\bsave\s*\(/,
-        title: "Speicherfunktion",
-        detail: "Eine Speicherfunktion wurde gefunden."
+        name: "Erinnerungen speichern",
+        regex: /\bremember\s*\(/,
+        category: "Gedächtnis"
       },
       {
-        pattern: /\bremember\s*\(/,
-        title: "Erinnerungsfunktion",
-        detail: "Eine Erinnerungsfunktion wurde gefunden."
+        name: "Erinnerungen suchen",
+        regex: /\bsearchMemory\s*\(/,
+        category: "Gedächtnis"
       },
       {
-        pattern: /\bforgetMemory\s*\(/,
-        title: "Vergessensfunktion",
-        detail: "Eine Funktion zum Löschen von Erinnerungen wurde gefunden."
+        name: "Erinnerungen löschen",
+        regex: /\bforgetMemory\s*\(/,
+        category: "Gedächtnis"
       },
       {
-        pattern: /\baddEventListener\s*\(/,
-        title: "Ereignissteuerung",
-        detail: "Ereignissteuerung wurde gefunden."
+        name: "Datenspeicherung",
+        regex: /\bsave\s*\(|localStorage\.setItem/,
+        category: "Speicher"
       },
       {
-        pattern: /\btry\s*\{/,
-        title: "Fehlerbehandlung",
-        detail: "Try-Blöcke wurden gefunden."
+        name: "Agentensystem",
+        regex: /\bagents?\b|agentRun|agentOverview/i,
+        category: "Agenten"
+      },
+      {
+        name: "Wissenssystem",
+        regex: /answerFact|learnFact|knowledgeOverview/i,
+        category: "Wissen"
+      },
+      {
+        name: "Dokumentensystem",
+        regex: /searchDocuments|importDocumentText|summarizeDocument/i,
+        category: "Dokumente"
+      },
+      {
+        name: "Projektsystem",
+        regex: /createProject|listProjects/i,
+        category: "Projekte"
+      },
+      {
+        name: "Aufgabensystem",
+        regex: /createTask|listTasks|completeTask/i,
+        category: "Aufgaben"
+      },
+      {
+        name: "Fehlerbehandlung",
+        regex: /\btry\s*\{/,
+        category: "Stabilität"
+      },
+      {
+        name: "Exportfunktion",
+        regex: /exportData|downloadExport/i,
+        category: "Datensicherung"
+      },
+      {
+        name: "Importfunktion",
+        regex: /importData|importDocumentText/i,
+        category: "Datensicherung"
       }
     ];
 
-    checks.forEach(check => {
-      if (!check.pattern.test(all)) {
+    systems.forEach(system => {
+      const found = system.regex.test(js);
+
+      addInventory(
+        system.category,
+        system.name,
+        found ? "Erkannt" : "Nicht erkannt",
+        found
+          ? "Passende Codebestandteile wurden gefunden."
+          : "Kein passender Codebestandteil wurde erkannt."
+      );
+
+      if (!found) {
         addFinding(
-          "LernBot-Projekt", "info", "LernBot-Prüfung",
-          "Funktion nicht erkannt: " + check.title,
-          check.detail + " Die Funktion wurde in den ausgewählten Dateien nicht erkannt. Das bedeutet nicht automatisch, dass sie fehlt."
+          "info",
+          system.category,
+          system.name + " nicht erkannt",
+          "Das System wurde anhand der bekannten Suchmuster nicht gefunden. Das ist kein sicherer Beweis, dass es fehlt."
         );
       }
     });
 
-    if (/data\.memories\b/.test(all) && /data\.memory\b/.test(all)) {
+    if (/data\.memory\b/.test(js) && /data\.memories\b/.test(js)) {
       addFinding(
-        "LernBot-Projekt", "medium", "Gedächtnis",
+        "medium",
+        "Gedächtnis",
         "Unterschiedliche Memory-Feldnamen",
-        "Sowohl data.memory als auch data.memories wurden gefunden. Datenstruktur und Migration prüfen."
-      );
-    }
-
-    if (/localStorage\.clear\s*\(/.test(all)) {
-      addFinding(
-        "LernBot-Projekt", "high", "Datenschutz",
-        "localStorage.clear() gefunden",
-        "Diese Funktion kann sämtliche lokalen Browserdaten löschen. Unbedingt prüfen."
+        "data.memory und data.memories kommen vor. Datenstruktur und Migration prüfen."
       );
     }
   }
 
-  /* =======================================================
-     8. GESAMTANALYSE
-     ======================================================= */
+  /* ============================================================
+     9. ANALYSE
+     ============================================================ */
 
-  function analyze() {
-    state.findings = [];
+  async function analyze() {
+    if (state.running) return null;
 
-    if (!state.files.length) {
+    state.running = true;
+
+    try {
+      await discoverProject();
+
+      state.files.forEach(file => {
+        if (!file.content) return;
+
+        if (file.type === "js") inspectJS(file);
+        if (file.type === "html") inspectHTML(file);
+        if (file.type === "css") inspectCSS(file);
+      });
+
+      inspectConnections();
+      inspectSystems();
+
+      state.findings.sort((a, b) =>
+        SEVERITY[b.level] - SEVERITY[a.level]
+      );
+
+      state.report = createReport();
+
       return {
-        files: 0,
-        findings: [],
-        report: "Keine Dateien geladen."
+        files: state.files.length,
+        findings: state.findings.length,
+        inventory: state.inventory,
+        report: state.report
       };
+
+    } finally {
+      state.running = false;
     }
-
-    state.files.forEach(file => {
-      inspectBasic(file);
-
-      if (file.type === "js") inspectJavaScript(file);
-      if (file.type === "html") inspectHTML(file);
-      if (file.type === "css") inspectCSS(file);
-      if (file.type === "json") inspectJSON(file);
-    });
-
-    inspectCrossFiles();
-    inspectLernBot();
-
-    state.findings.sort((a, b) =>
-      SEVERITY[b.severity] - SEVERITY[a.severity]
-    );
-
-    state.lastRun = new Date().toISOString();
-    state.report = createReport();
-
-    return {
-      files: state.files.length,
-      findings: state.findings,
-      report: state.report,
-      score: getScore()
-    };
   }
 
-  /* =======================================================
-     9. QUALITÄTSBEWERTUNG
-     ======================================================= */
-
-  function getScore() {
-    let score = 100;
-
-    state.findings.forEach(item => {
-      const penalty = {
-        critical: 25,
-        high: 12,
-        medium: 5,
-        low: 2,
-        info: 0
-      }[item.severity];
-
-      score -= penalty;
-    });
-
-    return Math.max(0, Math.min(100, score));
-  }
-
-  function getRating(score) {
-    if (score >= 95) return "Sehr gut – wenige Auffälligkeiten";
-    if (score >= 80) return "Gut – Verbesserungen empfohlen";
-    if (score >= 60) return "Ausbaufähig – mehrere Probleme";
-    if (score >= 35) return "Schwach – gründliche Überarbeitung nötig";
-
-    return "Kritisch – zuerst grundlegende Fehler beheben";
-  }
-
-  /* =======================================================
+  /* ============================================================
      10. MEISTERBERICHT
-     ======================================================= */
+     ============================================================ */
 
   function createReport() {
-    const groups = {};
-
-    state.findings.forEach(item => {
-      groups[item.severity] ||= [];
-      groups[item.severity].push(item);
-    });
-
-    const score = getScore();
-
     const output = [
-      "MEIN LERNBOT – MEISTERPRÜFUNG",
+      "MEIN LERNBOT 6.0 – MEISTERPRÜFUNG",
       "Version: " + VERSION,
-      "Prüfzeit: " + new Date().toLocaleString("de-DE"),
+      "Datum: " + new Date().toLocaleString("de-DE"),
       "",
       "DATEIEN: " + state.files.length,
       "BEFUNDE: " + state.findings.length,
-      "QUALITÄTSPUNKTZAHL: " + score + "/100",
-      "BEWERTUNG: " + getRating(score),
       "",
-      "DATEIÜBERSICHT:",
-      ...state.files.map(file =>
-        "- " + file.name + " (" + file.type + ", " +
-        file.content.length + " Zeichen)"
-      ),
-      ""
+      "===== DATEIÜBERSICHT ====="
     ];
 
-    ["critical", "high", "medium", "low", "info"].forEach(level => {
+    state.files.forEach(file => {
       output.push(
-        "===== " + LABELS[level] + " ====="
+        file.name + " | " +
+        file.type + " | " +
+        file.status + " | " +
+        file.size + " Zeichen"
       );
+    });
 
-      const items = groups[level] || [];
+    output.push("");
+    output.push("===== SYSTEMINVENTAR =====");
+
+    state.inventory.forEach(item => {
+      output.push(
+        item.category + " | " +
+        item.name + " | " +
+        item.status + " | " +
+        item.detail
+      );
+    });
+
+    ["critical", "high", "medium", "low", "info"].forEach(level => {
+      output.push("");
+      output.push("===== " + LABEL[level] + " =====");
+
+      const items = state.findings.filter(
+        item => item.level === level
+      );
 
       if (!items.length) {
         output.push("Keine Befunde.");
-      } else {
-        items.forEach(item => {
-          output.push(
-            item.id + " | " + item.file +
-            (item.line ? " | Zeile " + item.line : "")
-          );
-          output.push("Problem: " + item.title);
-          output.push("Details: " + item.detail);
-
-          if (item.fix) {
-            output.push("Vorschlag: " + item.fix);
-          }
-
-          output.push("");
-        });
+        return;
       }
 
-      output.push("");
+      items.forEach(item => {
+        output.push("");
+        output.push("Datei: " + item.file);
+        output.push("Bereich: " + item.category);
+        output.push("Problem: " + item.title);
+        output.push("Details: " + item.detail);
+      });
     });
 
+    output.push("");
     output.push(
-      "WICHTIGE EINSCHRÄNKUNG:",
-      "Diese Prüfung ist eine statische Voranalyse. Sie ersetzt keine vollständigen Laufzeit-, Browser-, Sicherheits- oder Funktionstests."
+      "GRENZEN: Statische Voranalyse. " +
+      "Keine vollständigen Laufzeit-, Browser- oder Funktionstests."
     );
 
     return output.join("\n");
   }
 
-  /* =======================================================
-     11. MEISTER-OPTIMIERUNGSPROMPT
-     ======================================================= */
+  /* ============================================================
+     11. OPTIMIERUNGSPROMPT
+     ============================================================ */
 
   function createPrompt() {
-    if (!state.files.length) {
-      return "Bitte zuerst Projektdateien laden.";
+    if (!state.report) {
+      return "Bitte zuerst eine Projektanalyse durchführen.";
     }
 
-    if (!state.lastRun) analyze();
-
-    const report = state.report;
-
-    const source = state.files.map(file => {
-      return [
-        "",
-        "==============================",
-        "DATEI: " + file.name,
-        "==============================",
-        file.content
-      ].join("\n");
-    }).join("\n");
+    const source = state.files.map(file =>
+      "\n\n========== " + file.name + " ==========\n" +
+      file.content
+    ).join("\n");
 
     state.prompt = `
-DU BIST DER TECHNISCHE MEISTERPRÜFER UND SENIOR-ENTWICKLER.
+DU BIST DER TECHNISCHE MEISTER MEINES LERNBOT-PROJEKTS.
 
-Du kontrollierst dieses Softwareprojekt so streng und sorgfältig,
-wie ein erfahrener Meister die Arbeit eines Auszubildenden prüft.
+Du kontrollierst den Code wie ein sehr erfahrener,
+strenger Meister, der jeden Arbeitsschritt überprüft.
 
-Du bist nicht dazu da, den Entwickler zu loben.
-Du bist dazu da, Fehler aufzudecken, Qualität sicherzustellen
-und eine fachgerechte Lösung zu verlangen.
+Du sollst nicht einfach Code umschreiben.
+Du sollst zuerst verstehen, was vorhanden ist,
+was fehlt und was nicht richtig funktioniert.
 
-DEINE GRUNDREGELN:
+DEINE AUFGABEN:
 
-1. Arbeite sorgfältig und vollständig.
-2. Erfinde keine Fehler.
-3. Unterscheide echte Fehler von bloßen Vermutungen.
-4. Erkläre, warum etwas falsch oder riskant ist.
-5. Nenne betroffene Dateien und möglichst genaue Zeilen.
-6. Prüfe nicht nur einzelne Funktionen, sondern ihre Zusammenarbeit.
-7. Entferne keine funktionierenden Funktionen ohne Notwendigkeit.
-8. Erhalte die vorhandene Projektarchitektur, wenn sie sinnvoll ist.
-9. Vermeide unnötige Komplexität.
-10. Schreibe keinen Code, den du nicht nachvollziehbar begründen kannst.
-11. Behaupte niemals, etwas getestet zu haben, wenn du es nicht getestet hast.
-12. Weise auf Unsicherheiten und fehlende Dateien ausdrücklich hin.
+1. Lies alle bereitgestellten Dateien.
+2. Erstelle eine vollständige Übersicht aller Systeme.
+3. Prüfe die Verbindungen zwischen den Dateien.
+4. Erkenne fehlende Funktionen und unvollständige Systeme.
+5. Prüfe Speicher, Gedächtnis und Datenmigration.
+6. Prüfe alle Agenten und ihre Zusammenarbeit.
+7. Prüfe die Benutzeroberfläche.
+8. Suche nach Syntax-, Logik- und Sicherheitsfehlern.
+9. Erkenne doppelte und unnötige Funktionen.
+10. Bewerte Performance und Wartbarkeit.
 
-DEINE PRÜFGEBIETE:
+WICHTIGE REGELN:
 
-A. SYNTAX UND STRUKTUR
-- Klammern, Funktionen, Blöcke und Verschachtelung
-- doppelte oder widersprüchliche Deklarationen
-- fehlerhafte Aufrufe
-- fehlende Rückgabewerte
-- ungültige oder nicht erreichbare Codeabschnitte
-- fehlerhafte Modulgrenzen
+- Erfinde keine Funktionen.
+- Erfinde keine Fehler.
+- Unterscheide bestätigte Fehler und Vermutungen.
+- Prüfe, ob ein vermeintlich fehlendes System anders benannt wurde.
+- Nenne immer die betroffene Datei.
+- Erkläre Ursache und Auswirkung.
+- Priorisiere kritische Probleme.
+- Entferne keine funktionierenden Funktionen ohne Grund.
+- Ändere nicht unnötig die Architektur.
+- Behaupte keine Tests, die du nicht durchgeführt hast.
 
-B. FUNKTIONSLOGIK
-- falsche Bedingungen
-- falsche Reihenfolgen
-- unerreichbare Funktionen
-- Endlosschleifen
-- unerwartete Seiteneffekte
-- Fehler bei leeren oder ungültigen Eingaben
-- Fehler bei parallelen Aktionen
+DEINE AUSGABE:
 
-C. DATEIÜBERGREIFENDE KOMPATIBILITÄT
-- HTML-Elemente und JavaScript-Selektoren
-- CSS-Klassen und HTML-Struktur
-- Script-Reihenfolge
-- Funktionsaufrufe zwischen Modulen
-- globale Variablen
-- Namenskonflikte
-- doppelte Event-Listener
+1. BESTANDSAUFNAHME
+Was ist bereits vorhanden?
 
-D. GEDÄCHTNIS UND DATENSPEICHER
-- Datenverlust
-- falsche Feldnamen
-- inkonsistente Speicherstrukturen
-- fehlende Migration
-- falsche Parameter
-- falsche IDs
-- fehlerhafte Such- und Löschfunktionen
-- Sicherung und Wiederherstellung
-- Umgang mit beschädigten Daten
+2. FEHLENDE FUNKTIONEN
+Was fehlt tatsächlich?
+Was wurde nur nicht erkannt?
 
-E. SICHERHEIT
-- unsichere HTML-Ausgabe
-- dynamische Codeausführung
-- offengelegte Zugangsdaten
-- unsichere Datenimporte
-- unkontrollierte Eingaben
-- Datenschutz
-- unnötige Berechtigungen
+3. FEHLER
+Welche Fehler sind bestätigt?
+Welche sind nur Verdachtsfälle?
 
-F. PERFORMANCE
-- unnötige Wiederholungen
-- doppelte Berechnungen
-- große Datenmengen
-- Speicherlecks
-- unnötige Event-Listener
-- unnötige DOM-Aktualisierungen
-- überflüssige Funktionen
+4. QUALITÄT
+Was ist unnötig kompliziert oder schlecht verbunden?
 
-G. QUALITÄT UND WARTBARKEIT
-- klare Benennung
-- sinnvolle Modulaufteilung
-- nachvollziehbare Funktionen
-- Fehlerbehandlung
-- Kommentare
-- Erweiterbarkeit
-- Vermeidung unnötiger Komplexität
+5. MEISTERBEWERTUNG
+Bewerte jedes System einzeln.
 
-H. BENUTZEROBERFLÄCHE
-- mobile Darstellung
-- Bedienbarkeit
-- Formulare
-- Statusmeldungen
-- Ladezustände
-- Fehleranzeigen
-- Barrierefreiheit
+6. REPARATURPLAN
+Erstelle eine priorisierte Liste konkreter Verbesserungen.
 
-ARBEITSWEISE:
+7. CODEÄNDERUNGEN
+Warte auf meine Freigabe.
+Wenn du Code lieferst, müssen alle Dateien zusammenpassen.
+Liefere vollständige Dateien oder eindeutig abgegrenzte Ersatzabschnitte.
 
-PHASE 1 – BESTANDSAUFNAHME
-Erkläre, welche Dateien vorhanden sind und welche fehlen könnten.
+8. ABSCHLUSSKONTROLLE
+Liste behobene Probleme, offene Probleme und notwendige Tests.
 
-PHASE 2 – FEHLERPRÜFUNG
-Überprüfe jeden Befund aus dem Meisterbericht.
-Prüfe zusätzlich selbstständig nach weiteren Problemen.
+====================================
+AUTOMATISCHER MEISTERBERICHT
+====================================
 
-PHASE 3 – BEWERTUNG
-Ordne jeden bestätigten Fehler ein:
-- KRITISCH
-- SCHWER
-- MITTEL
-- GERING
-- HINWEIS
+${state.report}
 
-PHASE 4 – REPARATURPLAN
-Erstelle eine nummerierte Liste.
-Nenne:
-- betroffene Datei
-- betroffenes Element oder Funktion
-- Ursache
-- Auswirkung
-- konkrete Lösung
-- mögliche Nebenwirkungen
-
-PHASE 5 – OPTIMIERUNG
-Schlage Verbesserungen vor, die den Code tatsächlich besser machen.
-Keine Änderungen nur um des Änderns willen.
-
-PHASE 6 – CODELIEFERUNG
-Wenn Änderungen angefordert werden:
-- liefere vollständige Dateien oder eindeutig abgegrenzte vollständige Ersatzabschnitte
-- kennzeichne jede Datei eindeutig
-- achte auf die richtige Reihenfolge
-- erhalte bestehende Funktionen
-- prüfe die Zusammenarbeit der Teile erneut
-
-PHASE 7 – ABSCHLUSSKONTROLLE
-Erstelle eine Liste:
-- behobene Fehler
-- noch offene Fehler
-- nicht überprüfbare Punkte
-- notwendige manuelle Tests
-- verbleibende Risiken
-
-MEISTERREGEL:
-
-Ein Fehler gilt nicht als behoben, nur weil der Code anders aussieht.
-Er gilt erst dann als behoben, wenn die Ursache nachvollziehbar beseitigt
-und die Lösung angemessen überprüft wurde.
-
-WICHTIG:
-Ändere zunächst nichts automatisch.
-Beginne mit einer vollständigen Analyse und einem Reparaturplan.
-Warte auf meine Freigabe, bevor du größere Änderungen vornimmst.
-
-========================================
-AUTOMATISCHER DIAGNOSEBERICHT
-========================================
-
-${report}
-
-========================================
-VOLLSTÄNDIGE PROJEKTDATEIEN
-========================================
+====================================
+VOLLSTÄNDIGER GELADENER PROJEKTCODE
+====================================
 
 ${source}
 `.trim();
@@ -1110,33 +933,32 @@ ${source}
     return state.prompt;
   }
 
-  /* =======================================================
+  /* ============================================================
      12. BENUTZEROBERFLÄCHE
-     ======================================================= */
+     ============================================================ */
 
-  function createButton(label, action) {
-    const button = $("button", { text: label });
+  function makeButton(text, callback) {
+    const button = $("button", { textContent: text });
 
     Object.assign(button.style, {
+      width: "100%",
       padding: "12px",
-      borderRadius: "9px",
-      border: "1px solid #494960",
+      margin: "6px 0",
       background: "#29293b",
       color: "#ffffff",
-      fontSize: "14px",
-      fontWeight: "600",
-      cursor: "pointer"
+      border: "1px solid #494960",
+      borderRadius: "9px",
+      cursor: "pointer",
+      fontWeight: "600"
     });
 
-    button.addEventListener("click", action);
+    button.addEventListener("click", callback);
 
     return button;
   }
 
   function open() {
-    if (document.getElementById("lb-meisterpruefer")) {
-      return;
-    }
+    if (document.getElementById("lb-meisterpruefer")) return;
 
     const panel = $("div", { id: "lb-meisterpruefer" });
 
@@ -1144,38 +966,32 @@ ${source}
       position: "fixed",
       inset: "3%",
       zIndex: "999999",
+      overflowY: "auto",
+      padding: "16px",
+      borderRadius: "16px",
       background: "#11111a",
       color: "#f5f3ff",
       border: "1px solid #494960",
-      borderRadius: "16px",
-      padding: "16px",
-      overflowY: "auto",
-      fontFamily: "system-ui, sans-serif",
+      fontFamily: "system-ui,sans-serif",
       boxShadow: "0 15px 60px #000a"
     });
 
     const heading = $("h2", {
-      text: "Meisterprüfer – Codekontrolle"
+      textContent: "Technischer Meisterprüfer"
     });
 
-    const intro = $("p", {
-      text: "Strenge technische Prüfung deines LernBot-Projekts."
-    });
-
-    const fileInput = $("input", {
-      type: "file",
-      multiple: "multiple",
-      accept: ".js,.mjs,.html,.htm,.css,.json,.md"
+    const description = $("p", {
+      textContent:
+        "Automatische Kontrolle der veröffentlichten Projektdateien."
     });
 
     const status = $("p", {
-      text: "Noch keine Dateien geladen."
+      textContent: "Bereit zur Prüfung."
     });
 
     const report = $("pre");
-
     const prompt = $("textarea", {
-      placeholder: "Hier erscheint dein Meister-Optimierungsprompt..."
+      placeholder: "Hier erscheint der Optimierungsprompt."
     });
 
     Object.assign(report.style, {
@@ -1183,114 +999,89 @@ ${source}
       overflowWrap: "anywhere",
       background: "#20202e",
       padding: "12px",
-      borderRadius: "10px",
+      borderRadius: "9px",
       fontSize: "12px",
       lineHeight: "1.5"
     });
 
     Object.assign(prompt.style, {
       width: "100%",
-      minHeight: "320px",
+      minHeight: "300px",
       boxSizing: "border-box",
-      padding: "12px",
-      marginTop: "12px",
-      borderRadius: "10px",
       background: "#20202e",
       color: "#ffffff",
       border: "1px solid #494960",
-      fontSize: "12px",
-      lineHeight: "1.5"
+      borderRadius: "9px",
+      padding: "12px"
     });
 
-    const close = createButton("Schließen", () => panel.remove());
+    const run = makeButton(
+      "Projekt automatisch analysieren",
+      async () => {
+        status.textContent = "Meister untersucht die Dateien ...";
+        report.textContent = "";
+        prompt.value = "";
 
-    const analyzeButton = createButton("1. Projekt prüfen", () => {
-      if (!state.files.length) {
-        status.textContent = "Bitte zuerst Dateien auswählen.";
-        return;
-      }
+        try {
+          const result = await analyze();
 
-      const result = analyze();
+          if (!result) return;
 
-      report.textContent = result.report;
+          report.textContent = result.report;
 
-      status.textContent =
-        result.files + " Dateien geprüft | " +
-        result.findings.length + " Auffälligkeiten | " +
-        result.score + "/100 Punkte";
-    });
+          status.textContent =
+            result.files + " Dateien geladen. " +
+            result.findings + " Befunde gefunden.";
 
-    const promptButton = createButton(
-      "2. Meister-Prompt erstellen",
-      () => {
-        if (!state.files.length) {
-          status.textContent = "Bitte zuerst Dateien auswählen.";
-          return;
+        } catch (error) {
+          status.textContent =
+            "Analyse fehlgeschlagen: " + error.message;
         }
-
-        if (!state.lastRun) analyze();
-
-        prompt.value = createPrompt();
-        status.textContent = "Meister-Prompt wurde erstellt.";
       }
     );
 
-    const copyButton = createButton("3. Prompt kopieren", async () => {
-      if (!prompt.value) {
-        status.textContent = "Erstelle zuerst einen Prompt.";
-        return;
+    const makePrompt = makeButton(
+      "Meister-Optimierungsprompt erstellen",
+      () => {
+        prompt.value = createPrompt();
+
+        status.textContent = prompt.value.startsWith("Bitte")
+          ? prompt.value
+          : "Optimierungsprompt erstellt.";
       }
+    );
 
-      try {
-        await navigator.clipboard.writeText(prompt.value);
-        status.textContent = "Prompt erfolgreich kopiert.";
-      } catch {
-        prompt.focus();
-        prompt.select();
+    const copy = makeButton(
+      "Prompt kopieren",
+      async () => {
+        if (!prompt.value) {
+          status.textContent = "Erstelle zuerst einen Prompt.";
+          return;
+        }
 
-        status.textContent =
-          "Prompt markiert. Bitte manuell kopieren.";
-      }
-    });
-
-    fileInput.addEventListener("change", async event => {
-      state.files = [];
-      state.findings = [];
-      state.lastRun = null;
-
-      const selected = [...event.target.files];
-
-      for (const file of selected) {
         try {
-          const content = await file.text();
-
-          state.files.push({
-            name: file.name,
-            content: normalize(content),
-            type: fileType(file.name),
-            size: file.size
-          });
-        } catch (error) {
-          status.textContent =
-            "Fehler beim Lesen von " + file.name + ": " + error.message;
+          await navigator.clipboard.writeText(prompt.value);
+          status.textContent = "Prompt kopiert.";
+        } catch {
+          prompt.focus();
+          prompt.select();
+          status.textContent = "Bitte manuell kopieren.";
         }
       }
+    );
 
-      status.textContent =
-        state.files.length + " Dateien erfolgreich geladen.";
-
-      report.textContent = "";
-      prompt.value = "";
-    });
+    const close = makeButton(
+      "Schließen",
+      () => panel.remove()
+    );
 
     panel.append(
       heading,
-      intro,
-      fileInput,
+      description,
       status,
-      analyzeButton,
-      promptButton,
-      copyButton,
+      run,
+      makePrompt,
+      copy,
       close,
       report,
       prompt
@@ -1299,9 +1090,9 @@ ${source}
     document.body.appendChild(panel);
   }
 
-  /* =======================================================
-     13. INTEGRATION IN DEN LERNBOT
-     ======================================================= */
+  /* ============================================================
+     13. LERNBOT-INTEGRATION
+     ============================================================ */
 
   function init() {
     document.addEventListener("click", event => {
@@ -1328,9 +1119,11 @@ ${source}
     createPrompt,
     getReport: () => state.report,
     getFindings: () => [...state.findings],
+    getInventory: () => [...state.inventory],
     getFiles: () => state.files.map(file => ({
       name: file.name,
       type: file.type,
+      status: file.status,
       size: file.size
     }))
   };
