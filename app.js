@@ -1,6 +1,7 @@
 (() => {
 "use strict";
 
+
 /* =====================================================
    LERNBOT 6.0 – MULTI-AGENTEN LERNSYSTEM
    TEIL 1/3 – KERN, SPEICHER, GEDÄCHTNIS
@@ -13,15 +14,38 @@ const NAME = "LernBot 6.0";
 
 const now = () => Date.now();
 const arr = x => Array.isArray(x) ? x : [];
-const obj = x => x && typeof x === "object" && !Array.isArray(x);
-const uid = () => "LB-" + now().toString(36) +
-  "-" + Math.random().toString(36).slice(2,8);
+const obj = x => x !== null && typeof x === "object" && !Array.isArray(x);
+
+const uid = () =>
+  "LB-" + now().toString(36) +
+  "-" + Math.random().toString(36).slice(2, 8);
 
 const safeText = (v, max = 20000) =>
   String(v ?? "").slice(0, max).trim();
 
+const clone = value => {
+  try {
+    if (typeof structuredClone === "function") {
+      return structuredClone(value);
+    }
+  } catch (error) {
+    console.warn("LernBot: structuredClone fehlgeschlagen.", error);
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
+};
+
+/* =====================================================
+   1. TEXTVERARBEITUNG
+   ===================================================== */
+
 function normalize(text) {
-  return safeText(text).toLocaleLowerCase("de")
+  return safeText(text)
+    .toLocaleLowerCase("de")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
@@ -34,7 +58,8 @@ function tokenize(text) {
     "der die das den dem des ein eine einer eines und oder ist sind war wie was wer wo wann warum ich du er sie es wir ihr mit von zu im am an auf für".split(" ")
   );
 
-  return normalize(text).split(" ")
+  return normalize(text)
+    .split(" ")
     .filter(x => x.length > 2 && !stop.has(x));
 }
 
@@ -45,6 +70,7 @@ function similarity(a, b) {
   if (!aa.size || !bb.size) return 0;
 
   let common = 0;
+
   aa.forEach(x => {
     if (bb.has(x)) common++;
   });
@@ -53,14 +79,16 @@ function similarity(a, b) {
 }
 
 /* =====================================================
-   1. DATENBANK UND MIGRATION
+   2. DATENBANK UND MIGRATION
    ===================================================== */
 
 let data = {};
 
 try {
-  data = JSON.parse(localStorage.getItem(KEY) || "{}");
-} catch {
+  const stored = localStorage.getItem(KEY);
+  data = stored ? JSON.parse(stored) : {};
+} catch (error) {
+  console.error("LernBot: Datenbank konnte nicht geladen werden.", error);
   data = {};
 }
 
@@ -91,35 +119,106 @@ const defaults = {
   theme: "dark"
 };
 
+/* Fehlende Standardwerte ergänzen */
+
 for (const [key, value] of Object.entries(defaults)) {
-  if (data[key] === undefined) {
-    data[key] = Array.isArray(value) ? [] :
-      obj(value) ? structuredClone(value) : value;
+  if (data[key] === undefined || data[key] === null) {
+    data[key] = clone(value);
   }
 }
 
-data.facts = arr(data.facts).filter(x =>
-  obj(x) && typeof x.subject === "string" &&
+/* Datenstrukturen absichern */
+
+const arrayKeys = [
+  "facts",
+  "qa",
+  "classes",
+  "log",
+  "audit",
+  "improvements",
+  "codeProposals",
+  "projects",
+  "tasks",
+  "documents",
+  "relationships",
+  "memory",
+  "snapshots"
+];
+
+for (const key of arrayKeys) {
+  if (!Array.isArray(data[key])) {
+    data[key] = [];
+  }
+}
+
+if (!obj(data.agentStats)) {
+  data.agentStats = {};
+}
+
+if (!obj(data.settings)) {
+  data.settings = {};
+}
+
+/* Einstellungen mit Standardwerten zusammenführen */
+
+data.settings = {
+  ...clone(defaults.settings),
+  ...data.settings
+};
+
+if (typeof data.theme !== "string") {
+  data.theme = "dark";
+}
+
+/* Einzelne Datenbankeinträge überprüfen */
+
+data.facts = data.facts.filter(x =>
+  obj(x) &&
+  typeof x.subject === "string" &&
   typeof x.property === "string" &&
   typeof x.value === "string"
 );
 
-data.qa = arr(data.qa).filter(x =>
-  obj(x) && typeof x.k === "string" &&
+data.qa = data.qa.filter(x =>
+  obj(x) &&
+  typeof x.k === "string" &&
   typeof x.a === "string"
 );
 
-data.projects = arr(data.projects).filter(obj);
-data.tasks = arr(data.tasks).filter(obj);
-data.documents = arr(data.documents).filter(obj);
-data.relationships = arr(data.relationships).filter(obj);
-data.memory = arr(data.memory).filter(obj);
-data.audit = arr(data.audit).filter(obj);
-data.snapshots = arr(data.snapshots).filter(obj);
-data.codeProposals = arr(data.codeProposals).filter(obj);
+data.projects = data.projects.filter(obj);
+data.tasks = data.tasks.filter(obj);
+
+data.documents = data.documents.filter(x =>
+  obj(x) && typeof x === "object"
+);
+
+data.relationships = data.relationships.filter(x =>
+  obj(x) &&
+  typeof x.from === "string" &&
+  typeof x.to === "string" &&
+  typeof x.relation === "string"
+);
+
+data.memory = data.memory.filter(x =>
+  obj(x) &&
+  typeof x.content === "string" &&
+  typeof x.type === "string"
+);
+
+data.audit = data.audit.filter(obj);
+data.snapshots = data.snapshots.filter(obj);
+data.codeProposals = data.codeProposals.filter(obj);
+data.classes = data.classes.filter(obj);
+data.log = data.log.filter(obj);
+data.improvements = data.improvements.filter(obj);
+
+/* =====================================================
+   3. SPEICHERSYSTEM
+   ===================================================== */
 
 function save() {
   data.version = VERSION;
+
   data.log = arr(data.log).slice(-150);
   data.audit = arr(data.audit).slice(-1000);
   data.memory = arr(data.memory).slice(-1000);
@@ -130,7 +229,11 @@ function save() {
     return true;
   } catch (error) {
     console.error("LernBot Speicherfehler:", error);
-    setStatus("Speicher voll – bitte Sicherung exportieren.");
+
+    if (typeof setStatus === "function") {
+      setStatus("Speicher voll – bitte Sicherung exportieren.");
+    }
+
     return false;
   }
 }
@@ -138,30 +241,40 @@ function save() {
 function logAudit(agent, action, detail = "") {
   data.audit.push({
     id: uid(),
-    agent,
-    action,
+    agent: safeText(agent, 100),
+    action: safeText(action, 200),
     detail: safeText(detail, 1000),
     time: now()
   });
+
+  if (data.audit.length > 1000) {
+    data.audit = data.audit.slice(-1000);
+  }
 }
 
 function countAgent(name) {
-  data.agentStats[name] = (data.agentStats[name] || 0) + 1;
+  name = safeText(name, 100);
+  if (!name) return;
+
+  const current = Number(data.agentStats[name]) || 0;
+  data.agentStats[name] = current + 1;
 }
 
 /* =====================================================
-   2. LANGZEITGEDÄCHTNIS
+   4. LANGZEITGEDÄCHTNIS
    ===================================================== */
 
 function remember(type, content, meta = {}) {
+  type = safeText(type, 100);
   content = safeText(content, 10000);
-  if (!content) return null;
+
+  if (!type || !content) return null;
 
   const entry = {
     id: uid(),
     type,
     content,
-    meta: obj(meta) ? meta : {},
+    meta: obj(meta) ? clone(meta) : {},
     created: now(),
     updated: now()
   };
@@ -173,13 +286,24 @@ function remember(type, content, meta = {}) {
 
   if (existing) {
     existing.updated = now();
-    existing.meta = { ...existing.meta, ...entry.meta };
+
+    existing.meta = {
+      ...(obj(existing.meta) ? existing.meta : {}),
+      ...entry.meta
+    };
+
     save();
     return existing;
   }
 
   data.memory.push(entry);
-  logAudit("Gedächtnis-KI", "Erinnerung gespeichert", type);
+
+  logAudit(
+    "Gedächtnis-KI",
+    "Erinnerung gespeichert",
+    type
+  );
+
   save();
 
   return entry;
@@ -187,32 +311,52 @@ function remember(type, content, meta = {}) {
 
 function searchMemory(query, limit = 8) {
   const q = normalize(query);
+
   if (!q) return [];
 
-  return data.memory.map(item => ({
-    item,
-    score: similarity(q, item.content)
-  }))
-  .filter(x => x.score > 0.08)
-  .sort((a,b) => b.score - a.score)
-  .slice(0, limit)
-  .map(x => x.item);
+  limit = Math.max(1, Math.min(100, Number(limit) || 8));
+
+  return data.memory
+    .map(item => ({
+      item,
+      score: similarity(q, item.content)
+    }))
+    .filter(x => x.score > 0.08)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => x.item);
 }
 
 function forgetMemory(query) {
   const q = normalize(query);
+
+  /* Schutz vor versehentlichem Löschen aller Erinnerungen */
+
+  if (!q) return 0;
+
   const before = data.memory.length;
 
   data.memory = data.memory.filter(x =>
     !normalize(x.content).includes(q)
   );
 
-  save();
-  return before - data.memory.length;
+  const removed = before - data.memory.length;
+
+  if (removed > 0) {
+    logAudit(
+      "Gedächtnis-KI",
+      "Erinnerungen gelöscht",
+      `${removed} Einträge`
+    );
+
+    save();
+  }
+
+  return removed;
 }
 
 /* =====================================================
-   3. WISSENSBANK
+   5. WISSENSBANK
    ===================================================== */
 
 function cleanSubject(text) {
@@ -222,13 +366,13 @@ function cleanSubject(text) {
     .trim();
 }
 
-function sameSubject(a,b) {
+function sameSubject(a, b) {
   return normalize(cleanSubject(a)) ===
     normalize(cleanSubject(b));
 }
 
 function getFacts(subject = "") {
-  if (!subject) return data.facts;
+  if (!safeText(subject)) return data.facts;
 
   return data.facts.filter(f =>
     sameSubject(f.subject, subject)
@@ -239,31 +383,48 @@ function addFact(subject, property, value, source = "user") {
   subject = cleanSubject(subject);
   property = normalize(property);
   value = safeText(value, 5000);
+  source = safeText(source, 100);
 
-  if (!subject || !property || !value) return false;
+  if (!subject || !property || !value) {
+    return false;
+  }
 
-  const existing = data.facts.find(f =>
+  let existing = data.facts.find(f =>
     sameSubject(f.subject, subject) &&
     normalize(f.property) === property
   );
 
   if (existing) {
-    if (normalize(existing.value) !== normalize(value)) {
-      existing.previous = existing.value;
+    const oldValue = existing.value;
+
+    /* Nur echte Änderungen als Konflikt speichern */
+
+    if (normalize(oldValue) !== normalize(value)) {
+      existing.previous = oldValue;
       existing.conflict = true;
+
       existing.alternatives = arr(existing.alternatives);
-      existing.alternatives.push({
-        value,
-        source,
-        time: now()
-      });
+
+      const alreadyExists = existing.alternatives.some(x =>
+        obj(x) && normalize(x.value) === normalize(value)
+      );
+
+      if (!alreadyExists) {
+        existing.alternatives.push({
+          value,
+          source,
+          time: now()
+        });
+      }
+
+      existing.value = value;
     }
 
-    existing.value = value;
     existing.source = source;
     existing.updated = now();
+
   } else {
-    data.facts.push({
+    existing = {
       id: uid(),
       subject,
       property,
@@ -272,16 +433,29 @@ function addFact(subject, property, value, source = "user") {
       confidence: source === "user" ? 1 : 0.7,
       created: now(),
       updated: now()
-    });
+    };
+
+    data.facts.push(existing);
   }
 
-  remember("fakt", `${subject}: ${property} = ${value}`, {
-    subject, property, source
-  });
+  remember(
+    "fakt",
+    `${subject}: ${property} = ${value}`,
+    {
+      subject,
+      property,
+      source
+    }
+  );
 
   save();
+
   return true;
 }
+
+/* =====================================================
+   6. FAKTEN ERKENNEN UND LERNEN
+   ===================================================== */
 
 function parseFact(text) {
   const s = safeText(text);
@@ -290,54 +464,92 @@ function parseFact(text) {
 
   let m;
 
-  m = s.match(/^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+)$/i);
-  if (m) return {
-    subject: cleanSubject(m[1]),
-    property: "hauptstadt",
-    value: safeText(m[2]).replace(/[.!]+$/, "")
-  };
+  /* Hauptstadt */
 
-  m = s.match(/^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf)\s+(.+)$/i);
-  if (m) return {
-    subject: cleanSubject(m[1]),
-    property: "lebensraum",
-    value: safeText(m[3]).replace(/[.!]+$/, "")
-  };
+  m = s.match(
+    /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+)$/i
+  );
 
-  m = s.match(/^(.+?)\s+(frisst|isst)\s+(.+)$/i);
-  if (m) return {
-    subject: cleanSubject(m[1]),
-    property: "nahrung",
-    value: safeText(m[3]).replace(/[.!]+$/, "")
-  };
+  if (m) {
+    return {
+      subject: cleanSubject(m[1]),
+      property: "hauptstadt",
+      value: safeText(m[2]).replace(/[.!]+$/, "")
+    };
+  }
 
-  m = s.match(/^(.+?)\s+gehört\s+zu\s+(.+)$/i);
-  if (m) return {
-    subject: cleanSubject(m[1]),
-    property: "zugehörigkeit",
-    value: safeText(m[2]).replace(/[.!]+$/, "")
-  };
+  /* Lebensraum */
 
-  m = s.match(/^(.+?)\s+(?:ist|sind|heißt)\s+(.+)$/i);
-  if (m) return {
-    subject: cleanSubject(m[1]),
-    property: "definition",
-    value: safeText(m[2]).replace(/[.!]+$/, "")
-  };
+  m = s.match(
+    /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf)\s+(.+)$/i
+  );
+
+  if (m) {
+    return {
+      subject: cleanSubject(m[1]),
+      property: "lebensraum",
+      value: safeText(m[3]).replace(/[.!]+$/, "")
+    };
+  }
+
+  /* Nahrung */
+
+  m = s.match(
+    /^(.+?)\s+(frisst|isst)\s+(.+)$/i
+  );
+
+  if (m) {
+    return {
+      subject: cleanSubject(m[1]),
+      property: "nahrung",
+      value: safeText(m[3]).replace(/[.!]+$/, "")
+    };
+  }
+
+  /* Zugehörigkeit */
+
+  m = s.match(
+    /^(.+?)\s+gehört\s+zu\s+(.+)$/i
+  );
+
+  if (m) {
+    return {
+      subject: cleanSubject(m[1]),
+      property: "zugehörigkeit",
+      value: safeText(m[2]).replace(/[.!]+$/, "")
+    };
+  }
+
+  /* Allgemeine Definition */
+
+  m = s.match(
+    /^(.+?)\s+(?:ist|sind|heißt)\s+(.+)$/i
+  );
+
+  if (m) {
+    return {
+      subject: cleanSubject(m[1]),
+      property: "definition",
+      value: safeText(m[2]).replace(/[.!]+$/, "")
+    };
+  }
 
   return null;
 }
 
 function learnFact(text) {
   const fact = parseFact(text);
+
   if (!fact) return null;
 
-  addFact(
+  const success = addFact(
     fact.subject,
     fact.property,
     fact.value,
     "user"
   );
+
+  if (!success) return null;
 
   return `Gelernt und gespeichert!
 
@@ -348,35 +560,66 @@ Wissen: ${fact.value}
 Gespeicherte Fakten: ${data.facts.length}`;
 }
 
+/* =====================================================
+   7. WISSEN ABRUFEN
+   ===================================================== */
+
 function answerFact(question) {
   const q = normalize(question);
 
+  if (!q) return null;
+
   let property = null;
 
-  if (/\b(hauptstadt)\b/.test(q)) property = "hauptstadt";
-  else if (/\b(wo lebt|wo wohnt|lebensraum)\b/.test(q)) property = "lebensraum";
-  else if (/\b(was frisst|was isst|nahrung)\b/.test(q)) property = "nahrung";
-  else if (/\b(zu welcher|gehört zu|welche familie)\b/.test(q)) property = "zugehörigkeit";
-  else if (/^(was ist|wer ist|was bedeutet)\b/.test(q)) property = "definition";
+  if (/\b(hauptstadt)\b/.test(q)) {
+    property = "hauptstadt";
+  }
+
+  else if (/\b(wo lebt|wo wohnt|lebensraum)\b/.test(q)) {
+    property = "lebensraum";
+  }
+
+  else if (/\b(was frisst|was isst|nahrung)\b/.test(q)) {
+    property = "nahrung";
+  }
+
+  else if (/\b(zu welcher|gehört zu|welche familie)\b/.test(q)) {
+    property = "zugehörigkeit";
+  }
+
+  else if (/^(was ist|wer ist|was bedeutet)\b/.test(q)) {
+    property = "definition";
+  }
 
   if (!property) return null;
 
-  let subject = question
-    .replace(/^(was ist|wer ist|was bedeutet|wo lebt|wo wohnt|was frisst|was isst|in welchem land|zu welcher tierart)\s+/i, "")
+  let subject = safeText(question)
+    .replace(
+      /^(was ist|wer ist|was bedeutet|wo lebt|wo wohnt|was frisst|was isst|in welchem land|zu welcher tierart)\s+/i,
+      ""
+    )
     .replace(/[?!.]+$/, "");
 
   subject = cleanSubject(subject);
 
+  if (!subject) return null;
+
   const fact = data.facts.find(f =>
     sameSubject(f.subject, subject) &&
-    f.property === property
+    normalize(f.property) === property
   );
 
   return fact ? fact.value : null;
 }
 
+/* =====================================================
+   8. WISSENSÜBERSICHT
+   ===================================================== */
+
 function knowledgeOverview() {
-  if (!data.facts.length) return "Mein Wissensspeicher ist noch leer.";
+  if (!data.facts.length) {
+    return "Mein Wissensspeicher ist noch leer.";
+  }
 
   const groups = {};
 
@@ -394,14 +637,17 @@ function knowledgeOverview() {
     });
   });
 
-  lines.push("", `Gesamt: ${data.facts.length} Fakten`);
-  lines.push(`Erinnerungen: ${data.memory.length}`);
+  lines.push(
+    "",
+    `Gesamt: ${data.facts.length} Fakten`,
+    `Erinnerungen: ${data.memory.length}`
+  );
 
   return lines.join("\n");
 }
 
 /* =====================================================
-   4. WISSENSGRAPH
+   9. WISSENSGRAPH
    ===================================================== */
 
 function connectKnowledge(from, relation, to) {
@@ -409,7 +655,9 @@ function connectKnowledge(from, relation, to) {
   to = cleanSubject(to);
   relation = safeText(relation, 100);
 
-  if (!from || !to || !relation) return false;
+  if (!from || !to || !relation) {
+    return false;
+  }
 
   const exists = data.relationships.some(r =>
     sameSubject(r.from, from) &&
@@ -427,16 +675,23 @@ function connectKnowledge(from, relation, to) {
     created: now()
   });
 
+  logAudit(
+    "Wissensgraph",
+    "Verbindung erstellt",
+    `${from} ${relation} ${to}`
+  );
+
   save();
+
   return true;
 }
 
 function graphFor(subject) {
-  const s = normalize(subject);
+  if (!safeText(subject)) return [];
 
   return data.relationships.filter(r =>
-    normalize(r.from) === s ||
-    normalize(r.to) === s
+    sameSubject(r.from, subject) ||
+    sameSubject(r.to, subject)
   );
 }
 
@@ -457,7 +712,8 @@ function graphReport(subject) {
    TEIL 1 ENDE
    TEIL 2 FOLGT DIREKT DANACH
    ===================================================== */
- 
+
+   
 /* =====================================================
    LERNBOT 6.0 – TEIL 2/3
    AGENTEN, RECHERCHE, DOKUMENTE, PROJEKTE
