@@ -1072,6 +1072,7 @@ function bubble(role, text, store = true) {
 }
 
   let busy = false;
+let activeController = null;
 
 async function send(text) {
   text = String(text ?? $("input").value).trim();
