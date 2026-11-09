@@ -1700,12 +1700,12 @@ function importData(json) {
 
 /* =====================================================
    LERNBOT 6.0 – TEIL 3/3
-   FINAL: CHAT, BEFEHLE, DATEIEN, UI UND SYSTEMSTART
+   VERBESSERTE VERSION
+   CHAT, LERNEN, WISSENSABRUF, DATEIEN UND UI
    ===================================================== */
 
 /* =====================================================
-   1. STATUS-FALLBACK
-   Wird auch von save() aus Teil 1 benötigt.
+   1. STATUS
    ===================================================== */
 
 function setStatus(message) {
@@ -1720,7 +1720,6 @@ function setStatus(message) {
     console.warn("[LernBot]", message);
   }
 }
-
 
 /* =====================================================
    2. BENUTZEROBERFLÄCHE
@@ -1767,21 +1766,15 @@ const UI = {
 let lb6Busy = false;
 let lb6MessageCounter = 0;
 
-
 /* =====================================================
-   3. ALLGEMEINE HILFSFUNKTIONEN
+   3. HILFSFUNKTIONEN
    ===================================================== */
 
 function lb6Text(value) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  if (typeof value === "string") {
-    return value;
-  }
+  if (value === null || value === undefined) return "";
 
   if (
+    typeof value === "string" ||
     typeof value === "number" ||
     typeof value === "boolean"
   ) {
@@ -1799,9 +1792,7 @@ function lb6Command(text, prefix) {
   const original = String(text ?? "").trim();
   const colon = original.indexOf(":");
 
-  if (colon < 0) {
-    return null;
-  }
+  if (colon < 0) return null;
 
   const enteredPrefix = original.slice(0, colon + 1);
 
@@ -1847,7 +1838,6 @@ function lb6RemoveTyping(element) {
 function lb6Error(error) {
   return error?.message || String(error);
 }
-
 
 /* =====================================================
    4. CHAT-NACHRICHTEN
@@ -1900,11 +1890,8 @@ function addTyping() {
 function clearChat() {
   const chat = UI.chat();
 
-  if (chat) {
-    chat.replaceChildren();
-  }
+  if (chat) chat.replaceChildren();
 }
-
 
 /* =====================================================
    5. DESIGN
@@ -2038,10 +2025,8 @@ function installStyles() {
   (document.head || document.documentElement).appendChild(style);
 }
 
-
 /* =====================================================
    6. FALLBACK-OBERFLÄCHE
-   Erstellt nur HTML – keine doppelten Listener.
    ===================================================== */
 
 function createFallbackUI() {
@@ -2094,11 +2079,18 @@ function createFallbackUI() {
   return root;
 }
 
-
 /* =====================================================
-   7. LERNEN UND RECHERCHIEREN
-   Diese beiden Funktionen fehlten im bisherigen Teil 3.
+   7. VERBESSERTES LERNSYSTEM
    ===================================================== */
+
+/*
+   Speichert jeden Lerninhalt als Dokument.
+
+   Einfache Fakten werden zusätzlich in der
+   strukturierten Wissensbank gespeichert.
+
+   Dadurch gehen auch lange Texte nicht verloren.
+*/
 
 function getLearningResponse(value) {
   const content = safeText(value, 100000);
@@ -2107,7 +2099,64 @@ function getLearningResponse(value) {
     return "Bitte gib einen Lerninhalt an.";
   }
 
-  return learnFact(content);
+  const factResult = learnFact(content);
+
+  const existing = data.documents.find(document =>
+    obj(document) &&
+    document.type === "learned-text" &&
+    normalize(document.content || "") === normalize(content)
+  );
+
+  if (existing) {
+    return [
+      factResult || "Der Inhalt ist bereits gespeichert.",
+      "",
+      "Dokument-ID: " + existing.id
+    ].join("\n");
+  }
+
+  const document = {
+    id: uid(),
+    title: "Lerninhalt: " + content.slice(0, 75),
+    type: "learned-text",
+    content,
+    created: now(),
+    length: content.length
+  };
+
+  data.documents.push(document);
+
+  remember(
+    "lerninhalt",
+    "Lerninhalt gespeichert: " + document.title,
+    {
+      documentId: document.id
+    }
+  );
+
+  logAudit(
+    "Lern-KI",
+    "Lerninhalt gespeichert",
+    document.title
+  );
+
+  const saved = save();
+
+  if (!saved) {
+    return "Der Inhalt wurde verarbeitet, aber nicht dauerhaft gespeichert. Prüfe deinen Browser-Speicher.";
+  }
+
+  return [
+    factResult || "Neuer Lerninhalt erfolgreich gespeichert!",
+    "",
+    "DOKUMENT GESPEICHERT",
+    "Titel: " + document.title,
+    "Zeichen: " + content.length,
+    "Wörter: " + content.split(/\s+/).filter(Boolean).length,
+    "Dokument-ID: " + document.id,
+    "",
+    "Du kannst den Inhalt später mit „Dokument suchen:“ wiederfinden."
+  ].join("\n");
 }
 
 async function getResearchResponse(query) {
@@ -2120,7 +2169,6 @@ async function getResearchResponse(query) {
   return await research(content);
 }
 
-
 /* =====================================================
    8. GEDÄCHTNIS
    ===================================================== */
@@ -2132,14 +2180,12 @@ function getMemoryList() {
     return "Es sind noch keine Erinnerungen gespeichert.";
   }
 
-  return memories.map((item, index) => {
-    return [
-      `${index + 1}. ${item.content || ""}`,
-      `ID: ${item.id || "Keine ID"}`,
-      `Typ: ${item.type || "Allgemein"}`,
-      `Erstellt: ${lb6Date(item.created)}`
-    ].join("\n");
-  }).join("\n\n");
+  return memories.map((item, index) => [
+    `${index + 1}. ${item.content || ""}`,
+    `ID: ${item.id || "Keine ID"}`,
+    `Typ: ${item.type || "Allgemein"}`,
+    `Erstellt: ${lb6Date(item.created)}`
+  ].join("\n")).join("\n\n");
 }
 
 function rememberResponse(value) {
@@ -2155,11 +2201,13 @@ function rememberResponse(value) {
     return "Die Erinnerung konnte nicht gespeichert werden.";
   }
 
-  return (
-    "Erinnerung erfolgreich gespeichert.\n\n" +
-    content +
-    "\n\nErinnerungs-ID: " + result.id
-  );
+  return [
+    "Erinnerung erfolgreich gespeichert.",
+    "",
+    content,
+    "",
+    "Erinnerungs-ID: " + result.id
+  ].join("\n");
 }
 
 function forgetResponse(value) {
@@ -2178,13 +2226,88 @@ function forgetResponse(value) {
   return `${removed} Erinnerung(en) wurden gelöscht.`;
 }
 
+/* =====================================================
+   9. DOKUMENTENWISSEN FÜR FRAGEN
+   ===================================================== */
+
+/*
+   Sucht passende Dokumente und zeigt relevante
+   Textstellen an.
+
+   Der Bot gibt dabei gespeicherte Inhalte wieder
+   und behauptet nicht, unbekanntes Wissen zu besitzen.
+*/
+
+function getDocumentKnowledge(query) {
+  query = safeText(query, 1000);
+
+  if (!query) return null;
+
+  const results = searchDocuments(query);
+
+  if (!results.length) return null;
+
+  const output = [];
+
+  for (const result of results.slice(0, 3)) {
+    const document = result.document;
+
+    if (!document || !document.content) continue;
+
+    const sentences = document.content
+      .replace(/\s+/g, " ")
+      .match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+
+    const queryWords = new Set(tokenize(query));
+
+    const ranked = sentences
+      .map(sentence => {
+        const words = tokenize(sentence);
+        let score = 0;
+
+        for (const word of words) {
+          if (queryWords.has(word)) score++;
+        }
+
+        return {
+          sentence: sentence.trim(),
+          score
+        };
+      })
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    const selected = ranked
+      .slice(0, 4)
+      .map(item => "• " + item.sentence);
+
+    if (!selected.length) {
+      selected.push(
+        safeText(document.content, 500)
+      );
+    }
+
+    output.push([
+      "QUELLE: " + lb6Title(document),
+      ...selected
+    ].join("\n"));
+  }
+
+  if (!output.length) return null;
+
+  return [
+    "IN MEINEN GESPEICHERTEN DOKUMENTEN GEFUNDEN:",
+    "",
+    ...output
+  ].join("\n\n");
+}
 
 /* =====================================================
-   9. WISSEN
+   10. WISSEN ABRUFEN
    ===================================================== */
 
 function getKnowledgeResponse(topic) {
-  topic = safeText(topic, 500);
+  topic = safeText(topic, 1000);
 
   if (!topic) {
     return "Bitte gib ein Thema an.";
@@ -2196,18 +2319,44 @@ function getKnowledgeResponse(topic) {
     return directAnswer;
   }
 
+  const facts = findRelatedFacts(topic, 10);
+  const documentKnowledge = getDocumentKnowledge(topic);
+
   const explanation = explainTopic(topic);
 
-  if (explanation) {
-    return explanation;
+  const hasExplanation =
+    explanation &&
+    !explanation.includes(
+      "noch nicht genügend eigenes Wissen"
+    );
+
+  if (hasExplanation && documentKnowledge) {
+    return [
+      explanation,
+      "",
+      documentKnowledge
+    ].join("\n\n");
   }
 
-  return "Zu diesem Thema habe ich noch keine Informationen.";
+  if (hasExplanation) return explanation;
+
+  if (documentKnowledge) return documentKnowledge;
+
+  if (facts.length) {
+    return [
+      "VERWANDTES GESPEICHERTES WISSEN",
+      "",
+      ...facts.map(f =>
+        `• ${f.subject}: ${f.property} – ${f.value}`
+      )
+    ].join("\n");
+  }
+
+  return `Zu "${topic}" habe ich noch keine passenden Informationen gespeichert.`;
 }
 
-
 /* =====================================================
-   10. DOKUMENTENVERWALTUNG
+   11. DOKUMENTENVERWALTUNG
    ===================================================== */
 
 function getDocumentList() {
@@ -2217,22 +2366,19 @@ function getDocumentList() {
     return "Es sind noch keine Dokumente gespeichert.";
   }
 
-  return documents.map((document, index) => {
-    return [
-      `${index + 1}. ${lb6Title(document)}`,
-      `ID: ${lb6Id(document) || "Keine ID"}`,
-      `Typ: ${document.type || "Unbekannt"}`,
-      `Erstellt: ${lb6Date(document.created)}`
-    ].join("\n");
-  }).join("\n\n");
+  return documents.map((document, index) => [
+    `${index + 1}. ${lb6Title(document)}`,
+    `ID: ${lb6Id(document) || "Keine ID"}`,
+    `Typ: ${document.type || "Unbekannt"}`,
+    `Zeichen: ${document.length || document.content?.length || 0}`,
+    `Erstellt: ${lb6Date(document.created)}`
+  ].join("\n")).join("\n\n");
 }
 
 function searchDocumentResponse(query) {
   query = safeText(query, 500);
 
-  if (!query) {
-    return getDocumentList();
-  }
+  if (!query) return getDocumentList();
 
   const results = searchDocuments(query);
 
@@ -2253,7 +2399,7 @@ function searchDocumentResponse(query) {
       `Trefferwert: ${
         Number.isFinite(score) ? score.toFixed(2) : "Unbekannt"
       }`,
-      `Inhalt: ${safeText(document.content || "", 350)}`
+      `Inhalt: ${safeText(document.content || "", 500)}`
     ].join("\n");
   }).filter(Boolean).join("\n\n");
 }
@@ -2262,10 +2408,11 @@ function summarizeDocumentResponse(query) {
   query = safeText(query, 500);
 
   if (!query) {
-    return (
-      "Bitte gib eine Dokument-ID oder einen Titel an.\n\n" +
+    return [
+      "Bitte gib eine Dokument-ID oder einen Titel an.",
+      "",
       getDocumentList()
-    );
+    ].join("\n");
   }
 
   const documents = arr(data.documents);
@@ -2276,10 +2423,11 @@ function summarizeDocumentResponse(query) {
   );
 
   if (!document) {
-    return (
-      "Dokument nicht gefunden.\n\n" +
+    return [
+      "Dokument nicht gefunden.",
+      "",
       getDocumentList()
-    );
+    ].join("\n");
   }
 
   if (!document.content) {
@@ -2289,9 +2437,8 @@ function summarizeDocumentResponse(query) {
   return summarizeDocument(document.id);
 }
 
-
 /* =====================================================
-   11. PROJEKTE UND AUFGABEN
+   12. PROJEKTE UND AUFGABEN
    ===================================================== */
 
 function getProjectResponse() {
@@ -2319,14 +2466,10 @@ function createTaskResponse(title) {
     task => !previousIds.has(task.id)
   );
 
-  if (!createdTask) {
-    return lb6Text(result);
-  }
+  if (!createdTask) return lb6Text(result);
 
-  return (
-    lb6Text(result) +
-    "\nAufgaben-ID: " + createdTask.id
-  );
+  return lb6Text(result) +
+    "\nAufgaben-ID: " + createdTask.id;
 }
 
 function completeTaskResponse(id) {
@@ -2351,9 +2494,8 @@ function completeTaskResponse(id) {
   return completeTask(id);
 }
 
-
 /* =====================================================
-   12. SICHERUNGEN UND EXPORT
+   13. SICHERUNGEN UND EXPORT
    ===================================================== */
 
 function getSnapshotList() {
@@ -2363,13 +2505,11 @@ function getSnapshotList() {
     return "Es sind noch keine Sicherungen vorhanden.";
   }
 
-  return snapshots.map((snapshot, index) => {
-    return [
-      `${index + 1}. ${snapshot.label || "Sicherung"}`,
-      `ID: ${snapshot.id || "Keine ID"}`,
-      `Datum: ${lb6Date(snapshot.time)}`
-    ].join("\n");
-  }).join("\n\n");
+  return snapshots.map((snapshot, index) => [
+    `${index + 1}. ${snapshot.label || "Sicherung"}`,
+    `ID: ${snapshot.id || "Keine ID"}`,
+    `Datum: ${lb6Date(snapshot.time)}`
+  ].join("\n")).join("\n\n");
 }
 
 function createSnapshotResponse() {
@@ -2378,20 +2518,19 @@ function createSnapshotResponse() {
   const snapshots = arr(data.snapshots);
   const newest = snapshots[snapshots.length - 1];
 
-  return (
-    lb6Text(result) +
-    (newest ? "\nSicherungs-ID: " + newest.id : "")
-  );
+  return lb6Text(result) +
+    (newest ? "\nSicherungs-ID: " + newest.id : "");
 }
 
 function restoreSnapshotResponse(id) {
   id = safeText(id, 200);
 
   if (!id) {
-    return (
-      "Bitte gib eine Sicherungs-ID an.\n\n" +
+    return [
+      "Bitte gib eine Sicherungs-ID an.",
+      "",
       getSnapshotList()
-    );
+    ].join("\n");
   }
 
   const exists = arr(data.snapshots).some(snapshot =>
@@ -2441,23 +2580,17 @@ function downloadExport() {
   } catch (error) {
     console.error("Exportfehler:", error);
 
-    return (
-      "Export fehlgeschlagen:\n" +
-      lb6Error(error)
-    );
+    return "Export fehlgeschlagen:\n" + lb6Error(error);
 
   } finally {
     if (url) {
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-      }, 1500);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
     }
   }
 }
 
-
 /* =====================================================
-   13. DATEIIMPORT
+   14. DATEIIMPORT
    ===================================================== */
 
 async function handleFileUpload(event) {
@@ -2492,9 +2625,7 @@ async function handleFileUpload(event) {
         typeof parsed !== "object" ||
         Array.isArray(parsed)
       ) {
-        throw new Error(
-          "Das JSON enthält kein gültiges Datenobjekt."
-        );
+        throw new Error("Das JSON enthält kein gültiges Datenobjekt.");
       }
 
       result = importData(content);
@@ -2504,7 +2635,6 @@ async function handleFileUpload(event) {
     }
 
     lb6RemoveTyping(typing);
-
     addMessage("assistant", result);
 
     save();
@@ -2516,8 +2646,7 @@ async function handleFileUpload(event) {
 
     addMessage(
       "assistant",
-      "Dateiimport fehlgeschlagen:\n" +
-      lb6Error(error)
+      "Dateiimport fehlgeschlagen:\n" + lb6Error(error)
     );
 
   } finally {
@@ -2527,9 +2656,8 @@ async function handleFileUpload(event) {
   }
 }
 
-
 /* =====================================================
-   14. HILFE
+   15. HILFE
    ===================================================== */
 
 function getHelpText() {
@@ -2538,6 +2666,7 @@ LERNBOT 6.0 – BEFEHLE
 
 LERNEN
 Lerne: Die Hauptstadt von Deutschland ist Berlin.
+Lerne: Hier kommt ein längerer Text über ein Thema.
 
 WISSEN
 Wissensübersicht
@@ -2585,9 +2714,8 @@ Du kannst auch normale Fragen stellen.
   `.trim();
 }
 
-
 /* =====================================================
-   15. ZENTRALE BEFEHLSVERARBEITUNG
+   16. ZENTRALE BEFEHLSVERARBEITUNG
    ===================================================== */
 
 async function handle(text) {
@@ -2611,7 +2739,6 @@ async function handle(text) {
       return getHelpText();
     }
 
-
     /* BEGRÜSSUNG */
 
     if (
@@ -2619,7 +2746,6 @@ async function handle(text) {
     ) {
       return "Hallo! Ich bin " + NAME + ". Was möchtest du lernen?";
     }
-
 
     /* LERNEN */
 
@@ -2629,20 +2755,17 @@ async function handle(text) {
       return getLearningResponse(value);
     }
 
-
     /* WISSENSÜBERSICHT */
 
     if (lower === "wissensübersicht") {
       return knowledgeOverview();
     }
 
-
     /* WISSENSANALYSE */
 
     if (lower === "wissensanalyse") {
       return analyzeKnowledge();
     }
-
 
     /* WISSENSGRAPH */
 
@@ -2653,7 +2776,6 @@ async function handle(text) {
 
       return graphReport(value);
     }
-
 
     /* WISSEN UND ERKLÄREN */
 
@@ -2669,19 +2791,13 @@ async function handle(text) {
       return getKnowledgeResponse(value);
     }
 
-
     /* RECHERCHE */
 
     value = lb6Command(text, "Recherchiere:");
 
     if (value !== null) {
-      if (!value) {
-        return "Bitte gib ein Recherchethema an.";
-      }
-
       return await getResearchResponse(value);
     }
-
 
     /* GEDÄCHTNIS SPEICHERN */
 
@@ -2697,7 +2813,6 @@ async function handle(text) {
       return rememberResponse(value);
     }
 
-
     /* GEDÄCHTNIS ANZEIGEN */
 
     if (
@@ -2707,7 +2822,6 @@ async function handle(text) {
       return getMemoryList();
     }
 
-
     /* GEDÄCHTNIS LÖSCHEN */
 
     value = lb6Command(text, "Vergiss:");
@@ -2715,7 +2829,6 @@ async function handle(text) {
     if (value !== null) {
       return forgetResponse(value);
     }
-
 
     /* DOKUMENTE */
 
@@ -2735,7 +2848,6 @@ async function handle(text) {
       return summarizeDocumentResponse(value);
     }
 
-
     /* PROJEKTE */
 
     if (lower === "projekte") {
@@ -2745,13 +2857,10 @@ async function handle(text) {
     value = lb6Command(text, "Projekt erstellen:");
 
     if (value !== null) {
-      if (!value) {
-        return "Bitte gib einen Projektnamen an.";
-      }
+      if (!value) return "Bitte gib einen Projektnamen an.";
 
       return createProject(value);
     }
-
 
     /* AUFGABEN */
 
@@ -2771,13 +2880,11 @@ async function handle(text) {
       return completeTaskResponse(value);
     }
 
-
     /* AGENTEN */
 
     if (lower === "agenten") {
       return agentOverview();
     }
-
 
     /* SICHERUNGEN */
 
@@ -2798,7 +2905,6 @@ async function handle(text) {
       return restoreSnapshotResponse(value);
     }
 
-
     /* EXPORT */
 
     if (
@@ -2807,7 +2913,6 @@ async function handle(text) {
     ) {
       return downloadExport();
     }
-
 
     /* CODEPRÜFUNG */
 
@@ -2821,7 +2926,6 @@ async function handle(text) {
       return inspectCodeReport(value);
     }
 
-
     /* ANALYSE */
 
     value = lb6Command(text, "Analysiere:");
@@ -2834,11 +2938,13 @@ async function handle(text) {
       return await agentRunAsync("analyse", async () => {
         const facts = findRelatedFacts(value, 10);
         const explanation = explainTopic(value);
+        const documents = getDocumentKnowledge(value);
 
-        const output = [
+        return [
           "ANALYSEERGEBNIS",
           "",
           explanation,
+          documents || "",
           "",
           "VERWANDTE FAKTEN",
           facts.length
@@ -2846,52 +2952,40 @@ async function handle(text) {
                 `• ${f.subject}: ${f.property} – ${f.value}`
               ).join("\n")
             : "Keine verwandten Fakten gefunden."
-        ];
-
-        return output.join("\n");
+        ].filter(Boolean).join("\n");
       });
     }
 
-
     /* ALLGEMEINE FRAGEN */
 
-    const directAnswer = answerFact(text);
-
-    if (directAnswer) {
-      return directAnswer;
-    }
-
-    const explanation = explainTopic(text);
+    const knowledge = getKnowledgeResponse(text);
 
     if (
-      explanation &&
-      !String(explanation).includes(
-        "noch nicht genügend eigenes Wissen"
-      )
+      knowledge &&
+      !knowledge.includes("noch keine passenden Informationen gespeichert")
     ) {
-      return explanation;
+      return knowledge;
     }
 
-    return (
-      "Dazu habe ich noch keine ausreichenden Informationen " +
-      "in meiner Wissensbank.\n\n" +
-      "Du kannst mir das Thema mit „Lerne: ...“ beibringen " +
-      "oder mit „Recherchiere: ...“ recherchieren."
-    );
+    return [
+      "Dazu habe ich noch keine ausreichenden Informationen in meiner Wissensbank.",
+      "",
+      "Du kannst mir das Thema mit „Lerne: ...“ beibringen oder mit „Recherchiere: ...“ recherchieren."
+    ].join("\n");
 
   } catch (error) {
     console.error("LernBot Befehlsfehler:", error);
 
-    return (
-      "Bei der Verarbeitung ist ein Fehler aufgetreten:\n\n" +
+    return [
+      "Bei der Verarbeitung ist ein Fehler aufgetreten:",
+      "",
       lb6Error(error)
-    );
+    ].join("\n");
   }
 }
 
-
 /* =====================================================
-   16. NACHRICHTEN SENDEN
+   17. NACHRICHTEN SENDEN
    ===================================================== */
 
 async function sendMessage() {
@@ -2912,9 +3006,7 @@ async function sendMessage() {
 
   const send = UI.send();
 
-  if (send) {
-    send.disabled = true;
-  }
+  if (send) send.disabled = true;
 
   input.value = "";
 
@@ -2949,9 +3041,7 @@ async function sendMessage() {
   } finally {
     lb6Busy = false;
 
-    if (send) {
-      send.disabled = false;
-    }
+    if (send) send.disabled = false;
 
     if (document.activeElement !== input) {
       input.focus();
@@ -2959,9 +3049,8 @@ async function sendMessage() {
   }
 }
 
-
 /* =====================================================
-   17. CHAT-EINRICHTUNG
+   18. CHAT-EINRICHTUNG
    ===================================================== */
 
 function setupChat() {
@@ -2990,14 +3079,12 @@ function setupChat() {
 
   if (send && send.dataset.lb6Bound !== "true") {
     send.dataset.lb6Bound = "true";
-
     send.addEventListener("click", sendMessage);
   }
 }
 
-
 /* =====================================================
-   18. DATEI-EINRICHTUNG
+   19. DATEI-EINRICHTUNG
    ===================================================== */
 
 function setupFileUpload() {
@@ -3012,9 +3099,8 @@ function setupFileUpload() {
   file.addEventListener("change", handleFileUpload);
 }
 
-
 /* =====================================================
-   19. EXPORT-BUTTONS
+   20. EXPORT-BUTTONS
    ===================================================== */
 
 function setupExportButtons() {
@@ -3023,9 +3109,7 @@ function setupExportButtons() {
   );
 
   buttons.forEach(button => {
-    if (button.dataset.lb6Bound === "true") {
-      return;
-    }
+    if (button.dataset.lb6Bound === "true") return;
 
     button.dataset.lb6Bound = "true";
 
@@ -3036,9 +3120,8 @@ function setupExportButtons() {
   });
 }
 
-
 /* =====================================================
-   20. SYSTEMSTART
+   21. SYSTEMSTART
    ===================================================== */
 
 function startLernBot() {
@@ -3085,9 +3168,8 @@ function startLernBot() {
   }
 }
 
-
 /* =====================================================
-   21. SYSTEMSTART AUSFÜHREN
+   22. SYSTEMSTART AUSFÜHREN
    ===================================================== */
 
 if (document.readyState === "loading") {
@@ -3099,7 +3181,6 @@ if (document.readyState === "loading") {
 } else {
   startLernBot();
 }
-
 
 /* =====================================================
    ENDE LERNBOT 6.0 – TEIL 3/3
