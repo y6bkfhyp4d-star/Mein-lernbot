@@ -972,7 +972,8 @@ save();
    
 /* =====================================================
    LERNBOT 6.0 – TEIL 2/3
-   AGENTEN, RECHERCHE, DOKUMENTE, PROJEKTE
+   AGENTEN, ANALYSE, RECHERCHE, DOKUMENTE,
+   PROJEKTE, CODE-KI, SICHERUNGEN UND DATENIMPORT
    ===================================================== */
 
 /* =====================================================
@@ -1019,597 +1020,940 @@ const agents = {
 };
 
 function agentRun(name, fn) {
-  countAgent(name);
-  logAudit(name, "Agent ausgeführt");
+  if (typeof fn !== "function") {
+    return "Fehler: Ungültige Agentenfunktion.";
+  }
+
+  const agent = agents[name];
+
+  if (!agent) {
+    return "Fehler: Agent '" + name + "' existiert nicht.";
+  }
 
   try {
-    return fn();
+    countAgent(name);
+
+    const result = fn();
+
+    logAudit("agent", {
+      name,
+      status: "success"
+    });
+
+    return result;
   } catch (error) {
-    console.error(name, error);
-    return `Fehler in ${name}: ${error.message}`;
+    logAudit("agent", {
+      name,
+      status: "error",
+      message: String(error?.message || error)
+    });
+
+    return "Agentenfehler (" + agent.name + "): " +
+      String(error?.message || error);
   } finally {
     save();
   }
 }
 
 async function agentRunAsync(name, fn) {
-  countAgent(name);
-  logAudit(name, "Agent ausgeführt");
+  if (typeof fn !== "function") {
+    return "Fehler: Ungültige Agentenfunktion.";
+  }
+
+  const agent = agents[name];
+
+  if (!agent) {
+    return "Fehler: Agent '" + name + "' existiert nicht.";
+  }
 
   try {
-    return await fn();
+    countAgent(name);
+
+    const result = await fn();
+
+    logAudit("agent", {
+      name,
+      status: "success"
+    });
+
+    return result;
   } catch (error) {
-    console.error(name, error);
-    return `Fehler in ${name}: ${error.message}`;
+    logAudit("agent", {
+      name,
+      status: "error",
+      message: String(error?.message || error)
+    });
+
+    return "Agentenfehler (" + agent.name + "): " +
+      String(error?.message || error);
   } finally {
     save();
   }
 }
 
 function agentOverview() {
+  const stats = obj(data.agentStats) ? data.agentStats : {};
+
   return Object.entries(agents).map(([key, agent]) => {
-    return [
-      agent.name,
-      agent.description,
-      `Ausführungen: ${Number(data.agentStats[key]) || 0}`
-    ].join("\n");
-  }).join("\n\n");
-}
+    const count = Number(stats[key]) || 0;
 
-/* =====================================================
-   2. LERN- UND ANALYSE-KI
-   ===================================================== */
-
-function analyzeKnowledge() {
-  return agentRun("analyse", () => {
-    const subjects = new Set(
-      data.facts.map(f => normalize(f.subject))
-    );
-
-    const properties = new Set(
-      data.facts.map(f => f.property)
-    );
-
-    const conflicts = data.facts.filter(f => f.conflict);
-
-    return [
-      "WISSENSANALYSE",
-      "",
-      `Gespeicherte Fakten: ${data.facts.length}`,
-      `Unterschiedliche Themen: ${subjects.size}`,
-      `Eigenschaftsarten: ${properties.size}`,
-      `Wissensverbindungen: ${data.relationships.length}`,
-      `Erinnerungen: ${data.memory.length}`,
-      `Dokumente: ${data.documents.length}`,
-      `Projekte: ${data.projects.length}`,
-      `Aufgaben: ${data.tasks.length}`,
-      `Erkannte Konflikte: ${conflicts.length}`,
-      "",
-      "AGENTENSTATISTIK",
-      ...Object.entries(data.agentStats).map(
-        ([key, value]) => `${key}: ${value}`
-      )
-    ].join("\n");
+    return {
+      id: key,
+      name: agent.name,
+      description: agent.description,
+      runs: count
+    };
   });
 }
 
-function findRelatedFacts(query, limit = 10) {
-  limit = Math.max(1, Math.min(100, Number(limit) || 10));
+/* =====================================================
+   2. WISSENSANALYSE
+   ===================================================== */
 
-  return data.facts
-    .map(f => ({
-      fact: f,
-      score: similarity(
-        query,
-        `${f.subject} ${f.property} ${f.value}`
-      )
-    }))
-    .filter(x => x.score > 0.08)
+function analyzeKnowledge() {
+  const facts = arr(data.facts);
+  const memories = arr(data.memories);
+  const documents = arr(data.documents);
+  const projects = arr(data.projects);
+  const tasks = arr(data.tasks);
+
+  const subjects = new Set();
+  const properties = new Set();
+
+  for (const fact of facts) {
+    if (fact && typeof fact === "object") {
+      if (fact.subject) {
+        subjects.add(normalize(fact.subject));
+      }
+
+      if (fact.property) {
+        properties.add(normalize(fact.property));
+      }
+    }
+  }
+
+  const completedTasks = tasks.filter(task =>
+    task && task.done === true
+  ).length;
+
+  const openTasks = tasks.length - completedTasks;
+
+  const conflicts = facts.filter(fact =>
+    fact && (
+      fact.conflict === true ||
+      fact.status === "conflict"
+    )
+  ).length;
+
+  let graphConnections = 0;
+
+  try {
+    const graph = graphReport();
+
+    if (typeof graph === "number") {
+      graphConnections = graph;
+    } else if (graph && typeof graph === "object") {
+      graphConnections =
+        Number(graph.connections) ||
+        Number(graph.relationships) ||
+        Number(graph.edges) ||
+        0;
+    }
+  } catch {
+    graphConnections = 0;
+  }
+
+  return {
+    facts: facts.length,
+    subjects: subjects.size,
+    properties: properties.size,
+    conflicts,
+    graphConnections,
+    memories: memories.length,
+    documents: documents.length,
+    projects: projects.length,
+    tasks: tasks.length,
+    completedTasks,
+    openTasks,
+    agents: agentOverview()
+  };
+}
+
+function findRelatedFacts(query, limit = 10) {
+  const q = String(query || "").trim();
+
+  if (!q) return [];
+
+  const max = Math.max(
+    1,
+    Math.min(100, Number(limit) || 10)
+  );
+
+  const facts = arr(data.facts);
+  const results = [];
+
+  for (const fact of facts) {
+    if (!fact || typeof fact !== "object") continue;
+
+    const content = [
+      fact.subject,
+      fact.property,
+      fact.value,
+      fact.description
+    ].filter(Boolean).join(" ");
+
+    const score = similarity(q, content);
+
+    if (score > 0.08) {
+      results.push({
+        fact,
+        score
+      });
+    }
+  }
+
+  return results
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map(x => x.fact);
+    .slice(0, max);
 }
 
 function explainTopic(topic) {
-  topic = safeText(topic, 500);
+  const query = String(topic || "").trim();
 
-  if (!topic) {
+  if (!query) {
     return "Bitte gib ein Thema an.";
   }
 
-  const facts = findRelatedFacts(topic, 20);
-  const memories = searchMemory(topic, 5);
-  const connections = graphFor(topic);
+  const facts = findRelatedFacts(query, 20);
 
-  if (!facts.length && !memories.length && !connections.length) {
-    return `Ich habe zu "${topic}" noch nicht genügend eigenes Wissen gespeichert.`;
+  let memories = [];
+
+  try {
+    memories = searchMemory(query) || [];
+  } catch {
+    memories = [];
   }
 
-  const result = [
-    `WISSEN ÜBER ${topic.toUpperCase()}`,
+  let graph = [];
+
+  try {
+    graph = graphFor(query) || [];
+  } catch {
+    graph = [];
+  }
+
+  const lines = [
+    "WISSENSANALYSE: " + query,
     ""
   ];
 
   if (facts.length) {
-    result.push("GESPEICHERTE FAKTEN");
+    lines.push("GESPEICHERTES WISSEN:");
 
-    facts.forEach(f => {
-      result.push(
-        `• ${f.subject}: ${f.property} – ${f.value}`
+    for (const item of facts) {
+      const fact = item.fact;
+
+      lines.push(
+        "- " +
+        [fact.subject, fact.property, fact.value]
+          .filter(Boolean)
+          .join(" – ")
       );
-    });
+    }
+  } else {
+    lines.push("Keine passenden Fakten gefunden.");
   }
 
-  if (connections.length) {
-    result.push("", "WISSENSVERBINDUNGEN");
+  if (arr(memories).length) {
+    lines.push("");
+    lines.push("ERINNERUNGEN:");
 
-    connections.forEach(r => {
-      result.push(
-        `• ${r.from} —${r.relation}→ ${r.to}`
+    for (const memory of memories.slice(0, 10)) {
+      const content =
+        typeof memory === "string"
+          ? memory
+          : memory.content || memory.text || "";
+
+      if (content) lines.push("- " + content);
+    }
+  }
+
+  if (arr(graph).length) {
+    lines.push("");
+    lines.push("ZUSAMMENHÄNGE:");
+
+    for (const item of graph.slice(0, 10)) {
+      lines.push(
+        "- " +
+        (typeof item === "string"
+          ? item
+          : item.label || item.name || item.subject || JSON.stringify(item))
       );
-    });
+    }
   }
 
-  if (memories.length) {
-    result.push("", "ERINNERUNGEN");
+  lines.push("");
+  lines.push(
+    "Gefundene Fakten: " + facts.length
+  );
 
-    memories.forEach(m => {
-      result.push(`• ${m.content}`);
-    });
-  }
-
-  return result.join("\n");
+  return lines.join("\n");
 }
 
 /* =====================================================
-   3. INTERNET-RECHERCHE
+   3. RECHERCHE-SYSTEM
    ===================================================== */
 
 async function fetchJSON(url, timeout = 10000) {
-  const controller = new AbortController();
-  const timer = setTimeout(
-    () => controller.abort(),
-    timeout
+  if (typeof fetch !== "function") {
+    throw new Error("Dieser Browser unterstützt fetch nicht.");
+  }
+
+  const duration = Math.max(
+    1000,
+    Math.min(30000, Number(timeout) || 10000)
   );
 
+  let controller = null;
+  let timer = null;
+
   try {
+    if (typeof AbortController !== "undefined") {
+      controller = new AbortController();
+
+      timer = setTimeout(() => {
+        controller.abort();
+      }, duration);
+    }
+
     const response = await fetch(url, {
-      signal: controller.signal,
+      method: "GET",
       headers: {
-        Accept: "application/json"
-      }
+        "Accept": "application/json"
+      },
+      signal: controller ? controller.signal : undefined
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(
+        "HTTP-Fehler " + response.status
+      );
+    }
+
+    const contentType =
+      response.headers.get("content-type") || "";
+
+    if (
+      contentType &&
+      !contentType.includes("json")
+    ) {
+      throw new Error("Die Quelle lieferte kein JSON.");
     }
 
     return await response.json();
 
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("Zeitüberschreitung bei der Recherche.");
+    }
+
+    throw error;
+
   } finally {
-    clearTimeout(timer);
+    if (timer !== null) {
+      clearTimeout(timer);
+    }
   }
 }
 
 function encodeQuery(query) {
   return encodeURIComponent(
-    safeText(query, 500)
+    String(query || "").trim()
   );
 }
 
 async function searchWikipedia(query) {
+  const q = String(query || "").trim();
+
+  if (!q) return [];
+
   const url =
     "https://de.wikipedia.org/w/api.php" +
     "?action=query" +
-    "&generator=search" +
-    "&gsrsearch=" + encodeQuery(query) +
-    "&gsrlimit=5" +
-    "&prop=extracts" +
-    "&exintro=1" +
-    "&explaintext=1" +
+    "&list=search" +
+    "&srsearch=" + encodeQuery(q) +
+    "&srlimit=6" +
     "&format=json" +
     "&origin=*";
 
-  const json = await fetchJSON(url);
-  const pages = Object.values(
-    json.query?.pages || {}
-  );
+  const result = await fetchJSON(url);
 
-  return pages.map(page => ({
-    title: safeText(page.title, 500),
-    text: safeText(page.extract, 3000),
+  return arr(result?.query?.search).map(item => ({
+    source: "Wikipedia",
+    title: String(item.title || ""),
+    description: String(item.snippet || "")
+      .replace(/<[^>]*>/g, ""),
     url:
       "https://de.wikipedia.org/wiki/" +
       encodeURIComponent(
-        String(page.title || "").replace(/ /g, "_")
-      ),
-    source: "Wikipedia"
-  })).filter(item => item.title && item.text);
+        String(item.title || "").replace(/ /g, "_")
+      )
+  }));
 }
 
 async function searchWikidata(query) {
+  const q = String(query || "").trim();
+
+  if (!q) return [];
+
   const url =
     "https://www.wikidata.org/w/api.php" +
     "?action=wbsearchentities" +
-    "&search=" + encodeQuery(query) +
+    "&search=" + encodeQuery(q) +
     "&language=de" +
+    "&limit=6" +
     "&format=json" +
     "&origin=*";
 
-  const json = await fetchJSON(url);
+  const result = await fetchJSON(url);
 
-  return arr(json.search)
-    .slice(0, 5)
-    .map(item => ({
-      title: safeText(item.label, 500),
-      text: safeText(
-        item.description || "Keine Beschreibung verfügbar.",
-        3000
-      ),
-      url: safeText(item.concepturi, 1000),
-      source: "Wikidata"
-    }))
-    .filter(item => item.title);
+  return arr(result?.search).map(item => ({
+    source: "Wikidata",
+    title: String(item.label || ""),
+    description: String(item.description || ""),
+    url: String(item.concepturi || "")
+  }));
 }
 
 async function searchOpenLibrary(query) {
+  const q = String(query || "").trim();
+
+  if (!q) return [];
+
   const url =
-    "https://openlibrary.org/search.json?q=" +
-    encodeQuery(query) +
+    "https://openlibrary.org/search.json" +
+    "?q=" + encodeQuery(q) +
     "&limit=5";
 
-  const json = await fetchJSON(url);
+  const result = await fetchJSON(url);
 
-  return arr(json.docs)
-    .slice(0, 5)
-    .map(item => ({
-      title: safeText(
-        item.title || "Unbekannter Titel",
-        500
-      ),
-      text: [
-        arr(item.author_name).join(", "),
-        item.first_publish_year
-          ? "Erstveröffentlichung: " + item.first_publish_year
-          : ""
-      ].filter(Boolean).join(" – "),
-      url: item.key
-        ? "https://openlibrary.org" + item.key
-        : "",
-      source: "Open Library"
-    }));
+  return arr(result?.docs).map(item => ({
+    source: "Open Library",
+    title: String(item.title || ""),
+    description: [
+      item.author_name?.[0],
+      item.first_publish_year
+        ? "Erstveröffentlichung: " + item.first_publish_year
+        : ""
+    ].filter(Boolean).join(" – "),
+    url: item.key
+      ? "https://openlibrary.org" + item.key
+      : ""
+  }));
 }
 
 async function research(query) {
-  query = safeText(query, 500);
-
-  if (!query) {
-    return "Bitte gib ein Recherchethema an.";
-  }
-
   return agentRunAsync("recherche", async () => {
-    const results = [];
+    const q = String(query || "").trim();
+
+    if (!q) {
+      return "Bitte gib einen Suchbegriff ein.";
+    }
+
+    if (q.length > 300) {
+      return "Der Suchbegriff ist zu lang.";
+    }
+
+    const results = await Promise.allSettled([
+      searchWikipedia(q),
+      searchWikidata(q)
+    ]);
+
+    const collected = [];
     const errors = [];
 
-    const searches = [
-      ["Wikipedia", () => searchWikipedia(query)],
-      ["Wikidata", () => searchWikidata(query)]
-    ];
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
 
-    for (const [name, search] of searches) {
-      try {
-        const found = await search();
-        results.push(...arr(found));
-      } catch (error) {
-        errors.push(`${name}: ${error.message}`);
+      if (result.status === "fulfilled") {
+        collected.push(...arr(result.value));
+      } else {
+        errors.push(
+          (i === 0 ? "Wikipedia" : "Wikidata") +
+          ": " +
+          String(result.reason?.message || result.reason)
+        );
       }
     }
 
-    const unique = [];
     const seen = new Set();
 
-    for (const item of results) {
+    const unique = collected.filter(item => {
       const key = normalize(item.title);
 
-      if (!key || seen.has(key)) continue;
+      if (!key || seen.has(key)) return false;
 
       seen.add(key);
-      unique.push(item);
+      return true;
+    });
+
+    const documentContent = [
+      "Recherche: " + q,
+      "Datum: " + now(),
+      "",
+      ...unique.map(item =>
+        "[" + item.source + "] " +
+        item.title +
+        (item.description
+          ? "\n" + item.description
+          : "") +
+        (item.url
+          ? "\n" + item.url
+          : "")
+      )
+    ].join("\n\n");
+
+    if (unique.length) {
+      importDocumentText(
+        documentContent,
+        "Recherche: " + q
+      );
     }
+
+    const lines = [
+      "RECHERCHE: " + q,
+      ""
+    ];
 
     if (!unique.length) {
-      return [
-        "Ich konnte keine Rechercheergebnisse abrufen.",
-        ...errors,
-        "",
-        "Prüfe deine Internetverbindung oder versuche es später erneut."
-      ].join("\n");
+      lines.push(
+        "Es konnten keine Ergebnisse abgerufen werden."
+      );
+    } else {
+      unique.forEach((item, index) => {
+        lines.push(
+          (index + 1) + ". " + item.title
+        );
+
+        lines.push(
+          "Quelle: " + item.source
+        );
+
+        if (item.description) {
+          lines.push(item.description);
+        }
+
+        if (item.url) {
+          lines.push(item.url);
+        }
+
+        lines.push("");
+      });
     }
 
-    const content = unique.map(item => [
-      item.title,
-      item.text,
-      `Quelle: ${item.source}`,
-      item.url
-    ].filter(Boolean).join("\n")).join("\n\n");
+    if (errors.length) {
+      lines.push("HINWEISE:");
 
-    const document = {
-      id: uid(),
-      title: "Recherche: " + query,
-      type: "research",
-      created: now(),
-      content,
-      results: unique
-    };
+      errors.forEach(error => {
+        lines.push("- " + error);
+      });
+    }
 
-    data.documents.push(document);
-
-    logAudit(
-      "Recherche-KI",
-      "Recherche gespeichert",
-      query
+    lines.push(
+      "Ergebnisse: " + unique.length
     );
 
-    save();
+    lines.push(
+      "Hinweis: Rechercheergebnisse sollten anhand der Originalquellen überprüft werden."
+    );
 
-    return [
-      `RECHERCHE: ${query}`,
-      "",
-      ...unique.map((item, index) => [
-        `${index + 1}. ${item.title}`,
-        item.text,
-        `Quelle: ${item.source}`,
-        item.url
-      ].filter(Boolean).join("\n")),
-      "",
-      errors.length
-        ? "Nicht erreichbare Quellen:\n" + errors.join("\n")
-        : "Alle abgefragten Quellen wurden verarbeitet.",
-      "",
-      `Gespeichert als Dokument: ${document.id}`
-    ].join("\n\n");
+    return lines.join("\n");
   });
 }
 
 /* =====================================================
-   4. DOKUMENTEN-KI
+   4. DOKUMENTEN-SYSTEM
    ===================================================== */
 
 function importDocumentText(text, filename = "Textimport") {
-  return agentRun("dokument", () => {
-    text = safeText(text, 100000);
-    filename = safeText(filename, 300) || "Textimport";
+  const content = String(text || "").trim();
 
-    if (!text) {
-      return "Das Dokument enthält keinen lesbaren Text.";
-    }
+  if (!content) {
+    return "Fehler: Das Dokument ist leer.";
+  }
 
-    const entry = {
-      id: uid(),
-      title: filename,
-      type: "document",
-      content: text,
-      created: now(),
-      length: text.length
-    };
+  if (content.length > 2000000) {
+    return "Fehler: Das Dokument ist größer als 2 MB Text.";
+  }
 
-    data.documents.push(entry);
+  const title = String(filename || "Textimport")
+    .trim()
+    .slice(0, 200);
 
+  const document = {
+    id: uid(),
+    title: title || "Textimport",
+    content,
+    created: now(),
+    length: content.length,
+    type: "document"
+  };
+
+  if (!Array.isArray(data.documents)) {
+    data.documents = [];
+  }
+
+  data.documents.push(document);
+
+  try {
     remember(
-      "dokument",
-      `Dokument importiert: ${filename}`
+      "Dokument importiert: " + document.title
     );
+  } catch {
+    // Der Dokumentimport bleibt auch ohne Erinnerung möglich.
+  }
 
-    save();
-
-    return [
-      "DOKUMENT IMPORTIERT",
-      "",
-      `Datei: ${filename}`,
-      `Zeichen: ${text.length}`,
-      `Wörter: ${tokenize(text).length}`,
-      `Dokument-ID: ${entry.id}`,
-      "",
-      "Der Inhalt ist jetzt im Dokumentenspeicher verfügbar."
-    ].join("\n");
+  logAudit("document_import", {
+    id: document.id,
+    title: document.title,
+    length: document.length
   });
+
+  save();
+
+  return (
+    "Dokument erfolgreich importiert.\n" +
+    "Titel: " + document.title + "\n" +
+    "Zeichen: " + document.length + "\n" +
+    "ID: " + document.id
+  );
 }
 
 function searchDocuments(query) {
-  const q = safeText(query, 1000);
+  const q = String(query || "").trim();
 
   if (!q) return [];
 
-  return data.documents
-    .filter(d =>
-      obj(d) &&
-      typeof d.content === "string" &&
-      d.content.length > 0
-    )
-    .map(document => ({
-      document,
-      score: similarity(
-        q,
-        `${document.title || ""} ${document.content}`
-      )
-    }))
-    .filter(item => item.score > 0.03)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+  const documents = arr(data.documents);
+  const results = [];
+
+  for (const document of documents) {
+    if (!document || typeof document !== "object") {
+      continue;
+    }
+
+    const content = [
+      document.title,
+      document.content
+    ].filter(Boolean).join(" ");
+
+    const score = similarity(q, content);
+
+    if (score > 0.03) {
+      results.push({
+        document,
+        score
+      });
+    }
+  }
+
+  return results.sort(
+    (a, b) => b.score - a.score
+  );
 }
 
 function summarizeDocument(id) {
-  const doc = data.documents.find(d =>
-    d.id === id &&
-    typeof d.content === "string" &&
-    d.content.length > 0
+  const document = arr(data.documents).find(item =>
+    item && String(item.id) === String(id)
   );
 
-  if (!doc) {
-    return "Dokument nicht gefunden oder ohne Textinhalt.";
+  if (!document) {
+    return "Dokument nicht gefunden.";
   }
 
-  const sentences = doc.content
+  const content = String(document.content || "")
+    .replace(/\r/g, " ")
+    .replace(/\n+/g, " ")
     .replace(/\s+/g, " ")
-    .match(/[^.!?]+[.!?]+/g) || [doc.content];
+    .trim();
 
-  const ranked = sentences
-    .map(sentence => {
-      const words = tokenize(sentence);
+  if (!content) {
+    return "Das Dokument enthält keinen Text.";
+  }
 
-      return {
-        sentence: sentence.trim(),
-        score: words.length
-      };
-    })
-    .filter(item => item.sentence);
+  const sentences = content
+    .match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [content];
 
-  const summary = ranked
+  if (sentences.length <= 4) {
+    return (
+      "ZUSAMMENFASSUNG: " +
+      document.title +
+      "\n\n" +
+      content
+    );
+  }
+
+  const stopWords = new Set([
+    "aber", "alle", "als", "also", "am", "an", "auch",
+    "auf", "aus", "bei", "bin", "bis", "da", "dadurch",
+    "daher", "damit", "dann", "das", "dass", "dem",
+    "den", "der", "des", "die", "dies", "diese",
+    "dieser", "doch", "dort", "durch", "ein", "eine",
+    "einem", "einen", "einer", "eines", "er", "es",
+    "für", "hat", "haben", "hier", "ich", "im", "in",
+    "ist", "ja", "kann", "kein", "mit", "nach", "nicht",
+    "noch", "nur", "oder", "sein", "sich", "sie", "sind",
+    "so", "um", "und", "uns", "unter", "vom", "von",
+    "vor", "war", "was", "wenn", "werden", "wie", "wir",
+    "wird", "zu", "zum", "zur"
+  ]);
+
+  const words = content
+    .toLowerCase()
+    .match(/[a-zäöüß]{3,}/g) || [];
+
+  const frequencies = Object.create(null);
+
+  for (const word of words) {
+    if (stopWords.has(word)) continue;
+
+    frequencies[word] =
+      (frequencies[word] || 0) + 1;
+  }
+
+  const scored = sentences.map((sentence, index) => {
+    const sentenceWords =
+      sentence.toLowerCase().match(/[a-zäöüß]{3,}/g) || [];
+
+    let score = 0;
+
+    for (const word of sentenceWords) {
+      if (!stopWords.has(word)) {
+        score += frequencies[word] || 0;
+      }
+    }
+
+    const lengthPenalty =
+      Math.max(1, Math.sqrt(sentenceWords.length));
+
+    score /= lengthPenalty;
+
+    // Der Anfang eines Dokuments enthält oft wichtige Einführungen.
+    if (index === 0) score *= 1.35;
+    if (index === 1) score *= 1.15;
+
+    // Sehr kurze Sätze enthalten häufig wenig Kontext.
+    if (sentenceWords.length < 5) score *= 0.5;
+
+    return {
+      sentence: sentence.trim(),
+      index,
+      score
+    };
+  });
+
+  const selected = scored
+    .filter(item => item.sentence.length > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 8)
-    .map(item => "• " + item.sentence);
+    .slice(0, Math.min(5, sentences.length))
+    .sort((a, b) => a.index - b.index);
+
+  const summary = selected
+    .map(item => item.sentence)
+    .join(" ");
 
   return [
-    `ZUSAMMENFASSUNG: ${doc.title || "Dokument"}`,
+    "ZUSAMMENFASSUNG: " + document.title,
     "",
-    ...summary
+    summary,
+    "",
+    "Hinweis: Automatische, extraktive Zusammenfassung. " +
+    "Die wichtigsten Sätze wurden anhand von Wortgewichtung und Position ausgewählt."
   ].join("\n");
 }
 
 /* =====================================================
-   5. PROJEKT- UND AUFGABEN-KI
+   5. PROJEKT- UND AUFGABENVERWALTUNG
    ===================================================== */
 
 function createProject(name, description = "") {
-  name = safeText(name, 150);
-  description = safeText(description, 3000);
+  const projectName = String(name || "").trim();
 
-  if (!name) {
-    return "Bitte gib einen Projektnamen an.";
+  if (!projectName) {
+    return "Fehler: Ein Projektname ist erforderlich.";
+  }
+
+  if (projectName.length > 150) {
+    return "Fehler: Der Projektname ist zu lang.";
+  }
+
+  if (!Array.isArray(data.projects)) {
+    data.projects = [];
   }
 
   const project = {
     id: uid(),
-    name,
-    description,
-    status: "aktiv",
+    name: projectName,
+    description: String(description || "").slice(0, 2000),
     created: now(),
-    updated: now()
+    status: "active"
   };
 
   data.projects.push(project);
 
-  logAudit(
-    "Projekt-KI",
-    "Projekt erstellt",
-    name
-  );
+  logAudit("project_created", {
+    id: project.id,
+    name: project.name
+  });
 
   save();
 
-  return [
-    `Projekt erstellt: ${name}`,
-    `Projekt-ID: ${project.id}`
-  ].join("\n");
+  return (
+    "Projekt erstellt: " +
+    project.name +
+    "\nID: " + project.id
+  );
 }
 
 function createTask(title, projectId = null, due = null) {
-  title = safeText(title, 300);
+  const taskTitle = String(title || "").trim();
 
-  if (!title) {
-    return "Bitte gib eine Aufgabe an.";
+  if (!taskTitle) {
+    return "Fehler: Ein Aufgabentitel ist erforderlich.";
   }
 
-  if (
-    projectId &&
-    !data.projects.some(p => p.id === projectId)
-  ) {
-    return "Das angegebene Projekt wurde nicht gefunden.";
+  if (taskTitle.length > 300) {
+    return "Fehler: Der Aufgabentitel ist zu lang.";
+  }
+
+  if (!Array.isArray(data.tasks)) {
+    data.tasks = [];
+  }
+
+  if (projectId !== null) {
+    const projectExists = arr(data.projects).some(project =>
+      project && String(project.id) === String(projectId)
+    );
+
+    if (!projectExists) {
+      return "Fehler: Das angegebene Projekt existiert nicht.";
+    }
+  }
+
+  let dueDate = null;
+
+  if (due !== null && due !== "") {
+    const parsed = new Date(due);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return "Fehler: Das Fälligkeitsdatum ist ungültig.";
+    }
+
+    dueDate = parsed.toISOString();
   }
 
   const task = {
     id: uid(),
-    title,
+    title: taskTitle,
     projectId,
-    due,
-    done: false,
+    due: dueDate,
     created: now(),
-    updated: now()
+    done: false,
+    completed: null
   };
 
   data.tasks.push(task);
 
-  logAudit(
-    "Projekt-KI",
-    "Aufgabe erstellt",
-    title
-  );
+  logAudit("task_created", {
+    id: task.id,
+    title: task.title
+  });
 
   save();
 
-  return `Aufgabe erstellt: ${title}`;
+  return (
+    "Aufgabe erstellt: " +
+    task.title +
+    "\nID: " + task.id
+  );
 }
 
 function completeTask(id) {
-  const task = data.tasks.find(t => t.id === id);
+  const task = arr(data.tasks).find(item =>
+    item && String(item.id) === String(id)
+  );
 
   if (!task) {
-    return "Aufgabe nicht gefunden.";
+    return "Fehler: Aufgabe nicht gefunden.";
+  }
+
+  if (task.done === true) {
+    return "Diese Aufgabe ist bereits erledigt.";
   }
 
   task.done = true;
-  task.updated = now();
+  task.completed = now();
 
-  logAudit(
-    "Projekt-KI",
-    "Aufgabe abgeschlossen",
-    task.title
-  );
+  logAudit("task_completed", {
+    id: task.id,
+    title: task.title
+  });
 
   save();
 
-  return `Erledigt: ${task.title}`;
+  return "Aufgabe erledigt: " + task.title;
 }
 
 function listProjects() {
-  if (!data.projects.length) {
-    return "Noch keine Projekte vorhanden.";
+  const projects = arr(data.projects);
+  const tasks = arr(data.tasks);
+
+  if (!projects.length) {
+    return "Es sind noch keine Projekte vorhanden.";
   }
 
-  return data.projects.map(project => {
-    const tasks = data.tasks.filter(
-      task => task.projectId === project.id
+  return projects.map(project => {
+    const projectTasks = tasks.filter(task =>
+      task && String(task.projectId) === String(project.id)
     );
 
-    const done = tasks.filter(
-      task => task.done
+    const completed = projectTasks.filter(task =>
+      task.done === true
     ).length;
 
     return [
       project.name,
-      `Status: ${project.status || "unbekannt"}`,
-      `Aufgaben: ${done}/${tasks.length} erledigt`,
-      project.description || "",
-      `ID: ${project.id}`
+      "Status: " + (project.status || "active"),
+      "Aufgaben: " + projectTasks.length,
+      "Erledigt: " + completed,
+      "ID: " + project.id,
+      project.description || ""
     ].filter(Boolean).join("\n");
   }).join("\n\n");
 }
 
 function listTasks() {
-  if (!data.tasks.length) {
-    return "Noch keine Aufgaben vorhanden.";
+  const tasks = arr(data.tasks);
+
+  if (!tasks.length) {
+    return "Es sind noch keine Aufgaben vorhanden.";
   }
 
-  return data.tasks.map(task => [
-    `${task.done ? "[X]" : "[ ]"} ${task.title}`,
-    `ID: ${task.id}`,
-    task.projectId
-      ? `Projekt-ID: ${task.projectId}`
-      : "Kein Projekt zugeordnet.",
-    task.due
-      ? `Fällig: ${task.due}`
-      : ""
-  ].filter(Boolean).join("\n")).join("\n\n");
+  return tasks.map(task => {
+    const status =
+      task.done === true ? "Erledigt" : "Offen";
+
+    const project = arr(data.projects).find(item =>
+      item && String(item.id) === String(task.projectId)
+    );
+
+    return [
+      "[" + status + "] " + task.title,
+      project ? "Projekt: " + project.name : "",
+      task.due ? "Fällig: " + task.due : "",
+      "ID: " + task.id
+    ].filter(Boolean).join("\n");
+  }).join("\n\n");
 }
 
 /* =====================================================
@@ -1617,52 +1961,105 @@ function listTasks() {
    ===================================================== */
 
 function inspectCode(source) {
-  source = String(source || "");
+  const code = String(source || "");
+
+  if (!code.trim()) {
+    return [];
+  }
 
   const findings = [];
+  const lines = code.split("\n");
 
   const rules = [
     {
-      name: "Mögliche unsichere HTML-Ausgabe",
-      regex: /\.innerHTML\s*=/g,
+      name: "Unsichere HTML-Ausgabe mit innerHTML",
+      pattern: /\.innerHTML\s*(?:\+?=)/g,
       severity: "warning",
-      advice: "Bei Benutzereingaben textContent oder sichere Sanitizer verwenden."
+      advice:
+        "Prüfe, ob Benutzereingaben in innerHTML gelangen. " +
+        "Für reinen Text ist textContent sicherer."
     },
     {
-      name: "Möglicher unsicherer eval-Aufruf",
-      regex: /\beval\s*\(/g,
-      severity: "critical",
-      advice: "eval vermeiden. Stattdessen sichere Funktionen verwenden."
-    },
-    {
-      name: "Möglicher ungeschützter localStorage-Zugriff",
-      regex: /JSON\.parse\s*\(\s*localStorage\.getItem/g,
+      name: "Unsichere HTML-Einfügung mit insertAdjacentHTML",
+      pattern: /\.insertAdjacentHTML\s*\(/g,
       severity: "warning",
-      advice: "JSON.parse in try/catch absichern."
+      advice:
+        "Prüfe die eingefügten Inhalte auf nicht vertrauenswürdigen HTML-Code."
     },
     {
-      name: "Möglicher fest eingebauter API-Schlüssel",
-      regex: /(?:sk-[A-Za-z0-9_-]{15,}|api[_-]?key\s*[:=]\s*["'][^"']+)/gi,
+      name: "Veraltete HTML-Ausgabe mit document.write",
+      pattern: /document\.write\s*\(/g,
+      severity: "warning",
+      advice:
+        "Verwende besser DOM-Methoden wie createElement und textContent."
+    },
+    {
+      name: "eval() gefunden",
+      pattern: /\beval\s*\(/g,
       severity: "critical",
-      advice: "API-Schlüssel niemals im Browsercode speichern."
+      advice:
+        "eval() kann beliebigen Code ausführen. Vermeide es."
     },
     {
-      name: "Möglicher Netzwerkzugriff",
-      regex: /\bfetch\s*\(/g,
+      name: "new Function() gefunden",
+      pattern: /new\s+Function\s*\(/g,
+      severity: "warning",
+      advice:
+        "Dynamisch erzeugter JavaScript-Code ist schwer zu kontrollieren."
+    },
+    {
+      name: "Möglicher unsicherer JSON-Import",
+      pattern: /JSON\.parse\s*\(/g,
       severity: "info",
-      advice: "Netzwerkzugriffe mit try/catch absichern."
+      advice:
+        "Prüfe fremde JSON-Daten nach dem Parsen auf ihre Struktur."
+    },
+    {
+      name: "Möglicherweise fest eingebauter API-Schlüssel",
+      pattern:
+        /(?:api[_-]?key|secret|token)\s*[:=]\s*["'][A-Za-z0-9_\-]{16,}["']/gi,
+      severity: "critical",
+      advice:
+        "API-Schlüssel gehören nicht in öffentlich ausgelieferten Quellcode."
+    },
+    {
+      name: "Unsichere HTTP-Verbindung",
+      pattern: /https?:\/\/(?!localhost)[^\s"'`]+/gi,
+      severity: "info",
+      advice:
+        "Prüfe, ob externe Verbindungen HTTPS verwenden."
+    },
+    {
+      name: "Netzwerkanfrage gefunden",
+      pattern: /\bfetch\s*\(/g,
+      severity: "info",
+      advice:
+        "Behandle Netzwerkfehler und prüfe HTTP-Statuscodes."
+    },
+    {
+      name: "localStorage-Zugriff gefunden",
+      pattern: /\blocalStorage\.(?:getItem|setItem|removeItem)\s*\(/g,
+      severity: "info",
+      advice:
+        "Beachte Speicherlimits und mögliche Fehler beim Zugriff."
+    },
+    {
+      name: "Möglicher unsicherer HTML-String",
+      pattern: /\.innerHTML\s*\+=/g,
+      severity: "warning",
+      advice:
+        "Das Anhängen von HTML-Strings kann Sicherheitsprobleme verursachen."
     }
   ];
 
   for (const rule of rules) {
-    rule.regex.lastIndex = 0;
+    rule.pattern.lastIndex = 0;
 
     let match;
 
-    while ((match = rule.regex.exec(source)) !== null) {
-      const line = source
-        .slice(0, match.index)
-        .split("\n").length;
+    while ((match = rule.pattern.exec(code)) !== null) {
+      const line =
+        code.slice(0, match.index).split("\n").length;
 
       findings.push({
         name: rule.name,
@@ -1671,282 +2068,482 @@ function inspectCode(source) {
         advice: rule.advice
       });
 
-      if (!rule.regex.global) break;
+      if (!rule.pattern.global) break;
+
+      // Schutz vor Endlosschleifen bei leeren Treffern.
+      if (match[0] === "") {
+        rule.pattern.lastIndex++;
+      }
     }
   }
 
-  return findings;
+  // Doppelte Treffer derselben Regel auf derselben Zeile entfernen.
+  const unique = [];
+  const seen = new Set();
+
+  for (const finding of findings) {
+    const key =
+      finding.name + ":" + finding.line;
+
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    unique.push(finding);
+  }
+
+  return unique.sort((a, b) => {
+    if (a.line !== b.line) return a.line - b.line;
+
+    const severity = {
+      critical: 0,
+      warning: 1,
+      info: 2
+    };
+
+    return severity[a.severity] - severity[b.severity];
+  });
 }
 
 function inspectCodeReport(source) {
-  const findings = inspectCode(source);
+  const code = String(source || "");
 
-  const critical = findings.filter(
-    item => item.severity === "critical"
+  if (!code.trim()) {
+    return "Kein Quellcode zum Prüfen vorhanden.";
+  }
+
+  const findings = inspectCode(code);
+
+  const critical = findings.filter(item =>
+    item.severity === "critical"
   ).length;
 
-  const warnings = findings.filter(
-    item => item.severity === "warning"
+  const warnings = findings.filter(item =>
+    item.severity === "warning"
   ).length;
 
-  return [
-    "CODE-PRÜFUNG LERNBOT 6.0",
+  const infos = findings.filter(item =>
+    item.severity === "info"
+  ).length;
+
+  const lines = [
+    "CODE-KI – PRÜFBERICHT",
     "",
-    `Gefundene Hinweise: ${findings.length}`,
-    `Kritisch: ${critical}`,
-    `Warnungen: ${warnings}`,
-    "",
-    ...findings.map(item =>
-      `[${item.severity.toUpperCase()}] Zeile ${item.line}: ${item.name}\n${item.advice}`
-    ),
-    "",
-    findings.length
-      ? "Das sind statische Prüfhilfen, kein vollständiger JavaScript-Compiler."
-      : "Keine Treffer in den eingebauten Prüfregeln."
-  ].join("\n");
+    "Geprüfte Zeilen: " + code.split("\n").length,
+    "Gefundene Hinweise: " + findings.length,
+    "Kritisch: " + critical,
+    "Warnungen: " + warnings,
+    "Informationen: " + infos,
+    ""
+  ];
+
+  if (!findings.length) {
+    lines.push(
+      "Keine der eingebauten Prüfroutinen hat Auffälligkeiten gefunden."
+    );
+  } else {
+    findings.forEach((finding, index) => {
+      lines.push(
+        (index + 1) + ". " + finding.name
+      );
+
+      lines.push(
+        "Zeile: " + finding.line
+      );
+
+      lines.push(
+        "Schweregrad: " + finding.severity.toUpperCase()
+      );
+
+      lines.push(
+        "Empfehlung: " + finding.advice
+      );
+
+      lines.push("");
+    });
+  }
+
+  lines.push(
+    "WICHTIG: Diese Code-KI verwendet statische Musterprüfungen. " +
+    "Sie ersetzt keinen JavaScript-Parser, Compiler oder echten Laufzeittest."
+  );
+
+  return lines.join("\n");
 }
 
 /* =====================================================
-   7. SICHERUNGEN UND VERSIONSVERLAUF
+   7. SNAPSHOT- UND BACKUP-SYSTEM
    ===================================================== */
 
 function createSnapshot(label = "Manuelle Sicherung") {
   const snapshot = {
     id: uid(),
-    label: safeText(label, 200),
-    time: now(),
-
-    facts: clone(data.facts),
-    qa: clone(data.qa),
-    classes: clone(data.classes),
-    memory: clone(data.memory),
-    relationships: clone(data.relationships),
-    projects: clone(data.projects),
-    tasks: clone(data.tasks),
-    documents: clone(data.documents),
-    settings: clone(data.settings),
-    theme: data.theme,
-    agentStats: clone(data.agentStats)
+    label: String(label || "Manuelle Sicherung").slice(0, 150),
+    created: now(),
+    data: {
+      facts: clone(arr(data.facts)),
+      memories: clone(arr(data.memories)),
+      documents: clone(arr(data.documents)),
+      projects: clone(arr(data.projects)),
+      tasks: clone(arr(data.tasks)),
+      snapshots: clone(arr(data.snapshots)),
+      settings: clone(obj(data.settings) ? data.settings : {}),
+      theme: data.theme,
+      agentStats: clone(
+        obj(data.agentStats) ? data.agentStats : {}
+      )
+    }
   };
 
-  data.snapshots.push(snapshot);
-  data.snapshots = data.snapshots.slice(-30);
+  if (!Array.isArray(data.snapshots)) {
+    data.snapshots = [];
+  }
 
-  logAudit(
-    "Sicherungssystem",
-    "Sicherung erstellt",
-    snapshot.label
-  );
+  data.snapshots.push(snapshot);
+
+  // Höchstens 30 Sicherungen behalten.
+  if (data.snapshots.length > 30) {
+    data.snapshots =
+      data.snapshots.slice(-30);
+  }
+
+  logAudit("snapshot_created", {
+    id: snapshot.id,
+    label: snapshot.label
+  });
 
   save();
 
-  return `Sicherung erstellt: ${snapshot.label}`;
+  return (
+    "Sicherung erstellt: " +
+    snapshot.label +
+    "\nID: " + snapshot.id
+  );
 }
 
 function restoreSnapshot(id) {
-  const snapshot = data.snapshots.find(
-    item => item.id === id
+  const snapshot = arr(data.snapshots).find(item =>
+    item && String(item.id) === String(id)
   );
 
-  if (!snapshot) {
-    return "Sicherung nicht gefunden.";
+  if (!snapshot || !obj(snapshot.data)) {
+    return "Fehler: Sicherung nicht gefunden oder beschädigt.";
   }
 
-  const keys = [
+  const source = snapshot.data;
+
+  const arrayKeys = [
     "facts",
-    "qa",
-    "classes",
-    "memory",
-    "relationships",
+    "memories",
+    "documents",
     "projects",
-    "tasks",
-    "documents"
+    "tasks"
   ];
 
-  for (const key of keys) {
-    if (Array.isArray(snapshot[key])) {
-      data[key] = clone(snapshot[key]);
-    }
+  const backup = {};
+
+  for (const key of arrayKeys) {
+    backup[key] = clone(arr(data[key]));
   }
 
-  if (obj(snapshot.settings)) {
-    data.settings = {
-      ...clone(defaults.settings),
-      ...clone(snapshot.settings)
-    };
-  }
-
-  if (typeof snapshot.theme === "string") {
-    data.theme = snapshot.theme;
-  }
-
-  if (obj(snapshot.agentStats)) {
-    data.agentStats = clone(snapshot.agentStats);
-  }
-
-  logAudit(
-    "Sicherungssystem",
-    "Sicherung wiederhergestellt",
-    snapshot.label || id
+  backup.settings = clone(
+    obj(data.settings) ? data.settings : {}
   );
 
-  save();
+  backup.theme = data.theme;
 
-  return `Sicherung wiederhergestellt: ${snapshot.label || id}`;
-}
-
-/* =====================================================
-   8. EXPORT
-   ===================================================== */
-
-function exportData() {
-  return JSON.stringify({
-    app: NAME,
-    version: VERSION,
-    exported: new Date().toISOString(),
-    data: clone(data)
-  }, null, 2);
-}
-
-/* =====================================================
-   9. IMPORT – MIT DATENPRÜFUNG
-   ===================================================== */
-
-function importData(json) {
-  let parsed;
+  backup.agentStats = clone(
+    obj(data.agentStats) ? data.agentStats : {}
+  );
 
   try {
-    parsed = typeof json === "string"
-      ? JSON.parse(json)
-      : json;
-  } catch {
-    return "Import fehlgeschlagen: Ungültiges JSON.";
-  }
-
-  if (!obj(parsed)) {
-    return "Ungültiges Datenformat.";
-  }
-
-  const incoming = obj(parsed.data)
-    ? parsed.data
-    : parsed;
-
-  const arrayValidators = {
-    facts: item =>
-      obj(item) &&
-      typeof item.subject === "string" &&
-      typeof item.property === "string" &&
-      typeof item.value === "string",
-
-    qa: item =>
-      obj(item) &&
-      typeof item.k === "string" &&
-      typeof item.a === "string",
-
-    relationships: item =>
-      obj(item) &&
-      typeof item.from === "string" &&
-      typeof item.to === "string" &&
-      typeof item.relation === "string",
-
-    memory: item =>
-      obj(item) &&
-      typeof item.content === "string" &&
-      typeof item.type === "string",
-
-    documents: item =>
-      obj(item) &&
-      typeof item.title === "string",
-
-    projects: item =>
-      obj(item) &&
-      typeof item.name === "string",
-
-    tasks: item =>
-      obj(item) &&
-      typeof item.title === "string",
-
-    classes: item => obj(item),
-    log: item => obj(item),
-    audit: item => obj(item),
-    improvements: item => obj(item),
-    codeProposals: item => obj(item),
-    snapshots: item => obj(item)
-  };
-
-  let imported = 0;
-  const rejected = [];
-
-  for (const [key, validator] of Object.entries(arrayValidators)) {
-    if (incoming[key] === undefined) continue;
-
-    if (!Array.isArray(incoming[key])) {
-      rejected.push(key);
-      continue;
-    }
-
-    const valid = incoming[key].filter(validator);
-
-    data[key] = clone(valid);
-    imported++;
-  }
-
-  if (obj(incoming.agentStats)) {
-    const stats = {};
-
-    for (const [key, value] of Object.entries(incoming.agentStats)) {
-      const number = Number(value);
-
-      if (
-        Number.isFinite(number) &&
-        number >= 0
-      ) {
-        stats[safeText(key, 100)] = number;
+    for (const key of arrayKeys) {
+      if (Array.isArray(source[key])) {
+        data[key] = clone(source[key]);
       }
     }
 
-    data.agentStats = stats;
-    imported++;
+    if (obj(source.settings)) {
+      data.settings = clone(source.settings);
+    }
+
+    if (typeof source.theme === "string") {
+      data.theme = source.theme;
+    }
+
+    if (obj(source.agentStats)) {
+      data.agentStats = clone(source.agentStats);
+    }
+
+    logAudit("snapshot_restored", {
+      id: snapshot.id,
+      label: snapshot.label
+    });
+
+    save();
+
+    return (
+      "Sicherung wiederhergestellt: " +
+      snapshot.label
+    );
+
+  } catch (error) {
+    for (const key of arrayKeys) {
+      data[key] = backup[key];
+    }
+
+    data.settings = backup.settings;
+    data.theme = backup.theme;
+    data.agentStats = backup.agentStats;
+
+    try {
+      save();
+    } catch {
+      // Ursprünglicher Fehler bleibt maßgeblich.
+    }
+
+    return (
+      "Fehler beim Wiederherstellen: " +
+      String(error?.message || error)
+    );
+  }
+}
+
+/* =====================================================
+   8. DATENEXPORT
+   ===================================================== */
+
+function exportData() {
+  const payload = {
+    app: NAME,
+    version: VERSION,
+    exported: now(),
+    data: clone(data)
+  };
+
+  return JSON.stringify(payload, null, 2);
+}
+
+/* =====================================================
+   9. SICHERER DATENIMPORT
+   ===================================================== */
+
+function importData(json) {
+  let incoming;
+
+  try {
+    incoming =
+      typeof json === "string"
+        ? JSON.parse(json)
+        : json;
+  } catch {
+    return "Fehler: Die Importdatei enthält ungültiges JSON.";
   }
 
-  if (obj(incoming.settings)) {
-    data.settings = {
-      ...clone(defaults.settings),
-      ...incoming.settings
-    };
-
-    imported++;
+  if (!obj(incoming)) {
+    return "Fehler: Ungültiges Importformat.";
   }
 
-  if (typeof incoming.theme === "string") {
-    data.theme = incoming.theme;
-    imported++;
+  const source =
+    obj(incoming.data)
+      ? incoming.data
+      : incoming;
+
+  if (!obj(source)) {
+    return "Fehler: Der Datenbereich fehlt.";
   }
 
-  if (!imported) {
-    return "Import abgebrochen: Keine gültigen Daten gefunden.";
+  const arrayKeys = [
+    "facts",
+    "memories",
+    "documents",
+    "projects",
+    "tasks",
+    "snapshots"
+  ];
+
+  const validators = {
+    facts: item =>
+      obj(item) &&
+      typeof item.subject === "string" &&
+      item.subject.trim().length > 0,
+
+    memories: item =>
+      typeof item === "string" ||
+      obj(item),
+
+    documents: item =>
+      obj(item) &&
+      typeof item.title === "string" &&
+      item.title.trim().length > 0,
+
+    projects: item =>
+      obj(item) &&
+      typeof item.name === "string" &&
+      item.name.trim().length > 0,
+
+    tasks: item =>
+      obj(item) &&
+      typeof item.title === "string" &&
+      item.title.trim().length > 0,
+
+    snapshots: item =>
+      obj(item) &&
+      typeof item.id === "string" &&
+      obj(item.data)
+  };
+
+  const prepared = {};
+  const rejected = [];
+
+  for (const key of arrayKeys) {
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
+      continue;
+    }
+
+    if (!Array.isArray(source[key])) {
+      rejected.push(
+        key + ": Kein gültiges Array."
+      );
+
+      continue;
+    }
+
+    const original = source[key];
+
+    const valid = original.filter(item => {
+      try {
+        return validators[key](item);
+      } catch {
+        return false;
+      }
+    });
+
+    /*
+      Wichtige Schutzregel:
+      Ein nicht leeres Array mit ausschließlich ungültigen
+      Einträgen darf vorhandene Daten nicht löschen.
+    */
+
+    if (original.length > 0 && valid.length === 0) {
+      rejected.push(
+        key + ": Alle Einträge waren ungültig. Vorhandene Daten bleiben erhalten."
+      );
+
+      continue;
+    }
+
+    prepared[key] = clone(valid);
   }
 
-  logAudit(
-    "Import-System",
-    "Daten importiert",
-    `${imported} Datenbereiche`
-  );
+  const hasSettings =
+    Object.prototype.hasOwnProperty.call(source, "settings") &&
+    obj(source.settings);
 
-  const saved = save();
+  const hasTheme =
+    Object.prototype.hasOwnProperty.call(source, "theme") &&
+    typeof source.theme === "string";
 
-  if (!saved) {
-    return "Import durchgeführt, aber das Speichern ist fehlgeschlagen.";
+  const hasAgentStats =
+    Object.prototype.hasOwnProperty.call(source, "agentStats") &&
+    obj(source.agentStats);
+
+  if (
+    !Object.keys(prepared).length &&
+    !hasSettings &&
+    !hasTheme &&
+    !hasAgentStats
+  ) {
+    return (
+      "Import abgebrochen: Es wurden keine gültigen Daten gefunden.\n" +
+      rejected.join("\n")
+    );
   }
 
-  return [
-    "DATENIMPORT ABGESCHLOSSEN",
+  // Vor dem Import einen vollständigen Arbeitsspeicher-Abzug erstellen.
+  const backup = clone(data);
+
+  try {
+    for (const key of arrayKeys) {
+      if (
+        Object.prototype.hasOwnProperty.call(prepared, key)
+      ) {
+        data[key] = prepared[key];
+      }
+    }
+
+    if (hasSettings) {
+      data.settings = clone(source.settings);
+    }
+
+    if (hasTheme) {
+      data.theme = source.theme.slice(0, 100);
+    }
+
+    if (hasAgentStats) {
+      const cleanStats = {};
+
+      for (const [key, value] of Object.entries(source.agentStats)) {
+        if (
+          Object.prototype.hasOwnProperty.call(agents, key) &&
+          Number.isFinite(Number(value)) &&
+          Number(value) >= 0
+        ) {
+          cleanStats[key] = Math.floor(Number(value));
+        }
+      }
+
+      data.agentStats = cleanStats;
+    }
+
+    logAudit("data_imported", {
+      version: incoming.version || "unbekannt",
+      importedSections: Object.keys(prepared)
+    });
+
+    save();
+
+  } catch (error) {
+    // Bei einem Fehler wird der vorherige Zustand wiederhergestellt.
+    for (const key of Object.keys(data)) {
+      delete data[key];
+    }
+
+    Object.assign(data, backup);
+
+    try {
+      save();
+    } catch {
+      // Keine weitere Änderung am ursprünglichen Fehler.
+    }
+
+    return (
+      "Import fehlgeschlagen. Die vorherigen Daten wurden wiederhergestellt.\n" +
+      String(error?.message || error)
+    );
+  }
+
+  const importedCount = Object.values(prepared)
+    .reduce((sum, items) => sum + items.length, 0);
+
+  const lines = [
+    "Datenimport erfolgreich.",
     "",
-    `Importierte Datenbereiche: ${imported}`,
-    rejected.length
-      ? `Übersprungene ungültige Bereiche: ${rejected.join(", ")}`
-      : "Alle übermittelten Datenbereiche wurden geprüft."
-  ].join("\n");
+    "Importierte Einträge: " + importedCount,
+    "Importierte Bereiche: " +
+      (Object.keys(prepared).join(", ") || "Keine"),
+    "Version: " + (incoming.version || "Unbekannt")
+  ];
+
+  if (rejected.length) {
+    lines.push("");
+    lines.push("HINWEISE:");
+
+    rejected.forEach(message => {
+      lines.push("- " + message);
+    });
+  }
+
+  return lines.join("\n");
 }
 
 /* =====================================================
