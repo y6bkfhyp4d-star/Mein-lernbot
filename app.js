@@ -1,9 +1,10 @@
+
 (() => {
 "use strict";
 
 /* ==========================================
    LERNBOT 3.0 – MULTI-BRAIN-SYSTEM
-   8 Module + Code-KI
+   8 Module + verbesserte Code-KI
    ========================================== */
 
 const $ = id => document.getElementById(id);
@@ -57,12 +58,12 @@ KI-TEAM:
 „Meta-Analyse“
 „Verbesserungsvorschläge“
 
-NEUE CODE-KI:
+CODE-KI:
 „Code prüfen“
 „Codebericht“
 „Code-Vorschläge“
 „Programmierwissen“
-„Code-KI“
+„Code-KI: Überprüfe deinen Code erneut“
 
 WISSEN:
 „Was weißt du?“
@@ -459,7 +460,6 @@ function analyzeKnowledge(subject = "") {
     }
   });
 
-  // Frühere Werte berücksichtigen, die addFact gespeichert hat.
   facts.forEach(f => {
     if (f.conflict && f.previous) {
       conflicts.push([{
@@ -1018,10 +1018,6 @@ function codeCheckRules(source) {
     );
   }
 
-  if (/^(?![\s\S]*document\.currentScript)/.test(source)) {
-    // Nur ein Hinweis, kein Fehler.
-  }
-
   return findings;
 }
 
@@ -1140,6 +1136,137 @@ Niedrig: ${low}
   logAudit("Code-KI","Codeprüfung abgeschlossen",findings.length + " Auffälligkeiten");
   save();
   return out;
+}
+
+/* ==========================================
+   NEU: ERNEUTE CODEPRÜFUNG MIT FUNDSTELLEN
+   ========================================== */
+
+async function inspectCodeReport() {
+  countAgent("Code-KI");
+
+  const source = await getOwnSource();
+
+  if (!source) {
+    return `🔍 CODE-KI – ERNEUTE PRÜFUNG
+
+Ich kann den Quellcode nicht lesen.
+
+Bitte lade zuerst deine JavaScript-Datei über „Code-Datei laden“.
+Danach kannst du die erneute Prüfung starten.`;
+  }
+
+  const lines = source.split(/\r?\n/);
+
+  // Die Prüfregeln der Code-KI selbst werden aus der Suche entfernt.
+  // So meldet sie ihre eigenen Suchmuster nicht als echte Codefehler.
+  const scannerStart = source.indexOf("function codeCheckRules(source)");
+  const scannerEnd = source.indexOf("function createCodeProposal",scannerStart);
+
+  let searchableSource = source;
+
+  if (scannerStart >= 0 && scannerEnd > scannerStart) {
+    searchableSource =
+      source.slice(0,scannerStart) +
+      "\n".repeat(source.slice(scannerStart,scannerEnd).split("\n").length) +
+      source.slice(scannerEnd);
+  }
+
+  const searchableLines = searchableSource.split(/\r?\n/);
+
+  const checks = [
+    {
+      name:"eval()",
+      regex:/\beval\s*\(/g
+    },
+    {
+      name:"new Function()",
+      regex:/\bnew\s+Function\s*\(/g
+    },
+    {
+      name:"document.write()",
+      regex:/\bdocument\.write\s*\(/g
+    },
+    {
+      name:"innerHTML-Zuweisung",
+      regex:/\.innerHTML\s*=/g
+    },
+    {
+      name:"addEventListener()",
+      regex:/\.addEventListener\s*\(/g
+    }
+  ];
+
+  let report = `🔍 CODE-KI – ERNEUTE PRÜFUNG
+
+Quellcode: ${source.length} Zeichen
+Zeilen: ${lines.length}
+
+Die internen Prüfregeln der Code-KI wurden bei dieser Suche ausgeklammert.
+
+`;
+
+  checks.forEach(check => {
+    const hits = [];
+
+    searchableLines.forEach((line,index) => {
+      check.regex.lastIndex = 0;
+
+      if (check.regex.test(line)) {
+        hits.push({
+          number:index + 1,
+          code:line.trim()
+        });
+      }
+    });
+
+    report += `${check.name}\n`;
+
+    if (!hits.length) {
+      report += "Keine Fundstelle außerhalb der internen Prüfregeln gefunden.\n\n";
+      return;
+    }
+
+    hits.forEach(hit => {
+      report += `Zeile ${hit.number}:\n`;
+      report += `${hit.code}\n`;
+      report += "Status: Fundstelle erkannt – manuelle Prüfung erforderlich.\n";
+    });
+
+    report += "\n";
+  });
+
+  const pending = data.codeProposals.find(
+    p => p.id === data.pendingCodeProposal
+  );
+
+  const latest = data.codeProposals[data.codeProposals.length - 1];
+
+  report += "VORHANDENER VERBESSERUNGSVORSCHLAG\n\n";
+
+  if (pending) {
+    report += formatCodeProposal(pending);
+  } else if (latest) {
+    report += formatCodeProposal(latest);
+    report += "\n\nEs gibt derzeit keinen offenen Vorschlag.";
+  } else {
+    report += "Es wurde bisher noch kein Verbesserungsvorschlag gespeichert.";
+  }
+
+  report += `
+
+ERGEBNIS UND GRENZEN
+
+• Die Fundstellen wurden anhand einfacher Suchregeln erkannt.
+• Ein Treffer beweist noch keine Sicherheitslücke.
+• Kommentare und Zeichenketten können weiterhin einzelne Fehlalarme verursachen.
+• Die Code-KI kann die tatsächliche Programmlogik nicht vollständig verstehen.
+• Es wurde nichts am Programmcode verändert.`;
+
+  logAudit("Code-KI","Erneute Codeprüfung","Fundstellenbericht erstellt");
+  save();
+
+  return report;
 }
 
 function showCodeProposal() {
@@ -1341,12 +1468,23 @@ function handle(text,previousQuestion) {
 
   if (/^(teamstatus|zeige deine module|zeige dein team)$/.test(low)) return teamStatus();
 
-  // Normalisierung behebt auch den bisherigen Meta-Analyse-Befehl.
   if (/^meta\s*analyse(?:\s+starten)?$/.test(low)) return metaAnalysis();
 
   if (/^(verbesserungsvorschläge|system optimieren|optimiere dich)$/.test(low)) return optimizeSystem();
 
-  if (/^(code prüfen|code prüfen lassen|codebericht|code ki|code-ki)$/.test(low)) {
+  // Längere Code-KI-Aufträge werden jetzt ebenfalls erkannt.
+  // Einfache Befehle wie "Code prüfen" behalten die alte Prüfung.
+  if (
+    /^\s*(?:suche\s*:\s*)?code[- ]?ki\s*:/i.test(text) ||
+    /^suche\s*:\s*code\s*(?:prüfen|bericht)\b/i.test(text) ||
+    /^codebericht\b/i.test(low) ||
+    /^code erneut prüfen\b/i.test(low) ||
+    /^überprüfe deinen code erneut\b/i.test(low)
+  ) {
+    return inspectCodeReport();
+  }
+
+  if (/^(code prüfen|code prüfen lassen|code ki|code-ki)$/.test(low)) {
     return inspectCode();
   }
 
@@ -1618,9 +1756,6 @@ async function send(text) {
 /* ==========================================
    CODE-DATEI LADEN
    ========================================== */
-
-// Falls der Browser den eigenen Quellcode nicht automatisch bereitstellt,
-// kann die Code-KI eine JavaScript-Datei direkt vom Benutzer erhalten.
 
 const codePicker = document.createElement("input");
 codePicker.type = "file";
