@@ -1096,820 +1096,685 @@ function importData(json) {
 
 /* =====================================================
    LERNBOT 6.0 – TEIL 3/3
-   CHAT, BEFEHLE, DATEIEN, OBERFLÄCHE, START
+   CHAT, BEFEHLE, DATEIEN, OBERFLÄCHE UND START
    ===================================================== */
 
-/* =====================================================
-   12. STATUS UND CHAT
-   ===================================================== */
-
-function setStatus(message) {
-  const status = $("status") ||
-    $("statusText") ||
-    $("connectionStatus");
-
-  if (status) status.textContent = safeText(message, 500);
-}
-
-function findElement(ids) {
-  for (const id of ids) {
-    const element = $(id);
-    if (element) return element;
-  }
-  return null;
-}
+/* ---------- BENUTZEROBERFLÄCHE ---------- */
 
 const UI = {
-  input: () => findElement([
-    "userInput", "messageInput", "chatInput",
-    "input", "prompt", "questionInput"
-  ]),
-  send: () => findElement([
-    "sendBtn", "sendButton", "send",
-    "submitBtn", "chatSend"
-  ]),
-  chat: () => findElement([
-    "chatMessages", "messages", "chat",
-    "chatContainer", "chatHistory", "conversation"
-  ]),
-  file: () => findElement([
-    "fileInput", "uploadInput", "documentInput",
-    "fileUpload"
-  ])
+  input() {
+    return (
+      $("lb6-input") ||
+      $("chat-input") ||
+      $("user-input") ||
+      $("message-input") ||
+      $("lb6-fallback-input")
+    );
+  },
+
+  chat() {
+    return (
+      $("lb6-chat") ||
+      $("chat-messages") ||
+      $("messages") ||
+      $("lb6-fallback-chat")
+    );
+  },
+
+  send() {
+    return (
+      $("lb6-send") ||
+      $("send-button") ||
+      $("send-btn") ||
+      $("lb6-fallback-send")
+    );
+  },
+
+  file() {
+    return (
+      $("lb6-file") ||
+      $("file-input") ||
+      $("lb6-fallback-file")
+    );
+  }
 };
 
-function addMessage(role, content) {
-  const container = UI.chat();
+/* ---------- NACHRICHTEN ---------- */
 
-  if (!container) {
-    console.log(`[${role}]`, content);
+function addMessage(role, content) {
+  const chat = UI.chat();
+
+  if (!chat) {
+    console.log(role + ": " + content);
     return;
   }
 
   const message = document.createElement("div");
   message.className = "lb6-message lb6-" + role;
 
-  const label = document.createElement("strong");
-  label.textContent = role === "user" ? "Du" : NAME;
+  const text = document.createElement("div");
+  text.className = "lb6-message-content";
+  text.textContent = String(content ?? "");
 
-  const body = document.createElement("div");
-  body.className = "lb6-message-content";
-  body.textContent = String(content ?? "");
+  message.appendChild(text);
+  chat.appendChild(message);
 
-  message.append(label, body);
-  container.appendChild(message);
-
-  container.scrollTop = container.scrollHeight;
+  chat.scrollTop = chat.scrollHeight;
 }
 
 function addTyping() {
-  const container = UI.chat();
-  if (!container) return null;
+  const chat = UI.chat();
+  if (!chat) return null;
 
   const element = document.createElement("div");
   element.className = "lb6-typing";
-  element.textContent = "LernBot 6.0 denkt nach ...";
+  element.textContent = "LernBot denkt nach ...";
 
-  container.appendChild(element);
-  container.scrollTop = container.scrollHeight;
+  chat.appendChild(element);
+  chat.scrollTop = chat.scrollHeight;
 
   return element;
 }
 
-function removeTyping(element) {
-  if (element?.parentNode) element.remove();
-}
+/* ---------- STYLES ---------- */
 
 function installStyles() {
-  if ($("lb6-styles")) return;
+  if (document.getElementById("lb6-styles")) return;
 
   const style = document.createElement("style");
   style.id = "lb6-styles";
 
   style.textContent = `
+    #lb6-fallback-root {
+      width: 100%;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 16px;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      color: var(--lb6-text, #222);
+      background: var(--lb6-bg, #fff);
+      border: 1px solid #8884;
+      border-radius: 14px;
+    }
+
+    #lb6-fallback-chat {
+      height: 420px;
+      overflow-y: auto;
+      padding: 12px;
+      border: 1px solid #8885;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
     .lb6-message {
-      padding: 12px 15px;
-      margin: 10px 0;
+      padding: 10px 13px;
+      margin: 8px 0;
       border-radius: 12px;
+      max-width: 90%;
+      white-space: pre-wrap;
       overflow-wrap: anywhere;
-      white-space: normal;
     }
 
     .lb6-user {
-      background: rgba(70,120,220,.13);
-      margin-left: 8%;
+      margin-left: auto;
+      background: #2563eb;
+      color: white;
     }
 
     .lb6-assistant {
-      background: rgba(120,120,120,.12);
-      margin-right: 4%;
+      margin-right: auto;
+      background: #8882;
     }
 
-    .lb6-message strong {
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .lb6-message-content {
-      white-space: pre-wrap;
-      line-height: 1.5;
+    .lb6-system {
+      margin: 8px auto;
+      text-align: center;
+      opacity: .8;
     }
 
     .lb6-typing {
-      opacity: .7;
       padding: 10px;
+      opacity: .65;
       font-style: italic;
+    }
+
+    #lb6-fallback-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    #lb6-fallback-input {
+      flex: 1;
+      min-width: 180px;
+      padding: 12px;
+      border: 1px solid #8888;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    #lb6-fallback-controls button,
+    #lb6-fallback-file-label {
+      padding: 11px 15px;
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+
+    #lb6-fallback-file {
+      display: none;
     }
   `;
 
   document.head.appendChild(style);
 }
 
-/* =====================================================
-   13. INTELLIGENTE ANTWORTEN
-   ===================================================== */
+/* ---------- FALLBACK-OBERFLÄCHE ---------- */
 
-function findQA(question) {
-  const q = normalize(question);
+function createFallbackUI() {
+  let root = document.getElementById("lb6-fallback-root");
 
-  const matches = data.qa.map(item => ({
-    item,
-    score: similarity(q, item.k)
-  }))
-  .filter(x => x.score >= 0.75)
-  .sort((a,b) => b.score - a.score);
+  if (!root) {
+    root = document.createElement("section");
+    root.id = "lb6-fallback-root";
 
-  return matches[0]?.item?.a || null;
-}
+    const heading = document.createElement("h2");
+    heading.textContent = NAME || "LernBot 6.0";
 
-function saveQA(question, answer) {
-  question = safeText(question);
-  answer = safeText(answer);
+    const chat = document.createElement("div");
+    chat.id = "lb6-fallback-chat";
 
-  if (!question || !answer) return false;
+    const controls = document.createElement("div");
+    controls.id = "lb6-fallback-controls";
 
-  const existing = data.qa.find(x =>
-    normalize(x.k) === normalize(question)
-  );
+    const input = document.createElement("input");
+    input.id = "lb6-fallback-input";
+    input.type = "text";
+    input.placeholder = "Schreibe deine Nachricht ...";
 
-  if (existing) {
-    existing.a = answer;
-    existing.updated = now();
-  } else {
-    data.qa.push({
-      id: uid(),
-      k: question,
-      a: answer,
-      created: now()
+    const send = document.createElement("button");
+    send.id = "lb6-fallback-send";
+    send.type = "button";
+    send.textContent = "Senden";
+
+    const file = document.createElement("input");
+    file.id = "lb6-fallback-file";
+    file.type = "file";
+    file.accept = ".txt,.md,.json,.js,.html,.css";
+
+    const fileLabel = document.createElement("label");
+    fileLabel.id = "lb6-fallback-file-label";
+    fileLabel.htmlFor = "lb6-fallback-file";
+    fileLabel.textContent = "Datei";
+
+    controls.append(input, send, fileLabel, file);
+    root.append(heading, chat, controls);
+
+    document.body.appendChild(root);
+
+    send.addEventListener("click", sendMessage);
+
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
     });
+
+    file.addEventListener("change", handleFileUpload);
   }
 
-  save();
-  return true;
+  installStyles();
 }
+
+/* ---------- DATEIEN ---------- */
+
+async function handleFileUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const content = await file.text();
+
+    if (typeof importDocumentText === "function") {
+      const result = importDocumentText(file.name, content);
+
+      addMessage(
+        "assistant",
+        "Datei verarbeitet: " + file.name +
+        "\n" + (result?.message || "Der Inhalt wurde übernommen.")
+      );
+    } else {
+      addMessage("assistant", "Die Dokumentenfunktion ist nicht verfügbar.");
+    }
+  } catch (error) {
+    addMessage("assistant", "Dateifehler: " + error.message);
+  }
+
+  event.target.value = "";
+}
+
+/* ---------- HILFSFUNKTIONEN ---------- */
 
 function getLearningResponse(text) {
-  const fact = learnFact(text);
-
-  if (fact) return fact;
-
-  const existing = parseFact(text);
-
-  if (existing) {
-    return "Ich konnte die Information leider nicht speichern.";
+  if (typeof learnFact === "function") {
+    return learnFact(text);
   }
 
-  return null;
+  return "Die Lernfunktion ist aktuell nicht verfügbar.";
 }
 
-function helpText() {
-  return [
-    "LERNBOT 6.0 – BEFEHLE",
-    "",
-    "LERNEN",
-    "Lerne: Das Okapi lebt im Kongo.",
-    "",
-    "WISSEN",
-    "Wissen: Okapi",
-    "Erkläre: Okapi",
-    "Wissensübersicht",
-    "",
-    "RECHERCHE",
-    "Recherchiere: Schwarze Löcher",
-    "Suche im Internet: Geschichte Roms",
-    "",
-    "GEDÄCHTNIS",
-    "Erinnere dich: Mein Projekt heißt LernBot.",
-    "Erinnerungen: Schule",
-    "",
-    "ANALYSE",
-    "Analysiere mein Wissen",
-    "Zeige Agenten",
-    "",
-    "PROJEKTE",
-    "Projekt erstellen: LernBot 6",
-    "Aufgabe erstellen: Code verbessern",
-    "Zeige Projekte",
-    "Zeige Aufgaben",
-    "",
-    "DOKUMENTE",
-    "Dokumente anzeigen",
-    "Dokumente können auch über den Datei-Upload importiert werden.",
-    "",
-    "CODE",
-    "Code prüfen",
-    "Code-Prüfung erfolgt über den Datei-Upload oder die Code-Funktion.",
-    "",
-    "SICHERUNG",
-    "Sicherung erstellen",
-    "Daten exportieren",
-    "Daten importieren",
-    "",
-    "HILFE",
-    "Hilfe"
-  ].join("\n");
+function getResearchResponse(text) {
+  if (typeof research === "function") {
+    return research(text);
+  }
+
+  return "Die Recherchefunktion ist aktuell nicht verfügbar.";
 }
 
-/* =====================================================
-   14. BEFEHLSERKENNUNG
-   ===================================================== */
+/* ---------- CHAT-BEFEHLE ---------- */
 
 async function handle(text) {
-  text = safeText(text, 20000);
+  const input = String(text || "").trim();
 
-  if (!text) return "Schreib mir etwas.";
-
-  const q = normalize(text);
-
-  /* Hilfe */
-
-  if (/^(hilfe|help|befehle|was kannst du)$/.test(q)) {
-    return helpText();
+  if (!input) {
+    return "Bitte gib eine Nachricht ein.";
   }
 
-  /* Gedächtnis */
+  const lower = input.toLowerCase();
 
-  if (/^(erinnere dich|merke dir|merk dir)\b/.test(q)) {
-    const content = text.replace(
-      /^(erinnere dich|merke dir|merk dir)\s*:?\s*/i,
-      ""
-    );
-
-    if (!content) return "Was soll ich mir merken?";
-
-    remember("nutzer", content);
-    return "Ich habe die Information in meinem Langzeitgedächtnis gespeichert.";
+  if (["hi", "hallo", "hey", "guten tag"].includes(lower)) {
+    return "Hallo! Ich bin " + NAME + ". Was möchtest du lernen?";
   }
 
-  if (/^(erinnerungen|gedaechtnis|gedächtnis)\b/.test(q)) {
-    const search = text.replace(
-      /^(erinnerungen|gedaechtnis|gedächtnis)\s*:?\s*/i,
-      ""
-    );
+  if (lower === "hilfe" || lower === "/hilfe") {
+    return `
+LERNBOT 6.0 – BEFEHLE
 
-    const results = search
-      ? searchMemory(search, 15)
-      : data.memory.slice(-15).reverse();
+Lernen:
+Lerne: Berlin ist die Hauptstadt von Deutschland.
 
-    if (!results.length) return "Keine passenden Erinnerungen gefunden.";
+Wissen:
+Wissensübersicht
+Wissen: Okapi
+Erkläre: Photosynthese
 
-    return results.map(x =>
-      `• ${x.content}`
-    ).join("\n");
+Gedächtnis:
+Merke dir: Ich lerne gerne.
+Zeige Erinnerungen
+Vergiss: Thema
+
+Recherche:
+Recherchiere: Schwarze Löcher
+
+Analyse:
+Analysiere: Dein Text
+
+Agenten:
+Agenten
+Projekt erstellen: Mein Projekt
+Projekte
+
+Aufgaben:
+Aufgabe erstellen: Lernen
+Aufgaben
+
+Dokumente:
+Dokumente
+Dokument suchen: Begriff
+Dokument zusammenfassen: ID
+
+Sicherungen:
+Sicherung erstellen
+Sicherungen
+Sicherung wiederherstellen: ID
+
+Code:
+Code prüfen: Dein Code
+
+Weitere Fragen kannst du ganz normal stellen.
+    `.trim();
   }
 
-  /* Wissen lernen */
-
-  if (/^(lerne|lernen|speichere wissen|merke als fakt)\b/.test(q)) {
-    const content = text.replace(
-      /^(lerne|lernen|speichere wissen|merke als fakt)\s*:?\s*/i,
-      ""
-    );
-
-    const response = getLearningResponse(content);
-
-    if (response) return response;
-
-    return "Ich konnte daraus keinen eindeutigen Fakt erkennen. Beispiel:\nLerne: Berlin ist die Hauptstadt von Deutschland.";
+  if (lower.startsWith("lerne:")) {
+    return getLearningResponse(input.slice(6).trim());
   }
 
-  /* Wissensübersicht */
+  if (lower.startsWith("merke dir:")) {
+    const value = input.slice(10).trim();
 
-  if (/^(wissensübersicht|zeige mein wissen|alle fakten)$/.test(q)) {
-    return knowledgeOverview();
-  }
+    if (!value) return "Was soll ich mir merken?";
 
-  /* Wissensabfrage */
-
-  if (/^(wissen|erkläre|erklaere|was weißt du über|was weisst du ueber)\b/.test(q)) {
-    const topic = text.replace(
-      /^(wissen|erkläre|erklaere|was weißt du über|was weisst du ueber)\s*:?\s*/i,
-      ""
-    );
-
-    if (!topic) return "Zu welchem Thema möchtest du etwas wissen?";
-
-    return explainTopic(topic);
-  }
-
-  /* Fakten direkt beantworten */
-
-  const knownFact = answerFact(text);
-
-  if (knownFact) {
-    return knownFact;
-  }
-
-  /* Wissensverbindungen */
-
-  if (/^(verbindungen|wissensgraph|graph)\b/.test(q)) {
-    const topic = text.replace(
-      /^(verbindungen|wissensgraph|graph)\s*:?\s*/i,
-      ""
-    );
-
-    if (!topic) {
-      return `Gespeicherte Wissensverbindungen: ${data.relationships.length}`;
-    }
-
-    return graphReport(topic);
-  }
-
-  /* Recherche */
-
-  if (/^(recherchiere|recherche|suche im internet|google|wiki)\b/.test(q)) {
-    const topic = text.replace(
-      /^(recherchiere|recherche|suche im internet|google|wiki)\s*:?\s*/i,
-      ""
-    );
-
-    if (!topic) return "Was soll ich recherchieren?";
-
-    return await research(topic);
-  }
-
-  /* Analyse */
-
-  if (/^(analysiere mein wissen|wissensanalyse|analyse)$/.test(q)) {
-    return analyzeKnowledge();
-  }
-
-  if (/^(zeige agenten|agenten|module)$/.test(q)) {
-    return agentOverview();
-  }
-
-  /* Projekte */
-
-  if (/^projekt erstellen\b/.test(q)) {
-    const name = text.replace(
-      /^projekt erstellen\s*:?\s*/i,
-      ""
-    );
-
-    return createProject(name);
-  }
-
-  if (/^(zeige projekte|meine projekte)$/.test(q)) {
-    return listProjects();
-  }
-
-  /* Aufgaben */
-
-  if (/^aufgabe erstellen\b/.test(q)) {
-    const title = text.replace(
-      /^aufgabe erstellen\s*:?\s*/i,
-      ""
-    );
-
-    return createTask(title);
-  }
-
-  if (/^(zeige aufgaben|meine aufgaben)$/.test(q)) {
-    return listTasks();
-  }
-
-  /* Dokumente */
-
-  if (/^(dokumente anzeigen|meine dokumente)$/.test(q)) {
-    if (!data.documents.length) return "Noch keine Dokumente vorhanden.";
-
-    return data.documents.map(d =>
-      `${d.title}\nTyp: ${d.type}\nID: ${d.id}`
-    ).join("\n\n");
-  }
-
-  if (/^dokument suchen\b/.test(q)) {
-    const topic = text.replace(/^dokument suchen\s*:?\s*/i, "");
-    const results = searchDocuments(topic);
-
-    if (!results.length) return "Keine passenden Dokumente gefunden.";
-
-    return results.map(x =>
-      `${x.document.title}\nTrefferwert: ${Math.round(x.score * 100)}%`
-    ).join("\n\n");
-  }
-
-  /* Sicherungen */
-
-  if (/^(sicherung erstellen|backup erstellen)$/.test(q)) {
-    return createSnapshot();
-  }
-
-  if (/^sicherungen anzeigen$/.test(q)) {
-    if (!data.snapshots.length) return "Noch keine Sicherungen vorhanden.";
-
-    return data.snapshots.map(s =>
-      `${s.label}\nID: ${s.id}\n${new Date(s.time).toLocaleString("de-DE")}`
-    ).join("\n\n");
-  }
-
-  /* Code-KI */
-
-  if (/^(code prüfen|code pruefen|codeanalyse)$/.test(q)) {
-    return "Lade eine JavaScript-Datei über den Datei-Upload hoch. Ich prüfe sie dann mit meiner Code-KI.";
-  }
-
-  /* Export */
-
-  if (/^(export|daten exportieren)$/.test(q)) {
-    downloadData();
-    return "Der Datenexport wurde vorbereitet.";
-  }
-
-  /* Gespeicherte Fragen und Antworten */
-
-  const savedAnswer = findQA(text);
-
-  if (savedAnswer) return savedAnswer;
-
-  /* Ähnliches Wissen suchen */
-
-  const related = findRelatedFacts(text, 3);
-
-  if (related.length) {
-    return [
-      "Ich habe dazu verwandtes Wissen gefunden:",
-      "",
-      ...related.map(f =>
-        `• ${f.subject}: ${f.property} – ${f.value}`
-      ),
-      "",
-      "Stelle deine Frage etwas genauer oder nutze „Wissen: Thema“."
-    ].join("\n");
-  }
-
-  /* Langzeitgedächtnis durchsuchen */
-
-  const memories = searchMemory(text, 3);
-
-  if (memories.length) {
-    return "Dazu habe ich folgende Erinnerungen:\n\n" +
-      memories.map(m => "• " + m.content).join("\n");
-  }
-
-  return "Das weiß ich noch nicht sicher.\n\nDu kannst mir die Information beibringen mit:\nLerne: Deine Information\n\nOder ich kann danach recherchieren mit:\nRecherchiere: Dein Thema";
-}
-
-/* =====================================================
-   15. DATEI-IMPORT
-   ===================================================== */
-
-async function readFile(file) {
-  if (!file) return "Keine Datei ausgewählt.";
-
-  const name = file.name || "Datei";
-  const extension = name.split(".").pop().toLowerCase();
-
-  const supported = [
-    "txt", "md", "csv", "json", "js",
-    "html", "css", "xml", "log"
-  ];
-
-  if (extension === "json" && name.toLowerCase().includes("backup")) {
-    return importData(await file.text());
-  }
-
-  if (extension === "js") {
-    const source = await file.text();
-
-    return [
-      "CODE-DATEI GELADEN",
-      "",
-      `Datei: ${name}`,
-      `Zeichen: ${source.length}`,
-      "",
-      inspectCodeReport(source)
-    ].join("\n");
-  }
-
-  if (!supported.includes(extension)) {
-    return `Dateiformat .${extension} wird derzeit nicht direkt unterstützt.\nUnterstützt werden: ${supported.join(", ")}.\n\nPDF- und Word-Dateien benötigen eine zusätzliche Dokumentenverarbeitung.`;
-  }
-
-  const content = await file.text();
-
-  if (extension === "json") {
-    try {
-      const parsed = JSON.parse(content);
-
-      if (obj(parsed) && (parsed.data || parsed.facts)) {
-        return importData(content);
-      }
-    } catch {
-      return "Die JSON-Datei ist ungültig.";
+    if (typeof remember === "function") {
+      return remember(value);
     }
   }
 
-  return importDocumentText(content, name);
-}
-
-function setupFileUpload() {
-  const input = UI.file();
-
-  if (!input || input.dataset.lb6Bound) return;
-
-  input.dataset.lb6Bound = "1";
-
-  input.addEventListener("change", async () => {
-    const file = input.files?.[0];
-    if (!file) return;
-
-    const typing = addTyping();
-
-    try {
-      const result = await readFile(file);
-      addMessage("assistant", result);
-    } catch (error) {
-      addMessage("assistant", "Dateifehler: " + error.message);
-    } finally {
-      removeTyping(typing);
-      input.value = "";
+  if (
+    lower === "zeige erinnerungen" ||
+    lower === "erinnerungen"
+  ) {
+    if (typeof searchMemory === "function") {
+      return searchMemory("");
     }
-  });
-}
-
-/* =====================================================
-   16. EXPORT UND IMPORT
-   ===================================================== */
-
-function downloadData() {
-  const content = exportData();
-  const blob = new Blob([content], {
-    type: "application/json"
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = "lernbot-6-sicherung.json";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function setupExportButtons() {
-  const exportButton = findElement([
-    "exportBtn", "exportButton", "downloadBackup"
-  ]);
-
-  if (exportButton && !exportButton.dataset.lb6Bound) {
-    exportButton.dataset.lb6Bound = "1";
-    exportButton.addEventListener("click", downloadData);
   }
 
-  const importButton = findElement([
-    "importBtn", "importButton"
-  ]);
+  if (lower.startsWith("vergiss:")) {
+    const value = input.slice(8).trim();
 
-  if (importButton && !importButton.dataset.lb6Bound) {
-    importButton.dataset.lb6Bound = "1";
-    importButton.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".json";
+    if (!value) return "Bitte gib an, was ich vergessen soll.";
 
-      input.addEventListener("change", async () => {
-        const file = input.files?.[0];
-        if (!file) return;
-
-        const result = importData(await file.text());
-        addMessage("assistant", result);
-      });
-
-      input.click();
-    });
+    if (typeof forgetMemory === "function") {
+      return forgetMemory(value);
+    }
   }
+
+  if (lower === "wissensübersicht") {
+    if (typeof knowledgeOverview === "function") {
+      return knowledgeOverview();
+    }
+  }
+
+  if (
+    lower.startsWith("wissen:") ||
+    lower.startsWith("erkläre:")
+  ) {
+    const question = input.slice(input.indexOf(":") + 1).trim();
+
+    if (typeof answerFact === "function") {
+      return answerFact(question) || "Dazu habe ich noch kein gespeichertes Wissen.";
+    }
+  }
+
+  if (lower.startsWith("recherchiere:")) {
+    return await getResearchResponse(input.slice(13).trim());
+  }
+
+  if (lower.startsWith("analysiere:")) {
+    const value = input.slice(11).trim();
+
+    if (typeof agentRunAsync === "function") {
+      return await agentRunAsync("analyse", value);
+    }
+
+    if (typeof agentRun === "function") {
+      return agentRun("analyse", value);
+    }
+  }
+
+  if (lower === "agenten") {
+    if (typeof agentOverview === "function") {
+      return agentOverview();
+    }
+  }
+
+  if (lower.startsWith("projekt erstellen:")) {
+    const name = input.slice(18).trim();
+
+    if (typeof createProject === "function") {
+      return createProject(name);
+    }
+  }
+
+  if (lower === "projekte") {
+    if (typeof listProjects === "function") {
+      return listProjects();
+    }
+  }
+
+  if (lower.startsWith("aufgabe erstellen:")) {
+    const name = input.slice(18).trim();
+
+    if (typeof createTask === "function") {
+      return createTask(name);
+    }
+  }
+
+  if (lower === "aufgaben") {
+    if (typeof listTasks === "function") {
+      return listTasks();
+    }
+  }
+
+  if (lower.startsWith("aufgabe erledigt:")) {
+    const id = input.slice(17).trim();
+
+    if (typeof completeTask === "function") {
+      return completeTask(id);
+    }
+  }
+
+  if (lower === "dokumente") {
+    if (typeof searchDocuments === "function") {
+      return searchDocuments("");
+    }
+  }
+
+  if (lower.startsWith("dokument suchen:")) {
+    const query = input.slice(16).trim();
+
+    if (typeof searchDocuments === "function") {
+      return searchDocuments(query);
+    }
+  }
+
+  if (lower.startsWith("dokument zusammenfassen:")) {
+    const id = input.slice(24).trim();
+
+    if (typeof summarizeDocument === "function") {
+      return summarizeDocument(id);
+    }
+  }
+
+  if (lower === "sicherung erstellen") {
+    if (typeof createSnapshot === "function") {
+      return createSnapshot();
+    }
+  }
+
+  if (lower === "sicherungen") {
+    if (typeof data !== "undefined") {
+      return JSON.stringify(data.snapshots || [], null, 2);
+    }
+  }
+
+  if (lower.startsWith("sicherung wiederherstellen:")) {
+    const id = input.slice(27).trim();
+
+    if (typeof restoreSnapshot === "function") {
+      return restoreSnapshot(id);
+    }
+  }
+
+  if (lower.startsWith("code prüfen:")) {
+    const code = input.slice(12).trim();
+
+    if (typeof inspectCodeReport === "function") {
+      return inspectCodeReport(code);
+    }
+
+    if (typeof inspectCode === "function") {
+      return inspectCode(code);
+    }
+  }
+
+  if (lower === "export") {
+    if (typeof exportData === "function") {
+      return exportData();
+    }
+  }
+
+  if (typeof answerFact === "function") {
+    const answer = answerFact(input);
+
+    if (answer) return answer;
+  }
+
+  if (typeof agentRunAsync === "function") {
+    return await agentRunAsync("antwort", input);
+  }
+
+  if (typeof agentRun === "function") {
+    return agentRun("antwort", input);
+  }
+
+  return "Das weiß ich noch nicht. Du kannst es mir mit „Lerne: ...“ beibringen.";
 }
 
-/* =====================================================
-   17. CHAT-START
-   ===================================================== */
+/* ---------- NACHRICHT SENDEN ---------- */
 
-let busy = false;
+let lb6Busy = false;
 
-async function send() {
-  if (busy) return;
+async function sendMessage() {
+  if (lb6Busy) return;
 
   const input = UI.input();
   if (!input) {
-    console.error("LernBot: Kein Chat-Eingabefeld gefunden.");
-    setStatus("Chat-Eingabefeld nicht gefunden.");
+    console.error("LernBot: Eingabefeld nicht gefunden.");
     return;
   }
 
-  const text = safeText(input.value, 20000);
+  const text = input.value.trim();
   if (!text) return;
 
   input.value = "";
 
   addMessage("user", text);
 
+  lb6Busy = true;
+
   const typing = addTyping();
-  busy = true;
-  setStatus("LernBot 6.0 arbeitet ...");
 
   try {
     const response = await handle(text);
-    removeTyping(typing);
-    addMessage("assistant", response);
-    setStatus("Bereit");
-  } catch (error) {
-    removeTyping(typing);
-    console.error(error);
+
+    if (typing) typing.remove();
 
     addMessage(
       "assistant",
-      "Es ist ein Fehler aufgetreten: " + error.message
+      typeof response === "string"
+        ? response
+        : JSON.stringify(response, null, 2)
+    );
+  } catch (error) {
+    if (typing) typing.remove();
+
+    addMessage(
+      "assistant",
+      "Fehler: " + (error?.message || String(error))
     );
 
-    setStatus("Fehler");
+    console.error("LernBot-Fehler:", error);
   } finally {
-    busy = false;
-    save();
+    lb6Busy = false;
+    input.focus();
   }
 }
 
+/* ---------- CHAT-EINRICHTUNG ---------- */
+
 function setupChat() {
   const input = UI.input();
-  const button = UI.send();
+  const send = UI.send();
 
   if (!input) {
-    console.warn(
-      "LernBot 6.0: Kein passendes Eingabefeld gefunden."
-    );
+    console.error("LernBot: Kein Eingabefeld gefunden.");
     return;
   }
 
-  if (button && !button.dataset.lb6Bound) {
-    button.dataset.lb6Bound = "1";
-    button.addEventListener("click", send);
-  }
-
   if (!input.dataset.lb6Bound) {
-    input.dataset.lb6Bound = "1";
+    input.dataset.lb6Bound = "true";
 
     input.addEventListener("keydown", event => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        send();
+        sendMessage();
       }
     });
   }
+
+  if (send && !send.dataset.lb6Bound) {
+    send.dataset.lb6Bound = "true";
+    send.addEventListener("click", sendMessage);
+  }
 }
 
-/* =====================================================
-   18. OPTIONALE HTML-OBERFLÄCHE
-   ===================================================== */
+/* ---------- DATEI-EINRICHTUNG ---------- */
 
-function createFallbackUI() {
-  if (UI.input() && UI.chat()) return;
+function setupFileUpload() {
+  const file = UI.file();
 
-  if ($("lb6-fallback")) return;
+  if (!file || file.dataset.lb6Bound) return;
 
-  const root = document.createElement("section");
-  root.id = "lb6-fallback";
+  file.dataset.lb6Bound = "true";
+  file.addEventListener("change", handleFileUpload);
+}
 
-  root.innerHTML = `
-    <div class="lb6-fallback-header">
-      <h2>LernBot 6.0</h2>
-      <p>Dein persönlicher Lernassistent</p>
-    </div>
-    <div id="lb6-fallback-chat"></div>
-    <div class="lb6-fallback-controls">
-      <textarea id="lb6-fallback-input"
-        placeholder="Schreib dem LernBot ..."
-        rows="3"></textarea>
-      <button id="lb6-fallback-send">Senden</button>
-      <button id="lb6-fallback-export">Daten exportieren</button>
-      <label>
-        Datei importieren
-        <input id="lb6-fallback-file" type="file">
-      </label>
-    </div>
-  `;
+/* ---------- EXPORT ---------- */
 
-  const style = document.createElement("style");
-  style.textContent = `
-    #lb6-fallback {
-      max-width: 850px;
-      margin: 20px auto;
-      padding: 18px;
-      font-family: system-ui, sans-serif;
-    }
+function setupExportButtons() {
+  const buttons = document.querySelectorAll(
+    "[data-lb6-export], #lb6-export"
+  );
 
-    #lb6-fallback-chat {
-      min-height: 300px;
-      max-height: 55vh;
-      overflow-y: auto;
-      padding: 12px;
-      border: 1px solid #8885;
-      border-radius: 12px;
-    }
+  buttons.forEach(button => {
+    if (button.dataset.lb6Bound) return;
 
-    .lb6-fallback-controls {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
+    button.dataset.lb6Bound = "true";
 
-    #lb6-fallback textarea {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      border-radius: 9px;
-    }
+    button.addEventListener("click", () => {
+      if (typeof exportData === "function") {
+        const result = exportData();
 
-    #lb6-fallback button {
-      padding: 12px;
-      border-radius: 9px;
-      cursor: pointer;
-    }
-  `;
+        if (result instanceof Blob) {
+          const url = URL.createObjectURL(result);
+          const link = document.createElement("a");
 
-  document.head.appendChild(style);
-  document.body.appendChild(root);
+          link.href = url;
+          link.download = "lernbot-backup.json";
+          link.click();
 
-  document.getElementById("lb6-fallback-send")
-    .addEventListener("click", send);
-
-  document.getElementById("lb6-fallback-export")
-    .addEventListener("click", downloadData);
-
-  document.getElementById("lb6-fallback-file")
-    .addEventListener("change", async event => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      addMessage("assistant", await readFile(file));
-      event.target.value = "";
+          URL.revokeObjectURL(url);
+        }
+      }
     });
+  });
 }
 
-/* =====================================================
-   19. SYSTEMSTART
-   ===================================================== */
+/* ---------- SYSTEMSTART ---------- */
 
 function startLernBot() {
+  if (document.documentElement.dataset.lb6Started === "true") {
+    return;
+  }
+
+  document.documentElement.dataset.lb6Started = "true";
+
   installStyles();
 
-  createFallbackUI();
+  if (!UI.input() || !UI.chat()) {
+    createFallbackUI();
+  }
 
   setupChat();
   setupFileUpload();
   setupExportButtons();
 
-  save();
-
-  logAudit("System", "LernBot 6.0 gestartet");
-
-  console.log(
-    "%cLernBot 6.0 gestartet",
-    "font-weight:bold;color:#4caf50;font-size:16px"
-  );
-
-  console.log("Fakten:", data.facts.length);
-  console.log("Erinnerungen:", data.memory.length);
-  console.log("Projekte:", data.projects.length);
-  console.log("Aufgaben:", data.tasks.length);
-
-  setStatus("LernBot 6.0 bereit");
-
-  if (!data.memory.some(m =>
-    m.type === "system" && m.content === "LernBot 6.0 gestartet"
-  )) {
-    remember("system", "LernBot 6.0 gestartet");
+  if (UI.chat() && !UI.chat().children.length) {
+    addMessage(
+      "assistant",
+      "Hallo! Ich bin " + NAME +
+      ". Dein LernBot ist bereit. Schreibe „Hilfe“, um meine Funktionen zu sehen."
+    );
   }
 
-  addMessage(
-    "assistant",
-    "Hallo! Ich bin LernBot 6.0.\n\n" +
-    "Mein Gedächtnis, meine Wissensbank und meine Agenten sind bereit.\n\n" +
-    "Schreib „Hilfe“, um meine Befehle zu sehen."
-  );
+  console.log(NAME + " erfolgreich gestartet.");
 }
+
+/* ---------- START AUSFÜHREN ---------- */
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", startLernBot, {
@@ -1918,9 +1783,3 @@ if (document.readyState === "loading") {
 } else {
   startLernBot();
 }
-
-/* =====================================================
-   LERNBOT 6.0 – ENDE
-   ===================================================== */
-
-})();
