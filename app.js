@@ -5,10 +5,6 @@
   const $ = id => document.getElementById(id);
   const KEY = "meinLernBot.v1";
 
-  // --------------------------------------------------
-  // 1. GRUNDWISSEN
-  // --------------------------------------------------
-
   const seed = [
     ["Hallo Hi Guten Tag", "Hallo! Schön, dass du da bist. Tippe „hilfe“, um zu sehen, was ich kann."],
     ["Notfall", "Bei akuter Gefahr zuerst 112 anrufen. Polizei: 110. Nenne den genauen Ort und beschreibe kurz, was passiert ist. Befolge die Anweisungen der Leitstelle."],
@@ -24,115 +20,59 @@
     ["Wer bist du Was kannst du", "Ich bin dein lokaler LernBot. Ich speichere Wissen auf diesem Gerät und kann aus deinen Eingaben lernen. Ich habe kein eigenes Internet."]
   ];
 
-  // Fakten werden getrennt von Frage-Antwort-Einträgen gespeichert.
-  // Jedes Wissen besteht aus: Gegenstand, Eigenschaft und Wert.
-
-  const seedFacts = [
-    ["Okapi", "tierart", "Säugetier"],
-    ["Okapi", "lebensraum", "Tropischer Regenwald"],
-    ["Okapi", "land", "Demokratische Republik Kongo"],
-    ["Okapi", "familie", "Giraffenartige"],
-    ["Okapi", "nahrung", "Blätter, Knospen, Früchte und andere Pflanzenteile"],
-    ["Erde", "art", "Planet"],
-    ["Erde", "sternsystem", "Sonnensystem"],
-    ["Erde", "position", "Dritter Planet von der Sonne"],
-    ["Sonne", "art", "Stern"],
-    ["Sonne", "sternsystem", "Sonnensystem"],
-    ["Mond", "art", "Natürlicher Satellit der Erde"],
-    ["Mond", "umlaufbahn", "Er umkreist die Erde"],
-    ["Deutschland", "hauptstadt", "Berlin"],
-    ["Deutschland", "kontinent", "Europa"],
-    ["Frankreich", "hauptstadt", "Paris"],
-    ["Frankreich", "kontinent", "Europa"],
-    ["Italien", "hauptstadt", "Rom"],
-    ["Spanien", "hauptstadt", "Madrid"],
-    ["Österreich", "hauptstadt", "Wien"],
-    ["Schweiz", "hauptstadt", "Bern"],
-    ["Japan", "hauptstadt", "Tokio"],
-    ["Türkei", "hauptstadt", "Ankara"],
-    ["Wasser", "chemische_formel", "H₂O"],
-    ["Wasser", "zustände", "Fest, flüssig und gasförmig"],
-    ["Mensch", "art", "Säugetier"],
-    ["Mensch", "atmung", "Der Mensch atmet Sauerstoff ein und Kohlendioxid aus"],
-    ["Biene", "nahrung", "Nektar und Pollen"],
-    ["Biene", "aufgabe", "Bestäubung von Pflanzen"],
-    ["Pinguin", "art", "Vogel"],
-    ["Pinguin", "lebensraum", "Vor allem auf der Südhalbkugel"],
-    ["Delfin", "art", "Säugetier"],
-    ["Delfin", "lebensraum", "Meer"],
-    ["Giraffe", "art", "Säugetier"],
-    ["Giraffe", "lebensraum", "Afrika"],
-    ["Elefant", "art", "Säugetier"],
-    ["Elefant", "lebensraum", "Afrika und Asien"],
-    ["Hund", "art", "Säugetier"],
-    ["Katze", "art", "Säugetier"],
-    ["Fledermaus", "art", "Säugetier"],
-    ["Fledermaus", "besonderheit", "Sie kann aktiv fliegen"]
-  ];
-
   const help = `SO KANNST DU MIT MIR ARBEITEN
 
-WISSEN BEIBRINGEN:
+LERNEN:
 „Ein Okapi ist ein Säugetier.“
 „Ein Okapi lebt im Regenwald.“
 „Ein Okapi frisst Blätter.“
 „Die Hauptstadt von Frankreich ist Paris.“
 
-FAKTEN BEIBRINGEN:
-„Merke dir: Ein Elefant hat einen Rüssel.“
-„Ich bringe dir bei: Bienen bestäuben Pflanzen.“
+FRAGEN:
+„Was ist ein Okapi?“
+„Wo lebt ein Okapi?“
+„Was frisst ein Okapi?“
+„In welchem Land lebt ein Okapi?“
+„Was weißt du über ein Okapi?“
+
+ALTERNATIVE FRAGEN:
+„Alternative Frage: Was ist ein Okapi? = Zu welcher Tierart gehört ein Okapi?“
 
 KORRIGIEREN:
 „Nein, das stimmt nicht.“
 „Richtig ist: ...“
 
-ALTERNATIVE FRAGEN:
-„Alternative Frage: Was ist ein Okapi? = Zu welcher Tierart gehört ein Okapi?“
+WEITERE BEFEHLE:
+„Hilfe“ – zeigt diese Übersicht.
+„Was weißt du?“ – zeigt gespeichertes Wissen.
+„Vergiss: Okapi“ – löscht passende Einträge.
+„Verlauf löschen“ – löscht den Chatverlauf.
+„Grundwissen laden“ – ergänzt das Grundwissen.
 
-FRAGEN:
-„Was ist ein Okapi?“
-„Wo lebt ein Okapi?“
-„In welchem Land lebt ein Okapi?“
-„Was frisst ein Okapi?“
-„Was weißt du über Okapis?“
-
-BEFEHLE:
-„Hilfe“
-„Was weißt du?“
-„Vergiss: Okapi“
-„Verlauf löschen“
-„Grundwissen laden“
-
-Ich speichere Wissen auf deinem Gerät.
-Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
+Ich speichere mein Wissen auf diesem Gerät.`;
 
   // --------------------------------------------------
-  // 2. DATEN LADEN UND SCHÜTZEN
+  // 1. DATEN LADEN UND BESTEHENDES WISSEN SCHÜTZEN
   // --------------------------------------------------
 
   let data;
 
   try {
     data = JSON.parse(localStorage.getItem(KEY) || "null");
-  } catch {
+  } catch (error) {
     data = null;
   }
 
   if (!data || typeof data !== "object" || Array.isArray(data)) {
-    data = {
-      qa: [],
-      facts: [],
-      classes: [],
-      log: [],
-      pending: null,
-      theme: "dark"
-    };
+    data = {};
   }
 
   data.qa = Array.isArray(data.qa) ? data.qa : [];
   data.facts = Array.isArray(data.facts) ? data.facts : [];
   data.classes = Array.isArray(data.classes) ? data.classes : [];
   data.log = Array.isArray(data.log) ? data.log : [];
+  data.pending = data.pending ?? null;
+  data.theme = data.theme || "dark";
 
   data.qa = data.qa.filter(x =>
     x && typeof x === "object" && typeof x.k === "string"
@@ -146,57 +86,155 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     typeof x.value === "string"
   );
 
+  data.classes = data.classes.filter(x =>
+    x &&
+    typeof x === "object" &&
+    typeof x.t === "string" &&
+    typeof x.c === "string"
+  );
+
+  data.log = data.log.filter(x =>
+    x &&
+    typeof x === "object" &&
+    typeof x.text === "string"
+  );
+
   function save() {
     data.log = data.log.slice(-150);
 
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
       return true;
-    } catch {
+    } catch (error) {
       alert("Speichern fehlgeschlagen. Bitte exportiere dein Wissen.");
       return false;
     }
   }
 
-  function norm(s) {
-    return String(s ?? "")
+  // --------------------------------------------------
+  // 2. TEXTVERARBEITUNG
+  // --------------------------------------------------
+
+  function norm(text) {
+    return String(text ?? "")
       .toLocaleLowerCase("de")
       .replace(/[^\p{L}\p{N}\s]/gu, " ")
       .replace(/\s+/g, " ")
       .trim();
   }
 
-  // --------------------------------------------------
-  // 3. SPRACH- UND FRAGEERKENNUNG
-  // --------------------------------------------------
+  function cleanText(text) {
+    return String(text ?? "")
+      .trim()
+      .replace(/[.!?]+$/, "")
+      .trim();
+  }
+
+  function cleanSubject(text) {
+    let subject = cleanText(text);
+
+    subject = subject.replace(
+      /^(der|die|das|ein|eine|einen|einem|einer|eines)\s+/i,
+      ""
+    );
+
+    return subject.trim();
+  }
+
+  function sameSubject(a, b) {
+    return norm(cleanSubject(a)) === norm(cleanSubject(b));
+  }
 
   const stop = new Set(
-    "der die das den dem des ein eine einen einem einer ist sind war was wer wie wo wann und oder von zu im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also welcher welche welches gehört frage antwort bedeutet dasselbe gleich einem einer den dem über aus nach bei als hat haben wird werden kann können lebt wohnt frisst isst".split(" ")
+    "der die das den dem des ein eine einen einem einer eines ist sind war was wer wie wo wann warum weshalb wieso und oder von zu im am an auf für mit ich du es mir dir wir ihr sie bitte mal denn also welcher welche welches gehört frage antwort bedeutet dasselbe gleich".split(" ")
   );
 
-  function toks(s) {
-    return norm(s)
+  function toks(text) {
+    return norm(text)
       .split(" ")
-      .filter(w => w.length > 1 && !stop.has(w))
-      .map(w => {
-        if (w.length > 6) {
+      .filter(word => word.length > 1 && !stop.has(word))
+      .map(word => {
+        if (word.length > 6) {
           for (const end of ["ern", "en", "er", "es", "e", "n", "s"]) {
-            if (w.endsWith(end) && w.length - end.length >= 4) {
-              return w.slice(0, -end.length);
+            if (
+              word.endsWith(end) &&
+              word.length - end.length >= 4
+            ) {
+              return word.slice(0, -end.length);
             }
           }
         }
-        return w;
+
+        return word;
       });
   }
 
-  function questionType(q) {
-    const s = norm(q);
+  function counts(words) {
+    const result = {};
 
-    if (
-      /\b(wo|wohin|woher|in welchem land|in welcher stadt|wo befindet)\b/.test(s)
-    ) return "ort";
+    words.forEach(word => {
+      result[word] = (result[word] || 0) + 1;
+    });
 
+    return result;
+  }
+
+  function cosine(a, b) {
+    const keys = Object.keys(a);
+
+    const dot = keys.reduce(
+      (sum, key) => sum + a[key] * (b[key] || 0),
+      0
+    );
+
+    const na = Math.sqrt(
+      keys.reduce((sum, key) => sum + a[key] ** 2, 0)
+    );
+
+    const nb = Math.sqrt(
+      Object.values(b).reduce((sum, value) => sum + value ** 2, 0)
+    );
+
+    return na && nb ? dot / (na * nb) : 0;
+  }
+
+  function grams(text) {
+    const value = " " + norm(text) + " ";
+    const result = [];
+
+    for (let i = 0; i < value.length - 2; i++) {
+      result.push(value.slice(i, i + 3));
+    }
+
+    return result;
+  }
+
+  function similarity(a, b) {
+    const ta = [...new Set(toks(a))];
+    const tb = [...new Set(toks(b))];
+
+    if (!ta.length || !tb.length) return 0;
+
+    const tokenScore = cosine(counts(ta), counts(tb));
+    const common = ta.filter(word => tb.includes(word)).length;
+    const overlap = common / Math.min(ta.length, tb.length);
+    const gramScore = cosine(counts(grams(a)), counts(grams(b)));
+
+    return (
+      0.45 * tokenScore +
+      0.40 * overlap +
+      0.15 * gramScore
+    );
+  }
+
+  // --------------------------------------------------
+  // 3. FRAGEARTEN ERKENNEN
+  // --------------------------------------------------
+
+  function questionType(question) {
+    const s = norm(question);
+
+    if (/\b(wo|wohin|woher)\b/.test(s)) return "ort";
     if (/\b(wann|welches jahr|wie lange)\b/.test(s)) return "zeit";
     if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) return "menge";
     if (/\b(wie groß|wie schwer|wie alt)\b/.test(s)) return "eigenschaft";
@@ -204,347 +242,317 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     return "allgemein";
   }
 
-  function requestedProperty(q) {
-    const s = norm(q);
+  function requestedProperty(question) {
+    const s = norm(question);
 
-    if (/in welchem land|welches land|in welchem staat/.test(s)) return "land";
-    if (/wo lebt|wo wohnt|lebensraum|wo befindet|wo kommt/.test(s)) return "lebensraum";
-    if (/woher|kommt aus|ursprung|herkunft/.test(s)) return "herkunft";
-    if (/was frisst|was isst|ernährt sich|nahrung/.test(s)) return "nahrung";
-    if (/welche tierart|zu welcher tierart|was für ein tier|was ist|wer ist/.test(s)) return "tierart";
-    if (/hauptstadt|hauptstadt von/.test(s)) return "hauptstadt";
-    if (/wie heißt|welcher name|name von/.test(s)) return "name";
-    if (/wie groß|größe/.test(s)) return "größe";
-    if (/wie schwer|gewicht/.test(s)) return "gewicht";
-    if (/wie alt|alter|lebensdauer/.test(s)) return "alter";
-    if (/wie viele|wie viel|anzahl/.test(s)) return "menge";
-    if (/was hat|welche besonderheit|besonderheit/.test(s)) return "besonderheit";
-    if (/was kann|fähigkeit/.test(s)) return "fähigkeit";
-    if (/was macht|aufgabe|funktion/.test(s)) return "aufgabe";
-    if (/was ist|wer ist/.test(s)) return "art";
+    if (/\b(in welchem land|welches land|in welchem staat)\b/.test(s)) {
+      return "land";
+    }
+
+    if (/\b(wo lebt|wo wohnt|lebensraum|wo kommt.*vor)\b/.test(s)) {
+      return "lebensraum";
+    }
+
+    if (/\b(woher kommt|herkunft)\b/.test(s)) {
+      return "herkunft";
+    }
+
+    if (/\b(was frisst|was isst|ernährung|nahrung)\b/.test(s)) {
+      return "nahrung";
+    }
+
+    if (/\b(hauptstadt)\b/.test(s)) {
+      return "hauptstadt";
+    }
+
+    if (/\b(wie viele|wie viel|anzahl)\b/.test(s)) {
+      return "menge";
+    }
+
+    if (/\b(zu welcher tierart|welcher familie|gehört zu)\b/.test(s)) {
+      return "tierart";
+    }
+
+    if (/^(was ist|wer ist|was bedeutet|was versteht man unter)\b/.test(s)) {
+      return "definition";
+    }
 
     return null;
   }
 
-  function counts(a) {
-    const result = {};
-    a.forEach(x => result[x] = (result[x] || 0) + 1);
-    return result;
-  }
+  function extractQuestionSubject(question) {
+    let s = cleanText(question);
 
-  function cosine(a, b) {
-    const keys = Object.keys(a);
-    const dot = keys.reduce((v, k) => v + a[k] * (b[k] || 0), 0);
-    const na = Math.sqrt(keys.reduce((v, k) => v + a[k] ** 2, 0));
-    const nb = Math.sqrt(Object.values(b).reduce((v, x) => v + x * x, 0));
-    return na && nb ? dot / (na * nb) : 0;
-  }
+    const patterns = [
+      /^(?:in welchem land|welches land|in welchem staat)\s+(?:lebt|wohnt)\s+/i,
+      /^(?:zu welcher tierart|zu welcher familie)\s+gehört\s+/i,
+      /^(?:was frisst|was isst|was bedeutet|was ist|wer ist|wo lebt|wo wohnt|woher kommt|wann war|wie viele|wie viel)\s+/i,
+      /^(?:was weißt du über|erzähle mir etwas über|erzähl mir etwas über)\s+/i
+    ];
 
-  function grams(s) {
-    s = " " + norm(s) + " ";
-    const result = [];
-
-    for (let i = 0; i < s.length - 2; i++) {
-      result.push(s.slice(i, i + 3));
+    for (const pattern of patterns) {
+      s = s.replace(pattern, "");
     }
 
-    return result;
-  }
+    s = s.replace(/\?+$/, "").trim();
 
-  function sim(a, b) {
-    const ta = [...new Set(toks(a))];
-    const tb = [...new Set(toks(b))];
-
-    if (!ta.length || !tb.length) return 0;
-
-    const tokenScore = cosine(counts(ta), counts(tb));
-    const common = ta.filter(w => tb.includes(w)).length;
-    const overlap = common / Math.max(ta.length, tb.length);
-    const gramScore = cosine(counts(grams(a)), counts(grams(b)));
-
-    return 0.55 * tokenScore + 0.30 * overlap + 0.15 * gramScore;
+    return cleanSubject(s);
   }
 
   // --------------------------------------------------
-  // 4. FAKTENBANK
+  // 4. FAKTEN SPEICHERN
   // --------------------------------------------------
 
-  function addFact(subject, property, value) {
-    subject = String(subject || "").trim();
+  function addFact(subject, property, value, source = "user") {
+    subject = cleanSubject(subject);
     property = norm(property);
-    value = String(value || "").trim();
+    value = cleanText(value);
 
-    if (!subject || !property || !value) return false;
+    if (!subject || !property || !value) {
+      return false;
+    }
 
-    const existing = data.facts.find(f =>
-      norm(f.subject) === norm(subject) &&
+    const existing = data.facts.findIndex(f =>
+      sameSubject(f.subject, subject) &&
       norm(f.property) === property
     );
 
-    if (existing) {
-      existing.value = value;
+    const fact = {
+      subject,
+      property,
+      value,
+      source,
+      updated: Date.now()
+    };
+
+    if (existing >= 0) {
+      data.facts[existing] = {
+        ...data.facts[existing],
+        ...fact
+      };
     } else {
-      data.facts.push({
-        subject,
-        property,
-        value,
-        source: "user"
-      });
+      data.facts.push(fact);
     }
 
+    save();
     return true;
   }
 
-  function seedKnowledge() {
-    let added = 0;
+  function getFact(subject, property) {
+    const wanted = norm(cleanSubject(subject));
 
-    seed.forEach(([k, a]) => {
-      if (!data.qa.some(x => norm(x.k) === norm(k))) {
-        data.qa.push({ k, a, aliases: [], source: "seed" });
-        added++;
-      }
-    });
-
-    seedFacts.forEach(([subject, property, value]) => {
-      const exists = data.facts.some(f =>
-        norm(f.subject) === norm(subject) &&
-        norm(f.property) === norm(property)
-      );
-
-      if (!exists) {
-        data.facts.push({
-          subject,
-          property,
-          value,
-          source: "seed"
-        });
-        added++;
-      }
-    });
-
-    save();
-    return added;
-  }
-
-  if (!data.seeded) {
-    seedKnowledge();
-    data.seeded = true;
-    save();
-  }
-
-  // Alte Frage-Antwort-Einträge vorsichtig in Fakten übertragen.
-  function migrateOldKnowledge() {
-    data.qa.forEach(entry => {
-      const q = norm(entry.k);
-      const a = String(entry.a || "").trim();
-
-      if (!a) return;
-
-      const match = q.match(/^(?:was ist|wer ist|welche tierart ist|zu welcher tierart gehört)\s+(.+)$/);
-
-      if (match && !data.facts.some(f =>
-        norm(f.subject) === norm(match[1]) &&
-        f.property === "tierart"
-      )) {
-        addFact(match[1], "tierart", a);
-      }
-
-      const place = q.match(/^wo lebt\s+(.+)$/);
-
-      if (place && !data.facts.some(f =>
-        norm(f.subject) === norm(place[1]) &&
-        f.property === "lebensraum"
-      )) {
-        addFact(place[1], "lebensraum", a);
-      }
-    });
-
-    save();
-  }
-
-  migrateOldKnowledge();
-
-  // Erkennt das Objekt, über das gefragt wird.
-  function findSubject(question) {
-    const q = norm(question);
-
-    const subjects = [...new Set(data.facts.map(f => f.subject))]
-      .sort((a, b) => norm(b).length - norm(a).length);
-
-    for (const subject of subjects) {
-      const name = norm(subject);
-
-      if (name && q.includes(name)) return subject;
-
-      const words = toks(subject);
-
-      if (words.length && words.every(w => toks(q).includes(w))) {
-        return subject;
-      }
-    }
-
-    return null;
-  }
-
-  function getFactAnswer(question) {
-    const subject = findSubject(question);
-    if (!subject) return null;
-
-    const property = requestedProperty(question);
-    const facts = data.facts.filter(f =>
-      norm(f.subject) === norm(subject)
-    );
-
-    if (!facts.length) return null;
-
-    let found = null;
-
-    if (property) {
-      found = facts.find(f => f.property === property);
-
-      // Ein Lebensraum kann auch eine Ortsfrage beantworten.
-      if (!found && property === "land") {
-        found = facts.find(f => f.property === "lebensraum");
-      }
-
-      if (!found && property === "tierart") {
-        found = facts.find(f =>
-          ["art", "tierart", "familie"].includes(f.property)
-        );
-      }
-    }
-
-    if (!found && /was weißt du über|erzähle mir über|was kennst du über/.test(norm(question))) {
-      return facts.map(f => f.property + ": " + f.value).join("\n");
-    }
-
-    return found ? found.value : null;
+    return data.facts.find(f =>
+      norm(cleanSubject(f.subject)) === wanted &&
+      norm(f.property) === norm(property)
+    ) || null;
   }
 
   // --------------------------------------------------
-  // 5. FAKTEN AUS SÄTZEN LERNEN
+  // 5. FAKTE AUS AUSSAGEN ERKENNEN
   // --------------------------------------------------
 
   function parseFact(text) {
-    const s = String(text || "").trim();
-    let m;
+    const clean = String(text || "").trim();
 
-    const patterns = [
-      {
-        regex: /^(.+?)\s+(?:lebt|wohnt)\s+(?:in|im|am|auf|unter|bei|zwischen)\s+(.+?)[.!?]*$/i,
-        property: "lebensraum"
-      },
-      {
-        regex: /^(.+?)\s+kommt\s+aus\s+(.+?)[.!?]*$/i,
-        property: "herkunft"
-      },
-      {
-        regex: /^(.+?)\s+(?:frisst|isst|ernährt sich von)\s+(.+?)[.!?]*$/i,
-        property: "nahrung"
-      },
-      {
-        regex: /^(.+?)\s+hat\s+(.+?)[.!?]*$/i,
-        property: "besonderheit"
-      },
-      {
-        regex: /^(.+?)\s+gehört zu\s+(.+?)[.!?]*$/i,
-        property: "tierart"
-      },
-      {
-        regex: /^(.+?)\s+(?:ist|sind|war|heißt|bedeutet)\s+(.+?)[.!?]*$/i,
-        property: "tierart"
-      },
-      {
-        regex: /^die hauptstadt von\s+(.+?)\s+ist\s+(.+?)[.!?]*$/i,
+    if (!clean || clean.includes("?")) return null;
+
+    // Fragen und Frageanfänge niemals als Fakten lernen.
+    if (/^(was|wer|wie|wo|woher|wohin|wann|warum|weshalb|wieso|welcher|welche|welches)\b/i.test(clean)) {
+      return null;
+    }
+
+    let match;
+
+    // Hauptstadt: "Die Hauptstadt von Frankreich ist Paris."
+    match = clean.match(
+      /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+)[.!?]*$/i
+    );
+
+    if (match) {
+      return {
+        subject: cleanSubject(match[1]),
         property: "hauptstadt",
-        reverse: true
-      }
-    ];
+        value: cleanText(match[2]),
+        original: clean
+      };
+    }
 
-    for (const p of patterns) {
-      m = s.match(p.regex);
+    // Lebensraum: "Ein Okapi lebt im Regenwald."
+    match = clean.match(
+      /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf|unter|bei|zwischen)\s+(.+)[.!?]*$/i
+    );
 
-      if (m) {
-        let subject = m[1].trim();
-        let value = m[2].trim();
+    if (match) {
+      return {
+        subject: cleanSubject(match[1]),
+        property: "lebensraum",
+        value: cleanText(match[3]),
+        original: clean
+      };
+    }
 
-        if (p.reverse) {
-          [subject, value] = [m[1].trim(), m[2].trim()];
-        }
+    // Herkunft: "Ein Okapi kommt aus dem Kongo."
+    match = clean.match(
+      /^(.+?)\s+kommt\s+aus\s+(.+)[.!?]*$/i
+    );
 
-        subject = subject.replace(/^(der|die|das|ein|eine|einer|eines)\s+/i, "");
+    if (match) {
+      return {
+        subject: cleanSubject(match[1]),
+        property: "herkunft",
+        value: cleanText(match[2]),
+        original: clean
+      };
+    }
 
-        return {
-          subject,
-          property: p.property,
-          value: value.replace(/[.!?]+$/, "")
-        };
-      }
+    // Ernährung: "Ein Okapi frisst Blätter."
+    match = clean.match(
+      /^(.+?)\s+(?:frisst|isst|ernährt\s+sich\s+von)\s+(.+)[.!?]*$/i
+    );
+
+    if (match) {
+      return {
+        subject: cleanSubject(match[1]),
+        property: "nahrung",
+        value: cleanText(match[2]),
+        original: clean
+      };
+    }
+
+    // Zugehörigkeit: "Ein Okapi gehört zu den Giraffenartigen."
+    match = clean.match(
+      /^(.+?)\s+gehört\s+zu\s+(.+)[.!?]*$/i
+    );
+
+    if (match) {
+      return {
+        subject: cleanSubject(match[1]),
+        property: "tierart",
+        value: cleanText(match[2]),
+        original: clean
+      };
+    }
+
+    // Definition: "Ein Okapi ist ein Säugetier."
+    match = clean.match(
+      /^(.+?)\s+(?:ist|sind|war|heißt|bedeutet)\s+(.+)[.!?]*$/i
+    );
+
+    if (match) {
+      const subject = cleanSubject(match[1]);
+      const value = cleanText(match[2]);
+
+      if (!subject || !value) return null;
+
+      return {
+        subject,
+        property: "definition",
+        value,
+        original: clean
+      };
     }
 
     return null;
   }
 
-  function learnFact(text, pendingQuestion = null) {
+  function learnFact(text) {
     const fact = parseFact(text);
     if (!fact) return null;
 
-    addFact(fact.subject, fact.property, fact.value);
+    const pending = getPending();
 
-    // Die ursprüngliche Frage bleibt zusätzlich als Antwort gespeichert.
-    if (pendingQuestion) {
-      learn(pendingQuestion, fact.value);
+    if (!addFact(
+      fact.subject,
+      fact.property,
+      fact.value,
+      "user"
+    )) {
+      return "Diesen Fakt konnte ich leider nicht speichern.";
     }
 
+    data.pending = null;
     save();
 
-    return "Danke! Ich habe einen neuen Fakt gelernt.\n\n" +
+    return "Danke! Das habe ich gelernt.\n\n" +
       "Gegenstand: " + fact.subject +
       "\nEigenschaft: " + fact.property +
       "\nWissen: " + fact.value +
       "\n\nIch habe jetzt " + data.facts.length +
-      " Fakten und " + data.qa.length + " Frage-Antwort-Einträge.";
+      " Fakten und " + data.qa.length +
+      " Frage-Antwort-Einträge.";
   }
 
   // --------------------------------------------------
-  // 6. FRAGE-ANTWORT-WISSEN
+  // 6. FAKTEN ABFRAGEN
+  // --------------------------------------------------
+
+  function answerFromFacts(question) {
+    const property = requestedProperty(question);
+    const subject = extractQuestionSubject(question);
+
+    if (!property || !subject) return null;
+
+    let fact = getFact(subject, property);
+
+    // Eine Definition kann auch eine Tierart beantworten.
+    if (!fact && property === "tierart") {
+      fact = getFact(subject, "definition");
+    }
+
+    if (!fact && property === "definition") {
+      fact = getFact(subject, "tierart");
+    }
+
+    if (!fact) return null;
+
+    return fact.value;
+  }
+
+  // --------------------------------------------------
+  // 7. FRAGE-ANTWORT-SYSTEM
   // --------------------------------------------------
 
   function entryTexts(entry) {
     return [
       entry.k,
       ...(Array.isArray(entry.aliases) ? entry.aliases : [])
-    ].filter(x => typeof x === "string" && x.trim());
+    ].filter(x =>
+      typeof x === "string" && x.trim()
+    );
   }
 
-  function findQuestion(q) {
-    const nq = norm(q);
+  function findQuestion(question) {
+    const nq = norm(question);
 
     return data.qa.findIndex(entry =>
       entryTexts(entry).some(k => norm(k) === nq)
     );
   }
 
-  function best(q) {
+  function best(question) {
     let bestIndex = -1;
     let bestScore = 0;
-    const requestedType = questionType(q);
+    const type = questionType(question);
 
-    data.qa.forEach((entry, i) => {
-      let score = 0;
+    data.qa.forEach((entry, index) => {
+      const texts = entryTexts(entry);
 
-      entryTexts(entry).forEach(k => {
-        if (questionType(k) !== requestedType) return;
-        score = Math.max(score, sim(q, k));
-      });
+      for (const candidate of texts) {
+        if (questionType(candidate) !== type) continue;
 
-      if (score > bestScore) {
-        bestScore = score;
-        bestIndex = i;
+        const score = similarity(question, candidate);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
       }
     });
 
-    return { i: bestIndex, s: bestScore };
+    return {
+      i: bestIndex,
+      s: bestScore
+    };
   }
 
   function learn(question, answer, aliases = []) {
@@ -573,9 +581,13 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
       data.qa.push(entry);
     }
 
-    entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
+    entry.aliases = Array.isArray(entry.aliases)
+      ? entry.aliases
+      : [];
 
     aliases.forEach(alias => {
+      alias = String(alias || "").trim();
+
       if (
         alias &&
         norm(alias) !== norm(entry.k) &&
@@ -587,8 +599,8 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
 
     save();
 
-    return "Danke! Das habe ich gelernt.\n\nFrage: " +
-      question +
+    return "Danke! Das habe ich gelernt.\n\n" +
+      "Frage: " + question +
       "\nAntwort: " + answer +
       "\n\nIch habe jetzt " + data.qa.length +
       " Frage-Antwort-Einträge.";
@@ -602,32 +614,76 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     }
 
     const entry = data.qa[index];
+    alternative = String(alternative || "").trim();
+
+    if (!alternative) return "Die alternative Frage ist leer.";
 
     if (questionType(entry.k) !== questionType(alternative)) {
-      return "Das scheint eine andere Frageart zu sein. Ich speichere sie nicht als Alternative.";
+      return "Diese Frage klingt nach einer anderen Frageart. Ich speichere sie lieber nicht als Alternative.";
     }
 
-    entry.aliases = Array.isArray(entry.aliases) ? entry.aliases : [];
+    if (norm(alternative) === norm(entry.k)) {
+      return "Diese Frage ist bereits die Hauptfrage.";
+    }
+
+    entry.aliases = Array.isArray(entry.aliases)
+      ? entry.aliases
+      : [];
 
     if (entry.aliases.some(x => norm(x) === norm(alternative))) {
       return "Diese alternative Frage kenne ich bereits.";
     }
 
-    entry.aliases.push(alternative.trim());
+    entry.aliases.push(alternative);
     save();
 
-    return "Alternative Frage gespeichert!";
+    return "Sehr gut! Alternative Frage gespeichert.\n\n" +
+      "Hauptfrage: " + entry.k +
+      "\nAlternative: " + alternative +
+      "\nAntwort: " + entry.a;
   }
 
   // --------------------------------------------------
-  // 7. KATEGORIEN LERNEN
+  // 8. OFFENE LERNVORGÄNGE
+  // --------------------------------------------------
+
+  function setPending(kind, payload) {
+    data.pending = { kind, ...payload };
+    save();
+  }
+
+  function getPending() {
+    if (typeof data.pending === "string") {
+      return {
+        kind: "answer",
+        question: data.pending
+      };
+    }
+
+    return data.pending && typeof data.pending === "object"
+      ? data.pending
+      : null;
+  }
+
+  function lastUserQuestion() {
+    for (let i = data.log.length - 1; i >= 0; i--) {
+      if (data.log[i]?.role === "user") {
+        return data.log[i].text;
+      }
+    }
+
+    return null;
+  }
+
+  // --------------------------------------------------
+  // 9. KATEGORIEN LERNEN
   // --------------------------------------------------
 
   function classify(text) {
     const groups = {};
 
-    data.classes.forEach(x => {
-      (groups[x.c] ??= []).push(x.t);
+    data.classes.forEach(item => {
+      (groups[item.c] ??= []).push(item.t);
     });
 
     const names = Object.keys(groups);
@@ -639,8 +695,8 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     const words = toks(text);
     const vocabulary = new Set();
 
-    Object.values(groups).flat().forEach(x => {
-      toks(x).forEach(w => vocabulary.add(w));
+    Object.values(groups).flat().forEach(item => {
+      toks(item).forEach(word => vocabulary.add(word));
     });
 
     const total = data.classes.length;
@@ -649,77 +705,133 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
       const wordCounts = {};
       let count = 0;
 
-      groups[name].forEach(x => {
-        toks(x).forEach(w => {
-          wordCounts[w] = (wordCounts[w] || 0) + 1;
+      groups[name].forEach(item => {
+        toks(item).forEach(word => {
+          wordCounts[word] = (wordCounts[word] || 0) + 1;
           count++;
         });
       });
 
       let score = Math.log(groups[name].length / total);
 
-      words.forEach(w => {
+      words.forEach(word => {
         score += Math.log(
-          ((wordCounts[w] || 0) + 0.5) /
+          ((wordCounts[word] || 0) + 0.5) /
           (count + 0.5 * (vocabulary.size + 1))
         );
       });
 
-      return [name, score / Math.sqrt(Math.max(1, words.length))];
+      return [
+        name,
+        score / Math.sqrt(Math.max(1, words.length))
+      ];
     }).sort((a, b) => b[1] - a[1]);
 
-    return "Ich tippe auf: " + scores[0][0] + ".";
+    const exp = scores.map(item =>
+      Math.exp(Math.max(-30, (item[1] - scores[0][1]) * 2.5))
+    );
+
+    const totalExp = exp.reduce((a, b) => a + b, 0);
+    const confidence = Math.round(exp[0] / totalExp * 100);
+
+    return "Ich tippe auf: " + scores[0][0] +
+      " (" + confidence + " %).";
   }
 
   // --------------------------------------------------
-  // 8. HILFSFUNKTIONEN
+  // 10. GRUNDWISSEN
   // --------------------------------------------------
 
-  function lastUserQuestion() {
-    for (let i = data.log.length - 1; i >= 0; i--) {
-      if (data.log[i]?.role === "user") return data.log[i].text;
-    }
+  function addSeed() {
+    const known = new Set(data.qa.map(x => norm(x.k)));
+    let added = 0;
 
-    return null;
+    seed.forEach(([question, answer]) => {
+      if (!known.has(norm(question))) {
+        data.qa.push({
+          k: question,
+          a: answer,
+          aliases: [],
+          source: "seed"
+        });
+
+        added++;
+      }
+    });
+
+    save();
+    return added;
   }
 
-  function setPending(kind, payload) {
-    data.pending = { kind, ...payload };
+  if (!data.seeded) {
+    addSeed();
+    data.seeded = true;
     save();
   }
 
-  function getPending() {
-    if (typeof data.pending === "string") {
-      return { kind: "answer", question: data.pending };
+  // --------------------------------------------------
+  // 11. WISSEN ANZEIGEN
+  // --------------------------------------------------
+
+  function showKnowledge() {
+    const lines = [];
+
+    if (data.facts.length) {
+      lines.push("FAKTEN:");
+
+      data.facts.forEach(fact => {
+        lines.push(
+          "• " + fact.subject +
+          " | " + fact.property +
+          " | " + fact.value
+        );
+      });
     }
 
-    return data.pending && typeof data.pending === "object"
-      ? data.pending
-      : null;
+    if (data.qa.length) {
+      lines.push("\nFRAGE-ANTWORT-EINTRÄGE:");
+
+      data.qa.forEach(entry => {
+        lines.push(
+          "• " + entry.k + " → " + (entry.a || "(nur gemerkt)")
+        );
+
+        if (entry.aliases?.length) {
+          lines.push(
+            "  Alternative Fragen: " + entry.aliases.join("; ")
+          );
+        }
+      });
+    }
+
+    return lines.length
+      ? lines.join("\n")
+      : "Ich habe noch nichts gelernt.";
   }
 
   // --------------------------------------------------
-  // 9. DAS GEHIRN
+  // 12. HAUPTLOGIK
   // --------------------------------------------------
 
   function handle(text, previousQuestion) {
-    const low = text.toLocaleLowerCase("de");
+    const low = norm(text);
     let match;
 
+    // Sicherheitsantwort.
     if (/(selbstmord|suizid|umbringen|nicht mehr leben|sterben (will|möchte)|töten will|ritzen|selbstverletz)/i.test(text)) {
       return "Das klingt ernst. Bitte bleib damit nicht allein und sprich mit einer vertrauten Person. Die TelefonSeelsorge erreichst du kostenlos unter 0800 111 0 111, 0800 111 0 222 oder 116 123. Bei unmittelbarer Gefahr ruf 112.";
     }
 
-    if (/^(hilfe|help|\?)$/.test(low)) return help;
+    if (/^(hilfe|help|\?)$/.test(low)) {
+      return help;
+    }
 
     if (/^(wer bist du|was kannst du)\??$/i.test(text)) {
-      return "Ich bin dein LernBot. Ich kann Fakten, Fragen, Antworten und Kategorien speichern. Ich kann verschiedene Frageformulierungen vergleichen. Ich habe aber kein eigenes Internet und bin kein vollständiges Sprachmodell.";
+      return "Ich bin dein lokaler LernBot. Ich kann Fakten speichern, Fragen beantworten, alternative Fragen lernen und Kategorien erkennen. Ich habe kein eigenes Internet und bin kein vollwertiges Sprachmodell.";
     }
 
     if (low === "grundwissen laden") {
-      const added = seedKnowledge();
-      return "Grundwissen ergänzt. Neue Einträge: " + added +
-        ". Insgesamt habe ich " + data.facts.length + " Fakten.";
+      return "Grundwissen ergänzt: " + addSeed() + " neue Einträge.";
     }
 
     if (low === "verlauf löschen") {
@@ -729,29 +841,7 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     }
 
     if (/^(was weißt du|was hast du gelernt|zeig.*gelernt)/i.test(text)) {
-      const facts = data.facts.map(f =>
-        "• " + f.subject + " – " + f.property + ": " + f.value
-      );
-
-      const qa = data.qa.map(x =>
-        "• " + x.k + " → " + (x.a || "(nur gemerkt)")
-      );
-
-      return "DAS WEISS ICH:\n\nFAKTEN:\n" +
-        (facts.join("\n") || "Noch keine Fakten.") +
-        "\n\nFRAGEN UND ANTWORTEN:\n" +
-        (qa.join("\n") || "Noch keine Fragen und Antworten.");
-    }
-
-    if (/^(was weißt du über|erzähle mir über|was kennst du über)\s+(.+)/i.test(text)) {
-      const subject = text.match(/(?:was weißt du über|erzähle mir über|was kennst du über)\s+(.+)/i)[1];
-      const facts = data.facts.filter(f =>
-        norm(f.subject) === norm(subject.replace(/[?!.]+$/, ""))
-      );
-
-      if (facts.length) {
-        return facts.map(f => f.property + ": " + f.value).join("\n");
-      }
+      return showKnowledge();
     }
 
     if (low === "vergiss alles") {
@@ -759,7 +849,7 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     }
 
     if (low === "alles löschen") {
-      if (!confirm("Wirklich alle gelernten Einträge und Kategorien löschen? Exportiere dein Wissen vorher.")) {
+      if (!confirm("Wirklich alle Fakten, Frage-Antwort-Einträge und Kategorien löschen? Exportiere dein Wissen vorher, wenn du es behalten möchtest.")) {
         return "Löschen abgebrochen. Dein Wissen bleibt erhalten.";
       }
 
@@ -769,36 +859,52 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
       data.pending = null;
       save();
 
-      return "Dein Wissen wurde gelöscht.";
+      return "Dein gelerntes Wissen und die Kategorien wurden gelöscht.";
     }
 
+    // Eintrag vergessen.
     if (match = text.match(/^vergiss\s*:?\s+(.+)$/i)) {
-      const term = norm(match[1]);
-      const before = data.facts.length + data.qa.length;
+      const target = cleanSubject(match[1]);
+      const oldQA = data.qa.length;
+      const oldFacts = data.facts.length;
 
-      data.facts = data.facts.filter(f =>
-        !norm(f.subject).includes(term) &&
-        !norm(f.value).includes(term)
+      data.qa = data.qa.filter(entry =>
+        !entryTexts(entry).some(question =>
+          norm(question).includes(norm(target))
+        )
       );
 
-      data.qa = data.qa.filter(x =>
-        !norm(x.k).includes(term) &&
-        !norm(x.a).includes(term)
+      data.facts = data.facts.filter(fact =>
+        !sameSubject(fact.subject, target)
       );
+
+      const deleted = oldQA - data.qa.length +
+        oldFacts - data.facts.length;
 
       save();
 
-      return before === data.facts.length + data.qa.length
-        ? "Dazu habe ich keinen passenden Eintrag gefunden."
-        : "Die passenden Wissenseinträge wurden entfernt.";
+      return deleted
+        ? "Ich habe " + deleted + " passende Einträge zu „" + target + "“ vergessen."
+        : "Dazu habe ich keinen passenden Eintrag gefunden.";
     }
 
+    // Alternative Fragen.
     if (match = text.match(
-      /^alternative frage\s*:\s*(.+?)\s*=\s*(.+)$/i
+      /^(?:alternative frage|gleichbedeutende frage)\s*:\s*(.+?)\s*(?:=|->|bedeutet dasselbe wie|ist dasselbe wie)\s*(.+)$/i
     )) {
       return addAlias(match[1], match[2]);
     }
 
+    if (match = text.match(
+      /^(.+?)\s+(?:bedeutet dasselbe wie|ist dasselbe wie|meint dasselbe wie)\s+(.+)[.!?]*$/i
+    )) {
+      return addAlias(
+        match[2].replace(/[.!?]+$/, ""),
+        match[1].trim()
+      );
+    }
+
+    // Kategorie lernen.
     if (match = text.match(
       /^(?:lern|lerne|merk dir|merke dir|speichere)\s*:?\s*kategorie\s+([^:]+?)\s*:\s*(.+)$/i
     )) {
@@ -813,7 +919,7 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
         "“ gehört zu „" + match[1] + "“.";
     }
 
-    // Explizite Lehrversuche.
+    // Explizit etwas beibringen.
     if (match = text.match(
       /^(?:ich bringe dir bei|ich bring dir bei|ich möchte dir beibringen|ich will dir beibringen|pass auf|merk dir bitte|merke dir|lern|lerne)\s*:?\s*(.+)$/i
     )) {
@@ -825,29 +931,42 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
         topic: match[1].trim()
       });
 
-      return "Sehr gerne! Erkläre mir das bitte in einem vollständigen Satz. Zum Beispiel: „Ein Okapi lebt im Regenwald.“";
+      return "Sehr gerne! Was soll ich über „" +
+        match[1].trim() +
+        "“ lernen? Erkläre es mir in einem Satz.";
     }
 
-    // Fakten zuerst prüfen.
+    // Korrekte Antwort ausdrücklich beibringen.
+    if (match = text.match(
+      /^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i
+    )) {
+      const fact = learnFact(match[1].trim());
+
+      if (fact) return fact;
+
+      if (previousQuestion) {
+        data.pending = null;
+        return learn(previousQuestion, match[1]);
+      }
+
+      setPending("teach_fact", {
+        topic: match[1].trim()
+      });
+
+      return "Zu welchem Begriff oder welcher Frage gehört diese Erklärung?";
+    }
+
+    // Direkte Faktenaussagen erkennen.
     const directFact = parseFact(text);
 
     if (directFact) {
       return learnFact(text);
     }
 
+    // Kategorien abfragen.
     if (match = text.match(
-      /^(?:das bedeutet|das heißt|richtig ist|die richtige antwort ist)\s*:?\s*(.+)$/i
+      /^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i
     )) {
-      const fact = learnFact(match[1]);
-
-      if (fact) return fact;
-
-      if (previousQuestion) return learn(previousQuestion, match[1]);
-
-      return "Zu welchem Begriff oder welcher Frage gehört diese Erklärung?";
-    }
-
-    if (match = text.match(/^(?:ordne ein|einordnen|kategorie\?)\s*:?\s*(.+)$/i)) {
       return classify(match[1]);
     }
 
@@ -861,75 +980,83 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
       }
 
       if (pending.kind === "answer") {
-        const fact = learnFact(text, pending.question);
-
-        if (fact) {
-          data.pending = null;
-          save();
-          return fact;
-        }
-
         data.pending = null;
         save();
+
         return learn(pending.question, text);
       }
 
       if (pending.kind === "teach_fact") {
-        const fact = learnFact(text);
-
-        if (fact) {
-          data.pending = null;
-          save();
-          return fact;
-        }
-
         data.pending = null;
         save();
 
-        return learn("Was ist " + pending.topic + "?", text);
+        return learn(
+          "Was ist " + pending.topic + "?",
+          text
+        );
       }
 
       if (pending.kind === "correction") {
         data.pending = null;
         save();
+
         return learn(pending.question, text);
       }
     }
 
+    // Korrektur.
+    if (match = text.match(
+      /^(?:nein[, ]+)?(?:richtig ist|korrekt ist|stattdessen|die richtige antwort ist)\s*:?\s*(.+)$/i
+    )) {
+      if (previousQuestion) {
+        return learn(previousQuestion, match[1]);
+      }
+
+      return "Welche meiner Antworten möchtest du korrigieren?";
+    }
+
     if (/^(nein|falsch|das stimmt nicht|nicht ganz|du liegst falsch|das ist falsch|stimmt nicht)\b/i.test(text)) {
       if (previousQuestion) {
-        setPending("correction", { question: previousQuestion });
+        setPending("correction", {
+          question: previousQuestion
+        });
+
         return "Danke für die Korrektur! Was wäre denn richtig?";
       }
 
-      return "Was genau soll ich korrigieren?";
+      return "Was genau soll ich korrigieren? Erkläre mir bitte die richtige Information.";
     }
 
-    // Faktenbank zuerst durchsuchen.
-    const factAnswer = getFactAnswer(text);
+    // Zuerst gezielt in der Fakten-Datenbank suchen.
+    const factAnswer = answerFromFacts(text);
 
-    if (factAnswer) return factAnswer;
+    if (factAnswer) {
+      return factAnswer;
+    }
 
-    // Danach normale Frage-Antwort-Einträge durchsuchen.
+    // Danach die Frage-Antwort-Datenbank verwenden.
     const result = best(text);
 
-    if (result.i >= 0 && result.s >= 0.40) {
-      const entry = data.qa[result.i];
-
-      if (result.s < 0.52) {
-        return "Ich bin mir nicht ganz sicher, aber vielleicht meinst du:\n" + entry.a;
-      }
-
-      return entry.a;
+    if (result.i >= 0 && result.s >= 0.50) {
+      return data.qa[result.i].a || "Das habe ich gelernt.";
     }
 
-    setPending("answer", { question: text });
+    if (result.i >= 0 && result.s >= 0.38) {
+      return "Ich bin mir nicht ganz sicher, aber vielleicht meinst du:\n" +
+        data.qa[result.i].a;
+    }
 
-    return "Das weiß ich noch nicht sicher.\n\nDu kannst es mir beibringen. Was ist die richtige Antwort?";
+    // Unbekannte Frage.
+    setPending("answer", {
+      question: text
+    });
+
+    return "Das weiß ich noch nicht sicher.\n\n" +
+      "Du kannst es mir beibringen. Was ist die richtige Antwort?";
   }
 
   // --------------------------------------------------
-  // 10. CHAT-OBERFLÄCHE
+  // 13. CHATANZEIGE
   // --------------------------------------------------
 
   function bubble(role, text, store = true) {
@@ -948,7 +1075,8 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
   }
 
   function send(text) {
-    text = (text ?? $("input").value).trim();
+    text = String(text ?? $("input").value).trim();
+
     if (!text) return;
 
     $("input").value = "";
@@ -961,6 +1089,10 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
 
     bubble("bot", response);
   }
+
+  // --------------------------------------------------
+  // 14. EINGABEN UND MENÜ
+  // --------------------------------------------------
 
   $("bar").addEventListener("submit", event => {
     event.preventDefault();
@@ -983,6 +1115,12 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
 
       if (command === "theme") {
         document.body.classList.toggle("light");
+
+        data.theme = document.body.classList.contains("light")
+          ? "light"
+          : "dark";
+
+        save();
         return;
       }
 
@@ -994,12 +1132,14 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
             const registration =
               await navigator.serviceWorker.getRegistration();
 
-            if (registration) await registration.update();
+            if (registration) {
+              await registration.update();
+            }
 
             $("status").textContent = "App wird aktualisiert ...";
 
-            setTimeout(() => location.reload(), 1500);
-          } catch {
+            setTimeout(() => location.reload(), 1200);
+          } catch (error) {
             $("status").textContent =
               "Update fehlgeschlagen. Bitte Internet prüfen.";
           }
@@ -1041,6 +1181,10 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     };
   });
 
+  // --------------------------------------------------
+  // 15. WISSEN IMPORTIEREN
+  // --------------------------------------------------
+
   const picker = document.createElement("input");
 
   picker.type = "file";
@@ -1052,6 +1196,7 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
 
   picker.onchange = () => {
     const file = picker.files[0];
+
     if (!file) return;
 
     const reader = new FileReader();
@@ -1065,31 +1210,43 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
           !Array.isArray(imported.classes) ||
           !confirm("Der Import ersetzt dein bisheriges Wissen. Hast du vorher ein Backup erstellt?")
         ) {
-          bubble("bot", "Import abgebrochen. Dein bisheriges Wissen bleibt erhalten.");
+          bubble(
+            "bot",
+            "Import abgebrochen. Dein bisheriges Wissen bleibt erhalten."
+          );
+
           picker.value = "";
           return;
         }
 
-        data.qa = imported.qa.filter(
-          x => x && typeof x === "object" && typeof x.k === "string"
+        data.qa = imported.qa.filter(x =>
+          x &&
+          typeof x === "object" &&
+          typeof x.k === "string"
         );
 
         data.facts = Array.isArray(imported.facts)
-          ? imported.facts.filter(f =>
-              f &&
-              typeof f.subject === "string" &&
-              typeof f.property === "string" &&
-              typeof f.value === "string"
+          ? imported.facts.filter(x =>
+              x &&
+              typeof x.subject === "string" &&
+              typeof x.property === "string" &&
+              typeof x.value === "string"
             )
           : [];
 
-        data.classes = imported.classes;
+        data.classes = imported.classes.filter(x =>
+          x &&
+          typeof x === "object" &&
+          typeof x.t === "string" &&
+          typeof x.c === "string"
+        );
+
         data.pending = null;
 
         save();
 
         bubble("bot", "Wissen erfolgreich importiert.");
-      } catch {
+      } catch (error) {
         bubble("bot", "Die Datei konnte nicht importiert werden.");
       }
 
@@ -1099,12 +1256,21 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     reader.readAsText(file);
   };
 
-  // Vorhandenen Chatverlauf wiederherstellen.
+  // --------------------------------------------------
+  // 16. VORHANDENEN CHAT WIEDERHERSTELLEN
+  // --------------------------------------------------
+
+  if (data.theme === "light") {
+    document.body.classList.add("light");
+  }
+
   if (data.log.length) {
     data.log.forEach(item => {
-      if (item && typeof item.text === "string") {
-        bubble(item.role === "user" ? "user" : "bot", item.text, false);
-      }
+      bubble(
+        item.role === "user" ? "user" : "bot",
+        item.text,
+        false
+      );
     });
   } else {
     bubble(
@@ -1114,10 +1280,16 @@ Ich habe kein eigenes Internet und bin kein vollständiges Sprachmodell.`;
     );
   }
 
-  // Service Worker registrieren.
+  // --------------------------------------------------
+  // 17. SERVICE WORKER
+  // --------------------------------------------------
+
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
+      navigator.serviceWorker
+        .register("./sw.js")
+        .catch(() => {});
     });
   }
+
 })();
