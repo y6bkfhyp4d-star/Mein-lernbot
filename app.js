@@ -3069,7 +3069,59 @@ function start() {
    ========================================== */
 
 window.LernBotBridge = Object.freeze({
-    getFacts() {
+         getTasks() {
+    return copy(arr(data.tasks));
+  },
+
+  saveTasks(tasks) {
+    if (locked) {
+      return {
+        ok: false,
+        message: 'Speicher gesperrt.'
+      };
+    }
+
+    if (!Array.isArray(tasks)) {
+      return {
+        ok: false,
+        message: 'Ungültige Aufgabenliste.'
+      };
+    }
+
+    const previous = copy(data.tasks);
+
+    if (!backup('vorAufgabenUpdate', JSON.stringify(data), 3)) {
+      return {
+        ok: false,
+        message: 'Sicherung fehlgeschlagen.'
+      };
+    }
+
+    data.tasks = copy(tasks);
+
+    if (!save()) {
+      data.tasks = previous;
+
+      return {
+        ok: false,
+        message: 'Speichern fehlgeschlagen.'
+      };
+    }
+
+    audit(
+      'Agenten-KI 3.2',
+      'Aufgabenliste aktualisiert',
+      String(tasks.length)
+    );
+
+    return {
+      ok: true,
+      message: 'Aufgaben gespeichert.',
+      count: tasks.length
+    };
+  },
+
+   getFacts() {
     return copy(data.facts);
   },
    listConflicts() {
