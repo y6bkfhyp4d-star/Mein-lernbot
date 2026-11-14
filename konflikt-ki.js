@@ -1,263 +1,76 @@
 
-/* LernBot 6.0 – Paket 2.2: Konflikt-KI */
+/* Mein LernBot 6.0 – Konflikt-KI 2.2.1 */
 (() => {
   'use strict';
 
-  const KEY = 'meinLernBot.v1';
-  const BACKUP_PREFIX =
-    KEY + '.sicherung.konflikt22.';
-
-  const uid = () =>
-    'LB-' +
-    Date.now().toString(36) +
-    '-' +
-    Math.random().toString(36).slice(2, 9);
-
-  const norm = s =>
-    String(s ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLocaleLowerCase('de')
-      .replace(/ß/g, 'ss')
-      .trim();
+  const norm = value => String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('de')
+    .replace(/ß/g, 'ss')
+    .trim();
 
   let pending = null;
-  let busy = false;
 
-  function load() {
-    const raw = localStorage.getItem(KEY);
-
-    if (!raw) {
-      throw Error('Keine LernBot-Datenbank gefunden.');
-    }
-
-    const db = JSON.parse(raw);
+  function bridge() {
+    const api = window.LernBotBridge;
 
     if (
-      !db ||
-      typeof db !== 'object' ||
-      !Array.isArray(db.facts)
+      !api ||
+      typeof api.listConflicts !== 'function' ||
+      typeof api.getFact !== 'function' ||
+      typeof api.resolveConflict !== 'function'
     ) {
-      throw Error('Ungültige Datenbank.');
+      throw new Error(
+        'LernBotBridge fehlt. Bitte app.js prüfen.'
+      );
     }
 
-    return { raw, db };
-  }
-
-  function locate(db, id) {
-    return db.facts.find(f =>
-      f && f.id === id
-    );
+    return api;
   }
 
   function describe(f) {
-    const alternatives =
-      Array.isArray(f.alternatives)
-        ? f.alternatives
-        : [];
+    const alternatives = Array.isArray(f.alternatives)
+      ? f.alternatives
+      : [];
 
-    let result =
-      `${f.subject} – ${f.property}: ${f.value}\n` +
-      `ID: ${f.id}\n` +
+    const rows = [
+      `${f.subject} – ${f.property}: ${f.value}`,
+      `ID: ${f.id}`,
       `Status: ${
         f.conflict
           ? 'offener Konflikt'
           : 'kein offener Konflikt'
-      }\n`;
+      }`
+    ];
 
     if (alternatives.length) {
-      result +=
-        'Gespeicherte Alternativen:\n' +
-        alternatives.map(a =>
-          '• ' +
-          String(a?.value ?? '') +
-          ' (' +
-          String(a?.source ?? 'unbekannt') +
-          ')'
-        ).join('\n');
+      rows.push('Gespeicherte Alternativen:');
+
+      for (const a of alternatives) {
+        rows.push(
+          `• ${String(a?.value ?? '')} ` +
+          `(${String(a?.source ?? 'unbekannt')})`
+        );
+      }
     } else {
-      result +=
+      rows.push(
         'Keine Alternativen gespeichert. ' +
         'Der ursprüngliche Widerspruch ' +
-        'ist nicht rekonstruierbar.';
-    }
-
-    return result;
-  }
-
-  function write(db, originalRaw, action) {
-    if (localStorage.getItem(KEY) !== originalRaw) {
-      throw Error(
-        'Daten wurden inzwischen verändert. ' +
-        'Bitte erneut prüfen.'
+        'ist nicht rekonstruierbar.'
       );
     }
 
-    const backupKey =
-      BACKUP_PREFIX +
-      Date.now() +
-      '-' +
-      Math.random().toString(36).slice(2, 7);
-
-    localStorage.setItem(backupKey, originalRaw);
-
-    db.audit = Array.isArray(db.audit)
-      ? db.audit
-      : [];
-
-    db.audit.push({
-      id: uid(),
-      agent: 'Konflikt-KI 2.2',
-      action,
-      detail: 'Manuell bestätigt',
-      time: Date.now()
-    });
-
-    db.audit = db.audit.slice(-1000);
-
-    try {
-      localStorage.setItem(
-        KEY,
-        JSON.stringify(db)
-      );
-    } catch (err) {
-      try {
-        localStorage.setItem(
-          KEY,
-          originalRaw
-        );
-      } catch {}
-
-      throw err;
-    }
-
-    return backupKey;
+    return rows.join('\n');
   }
 
-  function output(msg) {
-    const log =
-      document.getElementById('log') ||
-      document.getElementById('lb6-chat') ||
-      document.getElementById('lb6-fallback-chat');
-
-    if (!log) {
-      alert(msg);
-      return;
-    }
-
-    const el = document.createElement('div');
-    el.className = 'msg bot';
-
-    const inner = document.createElement('div');
-    inner.className = 'lb6-message-content';
-    inner.style.whiteSpace = 'pre-wrap';
-    inner.textContent = msg;
-
-    el.appendChild(inner);
-    log.appendChild(el);
-    log.scrollTop = log.scrollHeight;
-  }
-
-  function prepare(id) {
-    const { db } = load();
-    const f = locate(db, id);
-
-    if (!f) {
-      return 'Fakt mit dieser ID nicht gefunden.';
-    }
-
-    if (!f.conflict) {
-      return (
-        'Dieser Fakt hat keinen offenen Konflikt.\n' +
-        describe(f)
-      );
-    }
-
-    pending = {
-      id,
-      token: JSON.stringify({
-        value: f.value,
-        alternatives: f.alternatives,
-        conflict: f.conflict
-      })
-    };
-
-    return (
-      'KONFLIKT PRÜFEN\n' +
-      describe(f) +
-      '\n\nMit „Konflikt bestätigen“ wird die ' +
-      'aktuelle Aussage als manuell geprüft markiert.' +
-      '\nDies ist keine unabhängige Faktenprüfung.' +
-      '\nAlternativen bleiben gespeichert.' +
-      '\nMit „Konflikt abbrechen“ wird nichts geändert.'
-    );
-  }
-
-  function confirmPending() {
-    if (!pending) {
-      return 'Keine Konfliktprüfung wartet auf Bestätigung.';
-    }
-
-    const p = pending;
-    pending = null;
-
-    const { raw, db } = load();
-    const f = locate(db, p.id);
-
-    if (!f || !f.conflict) {
-      return 'Konflikt nicht mehr vorhanden.';
-    }
-
-    const currentToken = JSON.stringify({
-      value: f.value,
-      alternatives: f.alternatives,
-      conflict: f.conflict
-    });
-
-    if (currentToken !== p.token) {
-      return (
-        'Der Fakt hat sich geändert. ' +
-        'Bitte erneut prüfen.'
-      );
-    }
-
-    f.conflict = false;
-    f.resolvedAt = Date.now();
-
-    f.resolution = {
-      type: 'manual-review',
-      selectedValue: f.value,
-      source: 'user',
-      time: f.resolvedAt,
-      note: 'Manuell bestätigt; keine unabhängige Prüfung'
-    };
-
-    f.updated = f.resolvedAt;
-
-    const key = write(
-      db,
-      raw,
-      'Konflikt manuell bestätigt: ' + f.id
-    );
-
-    return (
-      'Konflikt als manuell geprüft markiert:\n' +
-      describe(f) +
-      '\nSicherung: ' + key
-    );
-  }
-
-  function process(input) {
-    const s = String(input ?? '').trim();
+  function process(value) {
+    const s = String(value ?? '').trim();
     const n = norm(s);
 
     if (n === 'konflikt abbrechen') {
       pending = null;
       return 'Konfliktprüfung abgebrochen.';
-    }
-
-    if (n === 'konflikt bestatigen') {
-      return confirmPending();
     }
 
     if (n === 'konflikt hilfe') {
@@ -270,109 +83,217 @@
     }
 
     if (n === 'konfliktliste 2.2') {
-      const { db } = load();
+      const facts = bridge().listConflicts();
 
-      const fs = db.facts.filter(f =>
-        f?.conflict
-      );
-
-      return fs.length
-        ? 'OFFENE KONFLIKTE (2.2)\n\n' +
-          fs.map(describe).join('\n\n')
+      return facts.length
+        ? 'OFFENE KONFLIKTE (2.2.1)\n\n' +
+          facts.map(describe).join('\n\n')
         : 'Keine offenen Konflikte.';
     }
 
-    const m = s.match(
+    const match = s.match(
       /^konflikt pr[uü]fen\s*:\s*(LB-[\w-]+)\s*$/i
     );
 
-    if (m) {
-      return prepare(m[1]);
+    if (match) {
+      const f = bridge().getFact(match[1]);
+
+      pending = null;
+
+      if (!f) {
+        return 'Fakt mit dieser ID nicht gefunden.';
+      }
+
+      if (!f.conflict) {
+        return (
+          'Dieser Fakt hat keinen offenen Konflikt.\n' +
+          describe(f)
+        );
+      }
+
+      pending = {
+        id: f.id,
+        fingerprint: JSON.stringify({
+          value: f.value,
+          alternatives: f.alternatives,
+          conflict: f.conflict
+        })
+      };
+
+      return (
+        'KONFLIKT PRÜFEN\n' +
+        describe(f) +
+        '\n\n„Konflikt bestätigen“ markiert ' +
+        'die aktuelle Aussage als manuell geprüft. ' +
+        'Das ist keine unabhängige Faktenprüfung. ' +
+        'Alternativen bleiben erhalten.\n' +
+        'Mit „Konflikt abbrechen“ wird nichts geändert.'
+      );
+    }
+
+    if (n === 'konflikt bestatigen') {
+      if (!pending) {
+        return (
+          'Keine Konfliktprüfung wartet ' +
+          'auf Bestätigung.'
+        );
+      }
+
+      const p = pending;
+      pending = null;
+
+      const api = bridge();
+      const current = api.getFact(p.id);
+
+      if (!current || !current.conflict) {
+        return 'Der Konflikt ist nicht mehr offen.';
+      }
+
+      const fingerprint = JSON.stringify({
+        value: current.value,
+        alternatives: current.alternatives,
+        conflict: current.conflict
+      });
+
+      if (fingerprint !== p.fingerprint) {
+        return (
+          'Der Fakt hat sich geändert. ' +
+          'Bitte erneut prüfen.'
+        );
+      }
+
+      const result = api.resolveConflict(p.id);
+
+      return result?.ok
+        ? (
+            'Konflikt als manuell geprüft markiert:\n' +
+            describe(result.fact) +
+            '\nBitte danach „Konfliktliste 2.2“ prüfen.'
+          )
+        : (
+            'Keine Änderung gespeichert: ' +
+            (result?.message || 'Unbekannter Fehler')
+          );
     }
 
     return null;
   }
 
-  function onSubmit(e) {
-    const input =
-      document.getElementById('input') ||
+  function isCommand(s) {
+    return /^(?:konfliktliste 2\.2|konflikt hilfe|konflikt pr[uü]fen\s*:|konflikt best[aä]tigen|konflikt abbrechen)\s*(?:$|\s)/i.test(s);
+  }
+
+  function inputElement() {
+    return document.getElementById('input') ||
       document.getElementById('lb6-input') ||
       document.getElementById('chat-input') ||
       document.getElementById('user-input') ||
       document.getElementById('lb6-fallback-input');
+  }
 
-    if (!input) return;
+  function output(message, role = 'assistant') {
+    const chat =
+      document.getElementById('log') ||
+      document.getElementById('lb6-chat') ||
+      document.getElementById('chat-messages') ||
+      document.getElementById('messages') ||
+      document.getElementById('lb6-fallback-chat');
 
-    const value = input.value.trim();
+    if (!chat) {
+      alert(message);
+      return;
+    }
+
+    const item = document.createElement('div');
+
+    item.className = role === 'user'
+      ? 'msg user'
+      : 'msg bot';
+
+    const content = document.createElement('div');
+
+    content.className = 'lb6-message-content';
+    content.style.whiteSpace = 'pre-wrap';
+    content.textContent = message;
+
+    item.appendChild(content);
+    chat.appendChild(item);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function intercept(event) {
+    const input = inputElement();
 
     if (
-      !/^(?:konfliktliste 2\.2|konflikt hilfe|konflikt pr[uü]fen\s*:|konflikt best[aä]tigen|konflikt abbrechen)/i.test(value)
+      !input ||
+      !isCommand(input.value.trim())
     ) {
       return;
     }
 
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    if (
+      event.type === 'keydown' &&
+      (
+        event.key !== 'Enter' ||
+        event.shiftKey ||
+        event.isComposing
+      )
+    ) {
+      return;
+    }
 
-    if (busy) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
 
-    busy = true;
+    const value = input.value.trim();
     input.value = '';
+
+    output(value, 'user');
 
     try {
       output(
-        process(value) || 'Befehl nicht erkannt.'
+        process(value) ||
+        'Befehl nicht erkannt.'
       );
-    } catch (err) {
-      output('Konflikt-KI: ' + err.message);
-    } finally {
-      busy = false;
+    } catch (error) {
+      output(
+        'Konflikt-KI: ' + error.message
+      );
     }
   }
 
   function init() {
-    const bar = document.getElementById('bar');
+    const form = document.getElementById('bar');
 
-    if (bar) {
-      bar.addEventListener(
+    if (form) {
+      form.addEventListener(
         'submit',
-        onSubmit,
+        intercept,
         true
       );
     }
 
     document.addEventListener(
       'keydown',
-      e => {
-        if (
-          e.key !== 'Enter' ||
-          e.shiftKey ||
-          e.isComposing
-        ) {
-          return;
-        }
-
-        const input =
-          document.getElementById('input') ||
-          document.getElementById('lb6-input') ||
-          document.getElementById('lb6-fallback-input');
-
-        if (document.activeElement === input) {
-          onSubmit(e);
+      event => {
+        if (event.target === inputElement()) {
+          intercept(event);
         }
       },
       true
     );
 
-    const send =
+    const button =
       document.getElementById('send') ||
       document.getElementById('lb6-send') ||
+      document.getElementById('send-button') ||
+      document.getElementById('send-btn') ||
       document.getElementById('lb6-fallback-send');
 
-    if (send) {
-      send.addEventListener(
+    if (button) {
+      button.addEventListener(
         'click',
-        onSubmit,
+        intercept,
         true
       );
     }
@@ -388,3 +309,4 @@
     init();
   }
 })();
+
