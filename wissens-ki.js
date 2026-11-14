@@ -1,47 +1,101 @@
 
-/* Mein LernBot 6.0 – Wissens-KI 3.5: sichere Analyse */
+/* =====================================================
+   MEIN LERNBOT 6.0
+   PAKET 3.8 – LERNENDE WISSENS-KI
+   Wissensanalyse + Feedback + Priorisierung
+
+   Bestehende Fakten werden nur gelesen.
+   ===================================================== */
+
 (() => {
-  'use strict';
+  "use strict";
 
-  const norm = v => String(v ?? '')
-    .toLocaleLowerCase('de')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/ß/g, 'ss')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
+  const VERSION = "3.8";
 
-  const schema = {
+  /* =====================================================
+     1. GRUNDFUNKTIONEN
+     ===================================================== */
+
+  function normalize(value) {
+    return String(value ?? "")
+      .toLocaleLowerCase("de")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/ß/g, "ss")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  }
+
+  function clamp(value, min = 0, max = 100) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function compare(a, b) {
+    return String(a).localeCompare(String(b), "de");
+  }
+
+  /* =====================================================
+     2. WISSENSSCHEMATA
+     ===================================================== */
+
+  const schemas = {
     tier: [
-      'definition', 'familie', 'lebensraum',
-      'nahrung', 'aussehen', 'verbreitung',
-      'gefahrdung'
+      "definition",
+      "familie",
+      "lebensraum",
+      "nahrung",
+      "aussehen",
+      "verbreitung",
+      "gefahrdung"
     ],
+
     planet: [
-      'definition', 'durchmesser', 'masse',
-      'umlaufzeit', 'atmosphare', 'monde'
+      "definition",
+      "durchmesser",
+      "masse",
+      "umlaufzeit",
+      "atmosphare",
+      "monde"
     ],
+
     begriff: [
-      'definition', 'anwendung', 'beispiel'
+      "definition",
+      "anwendung",
+      "beispiel"
     ]
   };
 
-  const animalClues = new Set([
-    'familie', 'lebensraum', 'nahrung',
-    'fellfarbe', 'aussehen', 'verbreitung'
+  const animalProperties = new Set([
+    "familie",
+    "lebensraum",
+    "nahrung",
+    "fellfarbe",
+    "aussehen",
+    "verbreitung"
   ]);
 
-  const planetClues = new Set([
-    'durchmesser', 'umlaufzeit',
-    'atmosphare', 'monde', 'masse'
+  const planetProperties = new Set([
+    "durchmesser",
+    "umlaufzeit",
+    "atmosphare",
+    "monde",
+    "masse"
   ]);
 
   const planetNames = new Set([
-    'merkur', 'venus', 'erde', 'mars',
-    'jupiter', 'saturn', 'uranus', 'neptun'
+    "merkur",
+    "venus",
+    "erde",
+    "mars",
+    "jupiter",
+    "saturn",
+    "uranus",
+    "neptun"
   ]);
 
-  const animalNames = new Set(['okapi']);
+  const animalNames = new Set([
+    "okapi"
+  ]);
 
   const weights = {
     definition: 100,
@@ -60,91 +114,189 @@
     beispiel: 45
   };
 
-  const key = (s, p) =>
-    norm(s) + '::' + norm(p);
+  /* =====================================================
+     3. THEMEN EINORDNEN
+     ===================================================== */
 
   function classify(topic) {
-    const n = norm(topic.name);
+    const name = normalize(topic.name);
 
-    if (planetNames.has(n)) {
+    if (planetNames.has(name)) {
       return {
-        type: 'planet',
-        confidence: 'hoch (bekannter Planetenname)'
+        type: "planet",
+        confidence: "hoch",
+        reason: "Bekannter Planetenname"
       };
     }
 
-    if (animalNames.has(n)) {
+    if (animalNames.has(name)) {
       return {
-        type: 'tier',
-        confidence: 'hoch (bekannter Tiername)'
+        type: "tier",
+        confidence: "hoch",
+        reason: "Bekannter Tiername"
       };
     }
 
-    const a = [...topic.props]
-      .filter(p => animalClues.has(p)).length;
+    let animalScore = 0;
+    let planetScore = 0;
 
-    const b = [...topic.props]
-      .filter(p => planetClues.has(p)).length;
+    for (const property of topic.props) {
+      if (animalProperties.has(property)) {
+        animalScore++;
+      }
 
-    if (a > b && a >= 2) {
+      if (planetProperties.has(property)) {
+        planetScore++;
+      }
+    }
+
+    if (
+      animalScore >= 2 &&
+      animalScore > planetScore
+    ) {
       return {
-        type: 'tier',
-        confidence: 'mittel (Merkmale)'
+        type: "tier",
+        confidence: "mittel",
+        reason: "Biologische Merkmale"
       };
     }
 
-    if (b > a && b >= 2) {
+    if (
+      planetScore >= 2 &&
+      planetScore > animalScore
+    ) {
       return {
-        type: 'planet',
-        confidence: 'mittel (Merkmale)'
+        type: "planet",
+        confidence: "mittel",
+        reason: "Astronomische Merkmale"
       };
     }
 
     return {
-      type: 'begriff',
-      confidence: 'niedrig (Standardkategorie)'
+      type: "begriff",
+      confidence: "niedrig",
+      reason: "Standardkategorie"
     };
   }
 
-  function analyze() {
+  /* =====================================================
+     4. FEEDBACK EINBEZIEHEN
+     ===================================================== */
+
+  function getFeedback(subject, property, baseScore) {
+    const fallback = {
+      base: baseScore,
+      adjusted: baseScore,
+      general: 0,
+      individual: 0,
+      evaluations: 0,
+      available: false
+    };
+
+    const api = window.LernBotFeedback;
+
+    if (
+      !api ||
+      typeof api.adjustPriority !== "function"
+    ) {
+      return fallback;
+    }
+
+    try {
+      const result = api.adjustPriority(
+        subject,
+        property,
+        baseScore
+      );
+
+      if (
+        !result ||
+        !Number.isFinite(result.adjusted)
+      ) {
+        return fallback;
+      }
+
+      return {
+        base: baseScore,
+        adjusted: clamp(result.adjusted),
+        general: Number.isFinite(result.general)
+          ? result.general
+          : 0,
+        individual: Number.isFinite(result.individual)
+          ? result.individual
+          : 0,
+        evaluations: Number.isFinite(result.evaluations)
+          ? result.evaluations
+          : 0,
+        available: true
+      };
+
+    } catch (error) {
+      console.warn(
+        "Wissens-KI: Feedback konnte nicht gelesen werden.",
+        error
+      );
+
+      return fallback;
+    }
+  }
+
+  /* =====================================================
+     5. FAKTEN EINLESEN
+     ===================================================== */
+
+  function collectFacts() {
     const api = window.LernBotBridge;
 
     if (
       !api ||
-      typeof api.getFacts !== 'function'
+      typeof api.getFacts !== "function"
     ) {
-      throw Error('Fakten-Schnittstelle fehlt.');
+      throw new Error(
+        "LernBotBridge.getFacts fehlt."
+      );
     }
 
     const facts = api.getFacts();
 
     if (!Array.isArray(facts)) {
-      throw Error('Faktenliste ungültig.');
+      throw new Error(
+        "Faktenliste ist ungültig."
+      );
     }
 
     const topics = new Map();
     const groups = new Map();
     const flagged = [];
-    const suggestions = [];
-    const duplicates = [];
-    const variations = [];
 
-    for (const f of facts) {
-      if (!f || typeof f !== 'object') continue;
+    for (const fact of facts) {
+      if (
+        !fact ||
+        typeof fact !== "object"
+      ) {
+        continue;
+      }
 
       const subject = String(
-        f.subject ?? ''
+        fact.subject ?? ""
       ).trim();
 
-      const property = norm(f.property);
-      const value = String(f.value ?? '').trim();
+      const property = normalize(
+        fact.property
+      );
 
-      if (!subject || !property) continue;
+      const value = String(
+        fact.value ?? ""
+      ).trim();
 
-      const s = norm(subject);
+      if (!subject || !property) {
+        continue;
+      }
 
-      if (!topics.has(s)) {
-        topics.set(s, {
+      const subjectKey = normalize(subject);
+
+      if (!topics.has(subjectKey)) {
+        topics.set(subjectKey, {
           name: subject,
           props: new Set(),
           count: 0,
@@ -152,123 +304,256 @@
         });
       }
 
-      const t = topics.get(s);
+      const topic = topics.get(subjectKey);
 
-      t.count++;
-      t.props.add(property);
+      topic.count++;
+      topic.props.add(property);
 
-      if (f.conflict) {
-        t.conflicts++;
+      if (fact.conflict) {
+        topic.conflicts++;
+
         flagged.push(
           `${subject} – ${property}`
         );
       }
 
       if (value) {
-        const k = key(subject, property);
+        const groupKey =
+          subjectKey + "::" + property;
 
-        if (!groups.has(k)) {
-          groups.set(k, {
+        if (!groups.has(groupKey)) {
+          groups.set(groupKey, {
             subject,
             property,
             values: []
           });
         }
 
-        groups.get(k).values.push(value);
+        groups.get(groupKey).values.push(
+          value
+        );
       }
     }
 
-    for (const g of groups.values()) {
-      if (g.values.length < 2) continue;
+    return {
+      facts,
+      topics,
+      groups,
+      flagged
+    };
+  }
 
-      const distinct = new Set(
-        g.values.map(norm)
+  /* =====================================================
+     6. DUBLETTEN UND ABWEICHUNGEN
+     ===================================================== */
+
+  function inspectGroups(groups) {
+    const duplicates = [];
+    const variations = [];
+
+    for (const group of groups.values()) {
+      if (group.values.length < 2) {
+        continue;
+      }
+
+      const unique = new Set(
+        group.values.map(normalize)
       );
 
-      if (distinct.size === 1) {
+      if (unique.size === 1) {
         duplicates.push(
-          `${g.subject} – ${g.property}`
+          `${group.subject} – ${group.property}`
         );
       } else {
         variations.push(
-          `${g.subject} – ${g.property}`
+          `${group.subject} – ${group.property}`
         );
       }
     }
 
-    for (const t of topics.values()) {
-      const cls = classify(t);
-      t.category = cls;
+    return {
+      duplicates,
+      variations
+    };
+  }
 
-      for (const p of schema[cls.type]) {
-        if (t.props.has(p)) continue;
+  /* =====================================================
+     7. LERNVORSCHLÄGE ERSTELLEN
+     ===================================================== */
 
-        const base = weights[p] ?? 40;
+  function createSuggestions(topics) {
+    const suggestions = [];
 
-        const score = Math.min(
-          100,
-          base + Math.min(8, t.count * 2)
+    for (const topic of topics.values()) {
+      const classification = classify(topic);
+
+      topic.category = classification;
+
+      const properties =
+        schemas[classification.type] || [];
+
+      for (const property of properties) {
+        if (topic.props.has(property)) {
+          continue;
+        }
+
+        const base = weights[property] ?? 40;
+
+        const baseScore = clamp(
+          base + Math.min(
+            8,
+            topic.count * 2
+          )
+        );
+
+        const feedback = getFeedback(
+          topic.name,
+          property,
+          baseScore
         );
 
         suggestions.push({
-          name: t.name,
-          property: p,
-          score,
-          type: cls.type
+          name: topic.name,
+          property,
+          type: classification.type,
+          baseScore,
+          score: feedback.adjusted,
+          feedback
         });
       }
     }
 
     suggestions.sort((a, b) =>
       b.score - a.score ||
-      a.name.localeCompare(b.name, 'de') ||
-      a.property.localeCompare(
-        b.property, 'de'
-      )
+      compare(a.name, b.name) ||
+      compare(a.property, b.property)
     );
 
+    return suggestions;
+  }
+
+  /* =====================================================
+     8. VOLLSTÄNDIGE ANALYSE
+     ===================================================== */
+
+  function analyze() {
+    const collected = collectFacts();
+
+    const {
+      facts,
+      topics,
+      groups,
+      flagged
+    } = collected;
+
+    const {
+      duplicates,
+      variations
+    } = inspectGroups(groups);
+
+    const suggestions =
+      createSuggestions(topics);
+
+    const feedbackAPI =
+      window.LernBotFeedback;
+
+    let feedbackCount = 0;
+
+    if (
+      feedbackAPI &&
+      typeof feedbackAPI.getSummary === "function"
+    ) {
+      try {
+        const summary =
+          feedbackAPI.getSummary();
+
+        feedbackCount =
+          Number(summary?.count) || 0;
+      } catch (error) {
+        console.warn(
+          "Feedback-Übersicht nicht verfügbar.",
+          error
+        );
+      }
+    }
+
     const lines = [
-      'WISSENS-KI 3.5 – ERWEITERTE ANALYSE',
-      `Fakten: ${facts.length} | Themen: ${topics.size}`,
+      "WISSENS-KI 3.8 – LERNENDE ANALYSE",
+      "",
+      "WISSENSDATENBANK",
+      `Fakten: ${facts.length}`,
+      `Themen: ${topics.size}`,
       `Markierte Konflikte: ${flagged.length}`,
-      `Mögliche exakte Dubletten-Gruppen: ${duplicates.length}`,
-      `Abweichende Werte innerhalb gleicher Eigenschaften: ${variations.length}`,
-      '',
-      'THEMEN UND EINORDNUNG'
+      `Mögliche Dubletten-Gruppen: ${duplicates.length}`,
+      `Wertabweichungen: ${variations.length}`,
+      "",
+      "FEEDBACK-SYSTEM",
+      `Verbindung: ${
+        feedbackAPI &&
+        typeof feedbackAPI.adjustPriority === "function"
+          ? "Aktiv"
+          : "Nicht verfügbar"
+      }`,
+      `Gespeicherte Bewertungen: ${feedbackCount}`,
+      "",
+      "THEMENÜBERSICHT"
     ];
 
+    const sortedTopics = [
+      ...topics.values()
+    ].sort((a, b) =>
+      b.count - a.count ||
+      compare(a.name, b.name)
+    );
+
     for (
-      const t of [...topics.values()]
-        .sort((a, b) =>
-          b.count - a.count ||
-          a.name.localeCompare(b.name, 'de')
-        )
-        .slice(0, 15)
+      const topic of sortedTopics.slice(0, 15)
     ) {
+      const category =
+        topic.category || classify(topic);
+
       lines.push(
-        `• ${t.name}: ${t.count} Fakten | ` +
-        `${t.category.type} | Sicherheit: ` +
-        t.category.confidence
+        `• ${topic.name}: ` +
+        `${topic.count} Fakten | ` +
+        `${category.type} | ` +
+        `Sicherheit: ${category.confidence}`
       );
     }
 
     lines.push(
-      '',
-      'PRIORISIERTE RECHERCHEFRAGEN'
+      "",
+      "INTELLIGENT PRIORISIERTE RECHERCHEFRAGEN"
     );
 
     if (!suggestions.length) {
       lines.push(
-        'Keine Vorschläge nach den aktuellen Schemata.'
+        "Keine weiteren Vorschläge nach den aktuellen Regeln."
       );
-    } else {
-      for (const s of suggestions.slice(0, 12)) {
-        lines.push(
-          `• ${s.score}/100: ${s.name} – ` +
-          `${s.property} (${s.type})`
-        );
+    }
+
+    for (
+      const suggestion of suggestions.slice(0, 12)
+    ) {
+      const change =
+        suggestion.score -
+        suggestion.baseScore;
+
+      let feedbackText = "";
+
+      if (change !== 0) {
+        feedbackText =
+          ` | Feedback: ${
+            change > 0 ? "+" : ""
+          }${change}`;
       }
+
+      lines.push(
+        `• ${suggestion.score}/100: ` +
+        `${suggestion.name} – ` +
+        `${suggestion.property} ` +
+        `(${suggestion.type})` +
+        feedbackText
+      );
     }
 
     if (
@@ -276,148 +561,196 @@
       duplicates.length ||
       variations.length
     ) {
-      lines.push('', 'MANUELL PRÜFEN');
+      lines.push(
+        "",
+        "MANUELL ZU PRÜFEN"
+      );
 
-      for (const x of flagged.slice(0, 5)) {
+      for (
+        const item of flagged.slice(0, 5)
+      ) {
         lines.push(
-          `• Markierter Konflikt: ${x}`
+          `• Markierter Konflikt: ${item}`
         );
       }
 
-      for (const x of duplicates.slice(0, 5)) {
+      for (
+        const item of duplicates.slice(0, 5)
+      ) {
         lines.push(
-          `• Mögliche Dublette: ${x}`
+          `• Mögliche Dublette: ${item}`
         );
       }
 
-      for (const x of variations.slice(0, 5)) {
+      for (
+        const item of variations.slice(0, 5)
+      ) {
         lines.push(
-          '• Unterschiedliche Angaben, ' +
-          'nicht zwingend Widerspruch: ' + x
+          `• Unterschiedliche Angaben: ${item}`
         );
       }
     }
 
     lines.push(
-      '',
-      'WICHTIG: Einordnungen und Prioritäten ' +
-      'sind Heuristiken, keine KI-Gewissheiten.'
+      "",
+      "SYSTEMSTATUS",
+      `Wissens-KI Version: ${VERSION}`,
+      "Feedback wird bei jeder Analyse neu berechnet.",
+      "Neue Bewertungen können die Reihenfolge verändern.",
+      "",
+      "HINWEISE",
+      "Die Einordnung basiert auf Regeln und bekannten Merkmalen.",
+      "Prioritätswerte sind keine Wahrscheinlichkeiten.",
+      "Vorschläge sind keine gesicherten Wissenslücken.",
+      "Unterschiedliche Angaben sind nicht automatisch Widersprüche.",
+      "Es wurden keine Fakten oder Aufgaben verändert."
     );
 
-    lines.push(
-      'Fehlende Eigenschaften sind Vorschläge, ' +
-      'keine bewiesenen Wissenslücken.'
-    );
-
-    lines.push(
-      'Keine Fakten, Dokumente oder Aufgaben ' +
-      'wurden verändert.'
-    );
-
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
+  /* =====================================================
+     9. CHAT-AUSGABE
+     ===================================================== */
+
   function show(message, role) {
-    const chat = document.getElementById('log');
+    const chat =
+      document.getElementById("log");
 
     if (!chat) {
       alert(message);
       return;
     }
 
-    const item = document.createElement('div');
+    const item =
+      document.createElement("div");
 
     item.className =
-      role === 'user' ? 'msg user' : 'msg bot';
+      role === "user"
+        ? "msg user"
+        : "msg bot";
 
     const content =
-      document.createElement('div');
+      document.createElement("div");
 
     content.className =
-      'lb6-message-content';
+      "lb6-message-content";
 
-    content.style.whiteSpace = 'pre-wrap';
-    content.textContent = message;
+    content.style.whiteSpace =
+      "pre-wrap";
+
+    content.textContent =
+      String(message);
 
     item.appendChild(content);
     chat.appendChild(item);
 
-    chat.scrollTop = chat.scrollHeight;
+    chat.scrollTop =
+      chat.scrollHeight;
   }
 
+  /* =====================================================
+     10. BEFEHL ERKENNEN
+     ===================================================== */
+
   function intercept(event) {
-    const input = document.getElementById('input');
+    const input =
+      document.getElementById("input");
+
+    if (!input) {
+      return;
+    }
 
     if (
-      !input ||
-      norm(input.value) !== 'wissens analyse'
-    ) return;
+      normalize(input.value) !==
+      "wissens analyse"
+    ) {
+      return;
+    }
 
     if (
-      event.type === 'keydown' &&
+      event.type === "keydown" &&
       (
-        event.key !== 'Enter' ||
+        event.key !== "Enter" ||
         event.shiftKey ||
         event.isComposing
       )
-    ) return;
+    ) {
+      return;
+    }
 
     event.preventDefault();
     event.stopImmediatePropagation();
 
-    const command = input.value.trim();
-    input.value = '';
+    const command =
+      input.value.trim();
 
-    show(command, 'user');
+    input.value = "";
+
+    show(command, "user");
 
     try {
-      show(analyze(), 'bot');
-    } catch (e) {
+      show(analyze(), "bot");
+    } catch (error) {
       show(
-        'Wissens-KI: ' + e.message,
-        'bot'
+        "Wissens-KI: " +
+        error.message,
+        "bot"
       );
     }
   }
 
+  /* =====================================================
+     11. EREIGNISSE VERBINDEN
+     ===================================================== */
+
   function init() {
-    const form = document.getElementById('bar');
+    const form =
+      document.getElementById("bar");
+
+    const button =
+      document.getElementById("send");
 
     if (form) {
       form.addEventListener(
-        'submit', intercept, true
+        "submit",
+        intercept,
+        true
       );
     }
 
-    const button = document.getElementById('send');
-
     if (button) {
       button.addEventListener(
-        'click', intercept, true
+        "click",
+        intercept,
+        true
       );
     }
 
     document.addEventListener(
-      'keydown',
-      e => {
+      "keydown",
+      event => {
         if (
-          e.target ===
-          document.getElementById('input')
+          event.target ===
+          document.getElementById("input")
         ) {
-          intercept(e);
+          intercept(event);
         }
       },
       true
     );
   }
 
-  if (document.readyState === 'loading') {
+  if (
+    document.readyState === "loading"
+  ) {
     document.addEventListener(
-      'DOMContentLoaded',
+      "DOMContentLoaded",
       init,
       { once: true }
     );
   } else {
     init();
   }
+
 })();
