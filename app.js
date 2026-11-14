@@ -870,9 +870,594 @@ function graphReport(subject) {
 }
 
 /* =====================================================
+   6. WISSENSBANK – DYNAMISCHE KATEGORIEN
+   ===================================================== */
+
+function cleanSubject(text) {
+  return safeText(text)
+    .replace(
+      /^(der|die|das|ein|eine|einen|einem|einer|eines)\s+/i,
+      ""
+    )
+    .replace(/[.!?,;:]+$/, "")
+    .trim();
+}
+
+function sameSubject(a, b) {
+  return normalize(cleanSubject(a)) ===
+    normalize(cleanSubject(b));
+}
+
+/* Eigenschaftsnamen vereinheitlichen */
+
+function normalizeProperty(property) {
+  return normalize(property)
+    .replace(/\s+/g, "_")
+    .replace(/[^\p{L}\p{N}_]/gu, "")
+    .slice(0, 80);
+}
+
+/* Alle bereits verwendeten Kategorien ermitteln */
+
+function getKnownCategories() {
+  return [
+    ...new Set(
+      data.facts
+        .map(item => normalizeProperty(item.property))
+        .filter(Boolean)
+    )
+  ].sort();
+}
+
+/* Verwandte Eigenschaften berücksichtigen */
+
+function getPropertyCandidates(property) {
+  const p = normalizeProperty(property);
+
+  const aliases = {
+    familie: ["familie", "zugehoerigkeit"],
+    zugehoerigkeit: ["zugehoerigkeit", "familie"],
+    tierart: ["tierart", "familie", "zugehoerigkeit"],
+    lebensraum: ["lebensraum", "lebensgebiet", "wohnort"],
+    lebensgebiet: ["lebensgebiet", "lebensraum"],
+    wohnort: ["wohnort", "lebensraum"],
+    nahrung: ["nahrung", "ernaehrung"],
+    ernaehrung: ["ernaehrung", "nahrung"],
+    aussehen: ["aussehen", "erscheinungsbild"],
+    erscheinungsbild: ["erscheinungsbild", "aussehen"]
+  };
+
+  return aliases[p] || [p];
+}
+
+function getFacts(subject = "") {
+  if (!safeText(subject)) return data.facts;
+
+  return data.facts.filter(item =>
+    sameSubject(item.subject, subject)
+  );
+}
+
+/* =====================================================
+   FAKTEN SPEICHERN
+   ===================================================== */
+
+function addFact(subject, property, value, source = "user") {
+  subject = cleanSubject(subject);
+  property = normalizeProperty(property);
+  value = safeText(value, 5000);
+  source = safeText(source, 100);
+
+  if (!subject || !property || !value) return false;
+
+  let existing = data.facts.find(item =>
+    sameSubject(item.subject, subject) &&
+    normalizeProperty(item.property) === property
+  );
+
+  if (existing) {
+    const oldValue = existing.value;
+
+    if (normalize(oldValue) !== normalize(value)) {
+      existing.previous = oldValue;
+      existing.conflict = true;
+      existing.alternatives = arr(existing.alternatives);
+
+      const oldExists = existing.alternatives.some(item =>
+        obj(item) &&
+        normalize(item.value) === normalize(oldValue)
+      );
+
+      if (oldValue && !oldExists) {
+        existing.alternatives.push({
+          value: oldValue,
+          source: existing.source || "unbekannt",
+          time: now()
+        });
+      }
+
+      const newExists = existing.alternatives.some(item =>
+        obj(item) &&
+        normalize(item.value) === normalize(value)
+      );
+
+      if (!newExists) {
+        existing.alternatives.push({
+          value,
+          source,
+          time: now()
+        });
+      }
+
+      existing.value = value;
+    }
+
+    existing.source = source;
+    existing.updated = now();
+
+  } else {
+    existing = {
+      id: uid(),
+      subject,
+      property,
+      value,
+      source,
+      confidence: source === "user" ? 1 : 0.7,
+      conflict: false,
+      alternatives: [],
+      created: now(),
+      updated: now()
+    };
+
+    data.facts.push(existing);
+  }
+
+  remember(
+    "fakt",
+    `${subject}: ${property} = ${value}`,
+    { subject, property, source }
+  );
+
+  logAudit(
+    "Wissensbank",
+    "Fakt gespeichert",
+    `${subject} – ${property}`
+  );
+
+  save();
+  return true;
+}
+
+/* =====================================================
+   7. FAKTEN ERKENNEN UND LERNEN
+   ===================================================== */
+
+function parseFact(text) {
+  const s = safeText(text);
+  if (!s || s.includes("?")) return null;
+
+  let match;
+
+  /*
+     FREIE KATEGORIE:
+
+     Okapi: Fellfarbe – rotbraun
+     Okapi: Körpergröße = 1,5 Meter
+  */
+
+  match = s.match(
+    /^lerne\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+)$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: normalizeProperty(match[2]),
+      value: safeText(match[3])
+    };
+  }
+
+  match = s.match(
+    /^(.+?)\s*:\s*(.+?)\s*(?:=|–|—)\s*(.+)$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: normalizeProperty(match[2]),
+      value: safeText(match[3])
+    };
+  }
+
+  /* Hauptstadt */
+
+  match = s.match(
+    /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "hauptstadt",
+      value: safeText(match[2])
+    };
+  }
+
+  match = s.match(
+    /^(.+?)\s+hat\s+(?:die\s+)?hauptstadt\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "hauptstadt",
+      value: safeText(match[2])
+    };
+  }
+
+  /* Lebensraum */
+
+  match = s.match(
+    /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf|unter)\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "lebensraum",
+      value: safeText(match[3])
+    };
+  }
+
+  /* Nahrung */
+
+  match = s.match(
+    /^(.+?)\s+(frisst|isst|ernährt sich von)\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "nahrung",
+      value: safeText(match[3])
+    };
+  }
+
+  /* Zugehörigkeit */
+
+  match = s.match(
+    /^(.+?)\s+gehört\s+zu\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "zugehoerigkeit",
+      value: safeText(match[2])
+    };
+  }
+
+  /* Definition */
+
+  match = s.match(
+    /^(.+?)\s+ist\s+(?:ein|eine|einer|eines)\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "definition",
+      value: safeText(match[2])
+    };
+  }
+
+  match = s.match(
+    /^(.+?)\s+(?:ist|sind|heißt|bedeutet)\s+(.+?)[.!]*$/i
+  );
+
+  if (match) {
+    return {
+      subject: cleanSubject(match[1]),
+      property: "definition",
+      value: safeText(match[2])
+    };
+  }
+
+  return null;
+}
+
+function learnFact(text) {
+  const fact = parseFact(text);
+  if (!fact) return null;
+
+  const success = addFact(
+    fact.subject,
+    fact.property,
+    fact.value,
+    "user"
+  );
+
+  if (!success) return null;
+
+  return [
+    "Gelernt und gespeichert!",
+    "",
+    `Thema: ${fact.subject}`,
+    `Eigenschaft: ${fact.property}`,
+    `Wissen: ${fact.value}`,
+    "",
+    `Bekannte Kategorien: ${getKnownCategories().join(", ")}`,
+    `Gespeicherte Fakten: ${data.facts.length}`
+  ].join("\n");
+}
+
+/* =====================================================
+   8. WISSEN ABRUFEN – DYNAMISCHE KATEGORIEN
+   ===================================================== */
+
+function answerFact(question) {
+  const q = normalize(question);
+  if (!q) return null;
+
+  let propertyCandidates = [];
+  let subject = "";
+  let match;
+
+  function addProperty(property) {
+    for (const candidate of getPropertyCandidates(property)) {
+      if (!propertyCandidates.includes(candidate)) {
+        propertyCandidates.push(candidate);
+      }
+    }
+  }
+
+  /* Familie und Tierart */
+
+  match = q.match(
+    /^zu welcher (?:tierart|familie) gehoert (?:der|die|das)?\s*(.+)$/
+  );
+
+  if (match) {
+    subject = match[1];
+    addProperty("familie");
+  }
+
+  if (!subject) {
+    match = q.match(
+      /^welcher(?:e|er)? familie gehoert (?:der|die|das)?\s*(.+)$/
+    );
+
+    if (match) {
+      subject = match[1];
+      addProperty("familie");
+    }
+  }
+
+  /* Dynamische Frage:
+     Welche Fellfarbe hat das Okapi?
+  */
+
+  if (!subject) {
+    match = q.match(
+      /^welche[rns]?\s+(.+?)\s+(?:hat|besitzt)\s+(?:der|die|das|ein|eine)?\s*(.+)$/
+    );
+
+    if (match) {
+      addProperty(match[1]);
+      subject = match[2];
+    }
+  }
+
+  /* Dynamische Frage:
+     Was ist die Fellfarbe vom Okapi?
+  */
+
+  if (!subject) {
+    match = q.match(
+      /^(?:was ist|wie lautet|nenn(?:e)?|zeige)\s+(?:die|der|das)?\s*(.+?)\s+(?:von|vom)\s+(.+)$/
+    );
+
+    if (match) {
+      addProperty(match[1]);
+      subject = match[2];
+    }
+  }
+
+  /* Definition */
+
+  if (!subject) {
+    match = q.match(
+      /^(?:was ist|was bedeutet|wer ist|erklaere)\s+(.+)$/
+    );
+
+    if (match) {
+      subject = match[1];
+      addProperty("definition");
+    }
+  }
+
+  /* Bereits bekannte Kategorien in der Frage finden */
+
+  if (propertyCandidates.length === 0) {
+    for (const category of getKnownCategories()) {
+      const readable = category.replace(/_/g, " ");
+
+      if (
+        readable.length > 2 &&
+        q.includes(readable)
+      ) {
+        addProperty(category);
+      }
+    }
+  }
+
+  /* Hauptstadt */
+
+  if (!subject && /\bhauptstadt\b/.test(q)) {
+    addProperty("hauptstadt");
+
+    match = q.match(/(?:von|ueber)\s+(.+)$/);
+    if (match) subject = match[1];
+  }
+
+  /* Lebensraum */
+
+  if (!subject && /\b(wo lebt|wo wohnt|lebensraum|lebensgebiet)\b/.test(q)) {
+    addProperty("lebensraum");
+
+    match = q.match(
+      /^(?:wo lebt|wo wohnt|lebensraum von|lebensgebiet von)\s+(.+)$/
+    );
+
+    if (match) subject = match[1];
+  }
+
+  /* Nahrung */
+
+  if (!subject && /\b(was frisst|was isst|nahrung|ernaehrung)\b/.test(q)) {
+    addProperty("nahrung");
+
+    match = q.match(
+      /^(?:was frisst|was isst|nahrung von|was ist die nahrung von)\s+(.+)$/
+    );
+
+    if (match) subject = match[1];
+  }
+
+  if (!subject || propertyCandidates.length === 0) {
+    return null;
+  }
+
+  subject = cleanSubject(subject);
+
+  if (!subject) return null;
+
+  const fact = data.facts.find(item =>
+    sameSubject(item.subject, subject) &&
+    propertyCandidates.includes(
+      normalizeProperty(item.property)
+    )
+  );
+
+  return fact ? fact.value : null;
+}
+
+/* =====================================================
+   9. WISSENSÜBERSICHT
+   ===================================================== */
+
+function knowledgeOverview() {
+  if (!data.facts.length) {
+    return "Mein Wissensspeicher ist noch leer.";
+  }
+
+  const groups = {};
+
+  for (const fact of data.facts) {
+    const subject = fact.subject || "Unbekannt";
+
+    if (!groups[subject]) groups[subject] = [];
+    groups[subject].push(fact);
+  }
+
+  const lines = [
+    "MEIN LANGZEITWISSEN",
+    ""
+  ];
+
+  for (const [subject, facts] of Object.entries(groups)) {
+    lines.push(subject);
+
+    for (const fact of facts) {
+      lines.push(`• ${fact.property}: ${fact.value}`);
+
+      if (fact.conflict) {
+        lines.push(
+          "  Hinweis: Für diesen Fakt existieren unterschiedliche Angaben."
+        );
+      }
+    }
+
+    lines.push("");
+  }
+
+  lines.push(
+    `Gesamt: ${data.facts.length} Fakten`,
+    `Erinnerungen: ${data.memory.length}`,
+    `Wissensverbindungen: ${data.relationships.length}`,
+    `Eigene Kategorien: ${getKnownCategories().length}`
+  );
+
+  return lines.join("\n");
+}
+
+/* =====================================================
+   10. WISSENSGRAPH
+   ===================================================== */
+
+function connectKnowledge(from, relation, to) {
+  from = cleanSubject(from);
+  to = cleanSubject(to);
+  relation = safeText(relation, 100);
+
+  if (!from || !to || !relation) return false;
+
+  const exists = data.relationships.some(item =>
+    sameSubject(item.from, from) &&
+    sameSubject(item.to, to) &&
+    normalize(item.relation) === normalize(relation)
+  );
+
+  if (exists) return true;
+
+  data.relationships.push({
+    id: uid(),
+    from,
+    relation,
+    to,
+    created: now()
+  });
+
+  logAudit(
+    "Wissensgraph",
+    "Verbindung erstellt",
+    `${from} ${relation} ${to}`
+  );
+
+  save();
+  return true;
+}
+
+function graphFor(subject) {
+  if (!safeText(subject)) return [];
+
+  return data.relationships.filter(item =>
+    sameSubject(item.from, subject) ||
+    sameSubject(item.to, subject)
+  );
+}
+
+function graphReport(subject) {
+  const links = graphFor(subject);
+
+  if (!links.length) {
+    return `Zu ${subject} habe ich noch keine Verbindungen gespeichert.`;
+  }
+
+  return [
+    "WISSENSVERKNÜPFUNGEN",
+    "",
+    ...links.map(item =>
+      `${item.from} —${item.relation}→ ${item.to}`
+    )
+  ].join("\n");
+}
+
+/* =====================================================
    ENDE TEIL 1/3
    TEIL 2 DIREKT DARUNTER EINFÜGEN
    ===================================================== */
+
 /* =====================================================
    LERNBOT 6.0 – TEIL 2/3
    AGENTEN, RECHERCHE, DOKUMENTE, PROJEKTE, CODE, BACKUP
