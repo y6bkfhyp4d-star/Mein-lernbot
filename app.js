@@ -3069,7 +3069,10 @@ function start() {
    ========================================== */
 
 window.LernBotBridge = Object.freeze({
-  listConflicts() {
+    getFacts() {
+    return copy(data.facts);
+  },
+   listConflicts() {
     return copy(
       data.facts.filter(f => f.conflict)
     );
