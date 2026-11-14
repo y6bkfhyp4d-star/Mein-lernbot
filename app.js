@@ -1,6 +1,5 @@
-
 /* =====================================================
-   LERNBOT 6.0 – NEUFASSUNG
+   LERNBOT 6.0 – NEUFASSUNG (PAKET 1)
    TEIL 1/3 – KERN, DATENBANK, GEDÄCHTNIS, WISSENSBANK
    ===================================================== */
 
@@ -61,6 +60,26 @@ function normalize(text) {
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/*
+   NEU (Paket 1): fold() ist der Vergleichsschlüssel für Texte.
+
+   Er behandelt ä/ae, ö/oe, ü/ue und ß/ss gleich.
+   Beispiele:  "Körpergröße" → "korpergrosse"
+               "Koerpergroesse" → "korpergrosse"
+               "gehört" → "gehort"  /  "gehoert" → "gehort"
+
+   Wichtig: normalize() bleibt unverändert. fold() wird NUR zum
+   Vergleichen benutzt. Gespeicherte Texte werden dadurch nicht verändert.
+*/
+
+function fold(text) {
+  return normalize(text)
+    .replace(/ß/g, "ss")
+    .replace(/ae/g, "a")
+    .replace(/oe/g, "o")
+    .replace(/ue/g, "u");
 }
 
 function tokenize(text) {
@@ -151,58 +170,6 @@ const defaults = {
   theme: "dark"
 };
 
-let data = {};
-
-try {
-  const stored = localStorage.getItem(KEY);
-
-  if (stored) {
-    const parsed = JSON.parse(stored);
-
-    if (obj(parsed)) data = parsed;
-  }
-} catch (error) {
-  console.error("LernBot: Datenbank konnte nicht geladen werden.", error);
-  data = {};
-}
-
-if (!obj(data)) data = {};
-
-/* Ältere Speicherstruktur übernehmen */
-
-if (!Array.isArray(data.memory) && Array.isArray(data.memories)) {
-  data.memory = data.memories;
-}
-
-if (Array.isArray(data.memory) && Array.isArray(data.memories)) {
-  const known = new Set(
-    data.memory.map(item =>
-      item?.id || `${item?.type}|${item?.content}`
-    )
-  );
-
-  for (const item of data.memories) {
-    const key = item?.id || `${item?.type}|${item?.content}`;
-
-    if (!known.has(key)) {
-      data.memory.push(item);
-      known.add(key);
-    }
-  }
-}
-
-delete data.memories;
-
-/* Fehlende Datenbereiche ergänzen */
-
-for (const [key, value] of Object.entries(defaults)) {
-  if (data[key] === undefined || data[key] === null) {
-    data[key] = clone(value);
-  }
-}
-
-/* Array-Bereiche absichern */
-
 const arrayKeys = [
   "facts",
   "qa",
@@ -219,71 +186,355 @@ const arrayKeys = [
   "snapshots"
 ];
 
-for (const key of arrayKeys) {
-  if (!Array.isArray(data[key])) data[key] = [];
-}
+let data = {};
 
-/* Objekt-Bereiche absichern */
+/* Hinweise, die beim Start im Chat angezeigt werden */
 
-if (!obj(data.agentStats)) data.agentStats = {};
-if (!obj(data.settings)) data.settings = {};
-
-/* Einstellungen ergänzen */
-
-data.settings = {
-  ...clone(defaults.settings),
-  ...data.settings
-};
-
-if (typeof data.theme !== "string") {
-  data.theme = "dark";
-}
-
-data.version = VERSION;
+const startupNotices = [];
 
 /* =====================================================
-   3. DATEN VALIDIEREN
+   2a. AUTOMATISCHE SICHERUNGSKOPIEN (NEU)
+
+   Diese Kopien liegen in SEPARATEN localStorage-Einträgen
+   mit dem Namensanfang "meinLernBot.v1.sicherung.".
+   Der Haupt-Schlüssel "meinLernBot.v1" wird dadurch
+   nie berührt.
    ===================================================== */
 
-data.facts = data.facts.filter(item =>
-  obj(item) &&
-  typeof item.subject === "string" &&
-  typeof item.property === "string" &&
-  typeof item.value === "string"
-);
+const BACKUP_PREFIX = KEY + ".sicherung.";
 
-data.qa = data.qa.filter(item =>
-  obj(item) &&
-  typeof item.k === "string" &&
-  typeof item.a === "string"
-);
-
-data.relationships = data.relationships.filter(item =>
-  obj(item) &&
-  typeof item.from === "string" &&
-  typeof item.to === "string" &&
-  typeof item.relation === "string"
-);
-
-data.memory = data.memory.filter(item =>
-  obj(item) &&
-  typeof item.content === "string" &&
-  typeof item.type === "string"
-);
-
-for (const key of [
-  "documents",
-  "projects",
-  "tasks",
-  "classes",
-  "log",
-  "audit",
-  "improvements",
-  "codeProposals",
-  "snapshots"
-]) {
-  data[key] = data[key].filter(obj);
+function backupTime(name) {
+  const match = String(name).match(/\.(\d{10,})$/);
+  return match ? Number(match[1]) : 0;
 }
+
+function listAutoBackups(kind = "") {
+  const names = [];
+
+  try {
+    const prefix = BACKUP_PREFIX + (kind ? kind + "." : "");
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const name = localStorage.key(i);
+
+      if (name && name.startsWith(prefix)) names.push(name);
+    }
+  } catch (error) {
+    console.warn("LernBot: Sicherungen nicht lesbar.", error);
+  }
+
+  return names.sort((a, b) =>
+    backupTime(a) - backupTime(b) || (a < b ? -1 : 1)
+  );
+}
+
+/*
+   options.keep: maximale Anzahl dieser Sicherungsart.
+   0 bedeutet: nie automatisch löschen.
+   Gibt den Namen der Sicherung zurück oder null bei Fehlschlag.
+   Ist der Inhalt bereits identisch gesichert, wird die vorhandene
+   Sicherung wiederverwendet.
+*/
+
+function writeAutoBackup(kind, raw, options = {}) {
+  const keep = Number.isInteger(options.keep) ? options.keep : 0;
+
+  kind = String(kind ?? "").replace(/[^A-Za-z0-9\-_]/g, "") || "allgemein";
+
+  if (typeof raw !== "string" || !raw) return null;
+
+  try {
+    for (const name of listAutoBackups(kind)) {
+      if (localStorage.getItem(name) === raw) return name;
+    }
+
+    let stamp = now();
+    let name = BACKUP_PREFIX + kind + "." + stamp;
+
+    while (localStorage.getItem(name) !== null) {
+      stamp++;
+      name = BACKUP_PREFIX + kind + "." + stamp;
+    }
+
+    localStorage.setItem(name, raw);
+
+    if (keep > 0) {
+      const all = listAutoBackups(kind);
+
+      while (all.length > keep) {
+        localStorage.removeItem(all.shift());
+      }
+    }
+
+    return name;
+
+  } catch (error) {
+    console.warn("LernBot: Sicherungskopie fehlgeschlagen.", error);
+    return null;
+  }
+}
+
+/* Sicherung des aktuellen Arbeitsstands (ohne Snapshots, damit sie klein bleibt) */
+
+function backupJson() {
+  return JSON.stringify({ ...data, snapshots: [] });
+}
+
+/* =====================================================
+   2b. SPERRE BEI NICHT LESBAREM SPEICHER (NEU)
+   ===================================================== */
+
+let storageLocked = false;
+let storageLockReason = "";
+let lockRescueKey = null;
+
+/*
+   Gibt null zurück, wenn der Speicher entsperrt ist oder entsperrt
+   werden durfte. Sonst eine Fehlermeldung.
+   Entsperrt wird nur, wenn eine Rettungskopie des beschädigten
+   Originals vorhanden ist.
+*/
+
+function tryUnlockStorage() {
+  if (!storageLocked) return null;
+
+  if (storageLockReason !== "corrupt" || !lockRescueKey) {
+    return "Der Browser-Speicher ist gesperrt, weil der vorhandene Datenbestand nicht gelesen werden konnte und keine Rettungskopie angelegt werden konnte. Aus Sicherheitsgründen wird nichts überschrieben. Bitte lade die Seite neu.";
+  }
+
+  storageLocked = false;
+  storageLockReason = "";
+
+  return null;
+}
+
+/* =====================================================
+   2c. STRUKTUR SICHERSTELLEN
+   ===================================================== */
+
+/*
+   Aussortierte (ungültige) Einträge werden NICHT einfach verworfen,
+   sondern vorher in einer Sicherungskopie abgelegt.
+*/
+
+function keepValid(list, test, label) {
+  const kept = [];
+  const dropped = [];
+
+  for (const item of arr(list)) {
+    (test(item) ? kept : dropped).push(item);
+  }
+
+  if (dropped.length) {
+    const backupName = writeAutoBackup(
+      "verworfen-" + label,
+      JSON.stringify(dropped),
+      { keep: 0 }
+    );
+
+    startupNotices.push(
+      `${dropped.length} ungültige(r) Eintrag/Einträge im Bereich "${label}" wurden aussortiert.` +
+      (backupName
+        ? ` Kopie gesichert unter: ${backupName}`
+        : " ACHTUNG: Die Kopie konnte nicht gesichert werden.")
+    );
+  }
+
+  return kept;
+}
+
+function ensureStructure() {
+  if (!obj(data)) data = {};
+
+  /* Ältere Speicherstruktur übernehmen */
+
+  if (!Array.isArray(data.memory) && Array.isArray(data.memories)) {
+    data.memory = data.memories;
+  }
+
+  if (Array.isArray(data.memory) && Array.isArray(data.memories)) {
+    const known = new Set(
+      data.memory.map(item =>
+        item?.id || `${item?.type}|${item?.content}`
+      )
+    );
+
+    for (const item of data.memories) {
+      const key = item?.id || `${item?.type}|${item?.content}`;
+
+      if (!known.has(key)) {
+        data.memory.push(item);
+        known.add(key);
+      }
+    }
+  }
+
+  delete data.memories;
+
+  /* Fehlende Datenbereiche ergänzen */
+
+  for (const [key, value] of Object.entries(defaults)) {
+    if (data[key] === undefined || data[key] === null) {
+      data[key] = clone(value);
+    }
+  }
+
+  /* Array-Bereiche absichern */
+
+  for (const key of arrayKeys) {
+    if (!Array.isArray(data[key])) data[key] = [];
+  }
+
+  /* Objekt-Bereiche absichern */
+
+  if (!obj(data.agentStats)) data.agentStats = {};
+  if (!obj(data.settings)) data.settings = {};
+
+  /* Einstellungen ergänzen */
+
+  data.settings = {
+    ...clone(defaults.settings),
+    ...data.settings
+  };
+
+  if (typeof data.theme !== "string") {
+    data.theme = "dark";
+  }
+
+  data.version = VERSION;
+
+  /* Daten validieren (Aussortiertes wird vorher gesichert) */
+
+  data.facts = keepValid(data.facts, item =>
+    obj(item) &&
+    typeof item.subject === "string" &&
+    typeof item.property === "string" &&
+    typeof item.value === "string",
+    "facts"
+  );
+
+  data.qa = keepValid(data.qa, item =>
+    obj(item) &&
+    typeof item.k === "string" &&
+    typeof item.a === "string",
+    "qa"
+  );
+
+  data.relationships = keepValid(data.relationships, item =>
+    obj(item) &&
+    typeof item.from === "string" &&
+    typeof item.to === "string" &&
+    typeof item.relation === "string",
+    "relationships"
+  );
+
+  data.memory = keepValid(data.memory, item =>
+    obj(item) &&
+    typeof item.content === "string" &&
+    typeof item.type === "string",
+    "memory"
+  );
+
+  for (const key of [
+    "documents",
+    "projects",
+    "tasks",
+    "classes",
+    "log",
+    "audit",
+    "improvements",
+    "codeProposals",
+    "snapshots"
+  ]) {
+    data[key] = keepValid(data[key], obj, key);
+  }
+}
+
+/* =====================================================
+   2d. DATENBANK LADEN (GEÄNDERT)
+
+   Ist der gespeicherte Datenbestand nicht lesbar (z. B. kaputtes JSON),
+   wird NIE ein leerer Bestand gespeichert:
+   1. Das Original wird unverändert als Rettungskopie gesichert.
+   2. Der Speicher wird gesperrt. Der Hauptschlüssel bleibt unberührt.
+   ===================================================== */
+
+{
+  let rawStored = null;
+  let parsedStored = null;
+
+  try {
+    rawStored = localStorage.getItem(KEY);
+  } catch (error) {
+    console.error("LernBot: Browser-Speicher nicht lesbar.", error);
+
+    storageLocked = true;
+    storageLockReason = "unreadable";
+
+    startupNotices.push(
+      "ACHTUNG: Der Browser-Speicher konnte nicht gelesen werden. Änderungen werden nicht gespeichert."
+    );
+  }
+
+  if (!storageLocked && rawStored) {
+    try {
+      const parsed = JSON.parse(rawStored);
+
+      if (!obj(parsed)) {
+        throw new Error("Der gespeicherte Datenbestand ist kein Datenobjekt.");
+      }
+
+      parsedStored = parsed;
+
+    } catch (error) {
+      console.error("LernBot: Datenbank beschädigt.", error);
+
+      storageLocked = true;
+      storageLockReason = "corrupt";
+
+      lockRescueKey = writeAutoBackup(
+        "beschaedigt",
+        rawStored,
+        { keep: 0 }
+      );
+
+      startupNotices.push(
+        "ACHTUNG: Dein gespeicherter Datenbestand ist beschädigt und konnte nicht gelesen werden.\n" +
+        "Es wurde NICHTS gelöscht und NICHTS überschrieben. Neue Änderungen werden in dieser Sitzung NICHT gespeichert.\n" +
+        (lockRescueKey
+          ? "Rettungskopie: " + lockRescueKey + "\nMit „Auto-Sicherungen“ siehst du alle Kopien, mit „Auto-Sicherung exportieren: NUMMER“ kannst du die Kopie als Datei sichern."
+          : "WARNUNG: Die Rettungskopie konnte nicht angelegt werden. Das Original im Browser-Speicher bleibt aber unverändert. Bitte lade die Seite nicht mehrfach neu und wende dich mit dem Problem an deinen Entwickler-Assistenten.")
+      );
+    }
+  }
+
+  if (parsedStored) {
+    const oldVersion = Number(parsedStored.version) || 0;
+
+    /* Automatische Sicherung VOR einer Migration */
+
+    if (
+      oldVersion !== VERSION ||
+      Array.isArray(parsedStored.memories)
+    ) {
+      const backupName = writeAutoBackup(
+        "vorMigration",
+        rawStored,
+        { keep: 0 }
+      );
+
+      startupNotices.push(
+        backupName
+          ? "Datenstruktur wurde aktualisiert. Sicherung vorher: " + backupName
+          : "WARNUNG: Vor der Datenmigration konnte keine Sicherung angelegt werden."
+      );
+    }
+
+    data = parsedStored;
+  }
+}
+
+ensureStructure();
 
 /* =====================================================
    4. SPEICHERSYSTEM
@@ -299,12 +550,24 @@ function setStatus(message) {
 }
 
 function save() {
+  /* Gesperrter Speicher: den Hauptschlüssel niemals überschreiben */
+
+  if (storageLocked) {
+    setStatus("Speicher gesperrt – Änderungen werden NICHT gespeichert.");
+    return false;
+  }
+
   data.version = VERSION;
 
   data.log = arr(data.log).slice(-150);
   data.audit = arr(data.audit).slice(-1000);
-  data.memory = arr(data.memory).slice(-1000);
   data.snapshots = arr(data.snapshots).slice(-30);
+
+  /*
+     Hinweis: Die frühere stille Kürzung der Erinnerungen auf
+     1000 Einträge wurde entfernt. Erinnerungen werden nicht mehr
+     automatisch gelöscht.
+  */
 
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
@@ -411,30 +674,81 @@ function searchMemory(query, limit = 8) {
     .map(result => result.item);
 }
 
-function forgetMemory(query) {
-  const q = normalize(query);
-  if (!q) return 0;
+/* =====================================================
+   5a. SICHERES VERGESSEN (GEÄNDERT)
 
-  const before = data.memory.length;
+   Schutz gegen versehentliches Massenlöschen:
+   - Suchbegriff mindestens 3 Zeichen.
+   - Es wird nur im INHALT gesucht (nicht mehr im Typ,
+     sonst würde "fakt" alle Faktenerinnerungen löschen).
+   - Gelöscht wird nur, wenn höchstens FORGET_LIMIT Treffer vorliegen.
+   - Eine genaue Erinnerungs-ID löscht genau diese eine Erinnerung.
+   - Gelöschte Inhalte werden im Audit-Protokoll festgehalten.
+   ===================================================== */
 
-  data.memory = data.memory.filter(item =>
-    !normalize(item.content).includes(q) &&
-    !normalize(item.type).includes(q)
+const FORGET_LIMIT = 5;
+const FORGET_MIN_LENGTH = 3;
+
+function findForgetCandidates(query) {
+  const raw = safeText(query, 500);
+  const q = normalize(raw);
+
+  if (!q) return { ok: false, reason: "empty", items: [] };
+
+  const byId = data.memory.filter(item =>
+    item.id &&
+    String(item.id).toLowerCase() === raw.toLowerCase()
   );
 
-  const removed = before - data.memory.length;
+  if (byId.length) return { ok: true, reason: "id", items: byId };
 
-  if (removed > 0) {
-    logAudit(
-      "Gedächtnis-KI",
-      "Erinnerungen gelöscht",
-      `${removed} Einträge`
-    );
-
-    save();
+  if (q.length < FORGET_MIN_LENGTH) {
+    return { ok: false, reason: "short", items: [] };
   }
 
-  return removed;
+  const items = data.memory.filter(item =>
+    normalize(item.content).includes(q)
+  );
+
+  if (!items.length) return { ok: false, reason: "none", items };
+
+  if (items.length > FORGET_LIMIT) {
+    return { ok: false, reason: "many", items };
+  }
+
+  return { ok: true, reason: "match", items };
+}
+
+function deleteMemoryItems(items) {
+  const targets = new Set(
+    arr(items).filter(item => data.memory.includes(item))
+  );
+
+  if (!targets.size) return 0;
+
+  const removedItems = data.memory.filter(item => targets.has(item));
+
+  data.memory = data.memory.filter(item => !targets.has(item));
+
+  logAudit(
+    "Gedächtnis-KI",
+    "Erinnerungen gelöscht",
+    removedItems
+      .map(item => `[${item.type}] ${safeText(item.content, 150)}`)
+      .join(" | ")
+  );
+
+  save();
+
+  return removedItems.length;
+}
+
+function forgetMemory(query) {
+  const result = findForgetCandidates(query);
+
+  if (!result.ok) return 0;
+
+  return deleteMemoryItems(result.items);
 }
 
 /* =====================================================
@@ -451,12 +765,13 @@ function cleanSubject(text) {
     .trim();
 }
 
+/* GEÄNDERT: Vergleich über fold() (ä/ae, ö/oe, ü/ue, ß/ss gleich) */
+
 function sameSubject(a, b) {
-  return normalize(cleanSubject(a)) ===
-    normalize(cleanSubject(b));
+  return fold(cleanSubject(a)) === fold(cleanSubject(b));
 }
 
-/* Eigenschaftsnamen vereinheitlichen */
+/* Eigenschaftsnamen vereinheitlichen (gespeicherte Form, unverändert) */
 
 function normalizeProperty(property) {
   return normalize(property)
@@ -465,34 +780,49 @@ function normalizeProperty(property) {
     .slice(0, 80);
 }
 
-/* Alle bekannten Kategorien ermitteln */
+/*
+   NEU: Vergleichsschlüssel für Eigenschaften.
+   Alte gespeicherte Eigenschaften ("korpergroße") und neue
+   Eingaben ("Körpergröße", "Koerpergroesse") ergeben denselben Schlüssel.
+*/
 
-function getKnownCategories() {
-  return [
-    ...new Set(
-      data.facts
-        .map(item => normalizeProperty(item.property))
-        .filter(Boolean)
-    )
-  ].sort();
+function propKey(property) {
+  return fold(property)
+    .replace(/\s+/g, "_")
+    .slice(0, 80);
 }
 
-/* Verwandte Eigenschaften berücksichtigen */
+/* Alle bekannten Kategorien ermitteln (Anzeigeform) */
+
+function getKnownCategories() {
+  const seen = new Map();
+
+  for (const item of data.facts) {
+    const display = normalizeProperty(item.property);
+    const key = propKey(item.property);
+
+    if (display && key && !seen.has(key)) seen.set(key, display);
+  }
+
+  return [...seen.values()].sort();
+}
+
+/* Verwandte Eigenschaften berücksichtigen (liefert Vergleichsschlüssel) */
 
 function getPropertyCandidates(property) {
-  const p = normalizeProperty(property);
+  const p = propKey(property);
 
   const aliases = {
-    familie: ["familie", "zugehoerigkeit"],
-    zugehoerigkeit: ["zugehoerigkeit", "familie"],
-    tierart: ["tierart", "familie", "zugehoerigkeit"],
+    familie: ["familie", "zugehorigkeit"],
+    zugehorigkeit: ["zugehorigkeit", "familie"],
+    tierart: ["tierart", "familie", "zugehorigkeit"],
 
     lebensraum: ["lebensraum", "lebensgebiet", "wohnort"],
     lebensgebiet: ["lebensgebiet", "lebensraum"],
     wohnort: ["wohnort", "lebensraum"],
 
-    nahrung: ["nahrung", "ernaehrung"],
-    ernaehrung: ["ernaehrung", "nahrung"],
+    nahrung: ["nahrung", "ernahrung"],
+    ernahrung: ["ernahrung", "nahrung"],
 
     aussehen: ["aussehen", "erscheinungsbild"],
     erscheinungsbild: ["erscheinungsbild", "aussehen"]
@@ -523,9 +853,11 @@ function addFact(subject, property, value, source = "user") {
 
   if (!subject || !property || !value) return false;
 
+  const wantedKey = propKey(property);
+
   let existing = data.facts.find(item =>
     sameSubject(item.subject, subject) &&
-    normalizeProperty(item.property) === property
+    propKey(item.property) === wantedKey
   );
 
   if (existing) {
@@ -776,15 +1108,111 @@ function learnFact(text) {
 }
 
 /* =====================================================
-   10. WISSEN ABRUFEN – DYNAMISCHE KATEGORIEN
+   10. WISSEN ABRUFEN – DYNAMISCHE KATEGORIEN (GEÄNDERT)
    ===================================================== */
 
+/*
+   NEU: Sucht gespeicherte Fakten direkt in der Frage.
+   Ein Fakt passt, wenn
+   - sein Thema UND seine Eigenschaft in der Frage vorkommen
+     (Reihenfolge und Satzbau egal, auch mit Genitiv-s), oder
+   - ein Wort der Frage ein Kompositum aus Thema + Eigenschaft ist
+     (z. B. "Marsdurchmesser" = "Mars" + "Durchmesser").
+   Alles ist datengesteuert – es gibt keine Sonderfälle für einzelne Themen.
+*/
+
+function phraseInText(text, phrase) {
+  if (!phrase) return false;
+
+  const padded = " " + text + " ";
+
+  for (const suffix of ["", "s", "es"]) {
+    if (padded.includes(" " + phrase + suffix + " ")) return true;
+  }
+
+  return false;
+}
+
+function findFactsInQuestion(question) {
+  const q = fold(question);
+
+  if (!q) return [];
+
+  const words = q.split(" ");
+  const matches = [];
+
+  for (const fact of data.facts) {
+    const subjectKey = fold(cleanSubject(fact.subject));
+
+    if (subjectKey.length < 2) continue;
+
+    const subjectJoined = subjectKey.replace(/ /g, "");
+    const subjectInQuestion = phraseInText(q, subjectKey);
+
+    const propertyKeys = getPropertyCandidates(fact.property)
+      .map(key => key.replace(/_/g, " "))
+      .filter(Boolean);
+
+    let hit = false;
+
+    for (const property of propertyKeys) {
+      if (subjectInQuestion && phraseInText(q, property)) {
+        hit = true;
+        break;
+      }
+
+      const propertyJoined = property.replace(/ /g, "");
+
+      for (const word of words) {
+        for (const joint of ["", "s", "es", "n", "en"]) {
+          if (word === subjectJoined + joint + propertyJoined) {
+            hit = true;
+            break;
+          }
+        }
+
+        if (hit) break;
+      }
+
+      if (hit) break;
+    }
+
+    if (hit) matches.push(fact);
+  }
+
+  /* Teilthemen entfernen: "York" nicht, wenn "New York" auch passt */
+
+  const withKeys = matches.map(fact => ({
+    fact,
+    key: fold(cleanSubject(fact.subject))
+  }));
+
+  return withKeys
+    .filter(a => !withKeys.some(b =>
+      b.key.length > a.key.length &&
+      (" " + b.key + " ").includes(" " + a.key + " ")
+    ))
+    .map(item => item.fact);
+}
+
+function answerFromQuestionMatch(question) {
+  const found = findFactsInQuestion(question);
+
+  if (!found.length) return null;
+
+  if (found.length === 1) return found[0].value;
+
+  return found
+    .map(fact => `${fact.subject} – ${fact.property}: ${fact.value}`)
+    .join("\n");
+}
+
 function answerFact(question) {
-  const q = normalize(question);
+  const q = fold(question);
 
   if (!q) return null;
 
-  let propertyCandidates = [];
+  const propertyCandidates = [];
   let subject = "";
   let match;
 
@@ -796,10 +1224,15 @@ function answerFact(question) {
     }
   }
 
+  /*
+     Alle Muster arbeiten auf dem gefalteten Text (fold):
+     "gehört" ist dort "gehort", "Ernährung" ist "ernahrung".
+  */
+
   /* Familie und Tierart */
 
   match = q.match(
-    /^zu welcher (?:tierart|familie) gehoert (?:der|die|das)?\s*(.+)$/
+    /^zu welcher (?:tierart|familie) gehort (?:(?:der|die|das)\s+)?(.+)$/
   );
 
   if (match) {
@@ -809,7 +1242,7 @@ function answerFact(question) {
 
   if (!subject) {
     match = q.match(
-      /^welcher(?:e|er)? familie gehoert (?:der|die|das)?\s*(.+)$/
+      /^welcher(?:e|er)? familie gehort (?:(?:der|die|das)\s+)?(.+)$/
     );
 
     if (match) {
@@ -820,12 +1253,12 @@ function answerFact(question) {
 
   /* Dynamische Frage:
      Welche Fellfarbe hat das Okapi?
-     Welche Körpergröße hat eine Giraffe?
+     Welchen Durchmesser hat der Mars?
   */
 
   if (!subject) {
     match = q.match(
-      /^welche[rns]?\s+(.+?)\s+(?:hat|besitzt)\s+(?:der|die|das|ein|eine)?\s*(.+)$/
+      /^welche[rns]?\s+(.+?)\s+(?:hat|besitzt)\s+(?:(?:der|die|das|ein|eine)\s+)?(.+)$/
     );
 
     if (match) {
@@ -836,12 +1269,13 @@ function answerFact(question) {
 
   /* Dynamische Frage:
      Was ist die Fellfarbe vom Okapi?
+     Was ist der Durchmesser des Mars?
      Wie lautet die Körpergröße vom Okapi?
   */
 
   if (!subject) {
     match = q.match(
-      /^(?:was ist|wie lautet|nenne|nenn|zeige)\s+(?:die|der|das)?\s*(.+?)\s+(?:von|vom)\s+(.+)$/
+      /^(?:was ist|was betragt|wie lautet|nenne|nenn|zeige|gib mir)\s+(?:(?:die|der|das|den)\s+)?(.+?)\s+(?:von|vom|des|der|dem)\s+(?:(?:der|die|das|dem|den)\s+)?(.+)$/
     );
 
     if (match) {
@@ -854,7 +1288,7 @@ function answerFact(question) {
 
   if (!subject) {
     match = q.match(
-      /^(?:was ist|was bedeutet|wer ist|erklaere)\s+(.+)$/
+      /^(?:was ist|was bedeutet|wer ist|erklare)\s+(.+)$/
     );
 
     if (match) {
@@ -867,7 +1301,7 @@ function answerFact(question) {
 
   if (propertyCandidates.length === 0) {
     for (const category of getKnownCategories()) {
-      const readable = category.replace(/_/g, " ");
+      const readable = fold(category.replace(/_/g, " "));
 
       if (
         readable.length > 2 &&
@@ -883,7 +1317,7 @@ function answerFact(question) {
   if (!subject && /\bhauptstadt\b/.test(q)) {
     addProperty("hauptstadt");
 
-    match = q.match(/(?:von|ueber)\s+(.+)$/);
+    match = q.match(/(?:von|uber)\s+(.+)$/);
 
     if (match) subject = match[1];
   }
@@ -907,7 +1341,7 @@ function answerFact(question) {
 
   if (
     !subject &&
-    /\b(was frisst|was isst|nahrung|ernaehrung)\b/.test(q)
+    /\b(was frisst|was isst|nahrung|ernahrung)\b/.test(q)
   ) {
     addProperty("nahrung");
 
@@ -918,22 +1352,27 @@ function answerFact(question) {
     if (match) subject = match[1];
   }
 
-  if (!subject || propertyCandidates.length === 0) {
-    return null;
+  /* Direkter Treffer über Thema + Eigenschaft */
+
+  if (subject && propertyCandidates.length > 0) {
+    const cleaned = cleanSubject(subject);
+
+    if (cleaned) {
+      const fact = data.facts.find(item =>
+        sameSubject(item.subject, cleaned) &&
+        propertyCandidates.includes(propKey(item.property))
+      );
+
+      if (fact) return fact.value;
+    }
   }
 
-  subject = cleanSubject(subject);
+  /*
+     NEU: Kein Muster hat getroffen (oder das Muster fand keinen Fakt).
+     Jetzt werden gespeicherte Fakten direkt in der Frage gesucht.
+  */
 
-  if (!subject) return null;
-
-  const fact = data.facts.find(item =>
-    sameSubject(item.subject, subject) &&
-    propertyCandidates.includes(
-      normalizeProperty(item.property)
-    )
-  );
-
-  return fact ? fact.value : null;
+  return answerFromQuestionMatch(question);
 }
 
 /* =====================================================
@@ -1053,10 +1492,8 @@ function graphReport(subject) {
    ENDE TEIL 1/3
    TEIL 2 DIREKT DARUNTER EINFÜGEN
    ===================================================== */
-
-
-/* =====================================================
-   LERNBOT 6.0 – TEIL 2/3
+ /* =====================================================
+   LERNBOT 6.0 – TEIL 2/3 (PAKET 1)
    AGENTEN, RECHERCHE, DOKUMENTE, PROJEKTE, CODE, BACKUP
    ===================================================== */
 
@@ -1824,7 +2261,7 @@ function inspectCodeReport(code) {
 }
 
 /* =====================================================
-   7. SICHERUNGEN
+   7. SICHERUNGEN (SNAPSHOTS)
    ===================================================== */
 
 function createSnapshot(label = "Automatische Sicherung") {
@@ -1858,6 +2295,13 @@ function createSnapshot(label = "Automatische Sicherung") {
   return snapshot;
 }
 
+/*
+   GEÄNDERT (Paket 1): Vor jeder Wiederherstellung wird der aktuelle
+   Stand automatisch separat gesichert ("vorRestore"). Gelingt diese
+   Sicherung nicht, wird die Wiederherstellung abgebrochen.
+   Schlägt das Speichern fehl, wird der vorherige Stand zurückgesetzt.
+*/
+
 function restoreSnapshot(id) {
   id = safeText(id, 200);
 
@@ -1869,6 +2313,21 @@ function restoreSnapshot(id) {
     return "Sicherung nicht gefunden oder beschädigt.";
   }
 
+  const wasLocked = storageLocked;
+  let backupName = null;
+
+  if (wasLocked) {
+    const lockError = tryUnlockStorage();
+    if (lockError) return lockError;
+  } else {
+    backupName = writeAutoBackup("vorRestore", backupJson(), { keep: 2 });
+
+    if (!backupName) {
+      return "Wiederherstellung abgebrochen: Die automatische Sicherung des aktuellen Stands war nicht möglich (vermutlich ist der Browser-Speicher voll). Bitte erstelle zuerst einen Export.";
+    }
+  }
+
+  const before = clone(data);
   const currentSnapshots = arr(data.snapshots);
   const backup = clone(snapshot.data);
 
@@ -1902,9 +2361,135 @@ function restoreSnapshot(id) {
     snapshot.label
   );
 
-  save();
+  if (!save()) {
+    data = before;
+    storageLocked = wasLocked;
 
-  return "Die Sicherung wurde wiederhergestellt. Bitte lade die Seite neu, falls die Oberfläche nicht alle Änderungen anzeigt.";
+    return "Wiederherstellung fehlgeschlagen: Die Daten konnten nicht gespeichert werden. Der vorherige Stand bleibt erhalten.";
+  }
+
+  return [
+    "Die Sicherung wurde wiederhergestellt. Bitte lade die Seite neu, falls die Oberfläche nicht alle Änderungen anzeigt.",
+    backupName
+      ? "Der vorherige Stand wurde automatisch gesichert unter: " + backupName
+      : ""
+  ].filter(Boolean).join("\n");
+}
+
+/* =====================================================
+   7a. AUTOMATISCHE SICHERUNGEN – VERWALTUNG (NEU)
+   ===================================================== */
+
+/* Nummer (1, 2, ...) oder vollständiger Name → Name der Sicherung */
+
+function resolveAutoBackup(reference) {
+  reference = safeText(reference, 300);
+
+  if (!reference) return null;
+
+  const names = listAutoBackups();
+
+  if (/^\d+$/.test(reference)) {
+    return names[Number(reference) - 1] || null;
+  }
+
+  return names.includes(reference) ? reference : null;
+}
+
+function readAutoBackup(name) {
+  try {
+    return localStorage.getItem(name);
+  } catch (error) {
+    console.warn("LernBot: Sicherung nicht lesbar.", error);
+    return null;
+  }
+}
+
+function restoreAutoBackup(reference) {
+  const name = resolveAutoBackup(reference);
+
+  if (!name) {
+    return "Sicherung nicht gefunden. Mit „Auto-Sicherungen“ siehst du die Liste.";
+  }
+
+  const afterPrefix = name.slice(BACKUP_PREFIX.length);
+
+  if (afterPrefix.startsWith("verworfen-")) {
+    return "Diese Kopie enthält nur aussortierte Einzeleinträge und keinen kompletten Datenbestand. Sie kann nicht wiederhergestellt, aber mit „Auto-Sicherung exportieren: " + reference + "“ als Datei gesichert werden.";
+  }
+
+  const raw = readAutoBackup(name);
+
+  if (!raw) return "Die Sicherung ist leer oder nicht lesbar.";
+
+  let parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return "Diese Sicherung enthält beschädigtes JSON und kann nicht automatisch wiederhergestellt werden. Du kannst sie mit „Auto-Sicherung exportieren: " + reference + "“ als Datei sichern.";
+  }
+
+  if (!obj(parsed)) {
+    return "Diese Sicherung enthält kein gültiges Datenobjekt.";
+  }
+
+  const wasLocked = storageLocked;
+  let backupName = null;
+
+  if (wasLocked) {
+    const lockError = tryUnlockStorage();
+    if (lockError) return lockError;
+  } else {
+    backupName = writeAutoBackup("vorRestore", backupJson(), { keep: 2 });
+
+    if (!backupName) {
+      return "Wiederherstellung abgebrochen: Die automatische Sicherung des aktuellen Stands war nicht möglich (vermutlich ist der Browser-Speicher voll). Bitte erstelle zuerst einen Export.";
+    }
+  }
+
+  const before = clone(data);
+  const currentSnapshots = arr(data.snapshots);
+
+  startupNotices.length = 0;
+
+  data = clone(parsed);
+  ensureStructure();
+
+  /* Auto-Sicherungen enthalten oft keine Snapshots: dann die aktuellen behalten */
+
+  if (!data.snapshots.length) {
+    data.snapshots = currentSnapshots;
+  }
+
+  logAudit(
+    "System",
+    "Auto-Sicherung wiederhergestellt",
+    name
+  );
+
+  if (!save()) {
+    data = before;
+    storageLocked = wasLocked;
+
+    return "Wiederherstellung fehlgeschlagen: Die Daten konnten nicht gespeichert werden. Der vorherige Stand bleibt erhalten.";
+  }
+
+  const notices = startupNotices.splice(0);
+
+  return [
+    "Die Auto-Sicherung wurde wiederhergestellt.",
+    "",
+    `Fakten: ${data.facts.length}`,
+    `Erinnerungen: ${data.memory.length}`,
+    `Dokumente: ${data.documents.length}`,
+    backupName
+      ? "Der vorherige Stand wurde automatisch gesichert unter: " + backupName
+      : "",
+    ...notices,
+    "",
+    "Bitte lade die Seite neu, falls die Oberfläche nicht alle Änderungen anzeigt."
+  ].filter(item => item !== undefined).join("\n");
 }
 
 /* =====================================================
@@ -1922,8 +2507,177 @@ function exportData() {
 }
 
 /* =====================================================
-   9. DATENIMPORT
+   9. DATENIMPORT (GEÄNDERT)
+
+   Bisher ersetzte der Import vorhandene Bereiche komplett.
+   Jetzt gilt:
+   - Vor dem Import wird der aktuelle Stand automatisch gesichert
+     ("vorImport"). Gelingt das nicht, wird abgebrochen.
+   - Der Import ERGÄNZT: Vorhandenes wird nie überschrieben oder gelöscht.
+     Doppelte Einträge werden übersprungen.
+   - Weicht der Wert eines bereits bekannten Fakts ab, bleibt der
+     vorhandene Wert, der importierte wird als Alternative vermerkt und
+     der Fakt als Konflikt markiert.
+   - Einstellungen und Theme bleiben unverändert.
    ===================================================== */
+
+const IMPORT_AREAS = [
+  "facts",
+  "qa",
+  "classes",
+  "log",
+  "audit",
+  "improvements",
+  "codeProposals",
+  "projects",
+  "tasks",
+  "documents",
+  "relationships",
+  "memory",
+  "snapshots"
+];
+
+const IMPORT_VALID = {
+  facts: item =>
+    obj(item) &&
+    typeof item.subject === "string" &&
+    typeof item.property === "string" &&
+    typeof item.value === "string",
+
+  qa: item =>
+    obj(item) &&
+    typeof item.k === "string" &&
+    typeof item.a === "string",
+
+  relationships: item =>
+    obj(item) &&
+    typeof item.from === "string" &&
+    typeof item.to === "string" &&
+    typeof item.relation === "string",
+
+  memory: item =>
+    obj(item) &&
+    typeof item.content === "string" &&
+    typeof item.type === "string"
+};
+
+function importKeys(area, item) {
+  const idKey = item.id ? "id:" + item.id : null;
+
+  switch (area) {
+    case "qa":
+      return [idKey, "q:" + fold(item.k) + "|" + fold(item.a)];
+
+    case "relationships":
+      return [
+        idKey,
+        "r:" + fold(cleanSubject(item.from)) + "|" +
+          fold(item.relation) + "|" +
+          fold(cleanSubject(item.to))
+      ];
+
+    case "memory":
+      return [
+        "m:" + item.type + "|" + normalize(item.content)
+      ];
+
+    case "documents":
+      return [
+        idKey,
+        "d:" + String(item.title) + "\u0000" + String(item.content ?? "")
+      ];
+
+    default:
+      return [idKey || "j:" + JSON.stringify(item)];
+  }
+}
+
+function mergeImportedArea(area, incoming) {
+  const target = data[area];
+  const valid = IMPORT_VALID[area] || obj;
+
+  const known = new Set();
+
+  for (const item of target) {
+    for (const key of importKeys(area, item)) {
+      if (key) known.add(key);
+    }
+  }
+
+  const result = { added: 0, skipped: 0, invalid: 0 };
+
+  for (const item of incoming) {
+    if (!valid(item)) {
+      result.invalid++;
+      continue;
+    }
+
+    const keys = importKeys(area, item).filter(Boolean);
+
+    if (keys.some(key => known.has(key))) {
+      result.skipped++;
+      continue;
+    }
+
+    target.push(item);
+
+    for (const key of keys) known.add(key);
+
+    result.added++;
+  }
+
+  return result;
+}
+
+function mergeImportedFacts(incoming) {
+  const result = { added: 0, skipped: 0, invalid: 0, conflicts: 0 };
+
+  for (const item of incoming) {
+    if (!IMPORT_VALID.facts(item)) {
+      result.invalid++;
+      continue;
+    }
+
+    const wantedKey = propKey(item.property);
+
+    const existing = data.facts.find(fact =>
+      sameSubject(fact.subject, item.subject) &&
+      propKey(fact.property) === wantedKey
+    );
+
+    if (!existing) {
+      if (!item.id) item.id = uid();
+
+      data.facts.push(item);
+      result.added++;
+      continue;
+    }
+
+    if (normalize(existing.value) === normalize(item.value)) {
+      result.skipped++;
+      continue;
+    }
+
+    existing.alternatives = arr(existing.alternatives);
+
+    const alreadyKnown = existing.alternatives.some(alt =>
+      obj(alt) && normalize(alt.value) === normalize(item.value)
+    );
+
+    if (!alreadyKnown) {
+      existing.alternatives.push({
+        value: item.value,
+        source: safeText(item.source, 100) || "import",
+        time: now()
+      });
+    }
+
+    existing.conflict = true;
+    result.conflicts++;
+  }
+
+  return result;
+}
 
 function importData(json) {
   let parsed;
@@ -1940,7 +2694,6 @@ function importData(json) {
     return "Import fehlgeschlagen: Das Datenformat ist ungültig.";
   }
 
-  const before = clone(data);
   const imported = clone(parsed);
 
   /*
@@ -1952,103 +2705,112 @@ function importData(json) {
     imported.memory = imported.memories;
   }
 
-  const allowedArrays = [
-    "facts",
-    "qa",
-    "classes",
-    "log",
-    "audit",
-    "improvements",
-    "codeProposals",
-    "projects",
-    "tasks",
-    "documents",
-    "relationships",
-    "memory",
-    "snapshots"
-  ];
+  const hasKnownData =
+    IMPORT_AREAS.some(key => Array.isArray(imported[key])) ||
+    obj(imported.agentStats);
+
+  if (!hasKnownData) {
+    return "Import fehlgeschlagen: Die Datei enthält keine bekannten LernBot-Daten. Es wurde nichts verändert.";
+  }
+
+  /* Automatische Sicherung VOR dem Import */
+
+  const wasLocked = storageLocked;
+  let backupName = null;
+
+  if (wasLocked) {
+    const lockError = tryUnlockStorage();
+    if (lockError) return lockError;
+  } else {
+    backupName = writeAutoBackup("vorImport", backupJson(), { keep: 2 });
+
+    if (!backupName) {
+      return "Import abgebrochen: Die automatische Sicherung des aktuellen Stands war nicht möglich (vermutlich ist der Browser-Speicher voll). Es wurde nichts verändert. Bitte erstelle zuerst einen Export.";
+    }
+  }
+
+  const before = clone(data);
+  const report = [];
 
   try {
-    for (const key of allowedArrays) {
-      if (Array.isArray(imported[key])) {
-        data[key] = imported[key].filter(obj);
+    for (const area of IMPORT_AREAS) {
+      if (!Array.isArray(imported[area])) continue;
+
+      const result = area === "facts"
+        ? mergeImportedFacts(imported[area])
+        : mergeImportedArea(area, imported[area]);
+
+      const label = {
+        facts: "Fakten",
+        qa: "Frage-Antwort-Paare",
+        classes: "Klassen",
+        log: "Verlauf",
+        audit: "Protokoll",
+        improvements: "Verbesserungen",
+        codeProposals: "Codevorschläge",
+        projects: "Projekte",
+        tasks: "Aufgaben",
+        documents: "Dokumente",
+        relationships: "Verknüpfungen",
+        memory: "Erinnerungen",
+        snapshots: "Sicherungen"
+      }[area];
+
+      if (result.added || result.skipped || result.invalid || result.conflicts) {
+        report.push(
+          `${label}: ${result.added} neu, ${result.skipped} schon vorhanden` +
+          (result.conflicts ? `, ${result.conflicts} abweichende Werte (als Konflikt vermerkt)` : "") +
+          (result.invalid ? `, ${result.invalid} ungültig übersprungen` : "")
+        );
       }
     }
 
     if (obj(imported.agentStats)) {
-      data.agentStats = imported.agentStats;
+      for (const [name, count] of Object.entries(imported.agentStats)) {
+        const value = Number(count) || 0;
+
+        if (value > (Number(data.agentStats[name]) || 0)) {
+          data.agentStats[name] = value;
+        }
+      }
     }
-
-    if (obj(imported.settings)) {
-      data.settings = {
-        ...clone(defaults.settings),
-        ...imported.settings
-      };
-    }
-
-    if (typeof imported.theme === "string") {
-      data.theme = imported.theme;
-    }
-
-    data.version = VERSION;
-
-    /*
-       Nach dem Import erneut normalisieren.
-    */
-
-    data.facts = data.facts.filter(item =>
-      typeof item.subject === "string" &&
-      typeof item.property === "string" &&
-      typeof item.value === "string"
-    );
-
-    data.qa = data.qa.filter(item =>
-      typeof item.k === "string" &&
-      typeof item.a === "string"
-    );
-
-    data.relationships = data.relationships.filter(item =>
-      typeof item.from === "string" &&
-      typeof item.to === "string" &&
-      typeof item.relation === "string"
-    );
-
-    data.memory = data.memory.filter(item =>
-      typeof item.content === "string" &&
-      typeof item.type === "string"
-    );
 
     delete data.memories;
-
-    if (!save()) {
-      data = before;
-      save();
-
-      return "Import fehlgeschlagen: Die Daten konnten nicht dauerhaft gespeichert werden. Der vorherige Datenstand wurde wiederhergestellt.";
-    }
+    data.version = VERSION;
 
     logAudit(
       "System",
       "Datenimport abgeschlossen",
-      "JSON-Import"
+      backupName ? "Sicherung: " + backupName : "JSON-Import"
     );
 
-    save();
+    if (!save()) {
+      data = before;
+      storageLocked = wasLocked;
+
+      return "Import fehlgeschlagen: Die Daten konnten nicht dauerhaft gespeichert werden. Der vorherige Datenstand bleibt erhalten.";
+    }
 
     return [
-      "Datenimport erfolgreich abgeschlossen.",
+      "Datenimport erfolgreich abgeschlossen (ergänzend, nichts wurde überschrieben).",
       "",
-      `Fakten: ${data.facts.length}`,
-      `Erinnerungen: ${data.memory.length}`,
-      `Dokumente: ${data.documents.length}`,
-      `Projekte: ${data.projects.length}`,
-      `Aufgaben: ${data.tasks.length}`,
-      `Wissensverbindungen: ${data.relationships.length}`
+      ...(report.length ? report : ["Es gab nichts Neues zu importieren."]),
+      "",
+      `Fakten gesamt: ${data.facts.length}`,
+      `Erinnerungen gesamt: ${data.memory.length}`,
+      `Dokumente gesamt: ${data.documents.length}`,
+      `Projekte gesamt: ${data.projects.length}`,
+      `Aufgaben gesamt: ${data.tasks.length}`,
+      `Wissensverbindungen gesamt: ${data.relationships.length}`,
+      "",
+      backupName
+        ? "Der Stand vor dem Import wurde automatisch gesichert unter: " + backupName
+        : "Hinweis: Eine Rettungskopie des beschädigten Originals liegt weiterhin im Browser-Speicher."
     ].join("\n");
 
   } catch (error) {
     data = before;
-    save();
+    storageLocked = wasLocked;
 
     console.error("Importfehler:", error);
 
@@ -2061,7 +2823,7 @@ function importData(json) {
    TEIL 3 DIREKT DARUNTER EINFÜGEN
    ===================================================== */
  /* =====================================================
-   LERNBOT 6.0 – TEIL 3/3
+   LERNBOT 6.0 – TEIL 3/3 (PAKET 1)
    CHAT, LERNEN, BEFEHLE, DATEIEN UND BENUTZEROBERFLÄCHE
    ===================================================== */
 
@@ -2102,6 +2864,11 @@ const UI = {
 
 let lb6Busy = false;
 let lb6MessageCounter = 0;
+
+/* Wartende Löschbestätigung für Erinnerungen (nur im Arbeitsspeicher) */
+
+let pendingForget = null;
+const FORGET_CONFIRM_MS = 5 * 60 * 1000;
 
 /* =====================================================
    2. CHAT-NACHRICHTEN
@@ -2381,18 +3148,97 @@ function rememberResponse(value) {
   ].join("\n");
 }
 
+function formatForgetList(items) {
+  return items.slice(0, FORGET_LIMIT).map((item, index) =>
+    `${index + 1}. [${item.type}] ${safeText(item.content, 150)}\nID: ${item.id || "Keine ID"}`
+  ).join("\n\n");
+}
+
+/*
+   GEÄNDERT (Paket 1): Zweistufiges, abgesichertes Vergessen.
+   1. "Vergiss: Begriff" zeigt nur, was gelöscht würde.
+   2. "Vergiss bestätigen" löscht tatsächlich.
+*/
+
 function forgetResponse(value) {
   const query = safeText(value, 500);
+
+  pendingForget = null;
 
   if (!query) {
     return "Bitte gib einen Suchbegriff zum Löschen an.";
   }
 
-  const removed = forgetMemory(query);
+  const result = findForgetCandidates(query);
+
+  if (!result.ok) {
+    if (result.reason === "short") {
+      return `Der Suchbegriff ist zu kurz. Bitte verwende mindestens ${FORGET_MIN_LENGTH} Zeichen oder die genaue Erinnerungs-ID.`;
+    }
+
+    if (result.reason === "many") {
+      return [
+        `Zu viele Treffer (${result.items.length}). Aus Sicherheitsgründen lösche ich nicht so viele Erinnerungen auf einmal.`,
+        "",
+        "Bitte nenne einen genaueren Begriff oder die Erinnerungs-ID einer einzelnen Erinnerung (siehe „Erinnerungen“).",
+        "",
+        `Die ersten ${FORGET_LIMIT} Treffer:`,
+        "",
+        formatForgetList(result.items)
+      ].join("\n");
+    }
+
+    return "Ich habe keine passende Erinnerung gefunden.";
+  }
+
+  if (data.settings.confirmChanges === false) {
+    const removed = deleteMemoryItems(result.items);
+
+    return removed
+      ? `${removed} Erinnerung(en) wurden gelöscht.`
+      : "Ich habe keine passende Erinnerung gefunden.";
+  }
+
+  pendingForget = {
+    items: result.items,
+    time: now()
+  };
+
+  return [
+    `Diese ${result.items.length} Erinnerung(en) würden gelöscht:`,
+    "",
+    formatForgetList(result.items),
+    "",
+    "Zum Löschen schreibe: Vergiss bestätigen",
+    "Zum Abbrechen schreibe: Vergiss abbrechen"
+  ].join("\n");
+}
+
+function confirmForgetResponse() {
+  if (!pendingForget || now() - pendingForget.time > FORGET_CONFIRM_MS) {
+    pendingForget = null;
+    return "Es gibt keine wartende Löschanfrage. Starte sie mit „Vergiss: Begriff“.";
+  }
+
+  const items = pendingForget.items;
+
+  pendingForget = null;
+
+  const removed = deleteMemoryItems(items);
 
   return removed
     ? `${removed} Erinnerung(en) wurden gelöscht.`
-    : "Ich habe keine passende Erinnerung gefunden.";
+    : "Die Erinnerung(en) waren nicht mehr vorhanden.";
+}
+
+function cancelForgetResponse() {
+  const had = Boolean(pendingForget);
+
+  pendingForget = null;
+
+  return had
+    ? "Löschen abgebrochen. Es wurde nichts gelöscht."
+    : "Es gibt keine wartende Löschanfrage.";
 }
 
 /* =====================================================
@@ -2462,8 +3308,17 @@ function getDocumentKnowledge(query) {
 }
 
 /* =====================================================
-   8. WISSEN ABRUFEN
+   8. WISSEN ABRUFEN (GEÄNDERT)
    ===================================================== */
+
+/*
+   Fehlerbehebung: Früher wurde geprüft, ob der Antworttext einen
+   bestimmten Satz enthält ("noch nicht genug eigenes wissen"). Dieser
+   Satz passte nach der Textnormalisierung nie ("genugend"), deshalb
+   wurde die Meldung "habe ich noch nicht genügend eigenes Wissen"
+   fälschlich als Antwort ausgegeben. Jetzt wird direkt geprüft, ob
+   überhaupt Fakten vorhanden sind.
+*/
 
 function getKnowledgeResponse(topic) {
   topic = safeText(topic, 1000);
@@ -2478,16 +3333,14 @@ function getKnowledgeResponse(topic) {
 
   const facts = findRelatedFacts(topic, 10);
   const documentKnowledge = getDocumentKnowledge(topic);
-  const explanation = explainTopic(topic);
 
   const hasExplanation =
-    explanation &&
-    !normalize(explanation).includes(
-      "noch nicht genug eigenes wissen"
-    ) &&
-    !normalize(explanation).includes(
-      "noch nicht genuegend eigenes wissen"
-    );
+    getFacts(topic).length > 0 ||
+    facts.length > 0;
+
+  const explanation = hasExplanation
+    ? explainTopic(topic)
+    : "";
 
   if (hasExplanation && documentKnowledge) {
     return [
@@ -2666,44 +3519,135 @@ function restoreSnapshotResponse(id) {
   return restoreSnapshot(id);
 }
 
-function downloadExport() {
+/* Allgemeiner Datei-Download (NEU, von downloadExport ausgelagert) */
+
+function downloadTextFile(filename, text, mime = "application/json;charset=utf-8") {
   let url = null;
 
   try {
-    const json = exportData();
-
-    const blob = new Blob(
-      [json],
-      { type: "application/json;charset=utf-8" }
-    );
+    const blob = new Blob([text], { type: mime });
 
     url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
 
     link.href = url;
-    link.download =
-      "LernBot-6-Backup-" +
-      new Date().toISOString().slice(0, 10) +
-      ".json";
-
+    link.download = filename;
     link.style.display = "none";
 
     document.body.appendChild(link);
     link.click();
     link.remove();
 
-    return "Der JSON-Datenexport wurde gestartet.";
-
-  } catch (error) {
-    console.error("Exportfehler:", error);
-
-    return "Export fehlgeschlagen:\n" + error.message;
+    return true;
 
   } finally {
     if (url) {
       setTimeout(() => URL.revokeObjectURL(url), 1500);
     }
+  }
+}
+
+function downloadExport() {
+  try {
+    const json = exportData();
+
+    downloadTextFile(
+      "LernBot-6-Backup-" +
+        new Date().toISOString().slice(0, 10) +
+        ".json",
+      json
+    );
+
+    return storageLocked
+      ? "ACHTUNG: Der Speicher ist gesperrt. Dieser Export enthält nur den Arbeitsstand der aktuellen Sitzung, NICHT den beschädigten Originaldatenbestand. Nutze „Auto-Sicherungen“, um die Rettungskopie zu sichern."
+      : "Der JSON-Datenexport wurde gestartet.";
+
+  } catch (error) {
+    console.error("Exportfehler:", error);
+
+    return "Export fehlgeschlagen:\n" + error.message;
+  }
+}
+
+/* =====================================================
+   11a. AUTOMATISCHE SICHERUNGEN (NEU)
+   ===================================================== */
+
+function autoBackupLabel(name) {
+  const kind = name
+    .slice(BACKUP_PREFIX.length)
+    .replace(/\.\d+$/, "");
+
+  if (kind === "vorImport") return "Stand vor einem Import";
+  if (kind === "vorRestore") return "Stand vor einer Wiederherstellung";
+  if (kind === "vorMigration") return "Original vor einer Datenmigration";
+  if (kind === "beschaedigt") return "Rettungskopie (beschädigter Datenbestand)";
+  if (kind.startsWith("verworfen-")) {
+    return "Aussortierte Einträge (" + kind.slice("verworfen-".length) + ")";
+  }
+
+  return kind;
+}
+
+function getAutoBackupList() {
+  const names = listAutoBackups();
+
+  if (!names.length) {
+    return "Es sind keine automatischen Sicherungen vorhanden.";
+  }
+
+  return [
+    "AUTOMATISCHE SICHERUNGEN",
+    "",
+    ...names.map((name, index) => {
+      const raw = readAutoBackup(name);
+      const kb = raw ? Math.max(1, Math.round(raw.length / 1024)) : 0;
+
+      return [
+        `${index + 1}. ${autoBackupLabel(name)}`,
+        `Datum: ${formatDate(backupTime(name))}`,
+        `Größe: ${kb} KB`,
+        `Name: ${name}`
+      ].join("\n");
+    }),
+    "",
+    "Wiederherstellen: Auto-Sicherung wiederherstellen: NUMMER",
+    "Als Datei sichern: Auto-Sicherung exportieren: NUMMER",
+    "Hinweis: Die Nummern können sich ändern. Lass dir die Liste direkt vor dem Befehl anzeigen."
+  ].join("\n\n");
+}
+
+function exportAutoBackupResponse(reference) {
+  const name = resolveAutoBackup(reference);
+
+  if (!name) {
+    return "Sicherung nicht gefunden. Mit „Auto-Sicherungen“ siehst du die Liste.";
+  }
+
+  const raw = readAutoBackup(name);
+
+  if (!raw) return "Die Sicherung ist leer oder nicht lesbar.";
+
+  const isRescue = name.startsWith(BACKUP_PREFIX + "beschaedigt.");
+
+  try {
+    downloadTextFile(
+      "LernBot-Auto-Sicherung-" +
+        new Date(backupTime(name) || now()).toISOString().slice(0, 10) +
+        (isRescue ? ".txt" : ".json"),
+      raw,
+      isRescue
+        ? "text/plain;charset=utf-8"
+        : "application/json;charset=utf-8"
+    );
+
+    return "Der Download der Auto-Sicherung wurde gestartet.";
+
+  } catch (error) {
+    console.error("Exportfehler:", error);
+
+    return "Export fehlgeschlagen:\n" + error.message;
   }
 }
 
@@ -2798,6 +3742,7 @@ LERNBOT 6.0 – BEFEHLE
 
 LERNEN
 Lerne: Die Hauptstadt von Deutschland ist Berlin.
+Lerne: Okapi: Fellfarbe – rotbraun
 Lerne: Hier kommt ein längerer Text über ein Thema.
 
 WISSEN
@@ -2811,7 +3756,9 @@ Analysiere: Okapi
 GEDÄCHTNIS
 Merke dir: Ich lerne gerne.
 Erinnerungen
-Vergiss: Suchbegriff
+Vergiss: Suchbegriff (zeigt zuerst nur, was gelöscht würde)
+Vergiss bestätigen
+Vergiss abbrechen
 
 RECHERCHE
 Recherchiere: Schwarze Löcher
@@ -2838,6 +3785,9 @@ Sicherung erstellen
 Sicherungen
 Sicherung wiederherstellen: SICHERUNGS-ID
 Export
+Auto-Sicherungen
+Auto-Sicherung wiederherstellen: NUMMER
+Auto-Sicherung exportieren: NUMMER
 
 CODE
 Code prüfen: DEIN QUELLCODE
@@ -2847,8 +3797,13 @@ Du kannst auch normale Fragen stellen.
 }
 
 /* =====================================================
-   14. BEFEHLSVERARBEITUNG
+   14. BEFEHLSVERARBEITUNG (GEÄNDERT)
    ===================================================== */
+
+/*
+   Befehle werden mit fold() verglichen: "Erkläre"/"Erklaere" und
+   "Wissensübersicht"/"Wissensuebersicht" sind jeweils gleichwertig.
+*/
 
 function getCommandValue(text, prefix) {
   const original = String(text ?? "").trim();
@@ -2858,7 +3813,7 @@ function getCommandValue(text, prefix) {
 
   const enteredPrefix = original.slice(0, colon + 1);
 
-  if (normalize(enteredPrefix) !== normalize(prefix)) {
+  if (fold(enteredPrefix) !== fold(prefix)) {
     return null;
   }
 
@@ -2872,14 +3827,15 @@ async function handle(text) {
     return "Bitte schreibe zuerst eine Nachricht.";
   }
 
-  const lower = normalize(text);
+  /* Alle Vergleichswerte unten sind in gefalteter Schreibweise */
+
+  const lower = fold(text);
 
   try {
     /* HILFE */
 
     if (
       lower === "hilfe" ||
-      lower === "/hilfe" ||
       lower === "befehle"
     ) {
       return getHelpText();
@@ -2905,7 +3861,7 @@ async function handle(text) {
 
     /* WISSENSÜBERSICHT */
 
-    if (lower === "wissensübersicht" || lower === "wissensuebersicht") {
+    if (lower === "wissensubersicht") {
       return knowledgeOverview();
     }
 
@@ -2960,7 +3916,15 @@ async function handle(text) {
       return getMemoryList();
     }
 
-    /* GEDÄCHTNIS LÖSCHEN */
+    /* GEDÄCHTNIS LÖSCHEN (zweistufig) */
+
+    if (lower === "vergiss bestatigen") {
+      return confirmForgetResponse();
+    }
+
+    if (lower === "vergiss abbrechen") {
+      return cancelForgetResponse();
+    }
 
     value = getCommandValue(text, "Vergiss:");
 
@@ -3005,6 +3969,31 @@ async function handle(text) {
     /* AGENTEN */
 
     if (lower === "agenten") return agentOverview();
+
+    /* AUTOMATISCHE SICHERUNGEN */
+
+    if (
+      lower === "auto sicherungen" ||
+      lower === "autosicherungen"
+    ) {
+      return getAutoBackupList();
+    }
+
+    value = getCommandValue(text, "Auto-Sicherung wiederherstellen:");
+
+    if (value !== null) {
+      return value
+        ? restoreAutoBackup(value)
+        : "Bitte gib die Nummer der Auto-Sicherung an. Siehe „Auto-Sicherungen“.";
+    }
+
+    value = getCommandValue(text, "Auto-Sicherung exportieren:");
+
+    if (value !== null) {
+      return value
+        ? exportAutoBackupResponse(value)
+        : "Bitte gib die Nummer der Auto-Sicherung an. Siehe „Auto-Sicherungen“.";
+    }
 
     /* SICHERUNGEN */
 
@@ -3250,7 +4239,7 @@ function setupFileUpload() {
 }
 
 /* =====================================================
-   19. SIDEBAR UND NAVIGATION
+   19. SIDEBAR UND NAVIGATION (GEÄNDERT)
    ===================================================== */
 
 function showSection(title, content) {
@@ -3260,8 +4249,14 @@ function showSection(title, content) {
   );
 }
 
+/*
+   Fehlerbehebung: normalize() macht aus "-" ein Leerzeichen
+   ("KI-Agenten" → "ki agenten"). Die alten Vergleiche mit Bindestrich
+   konnten daher nie zutreffen.
+*/
+
 function handleSidebarAction(label) {
-  const key = normalize(label);
+  const key = fold(label);
 
   if (key.includes("neuer chat")) {
     clearChat();
@@ -3288,7 +4283,7 @@ function handleSidebarAction(label) {
     return;
   }
 
-  if (key.includes("ki-agenten") || key === "agenten") {
+  if (key.includes("agenten")) {
     showSection("KI-AGENTEN", agentOverview());
     return;
   }
@@ -3303,7 +4298,7 @@ function handleSidebarAction(label) {
     return;
   }
 
-  if (key.includes("code-labor")) {
+  if (key.includes("code labor")) {
     showSection(
       "CODE-LABOR",
       "Nutze den Befehl:\n\nCode prüfen: DEIN QUELLCODE"
@@ -3336,8 +4331,8 @@ function setupSidebar() {
     button.dataset.lb6Bound = "true";
 
     button.addEventListener("click", () => {
-      const command = normalize(button.dataset.cmd || "");
-      const label = normalize(button.textContent || "");
+      const command = fold(button.dataset.cmd || "");
+      const label = fold(button.textContent || "");
 
       if (command === "theme" || label.includes("theme")) {
         toggleTheme();
@@ -3349,7 +4344,9 @@ function setupSidebar() {
         return;
       }
 
-      if (command === "was weißt du?" || command === "was weisst du?") {
+      /* "Was weißt du?" → gefaltet "was weisst du" */
+
+      if (command === "was weisst du") {
         addMessage("assistant", knowledgeOverview());
         return;
       }
@@ -3364,7 +4361,9 @@ function setupSidebar() {
         return;
       }
 
-      if (command === "verlauf löschen" || command === "verlauf loeschen") {
+      /* "Verlauf löschen" → gefaltet "verlauf loschen" */
+
+      if (command === "verlauf loschen") {
         const confirmed = window.confirm(
           "Möchtest du den Chatverlauf wirklich löschen? Dein gespeichertes Wissen bleibt erhalten."
         );
@@ -3427,7 +4426,7 @@ function setupExportButtons() {
 }
 
 /* =====================================================
-   22. START UND INITIALISIERUNG
+   22. START UND INITIALISIERUNG (GEÄNDERT)
    ===================================================== */
 
 function startLernBot() {
@@ -3465,7 +4464,17 @@ function startLernBot() {
       );
     }
 
-    setStatus("Bereit");
+    /* Wichtige Hinweise zum Datenbestand anzeigen (z. B. beschädigter Speicher) */
+
+    for (const notice of startupNotices.splice(0)) {
+      addMessage("system", notice);
+    }
+
+    setStatus(
+      storageLocked
+        ? "Speicher gesperrt – Änderungen werden NICHT gespeichert."
+        : "Bereit"
+    );
 
     console.log(NAME + " erfolgreich gestartet.");
 
