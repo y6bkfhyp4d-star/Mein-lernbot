@@ -1,20 +1,26 @@
 
 /* Mein LernBot 6.0 – Paket 2
-   Teil 1/3 – Kern und Speicher
-   Alle Teile gehören in dieselbe app.js.
+   Vollständiger Ersatz für app.js
+   Paket 2.1 – Teil 1/3
+   Kern, Speicher und ID-Reparatur
 */
 (() => {
 'use strict';
 
 const $ = id => document.getElementById(id);
+
 const KEY = 'meinLernBot.v1';
 const VERSION = 6;
-const NAME = 'LernBot 6.0 – Paket 2';
+const NAME = 'LernBot 6.0 – Paket 2.1';
 
 const now = () => Date.now();
+
 const arr = x => Array.isArray(x) ? x : [];
+
 const obj = x =>
-  !!x && typeof x === 'object' && !Array.isArray(x);
+  !!x &&
+  typeof x === 'object' &&
+  !Array.isArray(x);
 
 const safe = (x, n = 20000) =>
   String(x ?? '').trim().slice(0, n);
@@ -42,7 +48,8 @@ const norm = x => safe(x)
   .replace(/\s+/g, ' ')
   .trim();
 
-const words = x => norm(x).split(' ').filter(Boolean);
+const words = x =>
+  norm(x).split(' ').filter(Boolean);
 
 const STOP = new Set(
   'der die das den dem des ein eine einer eines einem ' +
@@ -55,7 +62,9 @@ const STOP = new Set(
 );
 
 const tokens = x =>
-  words(x).filter(w => w.length > 2 && !STOP.has(w));
+  words(x).filter(w =>
+    w.length > 2 && !STOP.has(w)
+  );
 
 function sim(a, b) {
   const x = new Set(tokens(a));
@@ -64,6 +73,7 @@ function sim(a, b) {
   if (!x.size || !y.size) return 0;
 
   let n = 0;
+
   for (const t of x) {
     if (y.has(t)) n++;
   }
@@ -73,6 +83,7 @@ function sim(a, b) {
 
 function date(x) {
   const d = new Date(x);
+
   return isNaN(d)
     ? 'Unbekannt'
     : d.toLocaleString('de-DE');
@@ -81,11 +92,17 @@ function date(x) {
 function text(x) {
   if (typeof x === 'string') return x;
   if (x == null) return '';
+
   if (typeof x === 'object') {
     return JSON.stringify(x, null, 2);
   }
+
   return String(x);
 }
+
+/* ==========================================
+   DATENBANK
+   ========================================== */
 
 const defaults = {
   version: 6,
@@ -144,6 +161,10 @@ let context = {
 let busy = false;
 let started = false;
 
+/* ==========================================
+   SICHERHEITSKOPIEN
+   ========================================== */
+
 function backupNames(kind = '') {
   const out = [];
 
@@ -194,6 +215,10 @@ function backup(kind, raw, keep = 0) {
     return null;
   }
 }
+
+/* ==========================================
+   DATENMIGRATION
+   ========================================== */
 
 function prepare(raw) {
   const d = obj(raw) ? raw : {};
@@ -250,8 +275,75 @@ function prepare(raw) {
   }
 
   d.version = 6;
+
   return d;
 }
+
+/* ==========================================
+   REPARATUR ALTER FAKTEN-IDs
+   ========================================== */
+
+function repairLegacyFacts() {
+  const missing = data.facts.filter(f =>
+    obj(f) &&
+    (!f.id || typeof f.id !== 'string')
+  );
+
+  if (!missing.length) return 0;
+  if (locked) return 0;
+
+  let raw;
+
+  try {
+    raw = localStorage.getItem(KEY);
+  } catch {
+    return 0;
+  }
+
+  if (
+    !raw ||
+    !backup('vorIDReparatur', raw, 3)
+  ) {
+    notices.push(
+      'Fakten-IDs konnten nicht repariert werden: ' +
+      'Sicherheitskopie fehlgeschlagen.'
+    );
+
+    return 0;
+  }
+
+  const seen = new Set(
+    data.facts
+      .filter(f =>
+        typeof f?.id === 'string' && f.id
+      )
+      .map(f => f.id)
+  );
+
+  for (const f of missing) {
+    let id = uid();
+
+    while (seen.has(id)) {
+      id = uid();
+    }
+
+    f.id = id;
+    seen.add(id);
+  }
+
+  if (!save()) {
+    notices.push(
+      'Fakten-IDs konnten nicht dauerhaft ' +
+      'gespeichert werden.'
+    );
+  }
+
+  return missing.length;
+}
+
+/* ==========================================
+   SPEICHER LADEN
+   ========================================== */
 
 try {
   const raw = localStorage.getItem(KEY);
@@ -290,8 +382,9 @@ try {
   const b = backup('beschaedigt', raw);
 
   notices.push(
-    'ACHTUNG: Der gespeicherte Datenbestand konnte ' +
-    'nicht gelesen werden. Original bleibt unverändert. ' +
+    'ACHTUNG: Der gespeicherte Datenbestand ' +
+    'konnte nicht gelesen werden. ' +
+    'Original bleibt unverändert. ' +
     'Speichern ist gesperrt.' +
     (b ? ' Rettungskopie: ' + b : '')
   );
@@ -299,14 +392,21 @@ try {
   console.error(e);
 }
 
+/* ==========================================
+   SPEICHERN
+   ========================================== */
+
 function status(s) {
   const e = $('status') || $('lb6-status');
+
   if (e) e.textContent = s;
 }
 
 function save() {
   if (locked) {
-    status('Speicher gesperrt – nichts wird überschrieben');
+    status(
+      'Speicher gesperrt – nichts wird überschrieben'
+    );
     return false;
   }
 
@@ -316,14 +416,33 @@ function save() {
     data.audit = arr(data.audit).slice(-1000);
     data.snapshots = arr(data.snapshots).slice(-30);
 
-    localStorage.setItem(KEY, JSON.stringify(data));
+    localStorage.setItem(
+      KEY,
+      JSON.stringify(data)
+    );
+
     return true;
   } catch (e) {
-    status('Speicherfehler – bitte Export versuchen');
+    status(
+      'Speicherfehler – bitte Export versuchen'
+    );
+
     console.error(e);
     return false;
   }
 }
+
+const repairedCount = repairLegacyFacts();
+
+if (repairedCount) {
+  notices.push(
+    repairedCount + ' alte Fakten-IDs ergänzt.'
+  );
+}
+
+/* ==========================================
+   PROTOKOLL
+   ========================================== */
 
 function audit(agent, action, detail = '') {
   data.audit.push({
@@ -339,8 +458,13 @@ function audit(agent, action, detail = '') {
   }
 }
 
+/* ==========================================
+   GEDÄCHTNIS
+   ========================================== */
+
 function remember(type, content, meta = {}) {
   content = safe(content, 10000);
+
   if (!content) return null;
 
   let x = data.memory.find(i =>
@@ -350,6 +474,7 @@ function remember(type, content, meta = {}) {
 
   if (x) {
     x.updated = now();
+
     x.meta = {
       ...(obj(x.meta) ? x.meta : {}),
       ...meta
@@ -385,6 +510,10 @@ function searchMemory(q, limit = 8) {
     .slice(0, limit)
     .map(x => x.item);
 }
+
+/* ==========================================
+   WISSENSBANK-GRUNDLAGEN
+   ========================================== */
 
 const clean = x => safe(x, 250)
   .replace(
@@ -481,7 +610,9 @@ function sameProp(a, b) {
 
 function knownProps() {
   return [
-    ...new Set(data.facts.map(x => x.property))
+    ...new Set(
+      data.facts.map(x => x.property)
+    )
   ].sort();
 }
 
@@ -492,18 +623,22 @@ function factsFor(s, p = '') {
   );
 }
 
-
-function findFact(s,p){
-  return factsFor(s,p)[0] || null;
+function findFact(s, p) {
+  return factsFor(s, p)[0] || null;
 }
 
-function sourceName(x){
-  return safe(x,200) || 'unbekannt';
+function sourceName(x) {
+  return safe(x, 200) || 'unbekannt';
 }
 
-function sameValue(a,b){
+function sameValue(a, b) {
   return norm(a) === norm(b);
 }
+
+/* =====================================================
+   LERNBOT 6.0 – PAKET 2.1
+   TEIL 2/3 – WISSEN, KONFLIKTE UND SICHERUNGEN
+   ===================================================== */
 
 function addFact(s,p,v,source='user',options={}){
   s=clean(s);
@@ -543,8 +678,8 @@ function addFact(s,p,v,source='user',options={}){
 
     f.updated=t;
     f.confidence=Number.isFinite(f.confidence)
-      ? f.confidence
-      : (source==='user'?1:.7);
+      ?f.confidence
+      :(source==='user'?1:.7);
   }else{
     f={
       id:uid(),
@@ -558,6 +693,7 @@ function addFact(s,p,v,source='user',options={}){
       created:t,
       updated:t
     };
+
     data.facts.push(f);
   }
 
@@ -624,34 +760,13 @@ function parseFact(s){
   }
 
   const rules=[
-    [
-      /^die hauptstadt von (.+?) ist (.+?)[.!]?$/i,
-      'hauptstadt',1,2
-    ],
-    [
-      /^(.+?) hat (?:die )?hauptstadt (.+?)[.!]?$/i,
-      'hauptstadt',1,2
-    ],
-    [
-      /^(.+?) (?:lebt|wohnt) (?:in|im|am|auf|unter) (.+?)[.!]?$/i,
-      'lebensraum',1,2
-    ],
-    [
-      /^(.+?) (?:frisst|isst|ernährt sich von) (.+?)[.!]?$/i,
-      'nahrung',1,2
-    ],
-    [
-      /^(.+?) gehört zu (.+?)[.!]?$/i,
-      'zugehoerigkeit',1,2
-    ],
-    [
-      /^(.+?) ist (?:ein|eine|einer|eines) (.+?)[.!]?$/i,
-      'definition',1,2
-    ],
-    [
-      /^(.+?) (?:heißt|bedeutet) (.+?)[.!]?$/i,
-      'definition',1,2
-    ]
+    [/^die hauptstadt von (.+?) ist (.+?)[.!]?$/i,'hauptstadt',1,2],
+    [/^(.+?) hat (?:die )?hauptstadt (.+?)[.!]?$/i,'hauptstadt',1,2],
+    [/^(.+?) (?:lebt|wohnt) (?:in|im|am|auf|unter) (.+?)[.!]?$/i,'lebensraum',1,2],
+    [/^(.+?) (?:frisst|isst|ernährt sich von) (.+?)[.!]?$/i,'nahrung',1,2],
+    [/^(.+?) gehört zu (.+?)[.!]?$/i,'zugehoerigkeit',1,2],
+    [/^(.+?) ist (?:ein|eine|einer|eines) (.+?)[.!]?$/i,'definition',1,2],
+    [/^(.+?) (?:heißt|bedeutet) (.+?)[.!]?$/i,'definition',1,2]
   ];
 
   for(const [re,p,a,b] of rules){
@@ -757,8 +872,8 @@ function learn(s){
     s.split(/[.!?]\s+/).length>2;
 
   const found=isLong
-    ? learnLong(s)
-    : (parseFact(s)?[parseFact(s)]:[]);
+    ?learnLong(s)
+    :(parseFact(s)?[parseFact(s)]:[]);
 
   let added=0;
   let conflicts=0;
@@ -781,11 +896,11 @@ function learn(s){
 
   return [
     added
-      ? `${added} Fakt(en) erkannt und verarbeitet.`
-      : 'Text als Dokument gespeichert. Keine eindeutig erkennbaren Fakten automatisch übernommen.',
+      ?`${added} Fakt(en) erkannt und verarbeitet.`
+      :'Text als Dokument gespeichert. Keine eindeutig erkennbaren Fakten automatisch übernommen.',
     conflicts
-      ? `${conflicts} abweichende Angabe(n) zur Prüfung vorgemerkt.`
-      : '',
+      ?`${conflicts} abweichende Angabe(n) zur Prüfung vorgemerkt.`
+      :'',
     document,
     'Bei längeren Texten werden unklare Sätze bewusst nicht als Fakten geraten.'
   ].filter(Boolean).join('\n');
@@ -802,6 +917,7 @@ function listFacts(){
     if(!groups.has(f.subject)){
       groups.set(f.subject,[]);
     }
+
     groups.get(f.subject).push(f);
   }
 
@@ -826,6 +942,7 @@ function containsPhrase(q,p){
 
 function subjectIn(q,s){
   const k=subj(s);
+
   return containsPhrase(q,k)||
     containsPhrase(q,k+'s')||
     containsPhrase(q,k+'es');
@@ -852,30 +969,12 @@ function parseQuestion(q){
   let m;
 
   const patterns=[
-    [
-      /^welche[rns]? (.+?) (?:hat|besitzt) (?:der |die |das |ein |eine )?(.+)$/,
-      'ps'
-    ],
-    [
-      /^(?:was ist|was betragt|wie lautet|nenne|nenn|zeige|gib mir) (?:der |die |das |den )?(.+?) (?:von|vom|des|der|dem) (?:der |die |das )?(.+)$/,
-      'ps'
-    ],
-    [
-      /^(?:wo lebt|wo wohnt) (?:der |die |das )?(.+)$/,
-      's:lebensraum'
-    ],
-    [
-      /^(?:was frisst|was isst) (?:der |die |das )?(.+)$/,
-      's:nahrung'
-    ],
-    [
-      /^zu welcher (?:familie|tierart) gehort (?:der |die |das )?(.+)$/,
-      's:familie'
-    ],
-    [
-      /^(?:was ist|was bedeutet|wer ist|erklare) (.+)$/,
-      's:definition'
-    ]
+    [/^welche[rns]? (.+?) (?:hat|besitzt) (?:der |die |das |ein |eine )?(.+)$/,'ps'],
+    [/^(?:was ist|was betragt|wie lautet|nenne|nenn|zeige|gib mir) (?:der |die |das |den )?(.+?) (?:von|vom|des|der|dem) (?:der |die |das )?(.+)$/,'ps'],
+    [/^(?:wo lebt|wo wohnt) (?:der |die |das )?(.+)$/,'s:lebensraum'],
+    [/^(?:was frisst|was isst) (?:der |die |das )?(.+)$/,'s:nahrung'],
+    [/^zu welcher (?:familie|tierart) gehort (?:der |die |das )?(.+)$/,'s:familie'],
+    [/^(?:was ist|was bedeutet|wer ist|erklare) (.+)$/,'s:definition']
   ];
 
   for(const [re,mode] of patterns){
@@ -966,8 +1065,8 @@ function question(q){
     context.property=f.property;
 
     return f.conflict
-      ? factInfo(f,true)
-      : f.value;
+      ?factInfo(f,true)
+      :f.value;
   }
 
   if(matches.length>1){
@@ -1040,9 +1139,9 @@ function explain(q){
   const found=fs.length?fs:related(q,8);
 
   return found.length
-    ? 'GESPEICHERTES WISSEN\n'+
+    ?'GESPEICHERTES WISSEN\n'+
       found.map(f=>'• '+factInfo(f)).join('\n')
-    : `Zu „${q}“ habe ich noch keine passenden Fakten.`;
+    :`Zu „${q}“ habe ich noch keine passenden Fakten.`;
 }
 
 function graph(from,relation,to){
@@ -1077,10 +1176,10 @@ function graphReport(q){
   );
 
   return fs.length
-    ? fs.map(r=>
+    ?fs.map(r=>
         `${r.from} —${r.relation}→ ${r.to}`
       ).join('\n')
-    : 'Keine Wissensverbindungen zu '+q;
+    :'Keine Wissensverbindungen zu '+q;
 }
 
 function analyze(q=''){
@@ -1095,20 +1194,41 @@ Verbindungen: ${data.relationships.length}
 Konflikte: ${conflicts.length}`+
     (
       conflicts.length
-        ? '\n\n'+conflicts.map(f=>
+        ?'\n\n'+conflicts.map(f=>
             factInfo(f,true)
           ).join('\n\n')
-        : ''
+        :''
     );
+}
+
+/* ==========================================
+   VERDÄCHTIGE ALTE FAKTEN
+   ========================================== */
+
+function suspiciousFacts(){
+  const fs=data.facts.filter(f=>
+    typeof f.subject==='string'&&
+    (
+      f.subject.length>90||
+      f.subject.split(/\s+/).length>12||
+      /[.!?]\s/.test(f.subject)
+    )
+  );
+
+  return fs.length
+    ?'VERDÄCHTIGE ALTE FAKTEN\n\n'+
+      fs.map(f=>factInfo(f,true)).join('\n\n')+
+      '\n\nDiese Einträge werden nicht automatisch gelöscht.'
+    :'Keine auffälligen langen Themennamen gefunden.';
 }
 
 function conflictList(){
   const fs=data.facts.filter(f=>f.conflict);
 
   return fs.length
-    ? 'OFFENE KONFLIKTE\n\n'+
+    ?'OFFENE KONFLIKTE\n\n'+
       fs.map(f=>factInfo(f,true)).join('\n\n')
-    : 'Keine offenen Faktenkonflikte.';
+    :'Keine offenen Faktenkonflikte.';
 }
 
 function editFact(s){
@@ -1260,13 +1380,17 @@ function confirmChange(){
   return'Unbekannte Änderung.';
 }
 
+/* ==========================================
+   DOKUMENTE
+   ========================================== */
+
 function docs(q=''){
   if(!q){
     return data.documents.length
-      ? data.documents.map((d,i)=>
+      ?data.documents.map((d,i)=>
           `${i+1}. ${d.title}\nID: ${d.id}\nTyp: ${d.type}`
         ).join('\n\n')
-      : 'Keine Dokumente vorhanden.';
+      :'Keine Dokumente vorhanden.';
   }
 
   const scored=data.documents
@@ -1282,10 +1406,10 @@ function docs(q=''){
     .slice(0,8);
 
   return scored.length
-    ? scored.map(x=>
+    ?scored.map(x=>
         `${x.d.title}\nID: ${x.d.id}\n${safe(x.d.content,350)}`
       ).join('\n\n')
-    : 'Keine passenden Dokumente.';
+    :'Keine passenden Dokumente.';
 }
 
 function docAnswer(q){
@@ -1314,11 +1438,11 @@ function docAnswer(q){
   scored.sort((a,b)=>b.score-a.score);
 
   return scored.length
-    ? 'IN GESPEICHERTEN DOKUMENTEN:\n'+
+    ?'IN GESPEICHERTEN DOKUMENTEN:\n'+
       scored.slice(0,4).map(x=>
         `• ${x.sentence}\nQuelle: ${x.d.title}`
       ).join('\n\n')
-    : null;
+    :null;
 }
 
 function summarize(s){
@@ -1340,13 +1464,17 @@ function summarize(s){
     Math.ceil(sentences.length/8)
   );
 
-  return 'ZUSAMMENFASSUNG (Auswahl, keine echte KI-Zusammenfassung)\n'+
+  return'ZUSAMMENFASSUNG (Auswahl, keine echte KI-Zusammenfassung)\n'+
     sentences
       .filter((_,i)=>i%step===0)
       .slice(0,8)
       .map(x=>'• '+x.trim())
       .join('\n');
 }
+
+/* ==========================================
+   PROJEKTE UND AUFGABEN
+   ========================================== */
 
 function project(s){
   const x={
@@ -1366,10 +1494,10 @@ function project(s){
 
 function projects(){
   return data.projects.length
-    ? data.projects.map(x=>
+    ?data.projects.map(x=>
         `${x.title} | ${x.status||'offen'} | ${x.id}`
       ).join('\n')
-    : 'Keine Projekte.';
+    :'Keine Projekte.';
 }
 
 function task(s){
@@ -1390,10 +1518,10 @@ function task(s){
 
 function tasks(){
   return data.tasks.length
-    ? data.tasks.map(x=>
+    ?data.tasks.map(x=>
         `${x.done?'✓':'○'} ${x.title} | ${x.id}`
       ).join('\n')
-    : 'Keine Aufgaben.';
+    :'Keine Aufgaben.';
 }
 
 function taskDone(s){
@@ -1410,169 +1538,172 @@ function taskDone(s){
   return'Aufgabe erledigt: '+x.title;
 }
 
-/* =====================================================
-   LERNBOT 6.0 – PAKET 2
-   TEIL 3/3 – SICHERUNGEN, AGENTEN, CHAT UND START
-   ===================================================== */
+/* ==========================================
+   SICHERUNGEN
+   ========================================== */
 
-function snapshot() {
-  const state = copy(data);
-  state.snapshots = [];
+function snapshot(){
+  const state=copy(data);
+  state.snapshots=[];
 
-  const x = {
-    id: uid(),
-    label: 'Manuelle Sicherung',
-    created: now(),
-    data: state
+  const x={
+    id:uid(),
+    label:'Manuelle Sicherung',
+    created:now(),
+    data:state
   };
 
   data.snapshots.push(x);
   save();
 
-  return 'Sicherung erstellt. ID: ' + x.id;
+  return'Sicherung erstellt. ID: '+x.id;
 }
 
-function snapshots() {
+function snapshots(){
   return data.snapshots.length
-    ? data.snapshots.map(x =>
+    ?data.snapshots.map(x=>
         `${x.label} | ${date(x.created)} | ${x.id}`
       ).join('\n')
-    : 'Keine Sicherungen.';
+    :'Keine Sicherungen.';
 }
 
-function restoreObject(objData, label) {
-  if (locked) {
-    return 'Speicher gesperrt – Original wird nicht überschrieben.';
+function restoreObject(objData,label){
+  if(locked){
+    return'Speicher gesperrt – Original wird nicht überschrieben.';
   }
 
-  const b = backup(
+  const b=backup(
     'vorRestore',
-    JSON.stringify({...data, snapshots: []}),
+    JSON.stringify({...data,snapshots:[]}),
     2
   );
 
-  if (!b) {
-    return 'Abgebrochen: Sicherung des aktuellen Standes fehlgeschlagen.';
+  if(!b){
+    return'Abgebrochen: Sicherung des aktuellen Standes fehlgeschlagen.';
   }
 
-  const old = copy(data);
-  data = prepare(copy(objData));
+  const old=copy(data);
+  data=prepare(copy(objData));
 
-  if (!data.snapshots.length) {
-    data.snapshots = old.snapshots;
+  if(!data.snapshots.length){
+    data.snapshots=old.snapshots;
   }
 
-  audit('System', 'Wiederherstellung', label);
+  audit('System','Wiederherstellung',label);
 
-  if (!save()) {
-    data = old;
-    return 'Wiederherstellung fehlgeschlagen. Alter Stand bleibt im Arbeitsspeicher.';
+  if(!save()){
+    data=old;
+    return'Wiederherstellung fehlgeschlagen. Alter Stand bleibt im Arbeitsspeicher.';
   }
 
-  return 'Wiederhergestellt. Vorheriger Stand gesichert unter ' + b;
+  return'Wiederhergestellt. Vorheriger Stand gesichert unter '+b;
 }
 
-function restoreSnapshot(s) {
-  const x = data.snapshots.find(x => x.id === s);
+function restoreSnapshot(s){
+  const x=data.snapshots.find(x=>x.id===s);
 
-  return x && obj(x.data)
-    ? restoreObject(x.data, x.label)
-    : 'Sicherung nicht gefunden.';
+  return x&&obj(x.data)
+    ?restoreObject(x.data,x.label)
+    :'Sicherung nicht gefunden.';
 }
 
-function autoList() {
-  const names = backupNames();
+function autoList(){
+  const names=backupNames();
 
   return names.length
-    ? 'AUTO-SICHERUNGEN\n' +
-      names.map((k, i) =>
-        `${i + 1}. ${k}`
-      ).join('\n') +
-      '\nExport: Auto-Sicherung exportieren: NUMMER' +
+    ?'AUTO-SICHERUNGEN\n'+
+      names.map((k,i)=>
+        `${i+1}. ${k}`
+      ).join('\n')+
+      '\nExport: Auto-Sicherung exportieren: NUMMER'+
       '\nRestore: Auto-Sicherung wiederherstellen: NUMMER'
-    : 'Keine Auto-Sicherungen.';
+    :'Keine Auto-Sicherungen.';
 }
 
-function autoResolve(s) {
-  const names = backupNames();
+function autoResolve(s){
+  const names=backupNames();
 
   return /^\d+$/.test(s)
-    ? names[Number(s) - 1]
-    : names.includes(s) ? s : null;
+    ?names[Number(s)-1]
+    :names.includes(s)?s:null;
 }
 
-function autoRestore(s) {
-  const k = autoResolve(s);
+function autoRestore(s){
+  const k=autoResolve(s);
 
-  if (!k) return 'Sicherung nicht gefunden.';
+  if(!k)return'Sicherung nicht gefunden.';
 
-  try {
-    const d = JSON.parse(localStorage.getItem(k));
+  try{
+    const d=JSON.parse(localStorage.getItem(k));
 
-    if (!obj(d)) {
+    if(!obj(d)){
       throw Error('Kein Datenobjekt');
     }
 
-    return restoreObject(d, k);
-  } catch (e) {
-    return 'Wiederherstellung nicht möglich: ' + e.message;
+    return restoreObject(d,k);
+  }catch(e){
+    return'Wiederherstellung nicht möglich: '+e.message;
   }
 }
 
 function download(
   filename,
   content,
-  mime = 'application/json;charset=utf-8'
-) {
-  const blob = new Blob([content], {type: mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  mime='application/json;charset=utf-8'
+){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
 
-  a.href = url;
-  a.download = filename;
+  a.href=url;
+  a.download=filename;
 
   document.body.appendChild(a);
   a.click();
   a.remove();
 
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 
-function exportData() {
+function exportData(){
   download(
-    'LernBot-Paket2-' +
-      new Date().toISOString().slice(0, 10) +
+    'LernBot-Paket2-'+
+      new Date().toISOString().slice(0,10)+
       '.json',
     JSON.stringify({
       ...data,
-      application: NAME,
-      exportedAt: now()
-    }, null, 2)
+      application:NAME,
+      exportedAt:now()
+    },null,2)
   );
 
   return locked
-    ? 'Export gestartet. ACHTUNG: Originalspeicher ist gesperrt.'
-    : 'Datenexport gestartet.';
+    ?'Export gestartet. ACHTUNG: Originalspeicher ist gesperrt.'
+    :'Datenexport gestartet.';
 }
 
-function autoExport(s) {
-  const k = autoResolve(s);
+function autoExport(s){
+  const k=autoResolve(s);
 
-  if (!k) return 'Sicherung nicht gefunden.';
+  if(!k)return'Sicherung nicht gefunden.';
 
-  const raw = localStorage.getItem(k);
+  const raw=localStorage.getItem(k);
 
-  if (!raw) return 'Sicherung nicht lesbar.';
+  if(!raw)return'Sicherung nicht lesbar.';
 
   download(
-    'LernBot-Auto-Sicherung-' + now() + '.json',
+    'LernBot-Auto-Sicherung-'+now()+'.json',
     raw
   );
 
-  return 'Download gestartet.';
+  return'Download gestartet.';
 }
 
-const IMPORT_AREAS = [
+/* ==========================================
+   DATENIMPORT
+   ========================================== */
+
+const IMPORT_AREAS=[
   'facts',
   'qa',
   'classes',
@@ -1588,166 +1719,180 @@ const IMPORT_AREAS = [
   'snapshots'
 ];
 
-function importData(input) {
+function importData(input){
   let incoming;
 
-  try {
-    incoming = typeof input === 'string'
-      ? JSON.parse(input)
-      : copy(input);
-  } catch {
-    return 'Ungültiges JSON.';
+  try{
+    incoming=typeof input==='string'
+      ?JSON.parse(input)
+      :copy(input);
+  }catch{
+    return'Ungültiges JSON.';
   }
 
-  if (!obj(incoming)) {
-    return 'Kein gültiges Datenobjekt.';
+  if(!obj(incoming)){
+    return'Kein gültiges Datenobjekt.';
   }
 
-  if (
-    !Array.isArray(incoming.memory) &&
+  if(
+    !Array.isArray(incoming.memory)&&
     Array.isArray(incoming.memories)
-  ) {
-    incoming.memory = incoming.memories;
+  ){
+    incoming.memory=incoming.memories;
   }
 
-  if (
-    !IMPORT_AREAS.some(k => Array.isArray(incoming[k])) &&
+  if(
+    !IMPORT_AREAS.some(k=>Array.isArray(incoming[k]))&&
     !obj(incoming.agentStats)
-  ) {
-    return 'Keine bekannten LernBot-Daten.';
+  ){
+    return'Keine bekannten LernBot-Daten.';
   }
 
-  if (locked) {
-    return 'Speicher gesperrt. Import wird nicht gespeichert.';
+  if(locked){
+    return'Speicher gesperrt. Import wird nicht gespeichert.';
   }
 
-  const b = backup(
+  const b=backup(
     'vorImport',
-    JSON.stringify({...data, snapshots: []}),
+    JSON.stringify({...data,snapshots:[]}),
     2
   );
 
-  if (!b) {
-    return 'Import abgebrochen: Sicherung konnte nicht angelegt werden.';
+  if(!b){
+    return'Import abgebrochen: Sicherung konnte nicht angelegt werden.';
   }
 
-  const old = copy(data);
-  let added = 0;
-  let conflicts = 0;
+  const old=copy(data);
+  let added=0;
+  let conflicts=0;
 
-  try {
-    for (const f of arr(incoming.facts)) {
-      if (
-        !obj(f) ||
-        typeof f.subject !== 'string' ||
-        typeof f.property !== 'string' ||
-        typeof f.value !== 'string'
-      ) continue;
+  try{
+    for(const f of arr(incoming.facts)){
+      if(
+        !obj(f)||
+        typeof f.subject!=='string'||
+        typeof f.property!=='string'||
+        typeof f.value!=='string'
+      )continue;
 
-      const current = findFact(f.subject, f.property);
+      const current=findFact(f.subject,f.property);
 
-      if (!current) {
-        data.facts.push(copy(f));
+      if(!current){
+        const entry=copy(f);
+        if(!entry.id)entry.id=uid();
+        data.facts.push(entry);
         added++;
-      } else if (!sameValue(current.value, f.value)) {
-        current.alternatives = arr(current.alternatives);
+      }else if(!sameValue(current.value,f.value)){
+        current.alternatives=arr(current.alternatives);
 
-        if (!current.alternatives.some(x =>
-          sameValue(x.value, f.value)
-        )) {
+        if(!current.alternatives.some(x=>
+          sameValue(x.value,f.value)
+        )){
           current.alternatives.push({
-            value: f.value,
-            source: f.source || 'import',
-            time: now()
+            value:f.value,
+            source:f.source||'import',
+            time:now()
           });
         }
 
-        current.conflict = true;
+        current.conflict=true;
         conflicts++;
       }
     }
 
-    for (const area of IMPORT_AREAS.filter(k => k !== 'facts')) {
-      const target = data[area];
+    for(const area of IMPORT_AREAS.filter(k=>k!=='facts')){
+      const target=data[area];
 
-      for (const item of arr(incoming[area])) {
-        if (!obj(item)) continue;
+      for(const item of arr(incoming[area])){
+        if(!obj(item))continue;
 
-        if (
-          area === 'memory' &&
+        if(
+          area==='memory'&&
           !(
-            typeof item.type === 'string' &&
-            typeof item.content === 'string'
+            typeof item.type==='string'&&
+            typeof item.content==='string'
           )
-        ) continue;
+        )continue;
 
-        if (
-          area === 'relationships' &&
+        if(
+          area==='relationships'&&
           !(
-            typeof item.from === 'string' &&
-            typeof item.to === 'string' &&
-            typeof item.relation === 'string'
+            typeof item.from==='string'&&
+            typeof item.to==='string'&&
+            typeof item.relation==='string'
           )
-        ) continue;
+        )continue;
 
-        const duplicate = target.some(x =>
-          (item.id && x.id === item.id) ||
+        const duplicate=target.some(x=>
+          (item.id&&x.id===item.id)||
           (
-            area === 'memory' &&
-            x.type === item.type &&
-            norm(x.content) === norm(item.content)
-          ) ||
+            area==='memory'&&
+            x.type===item.type&&
+            norm(x.content)===norm(item.content)
+          )||
           (
-            area === 'documents' &&
-            x.title === item.title &&
-            x.content === item.content
+            area==='documents'&&
+            x.title===item.title&&
+            x.content===item.content
           )
         );
 
-        if (!duplicate) {
+        if(!duplicate){
           target.push(copy(item));
           added++;
         }
       }
     }
 
-    if (obj(incoming.agentStats)) {
-      for (const [k, v] of Object.entries(incoming.agentStats)) {
-        data.agentStats[k] = Math.max(
-          Number(data.agentStats[k]) || 0,
-          Number(v) || 0
+    if(obj(incoming.agentStats)){
+      for(const [k,v] of Object.entries(incoming.agentStats)){
+        data.agentStats[k]=Math.max(
+          Number(data.agentStats[k])||0,
+          Number(v)||0
         );
       }
     }
 
-    audit('System', 'Import', 'ergänzend');
+    audit('System','Import','ergänzend');
 
-    if (!save()) {
+    if(!save()){
       throw Error('Speichern fehlgeschlagen');
     }
 
     return `Import abgeschlossen. ${added} neue Einträge, ${conflicts} Faktenkonflikte. Vorheriger Stand: ${b}`;
-  } catch (e) {
-    data = old;
-    return 'Import abgebrochen: ' + e.message;
+  }catch(e){
+    data=old;
+    return'Import abgebrochen: '+e.message;
   }
 }
 
 /* =====================================================
-   RECHERCHE
+   LERNBOT 6.0 – PAKET 2.1
+   TEIL 3/3 – RECHERCHE, AGENTEN, CHAT UND START
    ===================================================== */
+
+/* ==========================================
+   RECHERCHE
+   ========================================== */
 
 async function fetchJSON(url) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000);
+  const timer = setTimeout(
+    () => controller.abort(),
+    10000
+  );
 
   try {
     const r = await fetch(url, {
-      headers: {Accept: 'application/json'},
+      headers: {
+        Accept: 'application/json'
+      },
       signal: controller.signal
     });
 
-    if (!r.ok) throw Error('HTTP ' + r.status);
+    if (!r.ok) {
+      throw Error('HTTP ' + r.status);
+    }
 
     return await r.json();
   } finally {
@@ -1758,7 +1903,9 @@ async function fetchJSON(url) {
 async function research(q) {
   q = safe(q, 500);
 
-  if (!q) return 'Bitte Thema angeben.';
+  if (!q) {
+    return 'Bitte Thema angeben.';
+  }
 
   const requests = [
     async () => {
@@ -1767,12 +1914,14 @@ async function research(q) {
         encodeURIComponent(q)
       );
 
-      return x?.extract ? {
-        source: 'Wikipedia',
-        title: x.title || q,
-        content: x.extract,
-        url: x.content_urls?.desktop?.page || ''
-      } : null;
+      return x?.extract
+        ? {
+            source: 'Wikipedia',
+            title: x.title || q,
+            content: x.extract,
+            url: x.content_urls?.desktop?.page || ''
+          }
+        : null;
     },
 
     async () => {
@@ -1785,12 +1934,14 @@ async function research(q) {
 
       const y = arr(x.search)[0];
 
-      return y ? {
-        source: 'Wikidata',
-        title: y.label || q,
-        content: y.description || '',
-        url: y.concepturi || ''
-      } : null;
+      return y
+        ? {
+            source: 'Wikidata',
+            title: y.label || q,
+            content: y.description || '',
+            url: y.concepturi || ''
+          }
+        : null;
     },
 
     async () => {
@@ -1800,15 +1951,17 @@ async function research(q) {
         '&limit=5'
       );
 
-      return arr(x.docs).length ? {
-        source: 'Open Library',
-        title: 'Bücher zu ' + q,
-        content: x.docs.slice(0, 5).map(d =>
-          `${d.title} (${arr(d.author_name).join(', ')})`
-        ).join('\n'),
-        url: 'https://openlibrary.org/search?q=' +
-          encodeURIComponent(q)
-      } : null;
+      return arr(x.docs).length
+        ? {
+            source: 'Open Library',
+            title: 'Bücher zu ' + q,
+            content: x.docs.slice(0, 5).map(d =>
+              `${d.title} (${arr(d.author_name).join(', ')})`
+            ).join('\n'),
+            url: 'https://openlibrary.org/search?q=' +
+              encodeURIComponent(q)
+          }
+        : null;
     }
   ];
 
@@ -1817,11 +1970,16 @@ async function research(q) {
   );
 
   const rs = results
-    .filter(x => x.status === 'fulfilled' && x.value)
+    .filter(x =>
+      x.status === 'fulfilled' && x.value
+    )
     .map(x => x.value);
 
   if (!rs.length) {
-    return 'Keine externen Ergebnisse abrufbar. Prüfe Internetverbindung oder Browser-Zugriff.';
+    return (
+      'Keine externen Ergebnisse abrufbar. ' +
+      'Prüfe Internetverbindung oder Browser-Zugriff.'
+    );
   }
 
   for (const r of rs) {
@@ -1829,34 +1987,57 @@ async function research(q) {
       r.content + '\nQuelle: ' + r.url,
       r.title,
       'research',
-      {source: r.source, url: r.url}
+      {
+        source: r.source,
+        url: r.url
+      }
     );
   }
 
-  return 'RECHERCHEERGEBNISSE\n\n' +
+  return (
+    'RECHERCHEERGEBNISSE\n\n' +
     rs.map(r =>
       `${r.source}: ${r.title}\n${r.content}\n${r.url}`
     ).join('\n\n') +
-    '\n\nAls Dokumente gespeichert. Externe Angaben bitte prüfen.';
+    '\n\nAls Dokumente gespeichert. ' +
+    'Externe Angaben bitte prüfen.'
+  );
 }
 
-/* =====================================================
-   CODE-KI UND AGENTEN
-   ===================================================== */
+/* ==========================================
+   CODE-KI
+   ========================================== */
 
 function inspectCode(code) {
   code = safe(code, 100000);
 
-  if (!code) return 'Bitte Quellcode angeben.';
+  if (!code) {
+    return 'Bitte Quellcode angeben.';
+  }
 
   const warnings = [];
 
   const rules = [
-    [/\beval\s*\(/, 'eval() gefunden'],
-    [/\.innerHTML\s*=/, 'innerHTML-Zuweisung: XSS-Risiko'],
-    [/localStorage\.clear\s*\(/, 'localStorage.clear() löscht lokale Daten'],
-    [/document\.write\s*\(/, 'document.write() gefunden'],
-    [/\bTODO\b|\bFIXME\b/, 'TODO/FIXME gefunden']
+    [
+      /\beval\s*\(/,
+      'eval() gefunden'
+    ],
+    [
+      /\.innerHTML\s*=/,
+      'innerHTML-Zuweisung: XSS-Risiko prüfen'
+    ],
+    [
+      /localStorage\.clear\s*\(/,
+      'localStorage.clear() löscht lokale Daten'
+    ],
+    [
+      /document\.write\s*\(/,
+      'document.write() gefunden'
+    ],
+    [
+      /\bTODO\b|\bFIXME\b/,
+      'TODO/FIXME gefunden'
+    ]
   ];
 
   for (const [re, msg] of rules) {
@@ -1865,12 +2046,22 @@ function inspectCode(code) {
     }
   }
 
-  return `CODE-PRÜFUNG
-Zeilen: ${code.split('\n').length}
-${warnings.join('\n') || 'Keine einfachen Musterwarnungen.'}
-
-Hinweis: Keine vollständige Syntax- oder Sicherheitsprüfung.`;
+  return (
+    'CODE-PRÜFUNG\n' +
+    'Zeilen: ' + code.split('\n').length +
+    '\n' +
+    (
+      warnings.join('\n') ||
+      'Keine einfachen Musterwarnungen.'
+    ) +
+    '\n\nHinweis: Keine vollständige Syntax- ' +
+    'oder Sicherheitsprüfung.'
+  );
 }
+
+/* ==========================================
+   AGENTEN
+   ========================================== */
 
 function agents() {
   const names = [
@@ -1885,13 +2076,20 @@ function agents() {
     'Meta-KI'
   ];
 
-  return 'KI-AGENTEN\n' +
+  return (
+    'KI-AGENTEN\n' +
     names.map(x => '• ' + x).join('\n') +
-    '\nRegelbasierte Module, kein lokal installiertes Sprachmodell.';
+    '\n\nRegelbasierte Module, ' +
+    'kein lokal installiertes Sprachmodell.'
+  );
 }
 
+/* ==========================================
+   HILFE
+   ========================================== */
+
 function help() {
-  return `LERNBOT 6.0 – PAKET 2
+  return `LERNBOT 6.0 – PAKET 2.1
 
 Lerne: Mars: Durchmesser – 6.779 Kilometer
 Lerne: [längerer Text]
@@ -1901,28 +2099,37 @@ Wissensübersicht
 Wissensanalyse
 Analysiere: Mars
 Konflikte
+Verdächtige Fakten
+
 Fakt anzeigen: Mars: Durchmesser
 Fakt korrigieren: Mars: Durchmesser = 6.780 Kilometer
 Fakt löschen: Mars: Durchmesser
 Änderung bestätigen
 Änderung abbrechen
+
 Verbinde: Mars: ist ein: Planet
 Wissensgraph: Mars
+
 Merke dir: ...
 Erinnerungen
 Vergiss: ...
 Vergiss bestätigen
 Vergiss abbrechen
+
 Recherchiere: Mars
+
 Dokumente
 Dokument suchen: ...
 Dokument zusammenfassen: ID
+
 Projekt erstellen: ...
 Projekte
 Aufgabe erstellen: ...
 Aufgaben
 Aufgabe erledigt: ID
+
 Agenten
+
 Sicherung erstellen
 Sicherungen
 Sicherung wiederherstellen: ID
@@ -1930,57 +2137,86 @@ Auto-Sicherungen
 Auto-Sicherung exportieren: NUMMER
 Auto-Sicherung wiederherstellen: NUMMER
 Export
+
 Code prüfen: ...
 
 Normale Fragen und kurze Rückfragen zum letzten Thema sind möglich.`;
 }
 
+/* ==========================================
+   BEFEHLSHILFE
+   ========================================== */
+
 function command(s, prefix) {
   const i = s.indexOf(':');
 
-  return i >= 0 &&
+  return (
+    i >= 0 &&
     norm(s.slice(0, i)) === norm(prefix)
+  )
     ? s.slice(i + 1).trim()
     : null;
 }
 
+/* ==========================================
+   WISSENSANTWORTEN
+   ========================================== */
+
 function knowledge(q) {
   const direct = question(q);
 
-  if (direct) return direct;
+  if (direct) {
+    return direct;
+  }
 
   const fs = factsFor(q);
 
   if (fs.length) {
-    return fs.map(f => factInfo(f)).join('\n');
+    return fs.map(f =>
+      factInfo(f)
+    ).join('\n');
   }
 
   const d = docAnswer(q);
 
-  if (d) return d;
+  if (d) {
+    return d;
+  }
 
   const r = related(q, 5);
 
   return r.length
-    ? 'VERWANDTES WISSEN\n' +
-      r.map(f => '• ' + factInfo(f)).join('\n')
-    : `Zu „${q}“ habe ich noch keine passenden Informationen gespeichert.`;
+    ? (
+        'VERWANDTES WISSEN\n' +
+        r.map(f =>
+          '• ' + factInfo(f)
+        ).join('\n')
+      )
+    : (
+        `Zu „${q}“ habe ich noch ` +
+        'keine passenden Informationen gespeichert.'
+      );
 }
 
-/* =====================================================
+/* ==========================================
    ZENTRALE BEFEHLSVERARBEITUNG
-   ===================================================== */
+   ========================================== */
 
 async function handle(input) {
   const s = safe(input, 100000);
   const n = norm(s);
 
-  if (!s) return 'Bitte Nachricht eingeben.';
+  if (!s) {
+    return 'Bitte Nachricht eingeben.';
+  }
 
   let v;
 
   if (
-    (pending?.type === 'forget' && n === 'vergiss bestatigen') ||
+    (
+      pending?.type === 'forget' &&
+      n === 'vergiss bestatigen'
+    ) ||
     n === 'anderung bestatigen'
   ) {
     return confirmChange();
@@ -1997,20 +2233,29 @@ async function handle(input) {
   if (context.awaiting) {
     const answer = clarify(s);
 
-    if (answer) return answer;
+    if (answer) {
+      return answer;
+    }
 
     context.awaiting = null;
   }
 
-  if (n === 'hilfe' || n === 'befehle') {
+  if (
+    n === 'hilfe' ||
+    n === 'befehle'
+  ) {
     return help();
   }
 
-  if (['hi', 'hallo', 'hey', 'guten tag'].includes(n)) {
+  if (
+    ['hi', 'hallo', 'hey', 'guten tag'].includes(n)
+  ) {
     return 'Hallo! Ich bin ' + NAME + '.';
   }
 
-  if ((v = command(s, 'Lerne')) !== null) {
+  if (
+    (v = command(s, 'Lerne')) !== null
+  ) {
     return learn(v);
   }
 
@@ -2039,7 +2284,9 @@ Erstellt: ${date(x.created)}`
       : 'Keine Erinnerungen.';
   }
 
-  if ((v = command(s, 'Vergiss')) !== null) {
+  if (
+    (v = command(s, 'Vergiss')) !== null
+  ) {
     return forget(v);
   }
 
@@ -2058,32 +2305,62 @@ Erstellt: ${date(x.created)}`
     return conflictList();
   }
 
-  if ((v = command(s, 'Fakt anzeigen')) !== null) {
-    const m = v.match(/^(.+?)\s*:\s*(.+)$/);
-    const f = m && findFact(m[1], m[2]);
+  if (
+    n === 'verdachtige fakten'
+  ) {
+    return suspiciousFacts();
+  }
+
+  if (
+    (v = command(s, 'Fakt anzeigen')) !== null
+  ) {
+    const m = v.match(
+      /^(.+?)\s*:\s*(.+)$/
+    );
+
+    const f = m && findFact(
+      m[1],
+      m[2]
+    );
 
     return f
       ? factInfo(f, true)
-      : 'Fakt nicht gefunden. Format: Fakt anzeigen: Thema: Eigenschaft';
+      : (
+          'Fakt nicht gefunden. ' +
+          'Format: Fakt anzeigen: Thema: Eigenschaft'
+        );
   }
 
-  if ((v = command(s, 'Fakt korrigieren')) !== null) {
+  if (
+    (v = command(s, 'Fakt korrigieren')) !== null
+  ) {
     return editFact(v);
   }
 
-  if ((v = command(s, 'Fakt löschen')) !== null) {
+  if (
+    (v = command(s, 'Fakt löschen')) !== null
+  ) {
     return deleteFact(v);
   }
 
-  if ((v = command(s, 'Verbinde')) !== null) {
-    const m = v.match(/^(.+?)\s*:\s*(.+?)\s*:\s*(.+)$/);
+  if (
+    (v = command(s, 'Verbinde')) !== null
+  ) {
+    const m = v.match(
+      /^(.+?)\s*:\s*(.+?)\s*:\s*(.+)$/
+    );
 
-    return m && graph(m[1], m[2], m[3])
+    return (
+      m &&
+      graph(m[1], m[2], m[3])
+    )
       ? 'Verbindung gespeichert.'
       : 'Format: Verbinde: Thema A: Beziehung: Thema B';
   }
 
-  if ((v = command(s, 'Wissensgraph')) !== null) {
+  if (
+    (v = command(s, 'Wissensgraph')) !== null
+  ) {
     return graphReport(v);
   }
 
@@ -2094,11 +2371,15 @@ Erstellt: ${date(x.created)}`
     return knowledge(v);
   }
 
-  if ((v = command(s, 'Analysiere')) !== null) {
+  if (
+    (v = command(s, 'Analysiere')) !== null
+  ) {
     return analyze(v);
   }
 
-  if ((v = command(s, 'Recherchiere')) !== null) {
+  if (
+    (v = command(s, 'Recherchiere')) !== null
+  ) {
     return await research(v);
   }
 
@@ -2106,11 +2387,15 @@ Erstellt: ${date(x.created)}`
     return docs();
   }
 
-  if ((v = command(s, 'Dokument suchen')) !== null) {
+  if (
+    (v = command(s, 'Dokument suchen')) !== null
+  ) {
     return docs(v);
   }
 
-  if ((v = command(s, 'Dokument zusammenfassen')) !== null) {
+  if (
+    (v = command(s, 'Dokument zusammenfassen')) !== null
+  ) {
     return summarize(v);
   }
 
@@ -2118,7 +2403,9 @@ Erstellt: ${date(x.created)}`
     return projects();
   }
 
-  if ((v = command(s, 'Projekt erstellen')) !== null) {
+  if (
+    (v = command(s, 'Projekt erstellen')) !== null
+  ) {
     return v
       ? project(v)
       : 'Bitte Projektnamen angeben.';
@@ -2128,13 +2415,17 @@ Erstellt: ${date(x.created)}`
     return tasks();
   }
 
-  if ((v = command(s, 'Aufgabe erstellen')) !== null) {
+  if (
+    (v = command(s, 'Aufgabe erstellen')) !== null
+  ) {
     return v
       ? task(v)
       : 'Bitte Aufgabentitel angeben.';
   }
 
-  if ((v = command(s, 'Aufgabe erledigt')) !== null) {
+  if (
+    (v = command(s, 'Aufgabe erledigt')) !== null
+  ) {
     return taskDone(v);
   }
 
@@ -2153,7 +2444,12 @@ Erstellt: ${date(x.created)}`
     return snapshots();
   }
 
-  if ((v = command(s, 'Sicherung wiederherstellen')) !== null) {
+  if (
+    (v = command(
+      s,
+      'Sicherung wiederherstellen'
+    )) !== null
+  ) {
     return restoreSnapshot(v);
   }
 
@@ -2164,11 +2460,21 @@ Erstellt: ${date(x.created)}`
     return autoList();
   }
 
-  if ((v = command(s, 'Auto-Sicherung wiederherstellen')) !== null) {
+  if (
+    (v = command(
+      s,
+      'Auto-Sicherung wiederherstellen'
+    )) !== null
+  ) {
     return autoRestore(v);
   }
 
-  if ((v = command(s, 'Auto-Sicherung exportieren')) !== null) {
+  if (
+    (v = command(
+      s,
+      'Auto-Sicherung exportieren'
+    )) !== null
+  ) {
     return autoExport(v);
   }
 
@@ -2179,16 +2485,18 @@ Erstellt: ${date(x.created)}`
     return exportData();
   }
 
-  if ((v = command(s, 'Code prüfen')) !== null) {
+  if (
+    (v = command(s, 'Code prüfen')) !== null
+  ) {
     return inspectCode(v);
   }
 
   return knowledge(s);
 }
 
-/* =====================================================
+/* ==========================================
    BENUTZEROBERFLÄCHE
-   ===================================================== */
+   ========================================== */
 
 const UI = {
   input: () =>
@@ -2217,7 +2525,11 @@ function addMessage(role, content) {
   const chat = UI.chat();
 
   if (!chat) {
-    console.log('LernBot', role, content);
+    console.log(
+      'LernBot',
+      role,
+      content
+    );
     return;
   }
 
@@ -2225,14 +2537,23 @@ function addMessage(role, content) {
 
   e.className = role === 'user'
     ? 'msg user'
-    : 'msg bot' + (role === 'system' ? ' system' : '');
+    : (
+        'msg bot' +
+        (
+          role === 'system'
+            ? ' system'
+            : ''
+        )
+      );
 
   const body = document.createElement('div');
+
   body.className = 'lb6-message-content';
   body.textContent = text(content);
 
   e.appendChild(body);
   chat.appendChild(e);
+
   chat.scrollTop = chat.scrollHeight;
 }
 
@@ -2251,6 +2572,10 @@ function clearChat() {
   };
 }
 
+/* ==========================================
+   NACHRICHTEN SENDEN
+   ========================================== */
+
 async function send() {
   if (busy) return;
 
@@ -2259,18 +2584,25 @@ async function send() {
 
   if (!input) return;
 
-  const s = safe(input.value, 100000);
+  const s = safe(
+    input.value,
+    100000
+  );
 
   if (!s) return;
 
   busy = true;
 
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+  }
 
   input.value = '';
+
   addMessage('user', s);
 
   const typing = document.createElement('div');
+
   typing.className = 'msg bot lb6-typing';
   typing.textContent = 'LernBot denkt nach ...';
 
@@ -2280,7 +2612,11 @@ async function send() {
     const response = await handle(s);
 
     typing.remove();
-    addMessage('assistant', response);
+
+    addMessage(
+      'assistant',
+      response
+    );
 
     data.log.push({
       id: uid(),
@@ -2292,6 +2628,7 @@ async function send() {
     save();
   } catch (e) {
     typing.remove();
+
     console.error(e);
 
     addMessage(
@@ -2301,22 +2638,34 @@ async function send() {
   } finally {
     busy = false;
 
-    if (btn) btn.disabled = false;
+    if (btn) {
+      btn.disabled = false;
+    }
   }
 }
 
+/* ==========================================
+   EREIGNISSTEUERUNG – PAKET 2.1
+   ========================================== */
+
 function bind(el, event, fn) {
-  if (!el || el.dataset.lb6Bound === 'true') {
+  if (!el) return;
+
+  if (!el._lb6Events) {
+    el._lb6Events = new Set();
+  }
+
+  if (el._lb6Events.has(event)) {
     return;
   }
 
-  el.dataset.lb6Bound = 'true';
+  el._lb6Events.add(event);
   el.addEventListener(event, fn);
 }
 
-/* =====================================================
+/* ==========================================
    DATEIIMPORT
-   ===================================================== */
+   ========================================== */
 
 function fileInput() {
   let el = $('lb6-file');
@@ -2324,6 +2673,7 @@ function fileInput() {
   if (el) return el;
 
   el = document.createElement('input');
+
   el.id = 'lb6-file';
   el.type = 'file';
   el.accept = '.txt,.md,.json,.csv,.html,.js,.css';
@@ -2342,11 +2692,20 @@ async function fileChanged(e) {
   try {
     const s = await f.text();
 
-    const response = f.name.toLowerCase().endsWith('.json')
+    const response = f.name
+      .toLowerCase()
+      .endsWith('.json')
       ? importData(s)
-      : importDocumentText(s, f.name, 'file-import');
+      : importDocumentText(
+          s,
+          f.name,
+          'file-import'
+        );
 
-    addMessage('assistant', response);
+    addMessage(
+      'assistant',
+      response
+    );
   } catch (err) {
     addMessage(
       'assistant',
@@ -2357,12 +2716,17 @@ async function fileChanged(e) {
   }
 }
 
-/* =====================================================
+/* ==========================================
    ERSATZOBERFLÄCHE
-   ===================================================== */
+   ========================================== */
 
 function fallback() {
-  if (UI.input() && UI.chat()) return;
+  if (
+    UI.input() &&
+    UI.chat()
+  ) {
+    return;
+  }
 
   const root = document.createElement('section');
 
@@ -2373,48 +2737,73 @@ function fallback() {
 
   root.innerHTML = `
     <h2>LernBot 6.0</h2>
+
     <div
       id="lb6-fallback-chat"
       style="height:55vh;overflow:auto;padding:12px;background:#11111a"
     ></div>
+
     <textarea
       id="lb6-fallback-input"
       style="width:85%;height:65px"
     ></textarea>
-    <button id="lb6-fallback-send">Senden</button>
+
+    <button id="lb6-fallback-send">
+      Senden
+    </button>
   `;
 
   document.body.appendChild(root);
 }
 
-/* =====================================================
+/* ==========================================
    SIDEBAR
-   ===================================================== */
+   ========================================== */
 
 function sidebar(label, cmd) {
   const c = norm(cmd);
   const l = norm(label);
 
-  if (c === 'theme' || l.includes('theme')) {
+  if (
+    c === 'theme' ||
+    l.includes('theme')
+  ) {
     data.theme = data.theme === 'dark'
       ? 'light'
       : 'dark';
 
-    document.documentElement.dataset.theme = data.theme;
-    document.body.dataset.theme = data.theme;
+    document.documentElement.dataset.theme =
+      data.theme;
+
+    document.body.dataset.theme =
+      data.theme;
 
     save();
-    addMessage('system', 'Theme: ' + data.theme);
+
+    addMessage(
+      'system',
+      'Theme: ' + data.theme
+    );
+
     return;
   }
 
-  if (c === 'import' || l.includes('import')) {
+  if (
+    c === 'import' ||
+    l.includes('import')
+  ) {
     fileInput().click();
     return;
   }
 
-  if (c === 'export' || l.includes('export')) {
-    addMessage('system', exportData());
+  if (
+    c === 'export' ||
+    l.includes('export')
+  ) {
+    addMessage(
+      'system',
+      exportData()
+    );
     return;
   }
 
@@ -2426,8 +2815,15 @@ function sidebar(label, cmd) {
     return;
   }
 
-  if (c === 'verlauf loschen') {
-    if (confirm('Chatverlauf wirklich löschen? Wissen bleibt erhalten.')) {
+  if (
+    c === 'verlauf loschen'
+  ) {
+    if (
+      confirm(
+        'Chatverlauf wirklich löschen? ' +
+        'Wissen bleibt erhalten.'
+      )
+    ) {
       data.log = [];
       save();
       clearChat();
@@ -2436,12 +2832,16 @@ function sidebar(label, cmd) {
     return;
   }
 
-  if (l.includes('neuer chat')) {
+  if (
+    l.includes('neuer chat')
+  ) {
     clearChat();
     return;
   }
 
-  if (l.includes('chatverlauf')) {
+  if (
+    l.includes('chatverlauf')
+  ) {
     addMessage(
       'assistant',
       data.log.length
@@ -2454,17 +2854,25 @@ function sidebar(label, cmd) {
     return;
   }
 
-  if (l.includes('einstellungen')) {
+  if (
+    l.includes('einstellungen')
+  ) {
     addMessage(
       'assistant',
-      JSON.stringify(data.settings, null, 2) +
+      JSON.stringify(
+        data.settings,
+        null,
+        2
+      ) +
       '\nTheme: ' + data.theme
     );
 
     return;
   }
 
-  if (l.includes('code labor')) {
+  if (
+    l.includes('code labor')
+  ) {
     addMessage(
       'assistant',
       'Code prüfen: DEIN QUELLCODE'
@@ -2474,9 +2882,13 @@ function sidebar(label, cmd) {
   }
 
   const target =
-    c === 'hilfe' || l === 'hilfe'
+    c === 'hilfe' ||
+    l === 'hilfe'
       ? 'Hilfe'
-      : c === 'was weisst du' || l.includes('wissensspeicher')
+      : (
+          c === 'was weisst du' ||
+          l.includes('wissensspeicher')
+        )
         ? 'Wissensübersicht'
         : l.includes('agenten')
           ? 'Agenten'
@@ -2488,14 +2900,17 @@ function sidebar(label, cmd) {
 
   if (target) {
     handle(target).then(x =>
-      addMessage('assistant', x)
+      addMessage(
+        'assistant',
+        x
+      )
     );
   }
 }
 
-/* =====================================================
+/* ==========================================
    START
-   ===================================================== */
+   ========================================== */
 
 function start() {
   if (
@@ -2508,7 +2923,8 @@ function start() {
   started = true;
 
   const style = document.createElement('style');
-  style.id = 'lb6-paket2-style';
+
+  style.id = 'lb6-paket21-style';
 
   style.textContent = `
     .lb6-message-content {
@@ -2526,61 +2942,101 @@ function start() {
 
   fallback();
 
-  bind(UI.input(), 'keydown', e => {
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      !e.isComposing
-    ) {
+  bind(
+    UI.input(),
+    'keydown',
+    e => {
+      if (
+        e.key === 'Enter' &&
+        !e.shiftKey &&
+        !e.isComposing
+      ) {
+        e.preventDefault();
+        send();
+      }
+    }
+  );
+
+  bind(
+    UI.send(),
+    'click',
+    e => {
       e.preventDefault();
       send();
     }
-  });
+  );
 
-  bind(UI.send(), 'click', e => {
-    e.preventDefault();
-    send();
-  });
+  bind(
+    $('bar'),
+    'submit',
+    e => {
+      e.preventDefault();
+      send();
+    }
+  );
 
-  bind($('bar'), 'submit', e => {
-    e.preventDefault();
-    send();
-  });
-
-  bind(fileInput(), 'change', fileChanged);
+  bind(
+    fileInput(),
+    'change',
+    fileChanged
+  );
 
   document.querySelectorAll(
     '#suggestions [data-msg]'
   ).forEach(el => {
-    bind(el, 'click', () => {
-      const input = UI.input();
+    bind(
+      el,
+      'click',
+      () => {
+        const input = UI.input();
 
-      input.value = el.dataset.msg;
-      send();
-    });
+        if (!input) return;
+
+        input.value = el.dataset.msg;
+        send();
+      }
+    );
   });
 
   document.querySelectorAll(
     '#drawer .side-button'
   ).forEach(el => {
-    bind(el, 'click', () =>
-      sidebar(el.textContent, el.dataset.cmd || '')
+    bind(
+      el,
+      'click',
+      () => sidebar(
+        el.textContent,
+        el.dataset.cmd || ''
+      )
     );
   });
 
   document.querySelectorAll(
     '[data-lb6-export], #lb6-export, #export-button, #export-btn'
   ).forEach(el => {
-    bind(el, 'click', () =>
-      addMessage('system', exportData())
+    bind(
+      el,
+      'click',
+      () => addMessage(
+        'system',
+        exportData()
+      )
     );
   });
 
-  document.documentElement.dataset.lb6Started = 'true';
-  document.documentElement.dataset.theme = data.theme;
-  document.body.dataset.theme = data.theme;
+  document.documentElement.dataset.lb6Started =
+    'true';
 
-  if (UI.chat() && !UI.chat().children.length) {
+  document.documentElement.dataset.theme =
+    data.theme;
+
+  document.body.dataset.theme =
+    data.theme;
+
+  if (
+    UI.chat() &&
+    !UI.chat().children.length
+  ) {
     addMessage(
       'assistant',
       'Hallo! Ich bin ' + NAME +
@@ -2590,23 +3046,39 @@ function start() {
   }
 
   for (const n of notices) {
-    addMessage('system', n);
+    addMessage(
+      'system',
+      n
+    );
   }
 
-  status(locked ? 'Speicher gesperrt' : 'Bereit');
+  status(
+    locked
+      ? 'Speicher gesperrt'
+      : 'Bereit'
+  );
 
-  console.log(NAME + ' gestartet');
+  console.log(
+    NAME + ' gestartet'
+  );
 }
 
-if (document.readyState === 'loading') {
+/* ==========================================
+   INITIALISIERUNG
+   ========================================== */
+
+if (
+  document.readyState === 'loading'
+) {
   document.addEventListener(
     'DOMContentLoaded',
     start,
-    {once: true}
+    {
+      once: true
+    }
   );
 } else {
   start();
 }
 
 })();
- 
