@@ -3063,6 +3063,87 @@ function start() {
   );
 }
 
+
+/* ==========================================
+   PAKET 2.2.1 – SICHERE KONFLIKT-SCHNITTSTELLE
+   ========================================== */
+
+window.LernBotBridge = Object.freeze({
+  listConflicts() {
+    return copy(
+      data.facts.filter(f => f.conflict)
+    );
+  },
+
+  getFact(id) {
+    const f = data.facts.find(x => x.id === id);
+    return f ? copy(f) : null;
+  },
+
+  resolveConflict(id) {
+    if (locked) {
+      return {
+        ok: false,
+        message: 'Speicher gesperrt.'
+      };
+    }
+
+    const f = data.facts.find(x => x.id === id);
+
+    if (!f || !f.conflict) {
+      return {
+        ok: false,
+        message: 'Kein offener Konflikt gefunden.'
+      };
+    }
+
+    const old = JSON.stringify(data);
+
+    if (!backup('vorKonflikt', old, 3)) {
+      return {
+        ok: false,
+        message: 'Sicherung fehlgeschlagen.'
+      };
+    }
+
+    const previous = copy(f);
+
+    f.conflict = false;
+    f.resolvedAt = now();
+    f.updated = now();
+
+    f.resolution = {
+      type: 'manual-review',
+      selectedValue: f.value,
+      source: 'user',
+      time: f.resolvedAt,
+      note: 'Manuell bestätigt'
+    };
+
+    audit(
+      'Konflikt-KI 2.2.1',
+      'Konflikt aufgelöst',
+      f.id
+    );
+
+    if (!save()) {
+      Object.assign(f, previous);
+
+      return {
+        ok: false,
+        message: 'Speichern fehlgeschlagen.'
+      };
+    }
+
+    return {
+      ok: true,
+      message: 'Konflikt aufgelöst.',
+      fact: copy(f)
+    };
+  }
+});
+
+
 /* ==========================================
    INITIALISIERUNG
    ========================================== */
