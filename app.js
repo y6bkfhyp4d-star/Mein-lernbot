@@ -1,594 +1,336 @@
-/* =====================================================
-   LERNBOT 6.0 – NEUFASSUNG (PAKET 1)
-   TEIL 1/3 – KERN, DATENBANK, GEDÄCHTNIS, WISSENSBANK
-   ===================================================== */
 
+/* Mein LernBot 6.0 – Paket 2
+   Teil 1/3 – Kern und Speicher
+   Alle Teile gehören in dieselbe app.js.
+*/
 (() => {
-"use strict";
-
-/* =====================================================
-   1. GRUNDLAGEN
-   ===================================================== */
+'use strict';
 
 const $ = id => document.getElementById(id);
-
-const KEY = "meinLernBot.v1";
+const KEY = 'meinLernBot.v1';
 const VERSION = 6;
-const NAME = "LernBot 6.0";
+const NAME = 'LernBot 6.0 – Paket 2';
 
 const now = () => Date.now();
+const arr = x => Array.isArray(x) ? x : [];
+const obj = x =>
+  !!x && typeof x === 'object' && !Array.isArray(x);
 
-const arr = value =>
-  Array.isArray(value) ? value : [];
-
-const obj = value =>
-  value !== null &&
-  typeof value === "object" &&
-  !Array.isArray(value);
+const safe = (x, n = 20000) =>
+  String(x ?? '').trim().slice(0, n);
 
 const uid = () =>
-  "LB-" +
-  now().toString(36) +
-  "-" +
-  Math.random().toString(36).slice(2, 9);
+  `LB-${now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 
-const safeText = (value, max = 20000) =>
-  String(value ?? "").slice(0, max).trim();
-
-function clone(value) {
+const copy = x => {
   try {
-    if (typeof structuredClone === "function") {
-      return structuredClone(value);
-    }
-  } catch (error) {
-    console.warn("LernBot: structuredClone fehlgeschlagen.", error);
-  }
-
-  try {
-    return JSON.parse(JSON.stringify(value));
-  } catch (error) {
-    console.warn("LernBot: Kopieren fehlgeschlagen.", error);
-    return value;
-  }
-}
-
-function normalize(text) {
-  return safeText(text)
-    .toLocaleLowerCase("de")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/*
-   NEU (Paket 1): fold() ist der Vergleichsschlüssel für Texte.
-
-   Er behandelt ä/ae, ö/oe, ü/ue und ß/ss gleich.
-   Beispiele:  "Körpergröße" → "korpergrosse"
-               "Koerpergroesse" → "korpergrosse"
-               "gehört" → "gehort"  /  "gehoert" → "gehort"
-
-   Wichtig: normalize() bleibt unverändert. fold() wird NUR zum
-   Vergleichen benutzt. Gespeicherte Texte werden dadurch nicht verändert.
-*/
-
-function fold(text) {
-  return normalize(text)
-    .replace(/ß/g, "ss")
-    .replace(/ae/g, "a")
-    .replace(/oe/g, "o")
-    .replace(/ue/g, "u");
-}
-
-function tokenize(text) {
-  const stop = new Set(
-    "der die das den dem des ein eine einer eines einem und oder ist sind war wie was wer wo wann warum ich du er sie es wir ihr mit von zu im am an auf für als aber auch sich".split(" ")
-  );
-
-  return normalize(text)
-    .split(" ")
-    .filter(word => word.length > 2 && !stop.has(word));
-}
-
-function similarity(a, b) {
-  const first = new Set(tokenize(a));
-  const second = new Set(tokenize(b));
-
-  if (!first.size || !second.size) return 0;
-
-  let common = 0;
-
-  for (const word of first) {
-    if (second.has(word)) common++;
-  }
-
-  return common / Math.max(first.size, second.size);
-}
-
-function formatDate(value) {
-  if (!value) return "Unbekannt";
-
-  const date = new Date(value);
-
-  return Number.isNaN(date.getTime())
-    ? String(value)
-    : date.toLocaleString("de-DE");
-}
-
-function asReadable(value) {
-  if (value === null || value === undefined) return "";
-
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return String(value);
-  }
-
-  try {
-    return JSON.stringify(value, null, 2);
+    return structuredClone(x);
   } catch {
-    return String(value);
+    return JSON.parse(JSON.stringify(x));
   }
+};
+
+const norm = x => safe(x)
+  .toLocaleLowerCase('de')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/ß/g, 'ss')
+  .replace(/ae/g, 'a')
+  .replace(/oe/g, 'o')
+  .replace(/ue/g, 'u')
+  .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const words = x => norm(x).split(' ').filter(Boolean);
+
+const STOP = new Set(
+  'der die das den dem des ein eine einer eines einem ' +
+  'und oder ist sind war wie was wer wo wann warum ' +
+  'ich du er sie es wir ihr mit von zu im am an auf ' +
+  'fur als aber auch sich bitte mir nach uber welche ' +
+  'welcher welches welchen hat haben kann kannst ' +
+  'wurde wird denn'
+    .split(' ')
+);
+
+const tokens = x =>
+  words(x).filter(w => w.length > 2 && !STOP.has(w));
+
+function sim(a, b) {
+  const x = new Set(tokens(a));
+  const y = new Set(tokens(b));
+
+  if (!x.size || !y.size) return 0;
+
+  let n = 0;
+  for (const t of x) {
+    if (y.has(t)) n++;
+  }
+
+  return n / Math.max(x.size, y.size);
 }
 
-/* =====================================================
-   2. DATENBANK UND MIGRATION
-   ===================================================== */
+function date(x) {
+  const d = new Date(x);
+  return isNaN(d)
+    ? 'Unbekannt'
+    : d.toLocaleString('de-DE');
+}
+
+function text(x) {
+  if (typeof x === 'string') return x;
+  if (x == null) return '';
+  if (typeof x === 'object') {
+    return JSON.stringify(x, null, 2);
+  }
+  return String(x);
+}
 
 const defaults = {
-  version: VERSION,
-
+  version: 6,
   facts: [],
   qa: [],
   classes: [],
   log: [],
   audit: [],
-
   agentStats: {},
-
   improvements: [],
   codeProposals: [],
-
   projects: [],
   tasks: [],
   documents: [],
   relationships: [],
   memory: [],
   snapshots: [],
-
   settings: {
     autoResearch: true,
     autoLearn: true,
     confirmChanges: true,
     maxHistory: 100
   },
-
-  theme: "dark"
+  theme: 'dark'
 };
 
-const arrayKeys = [
-  "facts",
-  "qa",
-  "classes",
-  "log",
-  "audit",
-  "improvements",
-  "codeProposals",
-  "projects",
-  "tasks",
-  "documents",
-  "relationships",
-  "memory",
-  "snapshots"
+const arrays = [
+  'facts',
+  'qa',
+  'classes',
+  'log',
+  'audit',
+  'improvements',
+  'codeProposals',
+  'projects',
+  'tasks',
+  'documents',
+  'relationships',
+  'memory',
+  'snapshots'
 ];
 
-let data = {};
+const BP = KEY + '.sicherung.';
 
-/* Hinweise, die beim Start im Chat angezeigt werden */
+let data = copy(defaults);
+let locked = false;
+let notices = [];
+let pending = null;
 
-const startupNotices = [];
+let context = {
+  subject: '',
+  property: '',
+  awaiting: null
+};
 
-/* =====================================================
-   2a. AUTOMATISCHE SICHERUNGSKOPIEN (NEU)
+let busy = false;
+let started = false;
 
-   Diese Kopien liegen in SEPARATEN localStorage-Einträgen
-   mit dem Namensanfang "meinLernBot.v1.sicherung.".
-   Der Haupt-Schlüssel "meinLernBot.v1" wird dadurch
-   nie berührt.
-   ===================================================== */
-
-const BACKUP_PREFIX = KEY + ".sicherung.";
-
-function backupTime(name) {
-  const match = String(name).match(/\.(\d{10,})$/);
-  return match ? Number(match[1]) : 0;
-}
-
-function listAutoBackups(kind = "") {
-  const names = [];
+function backupNames(kind = '') {
+  const out = [];
 
   try {
-    const prefix = BACKUP_PREFIX + (kind ? kind + "." : "");
-
     for (let i = 0; i < localStorage.length; i++) {
-      const name = localStorage.key(i);
+      const k = localStorage.key(i);
 
-      if (name && name.startsWith(prefix)) names.push(name);
+      if (k?.startsWith(BP + kind)) {
+        out.push(k);
+      }
     }
-  } catch (error) {
-    console.warn("LernBot: Sicherungen nicht lesbar.", error);
-  }
+  } catch {}
 
-  return names.sort((a, b) =>
-    backupTime(a) - backupTime(b) || (a < b ? -1 : 1)
+  return out.sort((a, b) =>
+    Number(a.match(/\d+$/)?.[0] || 0) -
+    Number(b.match(/\d+$/)?.[0] || 0)
   );
 }
 
-/*
-   options.keep: maximale Anzahl dieser Sicherungsart.
-   0 bedeutet: nie automatisch löschen.
-   Gibt den Namen der Sicherung zurück oder null bei Fehlschlag.
-   Ist der Inhalt bereits identisch gesichert, wird die vorhandene
-   Sicherung wiederverwendet.
-*/
-
-function writeAutoBackup(kind, raw, options = {}) {
-  const keep = Number.isInteger(options.keep) ? options.keep : 0;
-
-  kind = String(kind ?? "").replace(/[^A-Za-z0-9\-_]/g, "") || "allgemein";
-
-  if (typeof raw !== "string" || !raw) return null;
+function backup(kind, raw, keep = 0) {
+  if (!raw) return null;
 
   try {
-    for (const name of listAutoBackups(kind)) {
-      if (localStorage.getItem(name) === raw) return name;
+    const old = backupNames(kind + '.')
+      .find(k => localStorage.getItem(k) === raw);
+
+    if (old) return old;
+
+    let k = BP + kind + '.' + now();
+
+    while (localStorage.getItem(k) !== null) {
+      k += '1';
     }
 
-    let stamp = now();
-    let name = BACKUP_PREFIX + kind + "." + stamp;
-
-    while (localStorage.getItem(name) !== null) {
-      stamp++;
-      name = BACKUP_PREFIX + kind + "." + stamp;
-    }
-
-    localStorage.setItem(name, raw);
+    localStorage.setItem(k, raw);
 
     if (keep > 0) {
-      const all = listAutoBackups(kind);
+      const list = backupNames(kind + '.');
 
-      while (all.length > keep) {
-        localStorage.removeItem(all.shift());
+      while (list.length > keep) {
+        localStorage.removeItem(list.shift());
       }
     }
 
-    return name;
-
-  } catch (error) {
-    console.warn("LernBot: Sicherungskopie fehlgeschlagen.", error);
+    return k;
+  } catch (e) {
+    console.warn('Sicherung fehlgeschlagen', e);
     return null;
   }
 }
 
-/* Sicherung des aktuellen Arbeitsstands (ohne Snapshots, damit sie klein bleibt) */
+function prepare(raw) {
+  const d = obj(raw) ? raw : {};
 
-function backupJson() {
-  return JSON.stringify({ ...data, snapshots: [] });
-}
+  if (Array.isArray(d.memories)) {
+    d.memory = arr(d.memory);
 
-/* =====================================================
-   2b. SPERRE BEI NICHT LESBAREM SPEICHER (NEU)
-   ===================================================== */
-
-let storageLocked = false;
-let storageLockReason = "";
-let lockRescueKey = null;
-
-/*
-   Gibt null zurück, wenn der Speicher entsperrt ist oder entsperrt
-   werden durfte. Sonst eine Fehlermeldung.
-   Entsperrt wird nur, wenn eine Rettungskopie des beschädigten
-   Originals vorhanden ist.
-*/
-
-function tryUnlockStorage() {
-  if (!storageLocked) return null;
-
-  if (storageLockReason !== "corrupt" || !lockRescueKey) {
-    return "Der Browser-Speicher ist gesperrt, weil der vorhandene Datenbestand nicht gelesen werden konnte und keine Rettungskopie angelegt werden konnte. Aus Sicherheitsgründen wird nichts überschrieben. Bitte lade die Seite neu.";
-  }
-
-  storageLocked = false;
-  storageLockReason = "";
-
-  return null;
-}
-
-/* =====================================================
-   2c. STRUKTUR SICHERSTELLEN
-   ===================================================== */
-
-/*
-   Aussortierte (ungültige) Einträge werden NICHT einfach verworfen,
-   sondern vorher in einer Sicherungskopie abgelegt.
-*/
-
-function keepValid(list, test, label) {
-  const kept = [];
-  const dropped = [];
-
-  for (const item of arr(list)) {
-    (test(item) ? kept : dropped).push(item);
-  }
-
-  if (dropped.length) {
-    const backupName = writeAutoBackup(
-      "verworfen-" + label,
-      JSON.stringify(dropped),
-      { keep: 0 }
-    );
-
-    startupNotices.push(
-      `${dropped.length} ungültige(r) Eintrag/Einträge im Bereich "${label}" wurden aussortiert.` +
-      (backupName
-        ? ` Kopie gesichert unter: ${backupName}`
-        : " ACHTUNG: Die Kopie konnte nicht gesichert werden.")
-    );
-  }
-
-  return kept;
-}
-
-function ensureStructure() {
-  if (!obj(data)) data = {};
-
-  /* Ältere Speicherstruktur übernehmen */
-
-  if (!Array.isArray(data.memory) && Array.isArray(data.memories)) {
-    data.memory = data.memories;
-  }
-
-  if (Array.isArray(data.memory) && Array.isArray(data.memories)) {
-    const known = new Set(
-      data.memory.map(item =>
-        item?.id || `${item?.type}|${item?.content}`
+    const seen = new Set(
+      d.memory.map(x =>
+        x?.id || `${x?.type}:${x?.content}`
       )
     );
 
-    for (const item of data.memories) {
-      const key = item?.id || `${item?.type}|${item?.content}`;
+    for (const x of d.memories) {
+      const k =
+        x?.id || `${x?.type}:${x?.content}`;
 
-      if (!known.has(key)) {
-        data.memory.push(item);
-        known.add(key);
+      if (!seen.has(k)) {
+        d.memory.push(x);
+        seen.add(k);
       }
     }
+
+    delete d.memories;
   }
 
-  delete data.memories;
-
-  /* Fehlende Datenbereiche ergänzen */
-
-  for (const [key, value] of Object.entries(defaults)) {
-    if (data[key] === undefined || data[key] === null) {
-      data[key] = clone(value);
+  for (const [k, v] of Object.entries(defaults)) {
+    if (d[k] == null) {
+      d[k] = copy(v);
     }
   }
 
-  /* Array-Bereiche absichern */
-
-  for (const key of arrayKeys) {
-    if (!Array.isArray(data[key])) data[key] = [];
+  for (const k of arrays) {
+    if (!Array.isArray(d[k])) {
+      d[k] = [];
+    }
   }
 
-  /* Objekt-Bereiche absichern */
+  if (!obj(d.settings)) {
+    d.settings = {};
+  }
 
-  if (!obj(data.agentStats)) data.agentStats = {};
-  if (!obj(data.settings)) data.settings = {};
-
-  /* Einstellungen ergänzen */
-
-  data.settings = {
-    ...clone(defaults.settings),
-    ...data.settings
+  d.settings = {
+    ...defaults.settings,
+    ...d.settings
   };
 
-  if (typeof data.theme !== "string") {
-    data.theme = "dark";
+  if (!obj(d.agentStats)) {
+    d.agentStats = {};
   }
 
-  data.version = VERSION;
-
-  /* Daten validieren (Aussortiertes wird vorher gesichert) */
-
-  data.facts = keepValid(data.facts, item =>
-    obj(item) &&
-    typeof item.subject === "string" &&
-    typeof item.property === "string" &&
-    typeof item.value === "string",
-    "facts"
-  );
-
-  data.qa = keepValid(data.qa, item =>
-    obj(item) &&
-    typeof item.k === "string" &&
-    typeof item.a === "string",
-    "qa"
-  );
-
-  data.relationships = keepValid(data.relationships, item =>
-    obj(item) &&
-    typeof item.from === "string" &&
-    typeof item.to === "string" &&
-    typeof item.relation === "string",
-    "relationships"
-  );
-
-  data.memory = keepValid(data.memory, item =>
-    obj(item) &&
-    typeof item.content === "string" &&
-    typeof item.type === "string",
-    "memory"
-  );
-
-  for (const key of [
-    "documents",
-    "projects",
-    "tasks",
-    "classes",
-    "log",
-    "audit",
-    "improvements",
-    "codeProposals",
-    "snapshots"
-  ]) {
-    data[key] = keepValid(data[key], obj, key);
+  if (typeof d.theme !== 'string') {
+    d.theme = 'dark';
   }
+
+  d.version = 6;
+  return d;
 }
 
-/* =====================================================
-   2d. DATENBANK LADEN (GEÄNDERT)
+try {
+  const raw = localStorage.getItem(KEY);
 
-   Ist der gespeicherte Datenbestand nicht lesbar (z. B. kaputtes JSON),
-   wird NIE ein leerer Bestand gespeichert:
-   1. Das Original wird unverändert als Rettungskopie gesichert.
-   2. Der Speicher wird gesperrt. Der Hauptschlüssel bleibt unberührt.
-   ===================================================== */
+  if (raw) {
+    const parsed = JSON.parse(raw);
 
-{
-  let rawStored = null;
-  let parsedStored = null;
-
-  try {
-    rawStored = localStorage.getItem(KEY);
-  } catch (error) {
-    console.error("LernBot: Browser-Speicher nicht lesbar.", error);
-
-    storageLocked = true;
-    storageLockReason = "unreadable";
-
-    startupNotices.push(
-      "ACHTUNG: Der Browser-Speicher konnte nicht gelesen werden. Änderungen werden nicht gespeichert."
-    );
-  }
-
-  if (!storageLocked && rawStored) {
-    try {
-      const parsed = JSON.parse(rawStored);
-
-      if (!obj(parsed)) {
-        throw new Error("Der gespeicherte Datenbestand ist kein Datenobjekt.");
-      }
-
-      parsedStored = parsed;
-
-    } catch (error) {
-      console.error("LernBot: Datenbank beschädigt.", error);
-
-      storageLocked = true;
-      storageLockReason = "corrupt";
-
-      lockRescueKey = writeAutoBackup(
-        "beschaedigt",
-        rawStored,
-        { keep: 0 }
-      );
-
-      startupNotices.push(
-        "ACHTUNG: Dein gespeicherter Datenbestand ist beschädigt und konnte nicht gelesen werden.\n" +
-        "Es wurde NICHTS gelöscht und NICHTS überschrieben. Neue Änderungen werden in dieser Sitzung NICHT gespeichert.\n" +
-        (lockRescueKey
-          ? "Rettungskopie: " + lockRescueKey + "\nMit „Auto-Sicherungen“ siehst du alle Kopien, mit „Auto-Sicherung exportieren: NUMMER“ kannst du die Kopie als Datei sichern."
-          : "WARNUNG: Die Rettungskopie konnte nicht angelegt werden. Das Original im Browser-Speicher bleibt aber unverändert. Bitte lade die Seite nicht mehrfach neu und wende dich mit dem Problem an deinen Entwickler-Assistenten.")
-      );
+    if (!obj(parsed)) {
+      throw Error('Daten sind kein Objekt');
     }
-  }
-
-  if (parsedStored) {
-    const oldVersion = Number(parsedStored.version) || 0;
-
-    /* Automatische Sicherung VOR einer Migration */
 
     if (
-      oldVersion !== VERSION ||
-      Array.isArray(parsedStored.memories)
+      parsed.version !== 6 ||
+      Array.isArray(parsed.memories)
     ) {
-      const backupName = writeAutoBackup(
-        "vorMigration",
-        rawStored,
-        { keep: 0 }
-      );
+      const b = backup('vorMigration', raw);
 
-      startupNotices.push(
-        backupName
-          ? "Datenstruktur wurde aktualisiert. Sicherung vorher: " + backupName
-          : "WARNUNG: Vor der Datenmigration konnte keine Sicherung angelegt werden."
+      notices.push(
+        b
+          ? 'Sicherung vor Migration: ' + b
+          : 'Warnung: Sicherung vor Migration fehlgeschlagen.'
       );
     }
 
-    data = parsedStored;
+    data = prepare(parsed);
   }
+} catch (e) {
+  locked = true;
+
+  let raw = null;
+
+  try {
+    raw = localStorage.getItem(KEY);
+  } catch {}
+
+  const b = backup('beschaedigt', raw);
+
+  notices.push(
+    'ACHTUNG: Der gespeicherte Datenbestand konnte ' +
+    'nicht gelesen werden. Original bleibt unverändert. ' +
+    'Speichern ist gesperrt.' +
+    (b ? ' Rettungskopie: ' + b : '')
+  );
+
+  console.error(e);
 }
 
-ensureStructure();
-
-/* =====================================================
-   4. SPEICHERSYSTEM
-   ===================================================== */
-
-function setStatus(message) {
-  const status =
-    $("status") ||
-    $("lb6-status") ||
-    $("status-message");
-
-  if (status) status.textContent = String(message ?? "");
+function status(s) {
+  const e = $('status') || $('lb6-status');
+  if (e) e.textContent = s;
 }
 
 function save() {
-  /* Gesperrter Speicher: den Hauptschlüssel niemals überschreiben */
-
-  if (storageLocked) {
-    setStatus("Speicher gesperrt – Änderungen werden NICHT gespeichert.");
+  if (locked) {
+    status('Speicher gesperrt – nichts wird überschrieben');
     return false;
   }
 
-  data.version = VERSION;
-
-  data.log = arr(data.log).slice(-150);
-  data.audit = arr(data.audit).slice(-1000);
-  data.snapshots = arr(data.snapshots).slice(-30);
-
-  /*
-     Hinweis: Die frühere stille Kürzung der Erinnerungen auf
-     1000 Einträge wurde entfernt. Erinnerungen werden nicht mehr
-     automatisch gelöscht.
-  */
-
   try {
+    data.version = 6;
+    data.log = arr(data.log).slice(-150);
+    data.audit = arr(data.audit).slice(-1000);
+    data.snapshots = arr(data.snapshots).slice(-30);
+
     localStorage.setItem(KEY, JSON.stringify(data));
     return true;
-  } catch (error) {
-    console.error("LernBot: Speichern fehlgeschlagen.", error);
-    setStatus("Speicherfehler – bitte Daten exportieren.");
+  } catch (e) {
+    status('Speicherfehler – bitte Export versuchen');
+    console.error(e);
     return false;
   }
 }
 
-function logAudit(agent, action, detail = "") {
+function audit(agent, action, detail = '') {
   data.audit.push({
     id: uid(),
-    agent: safeText(agent, 100),
-    action: typeof action === "string"
-      ? safeText(action, 200)
-      : safeText(asReadable(action), 200),
-    detail: typeof detail === "string"
-      ? safeText(detail, 1000)
-      : safeText(asReadable(detail), 1000),
+    agent,
+    action,
+    detail: safe(detail, 1000),
     time: now()
   });
 
@@ -597,2364 +339,2176 @@ function logAudit(agent, action, detail = "") {
   }
 }
 
-function countAgent(name) {
-  name = safeText(name, 100);
-  if (!name) return;
-
-  data.agentStats[name] =
-    (Number(data.agentStats[name]) || 0) + 1;
-}
-
-/* =====================================================
-   5. LANGZEITGEDÄCHTNIS
-   ===================================================== */
-
 function remember(type, content, meta = {}) {
-  type = safeText(type, 100);
-  content = safeText(content, 10000);
+  content = safe(content, 10000);
+  if (!content) return null;
 
-  if (!type || !content) return null;
-
-  const existing = data.memory.find(item =>
-    item.type === type &&
-    normalize(item.content) === normalize(content)
+  let x = data.memory.find(i =>
+    i.type === type &&
+    norm(i.content) === norm(content)
   );
 
-  if (existing) {
-    existing.updated = now();
-
-    existing.meta = {
-      ...(obj(existing.meta) ? existing.meta : {}),
-      ...(obj(meta) ? clone(meta) : {})
+  if (x) {
+    x.updated = now();
+    x.meta = {
+      ...(obj(x.meta) ? x.meta : {}),
+      ...meta
     };
-
-    save();
-    return existing;
-  }
-
-  const entry = {
-    id: uid(),
-    type,
-    content,
-    meta: obj(meta) ? clone(meta) : {},
-    created: now(),
-    updated: now()
-  };
-
-  data.memory.push(entry);
-
-  logAudit(
-    "Gedächtnis-KI",
-    "Erinnerung gespeichert",
-    type
-  );
-
-  save();
-
-  return entry;
-}
-
-function searchMemory(query, limit = 8) {
-  const q = normalize(query);
-  if (!q) return [];
-
-  limit = Math.max(1, Math.min(100, Number(limit) || 8));
-
-  return data.memory
-    .map(item => ({
-      item,
-      score: Math.max(
-        similarity(q, item.content),
-        similarity(q, item.type)
-      )
-    }))
-    .filter(result => result.score > 0.08)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map(result => result.item);
-}
-
-/* =====================================================
-   5a. SICHERES VERGESSEN (GEÄNDERT)
-
-   Schutz gegen versehentliches Massenlöschen:
-   - Suchbegriff mindestens 3 Zeichen.
-   - Es wird nur im INHALT gesucht (nicht mehr im Typ,
-     sonst würde "fakt" alle Faktenerinnerungen löschen).
-   - Gelöscht wird nur, wenn höchstens FORGET_LIMIT Treffer vorliegen.
-   - Eine genaue Erinnerungs-ID löscht genau diese eine Erinnerung.
-   - Gelöschte Inhalte werden im Audit-Protokoll festgehalten.
-   ===================================================== */
-
-const FORGET_LIMIT = 5;
-const FORGET_MIN_LENGTH = 3;
-
-function findForgetCandidates(query) {
-  const raw = safeText(query, 500);
-  const q = normalize(raw);
-
-  if (!q) return { ok: false, reason: "empty", items: [] };
-
-  const byId = data.memory.filter(item =>
-    item.id &&
-    String(item.id).toLowerCase() === raw.toLowerCase()
-  );
-
-  if (byId.length) return { ok: true, reason: "id", items: byId };
-
-  if (q.length < FORGET_MIN_LENGTH) {
-    return { ok: false, reason: "short", items: [] };
-  }
-
-  const items = data.memory.filter(item =>
-    normalize(item.content).includes(q)
-  );
-
-  if (!items.length) return { ok: false, reason: "none", items };
-
-  if (items.length > FORGET_LIMIT) {
-    return { ok: false, reason: "many", items };
-  }
-
-  return { ok: true, reason: "match", items };
-}
-
-function deleteMemoryItems(items) {
-  const targets = new Set(
-    arr(items).filter(item => data.memory.includes(item))
-  );
-
-  if (!targets.size) return 0;
-
-  const removedItems = data.memory.filter(item => targets.has(item));
-
-  data.memory = data.memory.filter(item => !targets.has(item));
-
-  logAudit(
-    "Gedächtnis-KI",
-    "Erinnerungen gelöscht",
-    removedItems
-      .map(item => `[${item.type}] ${safeText(item.content, 150)}`)
-      .join(" | ")
-  );
-
-  save();
-
-  return removedItems.length;
-}
-
-function forgetMemory(query) {
-  const result = findForgetCandidates(query);
-
-  if (!result.ok) return 0;
-
-  return deleteMemoryItems(result.items);
-}
-
-/* =====================================================
-   6. WISSENSBANK – GRUNDLAGEN
-   ===================================================== */
-
-function cleanSubject(text) {
-  return safeText(text)
-    .replace(
-      /^(der|die|das|ein|eine|einen|einem|einer|eines)\s+/i,
-      ""
-    )
-    .replace(/[.!?,;:]+$/, "")
-    .trim();
-}
-
-/* GEÄNDERT: Vergleich über fold() (ä/ae, ö/oe, ü/ue, ß/ss gleich) */
-
-function sameSubject(a, b) {
-  return fold(cleanSubject(a)) === fold(cleanSubject(b));
-}
-
-/* Eigenschaftsnamen vereinheitlichen (gespeicherte Form, unverändert) */
-
-function normalizeProperty(property) {
-  return normalize(property)
-    .replace(/\s+/g, "_")
-    .replace(/[^\p{L}\p{N}_]/gu, "")
-    .slice(0, 80);
-}
-
-/*
-   NEU: Vergleichsschlüssel für Eigenschaften.
-   Alte gespeicherte Eigenschaften ("korpergroße") und neue
-   Eingaben ("Körpergröße", "Koerpergroesse") ergeben denselben Schlüssel.
-*/
-
-function propKey(property) {
-  return fold(property)
-    .replace(/\s+/g, "_")
-    .slice(0, 80);
-}
-
-/* Alle bekannten Kategorien ermitteln (Anzeigeform) */
-
-function getKnownCategories() {
-  const seen = new Map();
-
-  for (const item of data.facts) {
-    const display = normalizeProperty(item.property);
-    const key = propKey(item.property);
-
-    if (display && key && !seen.has(key)) seen.set(key, display);
-  }
-
-  return [...seen.values()].sort();
-}
-
-/* Verwandte Eigenschaften berücksichtigen (liefert Vergleichsschlüssel) */
-
-function getPropertyCandidates(property) {
-  const p = propKey(property);
-
-  const aliases = {
-    familie: ["familie", "zugehorigkeit"],
-    zugehorigkeit: ["zugehorigkeit", "familie"],
-    tierart: ["tierart", "familie", "zugehorigkeit"],
-
-    lebensraum: ["lebensraum", "lebensgebiet", "wohnort"],
-    lebensgebiet: ["lebensgebiet", "lebensraum"],
-    wohnort: ["wohnort", "lebensraum"],
-
-    nahrung: ["nahrung", "ernahrung"],
-    ernahrung: ["ernahrung", "nahrung"],
-
-    aussehen: ["aussehen", "erscheinungsbild"],
-    erscheinungsbild: ["erscheinungsbild", "aussehen"]
-  };
-
-  return aliases[p] || [p];
-}
-
-/* Fakten zu einem Thema abrufen */
-
-function getFacts(subject = "") {
-  if (!safeText(subject)) return data.facts;
-
-  return data.facts.filter(item =>
-    sameSubject(item.subject, subject)
-  );
-}
-
-/* =====================================================
-   7. FAKTEN SPEICHERN
-   ===================================================== */
-
-function addFact(subject, property, value, source = "user") {
-  subject = cleanSubject(subject);
-  property = normalizeProperty(property);
-  value = safeText(value, 5000);
-  source = safeText(source, 100);
-
-  if (!subject || !property || !value) return false;
-
-  const wantedKey = propKey(property);
-
-  let existing = data.facts.find(item =>
-    sameSubject(item.subject, subject) &&
-    propKey(item.property) === wantedKey
-  );
-
-  if (existing) {
-    const oldValue = existing.value;
-
-    if (normalize(oldValue) !== normalize(value)) {
-      existing.previous = oldValue;
-      existing.conflict = true;
-      existing.alternatives = arr(existing.alternatives);
-
-      const oldExists = existing.alternatives.some(item =>
-        obj(item) &&
-        normalize(item.value) === normalize(oldValue)
-      );
-
-      if (oldValue && !oldExists) {
-        existing.alternatives.push({
-          value: oldValue,
-          source: existing.source || "unbekannt",
-          time: now()
-        });
-      }
-
-      const newExists = existing.alternatives.some(item =>
-        obj(item) &&
-        normalize(item.value) === normalize(value)
-      );
-
-      if (!newExists) {
-        existing.alternatives.push({
-          value,
-          source,
-          time: now()
-        });
-      }
-
-      existing.value = value;
-    }
-
-    existing.source = source;
-    existing.updated = now();
-
   } else {
-    existing = {
+    x = {
       id: uid(),
-      subject,
-      property,
-      value,
-      source,
-      confidence: source === "user" ? 1 : 0.7,
-      conflict: false,
-      alternatives: [],
+      type,
+      content,
+      meta,
       created: now(),
       updated: now()
     };
 
-    data.facts.push(existing);
+    data.memory.push(x);
   }
 
-  remember(
-    "fakt",
-    `${subject}: ${property} = ${value}`,
-    { subject, property, source }
-  );
-
-  logAudit(
-    "Wissensbank",
-    "Fakt gespeichert",
-    `${subject} – ${property}`
-  );
-
   save();
-  return true;
+  return x;
 }
 
-/* =====================================================
-   8. FAKTEN ERKENNEN
-   ===================================================== */
+function searchMemory(q, limit = 8) {
+  return data.memory
+    .map(item => ({
+      item,
+      score: Math.max(
+        sim(q, item.content),
+        sim(q, item.type)
+      )
+    }))
+    .filter(x => x.score > 0.08)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => x.item);
+}
 
-function parseFact(text) {
-  let s = safeText(text);
+const clean = x => safe(x, 250)
+  .replace(
+    /^(?:der|die|das|ein|eine|einen|einem|einer|eines)\s+/i,
+    ''
+  )
+  .replace(/[.!?,;:]+$/, '')
+  .trim();
 
-  if (!s || s.includes("?")) return null;
+const subj = x => norm(clean(x));
 
-  /*
-     Einen Lernbefehl entfernen, falls er noch vorhanden ist.
-     Beispiel:
-     Lerne: Okapi: Fellfarbe – rotbraun
-  */
+const prop = x => norm(x)
+  .replace(/\s+/g, '_')
+  .slice(0, 80);
 
-  s = s.replace(/^lerne\s*:\s*/i, "").trim();
+const aliases = {
+  familie: [
+    'familie',
+    'tierfamilie',
+    'zugehorigkeit',
+    'tierart'
+  ],
+  lebensraum: [
+    'lebensraum',
+    'lebensgebiet',
+    'wohnort',
+    'verbreitung',
+    'habitat'
+  ],
+  nahrung: [
+    'nahrung',
+    'ernahrung',
+    'futter'
+  ],
+  aussehen: [
+    'aussehen',
+    'erscheinungsbild',
+    'optik'
+  ],
+  fellfarbe: [
+    'fellfarbe',
+    'fellfarbung',
+    'farbe_des_fells'
+  ],
+  durchmesser: [
+    'durchmesser',
+    'diameter'
+  ],
+  gewicht: [
+    'gewicht',
+    'masse'
+  ],
+  groesse: [
+    'grosse',
+    'korpergrosse',
+    'hohe',
+    'korperhohe'
+  ],
+  hauptstadt: [
+    'hauptstadt',
+    'regierungssitz'
+  ],
+  definition: [
+    'definition',
+    'bedeutung',
+    'beschreibung',
+    'erklarung'
+  ],
+  entdeckung: [
+    'entdeckung',
+    'entdeckt'
+  ],
+  beschrieben: [
+    'beschrieben',
+    'erstbeschreibung'
+  ]
+};
 
-  let match;
+function canonical(p) {
+  const key = prop(p);
 
-  /*
-     DYNAMISCHE KATEGORIEN
-
-     Okapi: Fellfarbe – rotbraun
-     Okapi: Körpergröße = 1,5 Meter
-     Okapi: Gewicht - 250 Kilogramm
-     */
-
-  match = s.match(
-    /^(.+?)\s*:\s*(.+?)\s*(?:=|–|—|-)\s*(.+)$/i
-  );
-
-  if (match) {
-    const fact = {
-      subject: cleanSubject(match[1]),
-      property: normalizeProperty(match[2]),
-      value: safeText(match[3])
-    };
-
-    if (
-      fact.subject &&
-      fact.property &&
-      fact.value
-    ) {
-      return fact;
+  for (const [k, group] of Object.entries(aliases)) {
+    if (group.includes(key)) {
+      return k;
     }
   }
 
-  /* Hauptstadt */
+  return key;
+}
 
-  match = s.match(
-    /^die\s+hauptstadt\s+von\s+(.+?)\s+ist\s+(.+?)[.!]*$/i
+function sameProp(a, b) {
+  return canonical(a) === canonical(b);
+}
+
+function knownProps() {
+  return [
+    ...new Set(data.facts.map(x => x.property))
+  ].sort();
+}
+
+function factsFor(s, p = '') {
+  return data.facts.filter(f =>
+    subj(f.subject) === subj(s) &&
+    (!p || sameProp(f.property, p))
+  );
+}
+
+
+function findFact(s,p){
+  return factsFor(s,p)[0] || null;
+}
+
+function sourceName(x){
+  return safe(x,200) || 'unbekannt';
+}
+
+function sameValue(a,b){
+  return norm(a) === norm(b);
+}
+
+function addFact(s,p,v,source='user',options={}){
+  s=clean(s);
+  p=prop(p);
+  v=safe(v,5000);
+  if(!s||!p||!v)return null;
+
+  let f=findFact(s,p);
+  const t=now();
+
+  if(f){
+    f.alternatives=arr(f.alternatives);
+
+    if(!sameValue(f.value,v)){
+      if(!f.alternatives.some(a=>sameValue(a.value,f.value))){
+        f.alternatives.push({
+          value:f.value,
+          source:f.source||'unbekannt',
+          time:t
+        });
+      }
+
+      if(!f.alternatives.some(a=>sameValue(a.value,v))){
+        f.alternatives.push({value:v,source,time:t});
+      }
+
+      if(options.replace){
+        f.previous=f.value;
+        f.value=v;
+        f.source=source;
+        f.conflict=false;
+        f.resolvedAt=t;
+      }else{
+        f.conflict=true;
+      }
+    }
+
+    f.updated=t;
+    f.confidence=Number.isFinite(f.confidence)
+      ? f.confidence
+      : (source==='user'?1:.7);
+  }else{
+    f={
+      id:uid(),
+      subject:s,
+      property:p,
+      value:v,
+      source,
+      confidence:source==='user'?1:.7,
+      conflict:false,
+      alternatives:[],
+      created:t,
+      updated:t
+    };
+    data.facts.push(f);
+  }
+
+  remember('fakt',`${s}: ${p} = ${v}`,{
+    subject:s,
+    property:p,
+    source
+  });
+
+  audit(
+    'Wissensbank',
+    options.replace?'Fakt korrigiert':'Fakt gespeichert',
+    `${s}: ${p}`
   );
 
-  if (match) {
+  save();
+  context.subject=s;
+  context.property=p;
+  return f;
+}
+
+function factInfo(f,detail=false){
+  let out=`${f.subject} – ${f.property}: ${f.value}`;
+
+  if(f.conflict){
+    out+='\n⚠ Unterschiedliche Angaben gespeichert. Mit „Konflikte“ prüfen.';
+  }
+
+  if(detail){
+    out+=`\nID: ${f.id}`;
+    out+=`\nQuelle: ${f.source||'unbekannt'}`;
+    out+=`\nVertrauen: ${Math.round((Number(f.confidence)||0)*100)} %`;
+
+    if(arr(f.alternatives).length){
+      out+='\nWeitere Angaben: '+
+        f.alternatives.map(a=>
+          `${a.value} (${a.source||'unbekannt'})`
+        ).join('; ');
+    }
+  }
+
+  return out;
+}
+
+function parseFact(s){
+  s=safe(s,10000)
+    .replace(/^lerne\s*:\s*/i,'')
+    .trim();
+
+  if(!s||s.includes('\n')||s.length>400||s.includes('?')){
+    return null;
+  }
+
+  let m=s.match(
+    /^([^:]{1,100})\s*:\s*([^:=–—-]{1,90})\s*(?:=|–|—|\s-\s)\s*(.{1,5000})$/
+  );
+
+  if(m){
     return {
-      subject: cleanSubject(match[1]),
-      property: "hauptstadt",
-      value: safeText(match[2])
+      subject:clean(m[1]),
+      property:prop(m[2]),
+      value:m[3].trim()
     };
   }
 
-  match = s.match(
-    /^(.+?)\s+hat\s+(?:die\s+)?hauptstadt\s+(.+?)[.!]*$/i
-  );
+  const rules=[
+    [
+      /^die hauptstadt von (.+?) ist (.+?)[.!]?$/i,
+      'hauptstadt',1,2
+    ],
+    [
+      /^(.+?) hat (?:die )?hauptstadt (.+?)[.!]?$/i,
+      'hauptstadt',1,2
+    ],
+    [
+      /^(.+?) (?:lebt|wohnt) (?:in|im|am|auf|unter) (.+?)[.!]?$/i,
+      'lebensraum',1,2
+    ],
+    [
+      /^(.+?) (?:frisst|isst|ernährt sich von) (.+?)[.!]?$/i,
+      'nahrung',1,2
+    ],
+    [
+      /^(.+?) gehört zu (.+?)[.!]?$/i,
+      'zugehoerigkeit',1,2
+    ],
+    [
+      /^(.+?) ist (?:ein|eine|einer|eines) (.+?)[.!]?$/i,
+      'definition',1,2
+    ],
+    [
+      /^(.+?) (?:heißt|bedeutet) (.+?)[.!]?$/i,
+      'definition',1,2
+    ]
+  ];
 
-  if (match) {
-    return {
-      subject: cleanSubject(match[1]),
-      property: "hauptstadt",
-      value: safeText(match[2])
-    };
-  }
+  for(const [re,p,a,b] of rules){
+    m=s.match(re);
 
-  /* Lebensraum */
-
-  match = s.match(
-    /^(.+?)\s+(lebt|wohnt)\s+(?:in|im|am|auf|unter)\s+(.+?)[.!]*$/i
-  );
-
-  if (match) {
-    return {
-      subject: cleanSubject(match[1]),
-      property: "lebensraum",
-      value: safeText(match[3])
-    };
-  }
-
-  /* Nahrung */
-
-  match = s.match(
-    /^(.+?)\s+(frisst|isst|ernährt sich von)\s+(.+?)[.!]*$/i
-  );
-
-  if (match) {
-    return {
-      subject: cleanSubject(match[1]),
-      property: "nahrung",
-      value: safeText(match[3])
-    };
-  }
-
-  /* Zugehörigkeit */
-
-  match = s.match(
-    /^(.+?)\s+gehört\s+zu\s+(.+?)[.!]*$/i
-  );
-
-  if (match) {
-    return {
-      subject: cleanSubject(match[1]),
-      property: "zugehoerigkeit",
-      value: safeText(match[2])
-    };
-  }
-
-  /* Definition */
-
-  match = s.match(
-    /^(.+?)\s+ist\s+(?:ein|eine|einer|eines)\s+(.+?)[.!]*$/i
-  );
-
-  if (match) {
-    return {
-      subject: cleanSubject(match[1]),
-      property: "definition",
-      value: safeText(match[2])
-    };
-  }
-
-  match = s.match(
-    /^(.+?)\s+(?:ist|sind|heißt|bedeutet)\s+(.+?)[.!]*$/i
-  );
-
-  if (match) {
-    return {
-      subject: cleanSubject(match[1]),
-      property: "definition",
-      value: safeText(match[2])
-    };
+    if(m&&clean(m[a]).split(' ').length<=5){
+      return {
+        subject:clean(m[a]),
+        property:p,
+        value:m[b].replace(/[.!]$/,'').trim()
+      };
+    }
   }
 
   return null;
 }
 
-/* =====================================================
-   9. FAKTEN LERNEN
-   ===================================================== */
+function learnLong(s){
+  const sentences=s.replace(/\r/g,'')
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map(x=>x.trim())
+    .filter(Boolean);
 
-function learnFact(text) {
-  const fact = parseFact(text);
+  const extracted=[];
+  let last='';
 
-  if (!fact) return null;
+  for(const sentence of sentences){
+    const f=parseFact(sentence);
 
-  const success = addFact(
-    fact.subject,
-    fact.property,
-    fact.value,
-    "user"
+    if(
+      f&&
+      f.subject.length<90&&
+      f.subject.split(' ').length<=5
+    ){
+      if(
+        /^(er|sie|es|dieser|diese|dieses)$/i.test(f.subject)&&
+        last
+      ){
+        f.subject=last;
+      }else if(
+        !/^(er|sie|es|dieser|diese|dieses)$/i.test(f.subject)
+      ){
+        last=f.subject;
+      }
+
+      extracted.push(f);
+    }
+  }
+
+  return extracted;
+}
+
+function importDocumentText(
+  content,
+  title='Importiertes Dokument',
+  type='import',
+  meta={}
+){
+  content=safe(content,1000000);
+  title=safe(title,250)||'Importiertes Dokument';
+
+  if(!content)return'Dokument ist leer.';
+
+  let d=data.documents.find(x=>
+    norm(x.title)===norm(title)&&
+    x.content===content
   );
 
-  if (!success) return null;
+  if(d)return'Dokument bereits vorhanden. ID: '+d.id;
+
+  d={
+    id:uid(),
+    title,
+    type,
+    content,
+    length:content.length,
+    created:now(),
+    updated:now(),
+    ...meta
+  };
+
+  data.documents.push(d);
+
+  remember('dokument','Dokument importiert: '+title,{
+    documentId:d.id,
+    type
+  });
+
+  audit('Dokumenten-KI','Dokument importiert',title);
+  save();
+
+  return'Dokument gespeichert: '+title+'\nID: '+d.id;
+}
+
+function learn(s){
+  s=safe(s,100000);
+
+  if(!s)return'Bitte Lerninhalt angeben.';
+
+  const isLong=
+    s.length>400||
+    s.includes('\n')||
+    s.split(/[.!?]\s+/).length>2;
+
+  const found=isLong
+    ? learnLong(s)
+    : (parseFact(s)?[parseFact(s)]:[]);
+
+  let added=0;
+  let conflicts=0;
+
+  for(const f of found){
+    const old=findFact(f.subject,f.property);
+    const conflict=old&&!sameValue(old.value,f.value);
+
+    addFact(f.subject,f.property,f.value,'user');
+    added++;
+
+    if(conflict)conflicts++;
+  }
+
+  const document=importDocumentText(
+    s,
+    'Lerninhalt: '+s.slice(0,75),
+    'learned-text'
+  );
 
   return [
-    "Gelernt und gespeichert!",
-    "",
-    `Thema: ${fact.subject}`,
-    `Eigenschaft: ${fact.property}`,
-    `Wissen: ${fact.value}`,
-    "",
-    `Bekannte Kategorien: ${getKnownCategories().join(", ")}`,
-    `Gespeicherte Fakten: ${data.facts.length}`
-  ].join("\n");
+    added
+      ? `${added} Fakt(en) erkannt und verarbeitet.`
+      : 'Text als Dokument gespeichert. Keine eindeutig erkennbaren Fakten automatisch übernommen.',
+    conflicts
+      ? `${conflicts} abweichende Angabe(n) zur Prüfung vorgemerkt.`
+      : '',
+    document,
+    'Bei längeren Texten werden unklare Sätze bewusst nicht als Fakten geraten.'
+  ].filter(Boolean).join('\n');
 }
 
-/* =====================================================
-   10. WISSEN ABRUFEN – DYNAMISCHE KATEGORIEN (GEÄNDERT)
-   ===================================================== */
-
-/*
-   NEU: Sucht gespeicherte Fakten direkt in der Frage.
-   Ein Fakt passt, wenn
-   - sein Thema UND seine Eigenschaft in der Frage vorkommen
-     (Reihenfolge und Satzbau egal, auch mit Genitiv-s), oder
-   - ein Wort der Frage ein Kompositum aus Thema + Eigenschaft ist
-     (z. B. "Marsdurchmesser" = "Mars" + "Durchmesser").
-   Alles ist datengesteuert – es gibt keine Sonderfälle für einzelne Themen.
-*/
-
-function phraseInText(text, phrase) {
-  if (!phrase) return false;
-
-  const padded = " " + text + " ";
-
-  for (const suffix of ["", "s", "es"]) {
-    if (padded.includes(" " + phrase + suffix + " ")) return true;
+function listFacts(){
+  if(!data.facts.length){
+    return'Mein Wissensspeicher ist noch leer.';
   }
 
-  return false;
-}
+  const groups=new Map();
 
-function findFactsInQuestion(question) {
-  const q = fold(question);
-
-  if (!q) return [];
-
-  const words = q.split(" ");
-  const matches = [];
-
-  for (const fact of data.facts) {
-    const subjectKey = fold(cleanSubject(fact.subject));
-
-    if (subjectKey.length < 2) continue;
-
-    const subjectJoined = subjectKey.replace(/ /g, "");
-    const subjectInQuestion = phraseInText(q, subjectKey);
-
-    const propertyKeys = getPropertyCandidates(fact.property)
-      .map(key => key.replace(/_/g, " "))
-      .filter(Boolean);
-
-    let hit = false;
-
-    for (const property of propertyKeys) {
-      if (subjectInQuestion && phraseInText(q, property)) {
-        hit = true;
-        break;
-      }
-
-      const propertyJoined = property.replace(/ /g, "");
-
-      for (const word of words) {
-        for (const joint of ["", "s", "es", "n", "en"]) {
-          if (word === subjectJoined + joint + propertyJoined) {
-            hit = true;
-            break;
-          }
-        }
-
-        if (hit) break;
-      }
-
-      if (hit) break;
+  for(const f of data.facts){
+    if(!groups.has(f.subject)){
+      groups.set(f.subject,[]);
     }
-
-    if (hit) matches.push(fact);
+    groups.get(f.subject).push(f);
   }
 
-  /* Teilthemen entfernen: "York" nicht, wenn "New York" auch passt */
+  let out='MEIN LANGZEITWISSEN\n';
 
-  const withKeys = matches.map(fact => ({
-    fact,
-    key: fold(cleanSubject(fact.subject))
-  }));
-
-  return withKeys
-    .filter(a => !withKeys.some(b =>
-      b.key.length > a.key.length &&
-      (" " + b.key + " ").includes(" " + a.key + " ")
-    ))
-    .map(item => item.fact);
-}
-
-function answerFromQuestionMatch(question) {
-  const found = findFactsInQuestion(question);
-
-  if (!found.length) return null;
-
-  if (found.length === 1) return found[0].value;
-
-  return found
-    .map(fact => `${fact.subject} – ${fact.property}: ${fact.value}`)
-    .join("\n");
-}
-
-function answerFact(question) {
-  const q = fold(question);
-
-  if (!q) return null;
-
-  const propertyCandidates = [];
-  let subject = "";
-  let match;
-
-  function addProperty(property) {
-    for (const candidate of getPropertyCandidates(property)) {
-      if (!propertyCandidates.includes(candidate)) {
-        propertyCandidates.push(candidate);
-      }
-    }
+  for(const [s,fs] of groups){
+    out+='\n'+s+'\n'+fs.map(f=>
+      '• '+f.property+': '+f.value+
+      (f.conflict?' [Konflikt]':'')
+    ).join('\n')+'\n';
   }
 
-  /*
-     Alle Muster arbeiten auf dem gefalteten Text (fold):
-     "gehört" ist dort "gehort", "Ernährung" ist "ernahrung".
-  */
+  return out+
+    `\nGesamt: ${data.facts.length} Fakten | `+
+    `${data.memory.length} Erinnerungen | `+
+    `${data.relationships.length} Verbindungen`;
+}
 
-  /* Familie und Tierart */
+function containsPhrase(q,p){
+  return (' '+q+' ').includes(' '+p+' ');
+}
 
-  match = q.match(
-    /^zu welcher (?:tierart|familie) gehort (?:(?:der|die|das)\s+)?(.+)$/
+function subjectIn(q,s){
+  const k=subj(s);
+  return containsPhrase(q,k)||
+    containsPhrase(q,k+'s')||
+    containsPhrase(q,k+'es');
+}
+
+function propertyIn(q,p){
+  const keys=[
+    canonical(p),
+    prop(p),
+    ...arr(aliases[canonical(p)])
+  ].map(x=>x.replace(/_/g,' '));
+
+  return keys.some(k=>
+    containsPhrase(q,k)||
+    q.split(' ').some(w=>
+      w.endsWith(k.replace(/ /g,''))&&
+      w.length>k.length+1
+    )
   );
-
-  if (match) {
-    subject = match[1];
-    addProperty("familie");
-  }
-
-  if (!subject) {
-    match = q.match(
-      /^welcher(?:e|er)? familie gehort (?:(?:der|die|das)\s+)?(.+)$/
-    );
-
-    if (match) {
-      subject = match[1];
-      addProperty("familie");
-    }
-  }
-
-  /* Dynamische Frage:
-     Welche Fellfarbe hat das Okapi?
-     Welchen Durchmesser hat der Mars?
-  */
-
-  if (!subject) {
-    match = q.match(
-      /^welche[rns]?\s+(.+?)\s+(?:hat|besitzt)\s+(?:(?:der|die|das|ein|eine)\s+)?(.+)$/
-    );
-
-    if (match) {
-      addProperty(match[1]);
-      subject = match[2];
-    }
-  }
-
-  /* Dynamische Frage:
-     Was ist die Fellfarbe vom Okapi?
-     Was ist der Durchmesser des Mars?
-     Wie lautet die Körpergröße vom Okapi?
-  */
-
-  if (!subject) {
-    match = q.match(
-      /^(?:was ist|was betragt|wie lautet|nenne|nenn|zeige|gib mir)\s+(?:(?:die|der|das|den)\s+)?(.+?)\s+(?:von|vom|des|der|dem)\s+(?:(?:der|die|das|dem|den)\s+)?(.+)$/
-    );
-
-    if (match) {
-      addProperty(match[1]);
-      subject = match[2];
-    }
-  }
-
-  /* Definition */
-
-  if (!subject) {
-    match = q.match(
-      /^(?:was ist|was bedeutet|wer ist|erklare)\s+(.+)$/
-    );
-
-    if (match) {
-      subject = match[1];
-      addProperty("definition");
-    }
-  }
-
-  /* Bereits bekannte Kategorien in der Frage finden */
-
-  if (propertyCandidates.length === 0) {
-    for (const category of getKnownCategories()) {
-      const readable = fold(category.replace(/_/g, " "));
-
-      if (
-        readable.length > 2 &&
-        q.includes(readable)
-      ) {
-        addProperty(category);
-      }
-    }
-  }
-
-  /* Hauptstadt */
-
-  if (!subject && /\bhauptstadt\b/.test(q)) {
-    addProperty("hauptstadt");
-
-    match = q.match(/(?:von|uber)\s+(.+)$/);
-
-    if (match) subject = match[1];
-  }
-
-  /* Lebensraum */
-
-  if (
-    !subject &&
-    /\b(wo lebt|wo wohnt|lebensraum|lebensgebiet)\b/.test(q)
-  ) {
-    addProperty("lebensraum");
-
-    match = q.match(
-      /^(?:wo lebt|wo wohnt|lebensraum von|lebensgebiet von)\s+(.+)$/
-    );
-
-    if (match) subject = match[1];
-  }
-
-  /* Nahrung */
-
-  if (
-    !subject &&
-    /\b(was frisst|was isst|nahrung|ernahrung)\b/.test(q)
-  ) {
-    addProperty("nahrung");
-
-    match = q.match(
-      /^(?:was frisst|was isst|nahrung von|was ist die nahrung von)\s+(.+)$/
-    );
-
-    if (match) subject = match[1];
-  }
-
-  /* Direkter Treffer über Thema + Eigenschaft */
-
-  if (subject && propertyCandidates.length > 0) {
-    const cleaned = cleanSubject(subject);
-
-    if (cleaned) {
-      const fact = data.facts.find(item =>
-        sameSubject(item.subject, cleaned) &&
-        propertyCandidates.includes(propKey(item.property))
-      );
-
-      if (fact) return fact.value;
-    }
-  }
-
-  /*
-     NEU: Kein Muster hat getroffen (oder das Muster fand keinen Fakt).
-     Jetzt werden gespeicherte Fakten direkt in der Frage gesucht.
-  */
-
-  return answerFromQuestionMatch(question);
 }
 
-/* =====================================================
-   11. WISSENSÜBERSICHT
-   ===================================================== */
+function parseQuestion(q){
+  const n=norm(q);
+  let m;
 
-function knowledgeOverview() {
-  if (!data.facts.length) {
-    return "Mein Wissensspeicher ist noch leer.";
-  }
-
-  const groups = {};
-
-  for (const fact of data.facts) {
-    const subject = fact.subject || "Unbekannt";
-
-    if (!groups[subject]) groups[subject] = [];
-
-    groups[subject].push(fact);
-  }
-
-  const lines = [
-    "MEIN LANGZEITWISSEN",
-    ""
+  const patterns=[
+    [
+      /^welche[rns]? (.+?) (?:hat|besitzt) (?:der |die |das |ein |eine )?(.+)$/,
+      'ps'
+    ],
+    [
+      /^(?:was ist|was betragt|wie lautet|nenne|nenn|zeige|gib mir) (?:der |die |das |den )?(.+?) (?:von|vom|des|der|dem) (?:der |die |das )?(.+)$/,
+      'ps'
+    ],
+    [
+      /^(?:wo lebt|wo wohnt) (?:der |die |das )?(.+)$/,
+      's:lebensraum'
+    ],
+    [
+      /^(?:was frisst|was isst) (?:der |die |das )?(.+)$/,
+      's:nahrung'
+    ],
+    [
+      /^zu welcher (?:familie|tierart) gehort (?:der |die |das )?(.+)$/,
+      's:familie'
+    ],
+    [
+      /^(?:was ist|was bedeutet|wer ist|erklare) (.+)$/,
+      's:definition'
+    ]
   ];
 
-  for (const [subject, facts] of Object.entries(groups)) {
-    lines.push(subject);
+  for(const [re,mode] of patterns){
+    m=n.match(re);
 
-    for (const fact of facts) {
-      lines.push(`• ${fact.property}: ${fact.value}`);
+    if(m){
+      if(mode==='ps'){
+        return {
+          subject:clean(m[2]),
+          property:canonical(m[1])
+        };
+      }
 
-      if (fact.conflict) {
-        lines.push(
-          "  Hinweis: Für diesen Fakt existieren unterschiedliche Angaben."
+      return {
+        subject:clean(m[1]),
+        property:mode.split(':')[1]
+      };
+    }
+  }
+
+  return null;
+}
+
+function question(q){
+  const n=norm(q);
+  let parsed=parseQuestion(q);
+  let matches=[];
+
+  if(parsed){
+    matches=factsFor(parsed.subject,parsed.property);
+
+    if(
+      !matches.length&&
+      /^(er|sie|es|ihm|ihr|davon|dessen|deren)$/.test(subj(parsed.subject))&&
+      context.subject
+    ){
+      matches=factsFor(context.subject,parsed.property);
+    }
+  }
+
+  if(!matches.length){
+    matches=data.facts.filter(f=>
+      subjectIn(n,f.subject)&&
+      propertyIn(n,f.property)
+    );
+
+    if(!matches.length){
+      for(const f of data.facts){
+        const s=subj(f.subject).replace(/ /g,'');
+
+        const ps=[
+          canonical(f.property),
+          prop(f.property),
+          ...arr(aliases[canonical(f.property)])
+        ].map(p=>p.replace(/_/g,''));
+
+        if(n.split(' ').some(w=>
+          ps.some(p=>
+            w===s+p||
+            w===s+'s'+p||
+            w===s+'es'+p
+          )
+        )){
+          matches.push(f);
+        }
+      }
+    }
+  }
+
+  if(!matches.length&&context.subject){
+    const props=knownProps().filter(p=>propertyIn(n,p));
+
+    if(props.length===1){
+      matches=factsFor(context.subject,props[0]);
+    }else if(
+      /^(?:und |wie |was |welche |welcher |welches |wie viel |wie gross |wie groß )/.test(n)&&
+      context.property&&
+      /\b(er|sie|es|davon|dessen|diese|dieser)\b/.test(n)
+    ){
+      matches=factsFor(context.subject,context.property);
+    }
+  }
+
+  if(matches.length===1){
+    const f=matches[0];
+
+    context.subject=f.subject;
+    context.property=f.property;
+
+    return f.conflict
+      ? factInfo(f,true)
+      : f.value;
+  }
+
+  if(matches.length>1){
+    const subjects=[
+      ...new Set(matches.map(f=>f.subject))
+    ];
+
+    const properties=[
+      ...new Set(matches.map(f=>canonical(f.property)))
+    ];
+
+    if(subjects.length>1&&properties.length===1){
+      context.awaiting={
+        type:'subject',
+        choices:subjects,
+        property:properties[0]
+      };
+
+      return'Welches Thema meinst du? '+
+        subjects.map((s,i)=>`${i+1}. ${s}`).join(' | ');
+    }
+
+    return matches.slice(0,10)
+      .map(f=>factInfo(f))
+      .join('\n');
+  }
+
+  return null;
+}
+
+function clarify(s){
+  if(!context.awaiting)return null;
+
+  const a=context.awaiting;
+  const n=norm(s);
+
+  let selected=a.choices.find(x=>subj(x)===n);
+
+  if(!selected&&/^\d+$/.test(n)){
+    selected=a.choices[Number(n)-1];
+  }
+
+  if(!selected)return null;
+
+  context.awaiting=null;
+
+  return question(
+    'Was ist '+a.property+' von '+selected+'?'
+  )||'Dazu habe ich keinen passenden Fakt.';
+}
+
+function related(q,limit=10){
+  return data.facts
+    .map(f=>({
+      f,
+      score:Math.max(
+        sim(q,f.subject),
+        sim(q,f.value),
+        sim(q,f.property)
+      )
+    }))
+    .filter(x=>x.score>.05)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,limit)
+    .map(x=>x.f);
+}
+
+function explain(q){
+  const fs=factsFor(q);
+  const found=fs.length?fs:related(q,8);
+
+  return found.length
+    ? 'GESPEICHERTES WISSEN\n'+
+      found.map(f=>'• '+factInfo(f)).join('\n')
+    : `Zu „${q}“ habe ich noch keine passenden Fakten.`;
+}
+
+function graph(from,relation,to){
+  from=clean(from);
+  to=clean(to);
+  relation=safe(relation,100);
+
+  if(!from||!to||!relation)return false;
+
+  if(!data.relationships.some(r=>
+    subj(r.from)===subj(from)&&
+    subj(r.to)===subj(to)&&
+    norm(r.relation)===norm(relation)
+  )){
+    data.relationships.push({
+      id:uid(),
+      from,
+      relation,
+      to,
+      created:now()
+    });
+  }
+
+  save();
+  return true;
+}
+
+function graphReport(q){
+  const fs=data.relationships.filter(r=>
+    subj(r.from)===subj(q)||
+    subj(r.to)===subj(q)
+  );
+
+  return fs.length
+    ? fs.map(r=>
+        `${r.from} —${r.relation}→ ${r.to}`
+      ).join('\n')
+    : 'Keine Wissensverbindungen zu '+q;
+}
+
+function analyze(q=''){
+  const fs=q?related(q,10000):data.facts;
+  const conflicts=fs.filter(f=>f.conflict);
+
+  return `WISSENSANALYSE
+Fakten: ${fs.length}
+Erinnerungen: ${data.memory.length}
+Dokumente: ${data.documents.length}
+Verbindungen: ${data.relationships.length}
+Konflikte: ${conflicts.length}`+
+    (
+      conflicts.length
+        ? '\n\n'+conflicts.map(f=>
+            factInfo(f,true)
+          ).join('\n\n')
+        : ''
+    );
+}
+
+function conflictList(){
+  const fs=data.facts.filter(f=>f.conflict);
+
+  return fs.length
+    ? 'OFFENE KONFLIKTE\n\n'+
+      fs.map(f=>factInfo(f,true)).join('\n\n')
+    : 'Keine offenen Faktenkonflikte.';
+}
+
+function editFact(s){
+  const m=s.match(
+    /^(.+?)\s*:\s*(.+?)\s*(?:=|–|—|\s-\s)\s*(.+)$/
+  );
+
+  if(!m){
+    return'Format: Fakt korrigieren: Thema: Eigenschaft = neuer Wert';
+  }
+
+  const old=findFact(m[1],m[2]);
+
+  if(!old){
+    return'Kein vorhandener Fakt gefunden. Zum Hinzufügen nutze „Lerne: ...“.';
+  }
+
+  pending={
+    type:'edit',
+    id:old.id,
+    value:safe(m[3],5000)
+  };
+
+  return `Fakt ändern?
+Alt: ${factInfo(old)}
+Neu: ${pending.value}
+Bestätige mit „Änderung bestätigen“ oder „Änderung abbrechen“.`;
+}
+
+function deleteFact(s){
+  let f=data.facts.find(x=>x.id===safe(s));
+
+  if(!f){
+    const m=s.match(/^(.+?)\s*:\s*(.+)$/);
+    if(m)f=findFact(m[1],m[2]);
+  }
+
+  if(!f){
+    return'Fakt nicht gefunden. Format: Fakt löschen: Thema: Eigenschaft';
+  }
+
+  pending={
+    type:'deleteFact',
+    id:f.id
+  };
+
+  return `Diesen Fakt löschen?
+${factInfo(f,true)}
+Schreibe „Änderung bestätigen“ oder „Änderung abbrechen“.`;
+}
+
+function forget(s){
+  const n=norm(s);
+
+  const fs=data.memory.filter(x=>
+    x.id?.toLowerCase()===s.toLowerCase()||
+    (n.length>=3&&norm(x.content).includes(n))
+  );
+
+  if(!fs.length){
+    return'Keine passende Erinnerung gefunden (mindestens 3 Zeichen oder genaue ID).';
+  }
+
+  if(fs.length>5){
+    return `${fs.length} Treffer – bitte präziser suchen oder genaue ID nutzen.`;
+  }
+
+  pending={
+    type:'forget',
+    ids:fs.map(x=>x.id)
+  };
+
+  return `Diese ${fs.length} Erinnerung(en) löschen?
+${fs.map(x=>
+  `${x.content}\nID: ${x.id}`
+).join('\n\n')}
+Schreibe „Vergiss bestätigen“ oder „Vergiss abbrechen“.`;
+}
+
+function confirmChange(){
+  if(!pending){
+    return'Keine Änderung wartet auf Bestätigung.';
+  }
+
+  const p=pending;
+  pending=null;
+
+  if(locked){
+    return'Speicher ist gesperrt. Keine Änderung ausgeführt.';
+  }
+
+  const b=backup(
+    'vorAenderung',
+    JSON.stringify({...data,snapshots:[]}),
+    3
+  );
+
+  if(!b){
+    return'Abgebrochen: Sicherheitskopie konnte nicht erstellt werden.';
+  }
+
+  if(p.type==='edit'){
+    const f=data.facts.find(x=>x.id===p.id);
+
+    if(!f)return'Fakt nicht mehr vorhanden.';
+
+    addFact(
+      f.subject,
+      f.property,
+      p.value,
+      'user',
+      {replace:true}
+    );
+
+    return'Fakt korrigiert: '+factInfo(f);
+  }
+
+  if(p.type==='deleteFact'){
+    const f=data.facts.find(x=>x.id===p.id);
+
+    if(!f)return'Fakt nicht mehr vorhanden.';
+
+    data.facts=data.facts.filter(x=>x.id!==p.id);
+
+    audit('Wissensbank','Fakt gelöscht',f.id);
+    save();
+
+    return'Fakt gelöscht: '+factInfo(f);
+  }
+
+  if(p.type==='forget'){
+    const n=data.memory.length;
+
+    data.memory=data.memory.filter(x=>
+      !p.ids.includes(x.id)
+    );
+
+    audit(
+      'Gedächtnis-KI',
+      'Erinnerungen gelöscht',
+      String(n-data.memory.length)
+    );
+
+    save();
+
+    return `${n-data.memory.length} Erinnerung(en) gelöscht.`;
+  }
+
+  return'Unbekannte Änderung.';
+}
+
+function docs(q=''){
+  if(!q){
+    return data.documents.length
+      ? data.documents.map((d,i)=>
+          `${i+1}. ${d.title}\nID: ${d.id}\nTyp: ${d.type}`
+        ).join('\n\n')
+      : 'Keine Dokumente vorhanden.';
+  }
+
+  const scored=data.documents
+    .map(d=>({
+      d,
+      s:Math.max(
+        sim(q,d.title),
+        sim(q,d.content||'')
+      )
+    }))
+    .filter(x=>x.s>.03)
+    .sort((a,b)=>b.s-a.s)
+    .slice(0,8);
+
+  return scored.length
+    ? scored.map(x=>
+        `${x.d.title}\nID: ${x.d.id}\n${safe(x.d.content,350)}`
+      ).join('\n\n')
+    : 'Keine passenden Dokumente.';
+}
+
+function docAnswer(q){
+  const query=new Set(tokens(q));
+  const scored=[];
+
+  for(const d of data.documents){
+    const sentences=safe(d.content,100000)
+      .replace(/\s+/g,' ')
+      .match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[];
+
+    for(const sentence of sentences){
+      const score=tokens(sentence)
+        .filter(w=>query.has(w)).length;
+
+      if(score>0){
+        scored.push({
+          d,
+          sentence:sentence.trim(),
+          score
+        });
+      }
+    }
+  }
+
+  scored.sort((a,b)=>b.score-a.score);
+
+  return scored.length
+    ? 'IN GESPEICHERTEN DOKUMENTEN:\n'+
+      scored.slice(0,4).map(x=>
+        `• ${x.sentence}\nQuelle: ${x.d.title}`
+      ).join('\n\n')
+    : null;
+}
+
+function summarize(s){
+  const d=data.documents.find(x=>
+    x.id===s||
+    norm(x.title)===norm(s)
+  );
+
+  if(!d){
+    return'Dokument nicht gefunden.\n'+docs();
+  }
+
+  const sentences=safe(d.content,100000)
+    .replace(/\s+/g,' ')
+    .match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[];
+
+  const step=Math.max(
+    1,
+    Math.ceil(sentences.length/8)
+  );
+
+  return 'ZUSAMMENFASSUNG (Auswahl, keine echte KI-Zusammenfassung)\n'+
+    sentences
+      .filter((_,i)=>i%step===0)
+      .slice(0,8)
+      .map(x=>'• '+x.trim())
+      .join('\n');
+}
+
+function project(s){
+  const x={
+    id:uid(),
+    title:safe(s,250),
+    description:'',
+    created:now(),
+    updated:now(),
+    status:'offen'
+  };
+
+  data.projects.push(x);
+  save();
+
+  return'Projekt erstellt: '+x.title+'\nID: '+x.id;
+}
+
+function projects(){
+  return data.projects.length
+    ? data.projects.map(x=>
+        `${x.title} | ${x.status||'offen'} | ${x.id}`
+      ).join('\n')
+    : 'Keine Projekte.';
+}
+
+function task(s){
+  const x={
+    id:uid(),
+    title:safe(s,500),
+    projectId:'',
+    done:false,
+    created:now(),
+    completed:null
+  };
+
+  data.tasks.push(x);
+  save();
+
+  return'Aufgabe erstellt: '+x.title+'\nID: '+x.id;
+}
+
+function tasks(){
+  return data.tasks.length
+    ? data.tasks.map(x=>
+        `${x.done?'✓':'○'} ${x.title} | ${x.id}`
+      ).join('\n')
+    : 'Keine Aufgaben.';
+}
+
+function taskDone(s){
+  const x=data.tasks.find(x=>x.id===s);
+
+  if(!x){
+    return'Aufgabe nicht gefunden.';
+  }
+
+  x.done=true;
+  x.completed=now();
+  save();
+
+  return'Aufgabe erledigt: '+x.title;
+}
+
+/* =====================================================
+   LERNBOT 6.0 – PAKET 2
+   TEIL 3/3 – SICHERUNGEN, AGENTEN, CHAT UND START
+   ===================================================== */
+
+function snapshot() {
+  const state = copy(data);
+  state.snapshots = [];
+
+  const x = {
+    id: uid(),
+    label: 'Manuelle Sicherung',
+    created: now(),
+    data: state
+  };
+
+  data.snapshots.push(x);
+  save();
+
+  return 'Sicherung erstellt. ID: ' + x.id;
+}
+
+function snapshots() {
+  return data.snapshots.length
+    ? data.snapshots.map(x =>
+        `${x.label} | ${date(x.created)} | ${x.id}`
+      ).join('\n')
+    : 'Keine Sicherungen.';
+}
+
+function restoreObject(objData, label) {
+  if (locked) {
+    return 'Speicher gesperrt – Original wird nicht überschrieben.';
+  }
+
+  const b = backup(
+    'vorRestore',
+    JSON.stringify({...data, snapshots: []}),
+    2
+  );
+
+  if (!b) {
+    return 'Abgebrochen: Sicherung des aktuellen Standes fehlgeschlagen.';
+  }
+
+  const old = copy(data);
+  data = prepare(copy(objData));
+
+  if (!data.snapshots.length) {
+    data.snapshots = old.snapshots;
+  }
+
+  audit('System', 'Wiederherstellung', label);
+
+  if (!save()) {
+    data = old;
+    return 'Wiederherstellung fehlgeschlagen. Alter Stand bleibt im Arbeitsspeicher.';
+  }
+
+  return 'Wiederhergestellt. Vorheriger Stand gesichert unter ' + b;
+}
+
+function restoreSnapshot(s) {
+  const x = data.snapshots.find(x => x.id === s);
+
+  return x && obj(x.data)
+    ? restoreObject(x.data, x.label)
+    : 'Sicherung nicht gefunden.';
+}
+
+function autoList() {
+  const names = backupNames();
+
+  return names.length
+    ? 'AUTO-SICHERUNGEN\n' +
+      names.map((k, i) =>
+        `${i + 1}. ${k}`
+      ).join('\n') +
+      '\nExport: Auto-Sicherung exportieren: NUMMER' +
+      '\nRestore: Auto-Sicherung wiederherstellen: NUMMER'
+    : 'Keine Auto-Sicherungen.';
+}
+
+function autoResolve(s) {
+  const names = backupNames();
+
+  return /^\d+$/.test(s)
+    ? names[Number(s) - 1]
+    : names.includes(s) ? s : null;
+}
+
+function autoRestore(s) {
+  const k = autoResolve(s);
+
+  if (!k) return 'Sicherung nicht gefunden.';
+
+  try {
+    const d = JSON.parse(localStorage.getItem(k));
+
+    if (!obj(d)) {
+      throw Error('Kein Datenobjekt');
+    }
+
+    return restoreObject(d, k);
+  } catch (e) {
+    return 'Wiederherstellung nicht möglich: ' + e.message;
+  }
+}
+
+function download(
+  filename,
+  content,
+  mime = 'application/json;charset=utf-8'
+) {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+
+  a.href = url;
+  a.download = filename;
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function exportData() {
+  download(
+    'LernBot-Paket2-' +
+      new Date().toISOString().slice(0, 10) +
+      '.json',
+    JSON.stringify({
+      ...data,
+      application: NAME,
+      exportedAt: now()
+    }, null, 2)
+  );
+
+  return locked
+    ? 'Export gestartet. ACHTUNG: Originalspeicher ist gesperrt.'
+    : 'Datenexport gestartet.';
+}
+
+function autoExport(s) {
+  const k = autoResolve(s);
+
+  if (!k) return 'Sicherung nicht gefunden.';
+
+  const raw = localStorage.getItem(k);
+
+  if (!raw) return 'Sicherung nicht lesbar.';
+
+  download(
+    'LernBot-Auto-Sicherung-' + now() + '.json',
+    raw
+  );
+
+  return 'Download gestartet.';
+}
+
+const IMPORT_AREAS = [
+  'facts',
+  'qa',
+  'classes',
+  'log',
+  'audit',
+  'improvements',
+  'codeProposals',
+  'projects',
+  'tasks',
+  'documents',
+  'relationships',
+  'memory',
+  'snapshots'
+];
+
+function importData(input) {
+  let incoming;
+
+  try {
+    incoming = typeof input === 'string'
+      ? JSON.parse(input)
+      : copy(input);
+  } catch {
+    return 'Ungültiges JSON.';
+  }
+
+  if (!obj(incoming)) {
+    return 'Kein gültiges Datenobjekt.';
+  }
+
+  if (
+    !Array.isArray(incoming.memory) &&
+    Array.isArray(incoming.memories)
+  ) {
+    incoming.memory = incoming.memories;
+  }
+
+  if (
+    !IMPORT_AREAS.some(k => Array.isArray(incoming[k])) &&
+    !obj(incoming.agentStats)
+  ) {
+    return 'Keine bekannten LernBot-Daten.';
+  }
+
+  if (locked) {
+    return 'Speicher gesperrt. Import wird nicht gespeichert.';
+  }
+
+  const b = backup(
+    'vorImport',
+    JSON.stringify({...data, snapshots: []}),
+    2
+  );
+
+  if (!b) {
+    return 'Import abgebrochen: Sicherung konnte nicht angelegt werden.';
+  }
+
+  const old = copy(data);
+  let added = 0;
+  let conflicts = 0;
+
+  try {
+    for (const f of arr(incoming.facts)) {
+      if (
+        !obj(f) ||
+        typeof f.subject !== 'string' ||
+        typeof f.property !== 'string' ||
+        typeof f.value !== 'string'
+      ) continue;
+
+      const current = findFact(f.subject, f.property);
+
+      if (!current) {
+        data.facts.push(copy(f));
+        added++;
+      } else if (!sameValue(current.value, f.value)) {
+        current.alternatives = arr(current.alternatives);
+
+        if (!current.alternatives.some(x =>
+          sameValue(x.value, f.value)
+        )) {
+          current.alternatives.push({
+            value: f.value,
+            source: f.source || 'import',
+            time: now()
+          });
+        }
+
+        current.conflict = true;
+        conflicts++;
+      }
+    }
+
+    for (const area of IMPORT_AREAS.filter(k => k !== 'facts')) {
+      const target = data[area];
+
+      for (const item of arr(incoming[area])) {
+        if (!obj(item)) continue;
+
+        if (
+          area === 'memory' &&
+          !(
+            typeof item.type === 'string' &&
+            typeof item.content === 'string'
+          )
+        ) continue;
+
+        if (
+          area === 'relationships' &&
+          !(
+            typeof item.from === 'string' &&
+            typeof item.to === 'string' &&
+            typeof item.relation === 'string'
+          )
+        ) continue;
+
+        const duplicate = target.some(x =>
+          (item.id && x.id === item.id) ||
+          (
+            area === 'memory' &&
+            x.type === item.type &&
+            norm(x.content) === norm(item.content)
+          ) ||
+          (
+            area === 'documents' &&
+            x.title === item.title &&
+            x.content === item.content
+          )
+        );
+
+        if (!duplicate) {
+          target.push(copy(item));
+          added++;
+        }
+      }
+    }
+
+    if (obj(incoming.agentStats)) {
+      for (const [k, v] of Object.entries(incoming.agentStats)) {
+        data.agentStats[k] = Math.max(
+          Number(data.agentStats[k]) || 0,
+          Number(v) || 0
         );
       }
     }
 
-    lines.push("");
+    audit('System', 'Import', 'ergänzend');
+
+    if (!save()) {
+      throw Error('Speichern fehlgeschlagen');
+    }
+
+    return `Import abgeschlossen. ${added} neue Einträge, ${conflicts} Faktenkonflikte. Vorheriger Stand: ${b}`;
+  } catch (e) {
+    data = old;
+    return 'Import abgebrochen: ' + e.message;
   }
-
-  lines.push(
-    `Gesamt: ${data.facts.length} Fakten`,
-    `Erinnerungen: ${data.memory.length}`,
-    `Wissensverbindungen: ${data.relationships.length}`,
-    `Eigene Kategorien: ${getKnownCategories().length}`
-  );
-
-  return lines.join("\n");
 }
 
 /* =====================================================
-   12. WISSENSGRAPH
+   RECHERCHE
    ===================================================== */
 
-function connectKnowledge(from, relation, to) {
-  from = cleanSubject(from);
-  to = cleanSubject(to);
-  relation = safeText(relation, 100);
-
-  if (!from || !to || !relation) return false;
-
-  const exists = data.relationships.some(item =>
-    sameSubject(item.from, from) &&
-    sameSubject(item.to, to) &&
-    normalize(item.relation) === normalize(relation)
-  );
-
-  if (exists) return true;
-
-  data.relationships.push({
-    id: uid(),
-    from,
-    relation,
-    to,
-    created: now()
-  });
-
-  logAudit(
-    "Wissensgraph",
-    "Verbindung erstellt",
-    `${from} ${relation} ${to}`
-  );
-
-  save();
-
-  return true;
-}
-
-function graphFor(subject) {
-  if (!safeText(subject)) return [];
-
-  return data.relationships.filter(item =>
-    sameSubject(item.from, subject) ||
-    sameSubject(item.to, subject)
-  );
-}
-
-function graphReport(subject) {
-  const links = graphFor(subject);
-
-  if (!links.length) {
-    return `Zu ${subject} habe ich noch keine Verbindungen gespeichert.`;
-  }
-
-  return [
-    "WISSENSVERKNÜPFUNGEN",
-    "",
-    ...links.map(item =>
-      `${item.from} —${item.relation}→ ${item.to}`
-    )
-  ].join("\n");
-}
-
-/* =====================================================
-   ENDE TEIL 1/3
-   TEIL 2 DIREKT DARUNTER EINFÜGEN
-   ===================================================== */
- /* =====================================================
-   LERNBOT 6.0 – TEIL 2/3 (PAKET 1)
-   AGENTEN, RECHERCHE, DOKUMENTE, PROJEKTE, CODE, BACKUP
-   ===================================================== */
-
-/* =====================================================
-   1. AGENTENSYSTEM
-   ===================================================== */
-
-const agents = {
-  lern: {
-    name: "Lern-KI",
-    description: "Speichert und strukturiert Lerninhalte.",
-    run: text => getLearningResponse(text)
-  },
-
-  analyse: {
-    name: "Analyse-KI",
-    description: "Analysiert gespeichertes Wissen und Zusammenhänge.",
-    run: text => analyzeKnowledge(text)
-  },
-
-  recherche: {
-    name: "Recherche-KI",
-    description: "Sucht Informationen in externen Wissensquellen.",
-    run: text => research(text)
-  },
-
-  gedächtnis: {
-    name: "Gedächtnis-KI",
-    description: "Verwaltet langfristige Erinnerungen.",
-    run: text => searchMemory(text)
-  },
-
-  projekt: {
-    name: "Projekt-KI",
-    description: "Verwaltet Projekte und Aufgaben.",
-    run: () => listProjects()
-  },
-
-  dokument: {
-    name: "Dokumenten-KI",
-    description: "Importiert, durchsucht und fasst Dokumente zusammen.",
-    run: text => searchDocuments(text)
-  },
-
-  code: {
-    name: "Code-KI",
-    description: "Prüft Quellcode anhand statischer Regeln.",
-    run: text => inspectCodeReport(text)
-  },
-
-  antwort: {
-    name: "Antwort-KI",
-    description: "Beantwortet Fragen anhand gespeicherter Informationen.",
-    run: text => getKnowledgeResponse(text)
-  },
-
-  meta: {
-    name: "Meta-KI",
-    description: "Überwacht und koordiniert die Agenten.",
-    run: () => agentOverview()
-  }
-};
-
-function agentRun(name, input = "") {
-  const agent = agents[name];
-
-  if (!agent) {
-    return "Unbekannter Agent: " + name;
-  }
-
-  countAgent(name);
-
-  logAudit(
-    agent.name,
-    "Agent ausgeführt",
-    safeText(input, 500)
-  );
-
-  try {
-    const result = agent.run(input);
-    save();
-    return result;
-  } catch (error) {
-    console.error("Agentenfehler:", name, error);
-    return "Fehler im Agenten " + agent.name + ": " + error.message;
-  }
-}
-
-async function agentRunAsync(name, callback) {
-  const agent = agents[name];
-
-  if (!agent) {
-    return "Unbekannter Agent: " + name;
-  }
-
-  countAgent(name);
-
-  logAudit(
-    agent.name,
-    "Agent gestartet",
-    "Asynchrone Ausführung"
-  );
-
-  try {
-    const result = await callback();
-    logAudit(agent.name, "Agent abgeschlossen", "");
-    save();
-    return result;
-  } catch (error) {
-    logAudit(agent.name, "Agentenfehler", error.message);
-    console.error("Agentenfehler:", error);
-    return "Der Agent " + agent.name + " ist auf einen Fehler gestoßen: " + error.message;
-  }
-}
-
-function agentOverview() {
-  const lines = [
-    "LERNBOT 6.0 – KI-AGENTEN",
-    ""
-  ];
-
-  for (const [key, agent] of Object.entries(agents)) {
-    lines.push(
-      `${agent.name}`,
-      `Funktion: ${agent.description}`,
-      `Ausführungen: ${Number(data.agentStats[key]) || 0}`,
-      ""
-    );
-  }
-
-  return lines.join("\n");
-}
-
-/* =====================================================
-   2. WISSENSANALYSE
-   ===================================================== */
-
-function analyzeKnowledge(topic = "") {
-  const facts = arr(data.facts);
-  const memories = arr(data.memory);
-  const documents = arr(data.documents);
-  const relationships = arr(data.relationships);
-
-  const selectedFacts = topic
-    ? facts.filter(item =>
-        similarity(topic, item.subject) > 0.05 ||
-        similarity(topic, item.value) > 0.05
-      )
-    : facts;
-
-  const selectedMemories = topic
-    ? memories.filter(item =>
-        similarity(topic, item.content) > 0.05
-      )
-    : memories;
-
-  const selectedDocuments = topic
-    ? documents.filter(item =>
-        similarity(topic, item.title) > 0.05 ||
-        similarity(topic, item.content || "") > 0.05
-      )
-    : documents;
-
-  const selectedRelationships = topic
-    ? relationships.filter(item =>
-        similarity(topic, item.from) > 0.05 ||
-        similarity(topic, item.to) > 0.05
-      )
-    : relationships;
-
-  const conflicts = selectedFacts.filter(item => item.conflict);
-
-  return [
-    "WISSENSANALYSE",
-    topic ? `Thema: ${topic}` : "Gesamter Wissensbestand",
-    "",
-    "WISSENSBESTAND",
-    `Fakten: ${selectedFacts.length}`,
-    `Erinnerungen: ${selectedMemories.length}`,
-    `Dokumente: ${selectedDocuments.length}`,
-    `Verbindungen: ${selectedRelationships.length}`,
-    `Fakten mit widersprüchlichen Angaben: ${conflicts.length}`,
-    "",
-    "AGENTENAKTIVITÄT",
-    ...Object.entries(data.agentStats).map(([name, count]) =>
-      `${name}: ${Number(count) || 0} Ausführungen`
-    ),
-    "",
-    conflicts.length
-      ? "HINWEIS: Es gibt Fakten mit unterschiedlichen gespeicherten Angaben. Diese sollten geprüft werden."
-      : "Keine widersprüchlichen Fakten in der ausgewählten Wissensmenge erkannt."
-  ].join("\n");
-}
-
-function findRelatedFacts(query, limit = 10) {
-  const q = safeText(query);
-
-  if (!q) return [];
-
-  return data.facts
-    .map(fact => ({
-      ...fact,
-      score: Math.max(
-        similarity(q, fact.subject),
-        similarity(q, fact.property),
-        similarity(q, fact.value)
-      )
-    }))
-    .filter(fact => fact.score > 0.05)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, Math.max(1, Number(limit) || 10));
-}
-
-function explainTopic(topic) {
-  topic = safeText(topic, 1000);
-
-  if (!topic) return "";
-
-  const exactFacts = getFacts(topic);
-  const relatedFacts = findRelatedFacts(topic, 8);
-
-  const facts = exactFacts.length
-    ? exactFacts
-    : relatedFacts;
-
-  if (!facts.length) {
-    return `Zu "${topic}" habe ich noch nicht genügend eigenes Wissen gespeichert.`;
-  }
-
-  return [
-    "GESPEICHERTES WISSEN ZU " + topic.toLocaleUpperCase("de"),
-    "",
-    ...facts.map(fact =>
-      `• ${fact.subject}: ${fact.property} – ${fact.value}`
-    )
-  ].join("\n");
-}
-
-/* =====================================================
-   3. EXTERNE RECHERCHE
-   ===================================================== */
-
-async function fetchJSON(url, timeout = 10000) {
+async function fetchJSON(url) {
   const controller = new AbortController();
-
-  const timer = setTimeout(
-    () => controller.abort(),
-    timeout
-  );
+  const timer = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json"
-      },
+    const r = await fetch(url, {
+      headers: {Accept: 'application/json'},
       signal: controller.signal
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP-Fehler ${response.status}`);
-    }
+    if (!r.ok) throw Error('HTTP ' + r.status);
 
-    return await response.json();
-
+    return await r.json();
   } finally {
     clearTimeout(timer);
   }
 }
 
-function encodeQuery(value) {
-  return encodeURIComponent(safeText(value, 500));
-}
+async function research(q) {
+  q = safe(q, 500);
 
-async function searchWikipedia(query) {
-  const url =
-    "https://de.wikipedia.org/api/rest_v1/page/summary/" +
-    encodeQuery(query);
+  if (!q) return 'Bitte Thema angeben.';
 
-  const result = await fetchJSON(url);
+  const requests = [
+    async () => {
+      const x = await fetchJSON(
+        'https://de.wikipedia.org/api/rest_v1/page/summary/' +
+        encodeURIComponent(q)
+      );
 
-  if (!result || !result.extract) return null;
+      return x?.extract ? {
+        source: 'Wikipedia',
+        title: x.title || q,
+        content: x.extract,
+        url: x.content_urls?.desktop?.page || ''
+      } : null;
+    },
 
-  return {
-    source: "Wikipedia",
-    title: result.title || query,
-    text: result.extract,
-    url: result.content_urls?.desktop?.page || ""
-  };
-}
+    async () => {
+      const x = await fetchJSON(
+        'https://www.wikidata.org/w/api.php?' +
+        'action=wbsearchentities&search=' +
+        encodeURIComponent(q) +
+        '&language=de&format=json&origin=*'
+      );
 
-async function searchWikidata(query) {
-  const url =
-    "https://www.wikidata.org/w/api.php?action=wbsearchentities" +
-    "&search=" + encodeQuery(query) +
-    "&language=de&format=json&origin=*";
+      const y = arr(x.search)[0];
 
-  const result = await fetchJSON(url);
+      return y ? {
+        source: 'Wikidata',
+        title: y.label || q,
+        content: y.description || '',
+        url: y.concepturi || ''
+      } : null;
+    },
 
-  const item = arr(result?.search)[0];
+    async () => {
+      const x = await fetchJSON(
+        'https://openlibrary.org/search.json?q=' +
+        encodeURIComponent(q) +
+        '&limit=5'
+      );
 
-  if (!item) return null;
+      return arr(x.docs).length ? {
+        source: 'Open Library',
+        title: 'Bücher zu ' + q,
+        content: x.docs.slice(0, 5).map(d =>
+          `${d.title} (${arr(d.author_name).join(', ')})`
+        ).join('\n'),
+        url: 'https://openlibrary.org/search?q=' +
+          encodeURIComponent(q)
+      } : null;
+    }
+  ];
 
-  return {
-    source: "Wikidata",
-    title: item.label || query,
-    text: [
-      item.description || "",
-      item.concepturi || ""
-    ].filter(Boolean).join("\n"),
-    url: item.concepturi || ""
-  };
-}
+  const results = await Promise.allSettled(
+    requests.map(fn => fn())
+  );
 
-async function searchOpenLibrary(query) {
-  const url =
-    "https://openlibrary.org/search.json?q=" +
-    encodeQuery(query) +
-    "&limit=5";
+  const rs = results
+    .filter(x => x.status === 'fulfilled' && x.value)
+    .map(x => x.value);
 
-  const result = await fetchJSON(url);
-
-  const books = arr(result?.docs).slice(0, 5);
-
-  if (!books.length) return null;
-
-  return {
-    source: "Open Library",
-    title: "Bücher zu " + query,
-    text: books.map(book => {
-      const authors = arr(book.author_name).join(", ");
-
-      return [
-        book.title || "Unbekannter Titel",
-        authors ? "Autor: " + authors : "",
-        book.first_publish_year
-          ? "Erstveröffentlichung: " + book.first_publish_year
-          : ""
-      ].filter(Boolean).join(" | ");
-    }).join("\n"),
-    url: "https://openlibrary.org/search?q=" + encodeQuery(query)
-  };
-}
-
-async function research(query) {
-  query = safeText(query, 1000);
-
-  if (!query) {
-    return "Bitte gib ein Recherchethema an.";
+  if (!rs.length) {
+    return 'Keine externen Ergebnisse abrufbar. Prüfe Internetverbindung oder Browser-Zugriff.';
   }
 
-  const searches = await Promise.allSettled([
-    searchWikipedia(query),
-    searchWikidata(query),
-    searchOpenLibrary(query)
-  ]);
-
-  const results = searches
-    .filter(item => item.status === "fulfilled" && item.value)
-    .map(item => item.value);
-
-  if (!results.length) {
-    return [
-      "Ich konnte gerade keine externen Rechercheergebnisse abrufen.",
-      "",
-      "Mögliche Gründe:",
-      "• Keine Internetverbindung",
-      "• Die Wissensquelle ist nicht erreichbar",
-      "• Der Browser blockiert die Anfrage",
-      "",
-      "Du kannst den Inhalt stattdessen mit „Lerne: ...“ speichern."
-    ].join("\n");
-  }
-
-  const imported = [];
-
-  for (const result of results) {
-    const text = [
-      result.title,
-      result.text,
-      result.url ? "Quelle: " + result.url : ""
-    ].filter(Boolean).join("\n");
-
-    const doc = importDocumentText(
-      text,
-      result.title,
-      "research"
+  for (const r of rs) {
+    importDocumentText(
+      r.content + '\nQuelle: ' + r.url,
+      r.title,
+      'research',
+      {source: r.source, url: r.url}
     );
-
-    imported.push({
-      ...result,
-      documentResult: doc
-    });
   }
 
-  return [
-    "RECHERCHEERGEBNISSE",
-    `Suchbegriff: ${query}`,
-    "",
-    ...imported.map(result => [
-      "QUELLE: " + result.source,
-      "Titel: " + result.title,
-      result.text,
-      result.url ? "Link: " + result.url : ""
-    ].filter(Boolean).join("\n\n")),
-    "",
-    `${results.length} Rechercheergebnis(se) wurden abgerufen und als Dokumente gespeichert.`,
-    "",
-    "Hinweis: Externe Rechercheergebnisse sollten vor der Verwendung überprüft werden."
-  ].join("\n\n");
+  return 'RECHERCHEERGEBNISSE\n\n' +
+    rs.map(r =>
+      `${r.source}: ${r.title}\n${r.content}\n${r.url}`
+    ).join('\n\n') +
+    '\n\nAls Dokumente gespeichert. Externe Angaben bitte prüfen.';
 }
 
 /* =====================================================
-   4. DOKUMENTENVERWALTUNG
-   ===================================================== */
-
-function importDocumentText(content, title = "Importiertes Dokument", type = "import") {
-  content = safeText(content, 1000000);
-  title = safeText(title, 250) || "Importiertes Dokument";
-  type = safeText(type, 100) || "import";
-
-  if (!content) {
-    return "Das Dokument enthält keinen Text.";
-  }
-
-  const existing = data.documents.find(document =>
-    normalize(document.title) === normalize(title) &&
-    normalize(document.content || "") === normalize(content)
-  );
-
-  if (existing) {
-    return "Dieses Dokument ist bereits gespeichert. Dokument-ID: " + existing.id;
-  }
-
-  const document = {
-    id: uid(),
-    title,
-    type,
-    content,
-    length: content.length,
-    created: now(),
-    updated: now()
-  };
-
-  data.documents.push(document);
-
-  remember(
-    "dokument",
-    `Dokument importiert: ${title}`,
-    { documentId: document.id, type }
-  );
-
-  logAudit(
-    "Dokumenten-KI",
-    "Dokument importiert",
-    title
-  );
-
-  save();
-
-  return [
-    "Dokument erfolgreich gespeichert.",
-    "Titel: " + title,
-    "Zeichen: " + content.length,
-    "Dokument-ID: " + document.id
-  ].join("\n");
-}
-
-function searchDocuments(query, limit = 10) {
-  query = safeText(query, 1000);
-
-  if (!query) return [];
-
-  return data.documents
-    .map(document => ({
-      document,
-      score: Math.max(
-        similarity(query, document.title),
-        similarity(query, document.content || "")
-      )
-    }))
-    .filter(result => result.score > 0.03)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, Math.max(1, Number(limit) || 10));
-}
-
-function summarizeDocument(id) {
-  const document = data.documents.find(item =>
-    item.id === id
-  );
-
-  if (!document) return "Dokument nicht gefunden.";
-
-  const content = safeText(document.content, 100000);
-
-  if (!content) return "Das Dokument enthält keinen Text.";
-
-  const sentences = content
-    .replace(/\s+/g, " ")
-    .match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
-
-  if (!sentences.length) return content.slice(0, 1500);
-
-  const selected = [];
-  const step = Math.max(1, Math.ceil(sentences.length / 8));
-
-  for (let i = 0; i < sentences.length; i += step) {
-    selected.push(sentences[i].trim());
-  }
-
-  return [
-    "ZUSAMMENFASSUNG",
-    "Dokument: " + document.title,
-    "",
-    ...selected.slice(0, 8).map(sentence => "• " + sentence),
-    "",
-    "Hinweis: Dies ist eine einfache automatische Textauswahl, keine vollständige semantische Zusammenfassung."
-  ].join("\n");
-}
-
-/* =====================================================
-   5. PROJEKTE UND AUFGABEN
-   ===================================================== */
-
-function createProject(title, description = "") {
-  title = safeText(title, 250);
-  description = safeText(description, 2000);
-
-  if (!title) return "Bitte gib einen Projektnamen an.";
-
-  const project = {
-    id: uid(),
-    title,
-    description,
-    created: now(),
-    updated: now(),
-    status: "offen"
-  };
-
-  data.projects.push(project);
-
-  logAudit("Projekt-KI", "Projekt erstellt", title);
-  save();
-
-  return [
-    "Projekt erstellt!",
-    "Name: " + title,
-    "Projekt-ID: " + project.id
-  ].join("\n");
-}
-
-function createTask(title, projectId = "") {
-  title = safeText(title, 500);
-  projectId = safeText(projectId, 200);
-
-  if (!title) return "Bitte gib einen Aufgabentitel an.";
-
-  if (
-    projectId &&
-    !data.projects.some(project => project.id === projectId)
-  ) {
-    return "Das angegebene Projekt wurde nicht gefunden.";
-  }
-
-  const task = {
-    id: uid(),
-    title,
-    projectId,
-    done: false,
-    created: now(),
-    completed: null
-  };
-
-  data.tasks.push(task);
-
-  logAudit("Projekt-KI", "Aufgabe erstellt", title);
-  save();
-
-  return [
-    "Aufgabe erstellt!",
-    "Titel: " + title,
-    "Aufgaben-ID: " + task.id
-  ].join("\n");
-}
-
-function completeTask(id) {
-  id = safeText(id, 200);
-
-  const task = data.tasks.find(item =>
-    item.id === id
-  );
-
-  if (!task) return "Aufgabe nicht gefunden.";
-
-  task.done = true;
-  task.completed = now();
-
-  logAudit(
-    "Projekt-KI",
-    "Aufgabe abgeschlossen",
-    task.title
-  );
-
-  save();
-
-  return "Aufgabe erledigt: " + task.title;
-}
-
-function listProjects() {
-  if (!data.projects.length) {
-    return "Es sind noch keine Projekte vorhanden.";
-  }
-
-  return [
-    "MEINE PROJEKTE",
-    "",
-    ...data.projects.map((project, index) => [
-      `${index + 1}. ${project.title}`,
-      `ID: ${project.id}`,
-      `Status: ${project.status || "offen"}`,
-      project.description || ""
-    ].filter(Boolean).join("\n"))
-  ].join("\n\n");
-}
-
-function listTasks() {
-  if (!data.tasks.length) {
-    return "Es sind noch keine Aufgaben vorhanden.";
-  }
-
-  return [
-    "MEINE AUFGABEN",
-    "",
-    ...data.tasks.map((task, index) => [
-      `${index + 1}. ${task.done ? "✓" : "○"} ${task.title}`,
-      `ID: ${task.id}`,
-      task.projectId ? `Projekt-ID: ${task.projectId}` : "",
-      `Erstellt: ${formatDate(task.created)}`
-    ].filter(Boolean).join("\n"))
-  ].join("\n\n");
-}
-
-/* =====================================================
-   6. CODE-PRÜFUNG
+   CODE-KI UND AGENTEN
    ===================================================== */
 
 function inspectCode(code) {
-  code = safeText(code, 100000);
+  code = safe(code, 100000);
 
-  const findings = [];
+  if (!code) return 'Bitte Quellcode angeben.';
 
-  if (!code) {
-    return {
-      valid: false,
-      findings: ["Kein Code zum Prüfen angegeben."]
-    };
-  }
+  const warnings = [];
 
   const rules = [
-    {
-      pattern: /eval\s*\(/,
-      level: "warnung",
-      message: "eval() gefunden. Die Ausführung dynamischen Codes kann gefährlich sein."
-    },
-    {
-      pattern: /innerHTML\s*=/,
-      level: "warnung",
-      message: "innerHTML-Zuweisung gefunden. Bei fremden Inhalten besteht XSS-Risiko."
-    },
-    {
-      pattern: /document\.write\s*\(/,
-      level: "hinweis",
-      message: "document.write() gefunden. Diese Methode sollte meist vermieden werden."
-    },
-    {
-      pattern: /localStorage\.clear\s*\(/,
-      level: "warnung",
-      message: "localStorage.clear() kann sämtliche lokalen Webseitendaten löschen."
-    },
-    {
-      pattern: /console\.log\s*\(/,
-      level: "hinweis",
-      message: "console.log() gefunden. Prüfe, ob Debug-Ausgaben entfernt werden sollen."
-    },
-    {
-      pattern: /TODO|FIXME/,
-      level: "hinweis",
-      message: "TODO- oder FIXME-Markierungen gefunden."
-    },
-    {
-      pattern: /catch\s*\([^)]*\)\s*\{\s*\}/,
-      level: "warnung",
-      message: "Leerer catch-Block gefunden. Fehler werden möglicherweise verschluckt."
-    }
+    [/\beval\s*\(/, 'eval() gefunden'],
+    [/\.innerHTML\s*=/, 'innerHTML-Zuweisung: XSS-Risiko'],
+    [/localStorage\.clear\s*\(/, 'localStorage.clear() löscht lokale Daten'],
+    [/document\.write\s*\(/, 'document.write() gefunden'],
+    [/\bTODO\b|\bFIXME\b/, 'TODO/FIXME gefunden']
   ];
 
-  for (const rule of rules) {
-    if (rule.pattern.test(code)) {
-      findings.push({
-        level: rule.level,
-        message: rule.message
-      });
+  for (const [re, msg] of rules) {
+    if (re.test(code)) {
+      warnings.push('• ' + msg);
     }
   }
 
-  const openBraces = (code.match(/\{/g) || []).length;
-  const closeBraces = (code.match(/\}/g) || []).length;
+  return `CODE-PRÜFUNG
+Zeilen: ${code.split('\n').length}
+${warnings.join('\n') || 'Keine einfachen Musterwarnungen.'}
 
-  if (openBraces !== closeBraces) {
-    findings.push({
-      level: "warnung",
-      message: `Klammeranzahl auffällig: ${openBraces} öffnende und ${closeBraces} schließende geschweifte Klammern.`
-    });
-  }
-
-  const openParens = (code.match(/\(/g) || []).length;
-  const closeParens = (code.match(/\)/g) || []).length;
-
-  if (openParens !== closeParens) {
-    findings.push({
-      level: "warnung",
-      message: `Klammeranzahl auffällig: ${openParens} öffnende und ${closeParens} schließende runde Klammern.`
-    });
-  }
-
-  return {
-    valid: true,
-    findings,
-    length: code.length,
-    lines: code.split("\n").length
-  };
+Hinweis: Keine vollständige Syntax- oder Sicherheitsprüfung.`;
 }
 
-function inspectCodeReport(code) {
-  const result = inspectCode(code);
-
-  if (!result.valid) {
-    return result.findings.join("\n");
-  }
-
-  const lines = [
-    "CODE-PRÜFUNG",
-    "",
-    `Zeichen: ${result.length}`,
-    `Zeilen: ${result.lines}`,
-    ""
+function agents() {
+  const names = [
+    'Lern-KI',
+    'Analyse-KI',
+    'Recherche-KI',
+    'Gedächtnis-KI',
+    'Projekt-KI',
+    'Dokumenten-KI',
+    'Code-KI',
+    'Antwort-KI',
+    'Meta-KI'
   ];
 
-  if (!result.findings.length) {
-    lines.push("Keine Auffälligkeiten durch die einfachen Prüfregeln gefunden.");
-  } else {
-    lines.push(
-      ...result.findings.map(item =>
-        `[${item.level.toUpperCase()}] ${item.message}`
-      )
-    );
+  return 'KI-AGENTEN\n' +
+    names.map(x => '• ' + x).join('\n') +
+    '\nRegelbasierte Module, kein lokal installiertes Sprachmodell.';
+}
+
+function help() {
+  return `LERNBOT 6.0 – PAKET 2
+
+Lerne: Mars: Durchmesser – 6.779 Kilometer
+Lerne: [längerer Text]
+Wissen: Mars
+Erkläre: Mars
+Wissensübersicht
+Wissensanalyse
+Analysiere: Mars
+Konflikte
+Fakt anzeigen: Mars: Durchmesser
+Fakt korrigieren: Mars: Durchmesser = 6.780 Kilometer
+Fakt löschen: Mars: Durchmesser
+Änderung bestätigen
+Änderung abbrechen
+Verbinde: Mars: ist ein: Planet
+Wissensgraph: Mars
+Merke dir: ...
+Erinnerungen
+Vergiss: ...
+Vergiss bestätigen
+Vergiss abbrechen
+Recherchiere: Mars
+Dokumente
+Dokument suchen: ...
+Dokument zusammenfassen: ID
+Projekt erstellen: ...
+Projekte
+Aufgabe erstellen: ...
+Aufgaben
+Aufgabe erledigt: ID
+Agenten
+Sicherung erstellen
+Sicherungen
+Sicherung wiederherstellen: ID
+Auto-Sicherungen
+Auto-Sicherung exportieren: NUMMER
+Auto-Sicherung wiederherstellen: NUMMER
+Export
+Code prüfen: ...
+
+Normale Fragen und kurze Rückfragen zum letzten Thema sind möglich.`;
+}
+
+function command(s, prefix) {
+  const i = s.indexOf(':');
+
+  return i >= 0 &&
+    norm(s.slice(0, i)) === norm(prefix)
+    ? s.slice(i + 1).trim()
+    : null;
+}
+
+function knowledge(q) {
+  const direct = question(q);
+
+  if (direct) return direct;
+
+  const fs = factsFor(q);
+
+  if (fs.length) {
+    return fs.map(f => factInfo(f)).join('\n');
   }
 
-  lines.push(
-    "",
-    "Wichtig: Diese Prüfung ist eine einfache statische Musterprüfung. Sie ersetzt keinen JavaScript-Parser, Compiler oder Sicherheitstest."
-  );
+  const d = docAnswer(q);
 
-  return lines.join("\n");
+  if (d) return d;
+
+  const r = related(q, 5);
+
+  return r.length
+    ? 'VERWANDTES WISSEN\n' +
+      r.map(f => '• ' + factInfo(f)).join('\n')
+    : `Zu „${q}“ habe ich noch keine passenden Informationen gespeichert.`;
 }
 
 /* =====================================================
-   7. SICHERUNGEN (SNAPSHOTS)
+   ZENTRALE BEFEHLSVERARBEITUNG
    ===================================================== */
 
-function createSnapshot(label = "Automatische Sicherung") {
-  const snapshotData = clone(data);
+async function handle(input) {
+  const s = safe(input, 100000);
+  const n = norm(s);
 
-  /*
-     Sicherungen nicht ineinander verschachteln.
-     Sonst wächst jede neue Sicherung unnötig.
-  */
+  if (!s) return 'Bitte Nachricht eingeben.';
 
-  snapshotData.snapshots = [];
+  let v;
 
-  const snapshot = {
-    id: uid(),
-    label: safeText(label, 200) || "Sicherung",
-    created: now(),
-    data: snapshotData
-  };
-
-  data.snapshots.push(snapshot);
-  data.snapshots = data.snapshots.slice(-30);
-
-  logAudit(
-    "System",
-    "Sicherung erstellt",
-    snapshot.label
-  );
-
-  save();
-
-  return snapshot;
-}
-
-/*
-   GEÄNDERT (Paket 1): Vor jeder Wiederherstellung wird der aktuelle
-   Stand automatisch separat gesichert ("vorRestore"). Gelingt diese
-   Sicherung nicht, wird die Wiederherstellung abgebrochen.
-   Schlägt das Speichern fehl, wird der vorherige Stand zurückgesetzt.
-*/
-
-function restoreSnapshot(id) {
-  id = safeText(id, 200);
-
-  const snapshot = data.snapshots.find(item =>
-    item.id === id
-  );
-
-  if (!snapshot || !obj(snapshot.data)) {
-    return "Sicherung nicht gefunden oder beschädigt.";
+  if (
+    (pending?.type === 'forget' && n === 'vergiss bestatigen') ||
+    n === 'anderung bestatigen'
+  ) {
+    return confirmChange();
   }
 
-  const wasLocked = storageLocked;
-  let backupName = null;
-
-  if (wasLocked) {
-    const lockError = tryUnlockStorage();
-    if (lockError) return lockError;
-  } else {
-    backupName = writeAutoBackup("vorRestore", backupJson(), { keep: 2 });
-
-    if (!backupName) {
-      return "Wiederherstellung abgebrochen: Die automatische Sicherung des aktuellen Stands war nicht möglich (vermutlich ist der Browser-Speicher voll). Bitte erstelle zuerst einen Export.";
-    }
+  if (
+    n === 'vergiss abbrechen' ||
+    n === 'anderung abbrechen'
+  ) {
+    pending = null;
+    return 'Änderung abgebrochen.';
   }
 
-  const before = clone(data);
-  const currentSnapshots = arr(data.snapshots);
-  const backup = clone(snapshot.data);
+  if (context.awaiting) {
+    const answer = clarify(s);
 
-  for (const key of Object.keys(defaults)) {
-    if (key === "snapshots") continue;
+    if (answer) return answer;
 
-    if (backup[key] !== undefined) {
-      data[key] = clone(backup[key]);
-    }
+    context.awaiting = null;
   }
 
-  data.snapshots = currentSnapshots;
-
-  for (const key of arrayKeys) {
-    if (!Array.isArray(data[key])) data[key] = [];
+  if (n === 'hilfe' || n === 'befehle') {
+    return help();
   }
 
-  if (!obj(data.settings)) {
-    data.settings = clone(defaults.settings);
+  if (['hi', 'hallo', 'hey', 'guten tag'].includes(n)) {
+    return 'Hallo! Ich bin ' + NAME + '.';
   }
 
-  if (!obj(data.agentStats)) {
-    data.agentStats = {};
+  if ((v = command(s, 'Lerne')) !== null) {
+    return learn(v);
   }
 
-  data.version = VERSION;
+  if (
+    (v = command(s, 'Merke dir')) !== null ||
+    (v = command(s, 'Merke')) !== null
+  ) {
+    const x = remember('notiz', v);
 
-  logAudit(
-    "System",
-    "Sicherung wiederhergestellt",
-    snapshot.label
-  );
-
-  if (!save()) {
-    data = before;
-    storageLocked = wasLocked;
-
-    return "Wiederherstellung fehlgeschlagen: Die Daten konnten nicht gespeichert werden. Der vorherige Stand bleibt erhalten.";
+    return x
+      ? 'Erinnerung gespeichert. ID: ' + x.id
+      : 'Bitte Inhalt angeben.';
   }
 
-  return [
-    "Die Sicherung wurde wiederhergestellt. Bitte lade die Seite neu, falls die Oberfläche nicht alle Änderungen anzeigt.",
-    backupName
-      ? "Der vorherige Stand wurde automatisch gesichert unter: " + backupName
-      : ""
-  ].filter(Boolean).join("\n");
+  if (
+    n === 'erinnerungen' ||
+    n === 'zeige erinnerungen'
+  ) {
+    return data.memory.length
+      ? data.memory.map((x, i) =>
+          `${i + 1}. ${x.content}
+ID: ${x.id}
+Typ: ${x.type}
+Erstellt: ${date(x.created)}`
+        ).join('\n\n')
+      : 'Keine Erinnerungen.';
+  }
+
+  if ((v = command(s, 'Vergiss')) !== null) {
+    return forget(v);
+  }
+
+  if (
+    n === 'wissensubersicht' ||
+    n === 'was weisst du'
+  ) {
+    return listFacts();
+  }
+
+  if (n === 'wissensanalyse') {
+    return analyze();
+  }
+
+  if (n === 'konflikte') {
+    return conflictList();
+  }
+
+  if ((v = command(s, 'Fakt anzeigen')) !== null) {
+    const m = v.match(/^(.+?)\s*:\s*(.+)$/);
+    const f = m && findFact(m[1], m[2]);
+
+    return f
+      ? factInfo(f, true)
+      : 'Fakt nicht gefunden. Format: Fakt anzeigen: Thema: Eigenschaft';
+  }
+
+  if ((v = command(s, 'Fakt korrigieren')) !== null) {
+    return editFact(v);
+  }
+
+  if ((v = command(s, 'Fakt löschen')) !== null) {
+    return deleteFact(v);
+  }
+
+  if ((v = command(s, 'Verbinde')) !== null) {
+    const m = v.match(/^(.+?)\s*:\s*(.+?)\s*:\s*(.+)$/);
+
+    return m && graph(m[1], m[2], m[3])
+      ? 'Verbindung gespeichert.'
+      : 'Format: Verbinde: Thema A: Beziehung: Thema B';
+  }
+
+  if ((v = command(s, 'Wissensgraph')) !== null) {
+    return graphReport(v);
+  }
+
+  if (
+    (v = command(s, 'Wissen')) !== null ||
+    (v = command(s, 'Erkläre')) !== null
+  ) {
+    return knowledge(v);
+  }
+
+  if ((v = command(s, 'Analysiere')) !== null) {
+    return analyze(v);
+  }
+
+  if ((v = command(s, 'Recherchiere')) !== null) {
+    return await research(v);
+  }
+
+  if (n === 'dokumente') {
+    return docs();
+  }
+
+  if ((v = command(s, 'Dokument suchen')) !== null) {
+    return docs(v);
+  }
+
+  if ((v = command(s, 'Dokument zusammenfassen')) !== null) {
+    return summarize(v);
+  }
+
+  if (n === 'projekte') {
+    return projects();
+  }
+
+  if ((v = command(s, 'Projekt erstellen')) !== null) {
+    return v
+      ? project(v)
+      : 'Bitte Projektnamen angeben.';
+  }
+
+  if (n === 'aufgaben') {
+    return tasks();
+  }
+
+  if ((v = command(s, 'Aufgabe erstellen')) !== null) {
+    return v
+      ? task(v)
+      : 'Bitte Aufgabentitel angeben.';
+  }
+
+  if ((v = command(s, 'Aufgabe erledigt')) !== null) {
+    return taskDone(v);
+  }
+
+  if (n === 'agenten') {
+    return agents();
+  }
+
+  if (
+    n === 'sicherung erstellen' ||
+    n === 'sicherung speichern'
+  ) {
+    return snapshot();
+  }
+
+  if (n === 'sicherungen') {
+    return snapshots();
+  }
+
+  if ((v = command(s, 'Sicherung wiederherstellen')) !== null) {
+    return restoreSnapshot(v);
+  }
+
+  if (
+    n === 'auto sicherungen' ||
+    n === 'autosicherungen'
+  ) {
+    return autoList();
+  }
+
+  if ((v = command(s, 'Auto-Sicherung wiederherstellen')) !== null) {
+    return autoRestore(v);
+  }
+
+  if ((v = command(s, 'Auto-Sicherung exportieren')) !== null) {
+    return autoExport(v);
+  }
+
+  if (
+    n === 'export' ||
+    n === 'daten exportieren'
+  ) {
+    return exportData();
+  }
+
+  if ((v = command(s, 'Code prüfen')) !== null) {
+    return inspectCode(v);
+  }
+
+  return knowledge(s);
 }
 
 /* =====================================================
-   7a. AUTOMATISCHE SICHERUNGEN – VERWALTUNG (NEU)
-   ===================================================== */
-
-/* Nummer (1, 2, ...) oder vollständiger Name → Name der Sicherung */
-
-function resolveAutoBackup(reference) {
-  reference = safeText(reference, 300);
-
-  if (!reference) return null;
-
-  const names = listAutoBackups();
-
-  if (/^\d+$/.test(reference)) {
-    return names[Number(reference) - 1] || null;
-  }
-
-  return names.includes(reference) ? reference : null;
-}
-
-function readAutoBackup(name) {
-  try {
-    return localStorage.getItem(name);
-  } catch (error) {
-    console.warn("LernBot: Sicherung nicht lesbar.", error);
-    return null;
-  }
-}
-
-function restoreAutoBackup(reference) {
-  const name = resolveAutoBackup(reference);
-
-  if (!name) {
-    return "Sicherung nicht gefunden. Mit „Auto-Sicherungen“ siehst du die Liste.";
-  }
-
-  const afterPrefix = name.slice(BACKUP_PREFIX.length);
-
-  if (afterPrefix.startsWith("verworfen-")) {
-    return "Diese Kopie enthält nur aussortierte Einzeleinträge und keinen kompletten Datenbestand. Sie kann nicht wiederhergestellt, aber mit „Auto-Sicherung exportieren: " + reference + "“ als Datei gesichert werden.";
-  }
-
-  const raw = readAutoBackup(name);
-
-  if (!raw) return "Die Sicherung ist leer oder nicht lesbar.";
-
-  let parsed;
-
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return "Diese Sicherung enthält beschädigtes JSON und kann nicht automatisch wiederhergestellt werden. Du kannst sie mit „Auto-Sicherung exportieren: " + reference + "“ als Datei sichern.";
-  }
-
-  if (!obj(parsed)) {
-    return "Diese Sicherung enthält kein gültiges Datenobjekt.";
-  }
-
-  const wasLocked = storageLocked;
-  let backupName = null;
-
-  if (wasLocked) {
-    const lockError = tryUnlockStorage();
-    if (lockError) return lockError;
-  } else {
-    backupName = writeAutoBackup("vorRestore", backupJson(), { keep: 2 });
-
-    if (!backupName) {
-      return "Wiederherstellung abgebrochen: Die automatische Sicherung des aktuellen Stands war nicht möglich (vermutlich ist der Browser-Speicher voll). Bitte erstelle zuerst einen Export.";
-    }
-  }
-
-  const before = clone(data);
-  const currentSnapshots = arr(data.snapshots);
-
-  startupNotices.length = 0;
-
-  data = clone(parsed);
-  ensureStructure();
-
-  /* Auto-Sicherungen enthalten oft keine Snapshots: dann die aktuellen behalten */
-
-  if (!data.snapshots.length) {
-    data.snapshots = currentSnapshots;
-  }
-
-  logAudit(
-    "System",
-    "Auto-Sicherung wiederhergestellt",
-    name
-  );
-
-  if (!save()) {
-    data = before;
-    storageLocked = wasLocked;
-
-    return "Wiederherstellung fehlgeschlagen: Die Daten konnten nicht gespeichert werden. Der vorherige Stand bleibt erhalten.";
-  }
-
-  const notices = startupNotices.splice(0);
-
-  return [
-    "Die Auto-Sicherung wurde wiederhergestellt.",
-    "",
-    `Fakten: ${data.facts.length}`,
-    `Erinnerungen: ${data.memory.length}`,
-    `Dokumente: ${data.documents.length}`,
-    backupName
-      ? "Der vorherige Stand wurde automatisch gesichert unter: " + backupName
-      : "",
-    ...notices,
-    "",
-    "Bitte lade die Seite neu, falls die Oberfläche nicht alle Änderungen anzeigt."
-  ].filter(item => item !== undefined).join("\n");
-}
-
-/* =====================================================
-   8. DATENEXPORT
-   ===================================================== */
-
-function exportData() {
-  const output = clone(data);
-
-  output.version = VERSION;
-  output.exportedAt = now();
-  output.application = NAME;
-
-  return JSON.stringify(output, null, 2);
-}
-
-/* =====================================================
-   9. DATENIMPORT (GEÄNDERT)
-
-   Bisher ersetzte der Import vorhandene Bereiche komplett.
-   Jetzt gilt:
-   - Vor dem Import wird der aktuelle Stand automatisch gesichert
-     ("vorImport"). Gelingt das nicht, wird abgebrochen.
-   - Der Import ERGÄNZT: Vorhandenes wird nie überschrieben oder gelöscht.
-     Doppelte Einträge werden übersprungen.
-   - Weicht der Wert eines bereits bekannten Fakts ab, bleibt der
-     vorhandene Wert, der importierte wird als Alternative vermerkt und
-     der Fakt als Konflikt markiert.
-   - Einstellungen und Theme bleiben unverändert.
-   ===================================================== */
-
-const IMPORT_AREAS = [
-  "facts",
-  "qa",
-  "classes",
-  "log",
-  "audit",
-  "improvements",
-  "codeProposals",
-  "projects",
-  "tasks",
-  "documents",
-  "relationships",
-  "memory",
-  "snapshots"
-];
-
-const IMPORT_VALID = {
-  facts: item =>
-    obj(item) &&
-    typeof item.subject === "string" &&
-    typeof item.property === "string" &&
-    typeof item.value === "string",
-
-  qa: item =>
-    obj(item) &&
-    typeof item.k === "string" &&
-    typeof item.a === "string",
-
-  relationships: item =>
-    obj(item) &&
-    typeof item.from === "string" &&
-    typeof item.to === "string" &&
-    typeof item.relation === "string",
-
-  memory: item =>
-    obj(item) &&
-    typeof item.content === "string" &&
-    typeof item.type === "string"
-};
-
-function importKeys(area, item) {
-  const idKey = item.id ? "id:" + item.id : null;
-
-  switch (area) {
-    case "qa":
-      return [idKey, "q:" + fold(item.k) + "|" + fold(item.a)];
-
-    case "relationships":
-      return [
-        idKey,
-        "r:" + fold(cleanSubject(item.from)) + "|" +
-          fold(item.relation) + "|" +
-          fold(cleanSubject(item.to))
-      ];
-
-    case "memory":
-      return [
-        "m:" + item.type + "|" + normalize(item.content)
-      ];
-
-    case "documents":
-      return [
-        idKey,
-        "d:" + String(item.title) + "\u0000" + String(item.content ?? "")
-      ];
-
-    default:
-      return [idKey || "j:" + JSON.stringify(item)];
-  }
-}
-
-function mergeImportedArea(area, incoming) {
-  const target = data[area];
-  const valid = IMPORT_VALID[area] || obj;
-
-  const known = new Set();
-
-  for (const item of target) {
-    for (const key of importKeys(area, item)) {
-      if (key) known.add(key);
-    }
-  }
-
-  const result = { added: 0, skipped: 0, invalid: 0 };
-
-  for (const item of incoming) {
-    if (!valid(item)) {
-      result.invalid++;
-      continue;
-    }
-
-    const keys = importKeys(area, item).filter(Boolean);
-
-    if (keys.some(key => known.has(key))) {
-      result.skipped++;
-      continue;
-    }
-
-    target.push(item);
-
-    for (const key of keys) known.add(key);
-
-    result.added++;
-  }
-
-  return result;
-}
-
-function mergeImportedFacts(incoming) {
-  const result = { added: 0, skipped: 0, invalid: 0, conflicts: 0 };
-
-  for (const item of incoming) {
-    if (!IMPORT_VALID.facts(item)) {
-      result.invalid++;
-      continue;
-    }
-
-    const wantedKey = propKey(item.property);
-
-    const existing = data.facts.find(fact =>
-      sameSubject(fact.subject, item.subject) &&
-      propKey(fact.property) === wantedKey
-    );
-
-    if (!existing) {
-      if (!item.id) item.id = uid();
-
-      data.facts.push(item);
-      result.added++;
-      continue;
-    }
-
-    if (normalize(existing.value) === normalize(item.value)) {
-      result.skipped++;
-      continue;
-    }
-
-    existing.alternatives = arr(existing.alternatives);
-
-    const alreadyKnown = existing.alternatives.some(alt =>
-      obj(alt) && normalize(alt.value) === normalize(item.value)
-    );
-
-    if (!alreadyKnown) {
-      existing.alternatives.push({
-        value: item.value,
-        source: safeText(item.source, 100) || "import",
-        time: now()
-      });
-    }
-
-    existing.conflict = true;
-    result.conflicts++;
-  }
-
-  return result;
-}
-
-function importData(json) {
-  let parsed;
-
-  try {
-    parsed = typeof json === "string"
-      ? JSON.parse(json)
-      : json;
-  } catch {
-    return "Import fehlgeschlagen: Die JSON-Datei ist ungültig.";
-  }
-
-  if (!obj(parsed)) {
-    return "Import fehlgeschlagen: Das Datenformat ist ungültig.";
-  }
-
-  const imported = clone(parsed);
-
-  /*
-     Legacy-Kompatibilität:
-     "memories" wird zu "memory".
-  */
-
-  if (!Array.isArray(imported.memory) && Array.isArray(imported.memories)) {
-    imported.memory = imported.memories;
-  }
-
-  const hasKnownData =
-    IMPORT_AREAS.some(key => Array.isArray(imported[key])) ||
-    obj(imported.agentStats);
-
-  if (!hasKnownData) {
-    return "Import fehlgeschlagen: Die Datei enthält keine bekannten LernBot-Daten. Es wurde nichts verändert.";
-  }
-
-  /* Automatische Sicherung VOR dem Import */
-
-  const wasLocked = storageLocked;
-  let backupName = null;
-
-  if (wasLocked) {
-    const lockError = tryUnlockStorage();
-    if (lockError) return lockError;
-  } else {
-    backupName = writeAutoBackup("vorImport", backupJson(), { keep: 2 });
-
-    if (!backupName) {
-      return "Import abgebrochen: Die automatische Sicherung des aktuellen Stands war nicht möglich (vermutlich ist der Browser-Speicher voll). Es wurde nichts verändert. Bitte erstelle zuerst einen Export.";
-    }
-  }
-
-  const before = clone(data);
-  const report = [];
-
-  try {
-    for (const area of IMPORT_AREAS) {
-      if (!Array.isArray(imported[area])) continue;
-
-      const result = area === "facts"
-        ? mergeImportedFacts(imported[area])
-        : mergeImportedArea(area, imported[area]);
-
-      const label = {
-        facts: "Fakten",
-        qa: "Frage-Antwort-Paare",
-        classes: "Klassen",
-        log: "Verlauf",
-        audit: "Protokoll",
-        improvements: "Verbesserungen",
-        codeProposals: "Codevorschläge",
-        projects: "Projekte",
-        tasks: "Aufgaben",
-        documents: "Dokumente",
-        relationships: "Verknüpfungen",
-        memory: "Erinnerungen",
-        snapshots: "Sicherungen"
-      }[area];
-
-      if (result.added || result.skipped || result.invalid || result.conflicts) {
-        report.push(
-          `${label}: ${result.added} neu, ${result.skipped} schon vorhanden` +
-          (result.conflicts ? `, ${result.conflicts} abweichende Werte (als Konflikt vermerkt)` : "") +
-          (result.invalid ? `, ${result.invalid} ungültig übersprungen` : "")
-        );
-      }
-    }
-
-    if (obj(imported.agentStats)) {
-      for (const [name, count] of Object.entries(imported.agentStats)) {
-        const value = Number(count) || 0;
-
-        if (value > (Number(data.agentStats[name]) || 0)) {
-          data.agentStats[name] = value;
-        }
-      }
-    }
-
-    delete data.memories;
-    data.version = VERSION;
-
-    logAudit(
-      "System",
-      "Datenimport abgeschlossen",
-      backupName ? "Sicherung: " + backupName : "JSON-Import"
-    );
-
-    if (!save()) {
-      data = before;
-      storageLocked = wasLocked;
-
-      return "Import fehlgeschlagen: Die Daten konnten nicht dauerhaft gespeichert werden. Der vorherige Datenstand bleibt erhalten.";
-    }
-
-    return [
-      "Datenimport erfolgreich abgeschlossen (ergänzend, nichts wurde überschrieben).",
-      "",
-      ...(report.length ? report : ["Es gab nichts Neues zu importieren."]),
-      "",
-      `Fakten gesamt: ${data.facts.length}`,
-      `Erinnerungen gesamt: ${data.memory.length}`,
-      `Dokumente gesamt: ${data.documents.length}`,
-      `Projekte gesamt: ${data.projects.length}`,
-      `Aufgaben gesamt: ${data.tasks.length}`,
-      `Wissensverbindungen gesamt: ${data.relationships.length}`,
-      "",
-      backupName
-        ? "Der Stand vor dem Import wurde automatisch gesichert unter: " + backupName
-        : "Hinweis: Eine Rettungskopie des beschädigten Originals liegt weiterhin im Browser-Speicher."
-    ].join("\n");
-
-  } catch (error) {
-    data = before;
-    storageLocked = wasLocked;
-
-    console.error("Importfehler:", error);
-
-    return "Import fehlgeschlagen. Der vorherige Datenstand wurde wiederhergestellt:\n" + error.message;
-  }
-}
-
-/* =====================================================
-   ENDE TEIL 2/3
-   TEIL 3 DIREKT DARUNTER EINFÜGEN
-   ===================================================== */
- /* =====================================================
-   LERNBOT 6.0 – TEIL 3/3 (PAKET 1)
-   CHAT, LERNEN, BEFEHLE, DATEIEN UND BENUTZEROBERFLÄCHE
-   ===================================================== */
-
-/* =====================================================
-   1. BENUTZEROBERFLÄCHE
+   BENUTZEROBERFLÄCHE
    ===================================================== */
 
 const UI = {
-  input() {
-    return $("input") ||
-      $("lb6-input") ||
-      $("chat-input") ||
-      $("user-input");
-  },
+  input: () =>
+    $('input') ||
+    $('lb6-input') ||
+    $('chat-input') ||
+    $('user-input') ||
+    $('lb6-fallback-input'),
 
-  chat() {
-    return $("log") ||
-      $("lb6-chat") ||
-      $("chat-messages") ||
-      $("messages");
-  },
+  chat: () =>
+    $('log') ||
+    $('lb6-chat') ||
+    $('chat-messages') ||
+    $('messages') ||
+    $('lb6-fallback-chat'),
 
-  send() {
-    return $("send") ||
-      $("lb6-send") ||
-      $("send-button") ||
-      $("send-btn");
-  },
-
-  form() {
-    return $("bar");
-  },
-
-  status() {
-    return $("status");
-  }
+  send: () =>
+    $('send') ||
+    $('lb6-send') ||
+    $('send-button') ||
+    $('send-btn') ||
+    $('lb6-fallback-send')
 };
-
-let lb6Busy = false;
-let lb6MessageCounter = 0;
-
-/* Wartende Löschbestätigung für Erinnerungen (nur im Arbeitsspeicher) */
-
-let pendingForget = null;
-const FORGET_CONFIRM_MS = 5 * 60 * 1000;
-
-/* =====================================================
-   2. CHAT-NACHRICHTEN
-   ===================================================== */
 
 function addMessage(role, content) {
   const chat = UI.chat();
-  const messageText = asReadable(content);
 
   if (!chat) {
-    console.log(`[LernBot ${role}]`, messageText);
-    return null;
+    console.log('LernBot', role, content);
+    return;
   }
 
-  const message = document.createElement("div");
+  const e = document.createElement('div');
 
-  /*
-     Die Klassen passen zur neuen HTML-Oberfläche:
-     .msg, .user und .bot
-  */
+  e.className = role === 'user'
+    ? 'msg user'
+    : 'msg bot' + (role === 'system' ? ' system' : '');
 
-  message.className =
-    role === "user"
-      ? "msg user"
-      : role === "system"
-        ? "msg bot system"
-        : "msg bot";
+  const body = document.createElement('div');
+  body.className = 'lb6-message-content';
+  body.textContent = text(content);
 
-  message.dataset.messageId =
-    "lb6-message-" + (++lb6MessageCounter);
-
-  const body = document.createElement("div");
-  body.className = "lb6-message-content";
-  body.textContent = messageText;
-
-  message.appendChild(body);
-  chat.appendChild(message);
-
+  e.appendChild(body);
+  chat.appendChild(e);
   chat.scrollTop = chat.scrollHeight;
-
-  return message;
-}
-
-function addTyping() {
-  const chat = UI.chat();
-  if (!chat) return null;
-
-  const element = document.createElement("div");
-
-  element.className = "msg bot lb6-typing";
-  element.textContent = "LernBot denkt nach ...";
-
-  chat.appendChild(element);
-  chat.scrollTop = chat.scrollHeight;
-
-  return element;
-}
-
-function removeTyping(element) {
-  if (element?.parentNode) {
-    element.parentNode.removeChild(element);
-  }
 }
 
 function clearChat() {
-  const chat = UI.chat();
-
-  if (chat) {
-    chat.replaceChildren();
-  }
+  UI.chat()?.replaceChildren();
 
   addMessage(
-    "assistant",
-    "Neuer Chat gestartet. Dein gespeichertes Wissen bleibt erhalten."
+    'assistant',
+    'Neuer Chat. Dein gespeichertes Wissen bleibt erhalten.'
   );
+
+  context = {
+    subject: '',
+    property: '',
+    awaiting: null
+  };
+}
+
+async function send() {
+  if (busy) return;
+
+  const input = UI.input();
+  const btn = UI.send();
+
+  if (!input) return;
+
+  const s = safe(input.value, 100000);
+
+  if (!s) return;
+
+  busy = true;
+
+  if (btn) btn.disabled = true;
+
+  input.value = '';
+  addMessage('user', s);
+
+  const typing = document.createElement('div');
+  typing.className = 'msg bot lb6-typing';
+  typing.textContent = 'LernBot denkt nach ...';
+
+  UI.chat()?.appendChild(typing);
+
+  try {
+    const response = await handle(s);
+
+    typing.remove();
+    addMessage('assistant', response);
+
+    data.log.push({
+      id: uid(),
+      time: now(),
+      text: s,
+      response: safe(response, 1000)
+    });
+
+    save();
+  } catch (e) {
+    typing.remove();
+    console.error(e);
+
+    addMessage(
+      'assistant',
+      'Fehler: ' + e.message
+    );
+  } finally {
+    busy = false;
+
+    if (btn) btn.disabled = false;
+  }
+}
+
+function bind(el, event, fn) {
+  if (!el || el.dataset.lb6Bound === 'true') {
+    return;
+  }
+
+  el.dataset.lb6Bound = 'true';
+  el.addEventListener(event, fn);
 }
 
 /* =====================================================
-   3. MINIMALE ZUSATZSTILE
+   DATEIIMPORT
    ===================================================== */
 
-function installStyles() {
-  if ($("lb6-styles")) return;
+function fileInput() {
+  let el = $('lb6-file');
 
-  const style = document.createElement("style");
-  style.id = "lb6-styles";
+  if (el) return el;
+
+  el = document.createElement('input');
+  el.id = 'lb6-file';
+  el.type = 'file';
+  el.accept = '.txt,.md,.json,.csv,.html,.js,.css';
+  el.style.display = 'none';
+
+  document.body.appendChild(el);
+
+  return el;
+}
+
+async function fileChanged(e) {
+  const f = e.target.files?.[0];
+
+  if (!f) return;
+
+  try {
+    const s = await f.text();
+
+    const response = f.name.toLowerCase().endsWith('.json')
+      ? importData(s)
+      : importDocumentText(s, f.name, 'file-import');
+
+    addMessage('assistant', response);
+  } catch (err) {
+    addMessage(
+      'assistant',
+      'Dateiimport fehlgeschlagen: ' + err.message
+    );
+  } finally {
+    e.target.value = '';
+  }
+}
+
+/* =====================================================
+   ERSATZOBERFLÄCHE
+   ===================================================== */
+
+function fallback() {
+  if (UI.input() && UI.chat()) return;
+
+  const root = document.createElement('section');
+
+  root.style.cssText =
+    'max-width:850px;margin:20px auto;padding:20px;' +
+    'background:#20202e;color:white;border-radius:16px;' +
+    'font-family:Arial';
+
+  root.innerHTML = `
+    <h2>LernBot 6.0</h2>
+    <div
+      id="lb6-fallback-chat"
+      style="height:55vh;overflow:auto;padding:12px;background:#11111a"
+    ></div>
+    <textarea
+      id="lb6-fallback-input"
+      style="width:85%;height:65px"
+    ></textarea>
+    <button id="lb6-fallback-send">Senden</button>
+  `;
+
+  document.body.appendChild(root);
+}
+
+/* =====================================================
+   SIDEBAR
+   ===================================================== */
+
+function sidebar(label, cmd) {
+  const c = norm(cmd);
+  const l = norm(label);
+
+  if (c === 'theme' || l.includes('theme')) {
+    data.theme = data.theme === 'dark'
+      ? 'light'
+      : 'dark';
+
+    document.documentElement.dataset.theme = data.theme;
+    document.body.dataset.theme = data.theme;
+
+    save();
+    addMessage('system', 'Theme: ' + data.theme);
+    return;
+  }
+
+  if (c === 'import' || l.includes('import')) {
+    fileInput().click();
+    return;
+  }
+
+  if (c === 'export' || l.includes('export')) {
+    addMessage('system', exportData());
+    return;
+  }
+
+  if (
+    c === 'refresh' ||
+    l.includes('aktualisieren')
+  ) {
+    location.reload();
+    return;
+  }
+
+  if (c === 'verlauf loschen') {
+    if (confirm('Chatverlauf wirklich löschen? Wissen bleibt erhalten.')) {
+      data.log = [];
+      save();
+      clearChat();
+    }
+
+    return;
+  }
+
+  if (l.includes('neuer chat')) {
+    clearChat();
+    return;
+  }
+
+  if (l.includes('chatverlauf')) {
+    addMessage(
+      'assistant',
+      data.log.length
+        ? data.log.map(x =>
+            `${date(x.time)} – ${x.text || x.content || ''}`
+          ).join('\n')
+        : 'Kein Chatverlauf.'
+    );
+
+    return;
+  }
+
+  if (l.includes('einstellungen')) {
+    addMessage(
+      'assistant',
+      JSON.stringify(data.settings, null, 2) +
+      '\nTheme: ' + data.theme
+    );
+
+    return;
+  }
+
+  if (l.includes('code labor')) {
+    addMessage(
+      'assistant',
+      'Code prüfen: DEIN QUELLCODE'
+    );
+
+    return;
+  }
+
+  const target =
+    c === 'hilfe' || l === 'hilfe'
+      ? 'Hilfe'
+      : c === 'was weisst du' || l.includes('wissensspeicher')
+        ? 'Wissensübersicht'
+        : l.includes('agenten')
+          ? 'Agenten'
+          : l.includes('projekte')
+            ? 'Projekte'
+            : l.includes('dokumente')
+              ? 'Dokumente'
+              : null;
+
+  if (target) {
+    handle(target).then(x =>
+      addMessage('assistant', x)
+    );
+  }
+}
+
+/* =====================================================
+   START
+   ===================================================== */
+
+function start() {
+  if (
+    started ||
+    document.documentElement.dataset.lb6Started === 'true'
+  ) {
+    return;
+  }
+
+  started = true;
+
+  const style = document.createElement('style');
+  style.id = 'lb6-paket2-style';
 
   style.textContent = `
     .lb6-message-content {
@@ -2966,1547 +2520,93 @@ function installStyles() {
       opacity: .7;
       font-style: italic;
     }
-
-    .lb6-hidden-file {
-      display: none !important;
-    }
-
-    .lb6-message-content a {
-      overflow-wrap: anywhere;
-    }
   `;
 
-  (document.head || document.documentElement)
-    .appendChild(style);
-}
+  document.head.appendChild(style);
 
-/* =====================================================
-   4. FALLBACK-OBERFLÄCHE
-   ===================================================== */
+  fallback();
 
-function createFallbackUI() {
-  let root = $("lb6-fallback-root");
-
-  if (root) return root;
-
-  root = document.createElement("section");
-  root.id = "lb6-fallback-root";
-
-  root.style.cssText = [
-    "max-width:900px",
-    "margin:20px auto",
-    "padding:20px",
-    "background:#20202e",
-    "color:#f5f3ff",
-    "border-radius:16px",
-    "font-family:Arial,sans-serif"
-  ].join(";");
-
-  const heading = document.createElement("h2");
-  heading.textContent = NAME;
-
-  const chat = document.createElement("div");
-  chat.id = "lb6-fallback-chat";
-  chat.style.cssText =
-    "height:400px;overflow:auto;padding:12px;margin-bottom:12px;background:#11111a;border-radius:12px;";
-
-  const controls = document.createElement("div");
-  controls.style.cssText =
-    "display:flex;gap:8px;flex-wrap:wrap;";
-
-  const input = document.createElement("textarea");
-  input.id = "lb6-fallback-input";
-  input.placeholder = "Schreibe eine Nachricht ...";
-  input.style.cssText =
-    "flex:1;min-width:180px;padding:12px;border-radius:8px;";
-
-  const send = document.createElement("button");
-  send.id = "lb6-fallback-send";
-  send.type = "button";
-  send.textContent = "Senden";
-
-  controls.append(input, send);
-  root.append(heading, chat, controls);
-  document.body.appendChild(root);
-
-  return root;
-}
-
-/* =====================================================
-   5. LERNEN
-   ===================================================== */
-
-function getLearningResponse(value) {
-  const content = safeText(value, 100000);
-
-  if (!content) {
-    return "Bitte gib einen Lerninhalt an.";
-  }
-
-  const factResult = learnFact(content);
-
-  const existing = data.documents.find(document =>
-    document.type === "learned-text" &&
-    normalize(document.content || "") === normalize(content)
-  );
-
-  if (existing) {
-    return [
-      factResult || "Der Inhalt ist bereits gespeichert.",
-      "",
-      "Dokument-ID: " + existing.id
-    ].join("\n");
-  }
-
-  const document = {
-    id: uid(),
-    title: "Lerninhalt: " + content.slice(0, 75),
-    type: "learned-text",
-    content,
-    created: now(),
-    updated: now(),
-    length: content.length
-  };
-
-  data.documents.push(document);
-
-  remember(
-    "lerninhalt",
-    "Lerninhalt gespeichert: " + document.title,
-    { documentId: document.id }
-  );
-
-  logAudit(
-    "Lern-KI",
-    "Lerninhalt gespeichert",
-    document.title
-  );
-
-  if (!save()) {
-    return "Der Inhalt wurde verarbeitet, konnte aber nicht dauerhaft gespeichert werden. Prüfe deinen Browser-Speicher.";
-  }
-
-  return [
-    factResult || "Neuer Lerninhalt erfolgreich gespeichert!",
-    "",
-    "DOKUMENT GESPEICHERT",
-    "Titel: " + document.title,
-    "Zeichen: " + content.length,
-    "Wörter: " + content.split(/\s+/).filter(Boolean).length,
-    "Dokument-ID: " + document.id,
-    "",
-    "Du kannst den Inhalt später mit „Dokument suchen: ...“ wiederfinden."
-  ].join("\n");
-}
-
-async function getResearchResponse(query) {
-  const content = safeText(query, 1000);
-
-  if (!content) return "Bitte gib ein Recherchethema an.";
-
-  return await research(content);
-}
-
-/* =====================================================
-   6. GEDÄCHTNIS
-   ===================================================== */
-
-function getMemoryList() {
-  const memories = arr(data.memory);
-
-  if (!memories.length) {
-    return "Es sind noch keine Erinnerungen gespeichert.";
-  }
-
-  return memories.map((item, index) => [
-    `${index + 1}. ${item.content || ""}`,
-    `ID: ${item.id || "Keine ID"}`,
-    `Typ: ${item.type || "Allgemein"}`,
-    `Erstellt: ${formatDate(item.created)}`
-  ].join("\n")).join("\n\n");
-}
-
-function rememberResponse(value) {
-  const content = safeText(value, 10000);
-
-  if (!content) {
-    return "Bitte gib einen Inhalt an, den ich mir merken soll.";
-  }
-
-  const result = remember("notiz", content);
-
-  if (!result) {
-    return "Die Erinnerung konnte nicht gespeichert werden.";
-  }
-
-  return [
-    "Erinnerung erfolgreich gespeichert.",
-    "",
-    content,
-    "",
-    "Erinnerungs-ID: " + result.id
-  ].join("\n");
-}
-
-function formatForgetList(items) {
-  return items.slice(0, FORGET_LIMIT).map((item, index) =>
-    `${index + 1}. [${item.type}] ${safeText(item.content, 150)}\nID: ${item.id || "Keine ID"}`
-  ).join("\n\n");
-}
-
-/*
-   GEÄNDERT (Paket 1): Zweistufiges, abgesichertes Vergessen.
-   1. "Vergiss: Begriff" zeigt nur, was gelöscht würde.
-   2. "Vergiss bestätigen" löscht tatsächlich.
-*/
-
-function forgetResponse(value) {
-  const query = safeText(value, 500);
-
-  pendingForget = null;
-
-  if (!query) {
-    return "Bitte gib einen Suchbegriff zum Löschen an.";
-  }
-
-  const result = findForgetCandidates(query);
-
-  if (!result.ok) {
-    if (result.reason === "short") {
-      return `Der Suchbegriff ist zu kurz. Bitte verwende mindestens ${FORGET_MIN_LENGTH} Zeichen oder die genaue Erinnerungs-ID.`;
-    }
-
-    if (result.reason === "many") {
-      return [
-        `Zu viele Treffer (${result.items.length}). Aus Sicherheitsgründen lösche ich nicht so viele Erinnerungen auf einmal.`,
-        "",
-        "Bitte nenne einen genaueren Begriff oder die Erinnerungs-ID einer einzelnen Erinnerung (siehe „Erinnerungen“).",
-        "",
-        `Die ersten ${FORGET_LIMIT} Treffer:`,
-        "",
-        formatForgetList(result.items)
-      ].join("\n");
-    }
-
-    return "Ich habe keine passende Erinnerung gefunden.";
-  }
-
-  if (data.settings.confirmChanges === false) {
-    const removed = deleteMemoryItems(result.items);
-
-    return removed
-      ? `${removed} Erinnerung(en) wurden gelöscht.`
-      : "Ich habe keine passende Erinnerung gefunden.";
-  }
-
-  pendingForget = {
-    items: result.items,
-    time: now()
-  };
-
-  return [
-    `Diese ${result.items.length} Erinnerung(en) würden gelöscht:`,
-    "",
-    formatForgetList(result.items),
-    "",
-    "Zum Löschen schreibe: Vergiss bestätigen",
-    "Zum Abbrechen schreibe: Vergiss abbrechen"
-  ].join("\n");
-}
-
-function confirmForgetResponse() {
-  if (!pendingForget || now() - pendingForget.time > FORGET_CONFIRM_MS) {
-    pendingForget = null;
-    return "Es gibt keine wartende Löschanfrage. Starte sie mit „Vergiss: Begriff“.";
-  }
-
-  const items = pendingForget.items;
-
-  pendingForget = null;
-
-  const removed = deleteMemoryItems(items);
-
-  return removed
-    ? `${removed} Erinnerung(en) wurden gelöscht.`
-    : "Die Erinnerung(en) waren nicht mehr vorhanden.";
-}
-
-function cancelForgetResponse() {
-  const had = Boolean(pendingForget);
-
-  pendingForget = null;
-
-  return had
-    ? "Löschen abgebrochen. Es wurde nichts gelöscht."
-    : "Es gibt keine wartende Löschanfrage.";
-}
-
-/* =====================================================
-   7. DOKUMENTENWISSEN FÜR FRAGEN
-   ===================================================== */
-
-function getDocumentKnowledge(query) {
-  query = safeText(query, 1000);
-
-  if (!query) return null;
-
-  const results = searchDocuments(query);
-
-  if (!results.length) return null;
-
-  const output = [];
-
-  for (const result of results.slice(0, 3)) {
-    const document = result.document;
-
-    if (!document?.content) continue;
-
-    const sentences = document.content
-      .replace(/\s+/g, " ")
-      .match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
-
-    const queryWords = new Set(tokenize(query));
-
-    const ranked = sentences
-      .map(sentence => {
-        const words = tokenize(sentence);
-        let score = 0;
-
-        for (const word of words) {
-          if (queryWords.has(word)) score++;
-        }
-
-        return {
-          sentence: sentence.trim(),
-          score
-        };
-      })
-      .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score);
-
-    const selected = ranked
-      .slice(0, 4)
-      .map(item => "• " + item.sentence);
-
-    if (!selected.length) {
-      selected.push(safeText(document.content, 500));
-    }
-
-    output.push([
-      "QUELLE: " + document.title,
-      ...selected
-    ].join("\n"));
-  }
-
-  if (!output.length) return null;
-
-  return [
-    "IN MEINEN GESPEICHERTEN DOKUMENTEN GEFUNDEN:",
-    "",
-    ...output
-  ].join("\n\n");
-}
-
-/* =====================================================
-   8. WISSEN ABRUFEN (GEÄNDERT)
-   ===================================================== */
-
-/*
-   Fehlerbehebung: Früher wurde geprüft, ob der Antworttext einen
-   bestimmten Satz enthält ("noch nicht genug eigenes wissen"). Dieser
-   Satz passte nach der Textnormalisierung nie ("genugend"), deshalb
-   wurde die Meldung "habe ich noch nicht genügend eigenes Wissen"
-   fälschlich als Antwort ausgegeben. Jetzt wird direkt geprüft, ob
-   überhaupt Fakten vorhanden sind.
-*/
-
-function getKnowledgeResponse(topic) {
-  topic = safeText(topic, 1000);
-
-  if (!topic) return "Bitte gib ein Thema an.";
-
-  const directAnswer = answerFact(topic);
-
-  if (directAnswer) {
-    return directAnswer;
-  }
-
-  const facts = findRelatedFacts(topic, 10);
-  const documentKnowledge = getDocumentKnowledge(topic);
-
-  const hasExplanation =
-    getFacts(topic).length > 0 ||
-    facts.length > 0;
-
-  const explanation = hasExplanation
-    ? explainTopic(topic)
-    : "";
-
-  if (hasExplanation && documentKnowledge) {
-    return [
-      explanation,
-      "",
-      documentKnowledge
-    ].join("\n\n");
-  }
-
-  if (hasExplanation) return explanation;
-
-  if (documentKnowledge) return documentKnowledge;
-
-  if (facts.length) {
-    return [
-      "VERWANDTES GESPEICHERTES WISSEN",
-      "",
-      ...facts.map(fact =>
-        `• ${fact.subject}: ${fact.property} – ${fact.value}`
-      )
-    ].join("\n");
-  }
-
-  return `Zu "${topic}" habe ich noch keine passenden Informationen gespeichert.`;
-}
-
-/* =====================================================
-   9. DOKUMENTENVERWALTUNG
-   ===================================================== */
-
-function getDocumentList() {
-  const documents = arr(data.documents);
-
-  if (!documents.length) {
-    return "Es sind noch keine Dokumente gespeichert.";
-  }
-
-  return documents.map((document, index) => [
-    `${index + 1}. ${document.title || "Ohne Titel"}`,
-    `ID: ${document.id || "Keine ID"}`,
-    `Typ: ${document.type || "Unbekannt"}`,
-    `Zeichen: ${document.length || document.content?.length || 0}`,
-    `Erstellt: ${formatDate(document.created)}`
-  ].join("\n")).join("\n\n");
-}
-
-function searchDocumentResponse(query) {
-  query = safeText(query, 500);
-
-  if (!query) return getDocumentList();
-
-  const results = searchDocuments(query);
-
-  if (!results.length) {
-    return "Keine passenden Dokumente gefunden.";
-  }
-
-  return results.map((result, index) => {
-    const document = result.document;
-
-    return [
-      `${index + 1}. ${document.title || "Ohne Titel"}`,
-      `ID: ${document.id}`,
-      `Trefferwert: ${Number(result.score).toFixed(2)}`,
-      `Inhalt: ${safeText(document.content || "", 500)}`
-    ].join("\n");
-  }).join("\n\n");
-}
-
-function summarizeDocumentResponse(query) {
-  query = safeText(query, 500);
-
-  if (!query) {
-    return [
-      "Bitte gib eine Dokument-ID oder einen Titel an.",
-      "",
-      getDocumentList()
-    ].join("\n");
-  }
-
-  const document = data.documents.find(item =>
-    item.id === query ||
-    normalize(item.title) === normalize(query)
-  );
-
-  if (!document) {
-    return [
-      "Dokument nicht gefunden.",
-      "",
-      getDocumentList()
-    ].join("\n");
-  }
-
-  return summarizeDocument(document.id);
-}
-
-/* =====================================================
-   10. PROJEKTE UND AUFGABEN
-   ===================================================== */
-
-function getProjectResponse() {
-  return listProjects();
-}
-
-function getTaskResponse() {
-  return listTasks();
-}
-
-function createTaskResponse(title) {
-  title = safeText(title, 500);
-
-  if (!title) return "Bitte gib einen Aufgabentitel an.";
-
-  return createTask(title);
-}
-
-function completeTaskResponse(id) {
-  id = safeText(id, 200);
-
-  if (!id) return "Bitte gib die genaue Aufgaben-ID an.";
-
-  const task = data.tasks.find(item =>
-    item.id === id
-  );
-
-  if (!task) {
-    return "Ich konnte keine Aufgabe mit dieser ID finden.";
-  }
-
-  if (task.done) {
-    return "Diese Aufgabe ist bereits erledigt.";
-  }
-
-  return completeTask(id);
-}
-
-/* =====================================================
-   11. SICHERUNGEN UND EXPORT
-   ===================================================== */
-
-function getSnapshotList() {
-  const snapshots = arr(data.snapshots);
-
-  if (!snapshots.length) {
-    return "Es sind noch keine Sicherungen vorhanden.";
-  }
-
-  return snapshots.map((snapshot, index) => [
-    `${index + 1}. ${snapshot.label || "Sicherung"}`,
-    `ID: ${snapshot.id || "Keine ID"}`,
-    `Datum: ${formatDate(snapshot.created || snapshot.time)}`
-  ].join("\n")).join("\n\n");
-}
-
-function createSnapshotResponse() {
-  const result = createSnapshot("Manuelle Sicherung");
-
-  return [
-    "Sicherung erstellt.",
-    "Sicherungs-ID: " + result.id,
-    "Datum: " + formatDate(result.created)
-  ].join("\n");
-}
-
-function restoreSnapshotResponse(id) {
-  id = safeText(id, 200);
-
-  if (!id) {
-    return [
-      "Bitte gib eine Sicherungs-ID an.",
-      "",
-      getSnapshotList()
-    ].join("\n");
-  }
-
-  return restoreSnapshot(id);
-}
-
-/* Allgemeiner Datei-Download (NEU, von downloadExport ausgelagert) */
-
-function downloadTextFile(filename, text, mime = "application/json;charset=utf-8") {
-  let url = null;
-
-  try {
-    const blob = new Blob([text], { type: mime });
-
-    url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = filename;
-    link.style.display = "none";
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    return true;
-
-  } finally {
-    if (url) {
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-    }
-  }
-}
-
-function downloadExport() {
-  try {
-    const json = exportData();
-
-    downloadTextFile(
-      "LernBot-6-Backup-" +
-        new Date().toISOString().slice(0, 10) +
-        ".json",
-      json
-    );
-
-    return storageLocked
-      ? "ACHTUNG: Der Speicher ist gesperrt. Dieser Export enthält nur den Arbeitsstand der aktuellen Sitzung, NICHT den beschädigten Originaldatenbestand. Nutze „Auto-Sicherungen“, um die Rettungskopie zu sichern."
-      : "Der JSON-Datenexport wurde gestartet.";
-
-  } catch (error) {
-    console.error("Exportfehler:", error);
-
-    return "Export fehlgeschlagen:\n" + error.message;
-  }
-}
-
-/* =====================================================
-   11a. AUTOMATISCHE SICHERUNGEN (NEU)
-   ===================================================== */
-
-function autoBackupLabel(name) {
-  const kind = name
-    .slice(BACKUP_PREFIX.length)
-    .replace(/\.\d+$/, "");
-
-  if (kind === "vorImport") return "Stand vor einem Import";
-  if (kind === "vorRestore") return "Stand vor einer Wiederherstellung";
-  if (kind === "vorMigration") return "Original vor einer Datenmigration";
-  if (kind === "beschaedigt") return "Rettungskopie (beschädigter Datenbestand)";
-  if (kind.startsWith("verworfen-")) {
-    return "Aussortierte Einträge (" + kind.slice("verworfen-".length) + ")";
-  }
-
-  return kind;
-}
-
-function getAutoBackupList() {
-  const names = listAutoBackups();
-
-  if (!names.length) {
-    return "Es sind keine automatischen Sicherungen vorhanden.";
-  }
-
-  return [
-    "AUTOMATISCHE SICHERUNGEN",
-    "",
-    ...names.map((name, index) => {
-      const raw = readAutoBackup(name);
-      const kb = raw ? Math.max(1, Math.round(raw.length / 1024)) : 0;
-
-      return [
-        `${index + 1}. ${autoBackupLabel(name)}`,
-        `Datum: ${formatDate(backupTime(name))}`,
-        `Größe: ${kb} KB`,
-        `Name: ${name}`
-      ].join("\n");
-    }),
-    "",
-    "Wiederherstellen: Auto-Sicherung wiederherstellen: NUMMER",
-    "Als Datei sichern: Auto-Sicherung exportieren: NUMMER",
-    "Hinweis: Die Nummern können sich ändern. Lass dir die Liste direkt vor dem Befehl anzeigen."
-  ].join("\n\n");
-}
-
-function exportAutoBackupResponse(reference) {
-  const name = resolveAutoBackup(reference);
-
-  if (!name) {
-    return "Sicherung nicht gefunden. Mit „Auto-Sicherungen“ siehst du die Liste.";
-  }
-
-  const raw = readAutoBackup(name);
-
-  if (!raw) return "Die Sicherung ist leer oder nicht lesbar.";
-
-  const isRescue = name.startsWith(BACKUP_PREFIX + "beschaedigt.");
-
-  try {
-    downloadTextFile(
-      "LernBot-Auto-Sicherung-" +
-        new Date(backupTime(name) || now()).toISOString().slice(0, 10) +
-        (isRescue ? ".txt" : ".json"),
-      raw,
-      isRescue
-        ? "text/plain;charset=utf-8"
-        : "application/json;charset=utf-8"
-    );
-
-    return "Der Download der Auto-Sicherung wurde gestartet.";
-
-  } catch (error) {
-    console.error("Exportfehler:", error);
-
-    return "Export fehlgeschlagen:\n" + error.message;
-  }
-}
-
-/* =====================================================
-   12. DATEIIMPORT
-   ===================================================== */
-
-function getFileInput() {
-  let file = $("lb6-file");
-
-  if (file) return file;
-
-  file = document.createElement("input");
-  file.type = "file";
-  file.id = "lb6-file";
-  file.accept = ".txt,.md,.json,.csv,.html,.js,.css";
-  file.className = "lb6-hidden-file";
-
-  document.body.appendChild(file);
-
-  file.addEventListener("change", handleFileUpload);
-
-  return file;
-}
-
-async function handleFileUpload(event) {
-  const file = event?.target?.files?.[0];
-
-  if (!file) return;
-
-  addMessage("system", "Importiere: " + file.name);
-
-  const typing = addTyping();
-
-  try {
-    const content = await file.text();
-
-    if (!content.trim()) {
-      throw new Error("Die Datei ist leer.");
-    }
-
-    let result;
-
-    if (file.name.toLowerCase().endsWith(".json")) {
-      let parsed;
-
-      try {
-        parsed = JSON.parse(content);
-      } catch {
-        throw new Error("Die JSON-Datei ist ungültig.");
-      }
-
-      if (!obj(parsed)) {
-        throw new Error("Das JSON enthält kein gültiges Datenobjekt.");
-      }
-
-      result = importData(parsed);
-
-    } else {
-      result = importDocumentText(
-        content,
-        file.name,
-        "file-import"
-      );
-    }
-
-    removeTyping(typing);
-    addMessage("assistant", result);
-
-  } catch (error) {
-    removeTyping(typing);
-
-    console.error("Dateiimport fehlgeschlagen:", error);
-
-    addMessage(
-      "assistant",
-      "Dateiimport fehlgeschlagen:\n" + error.message
-    );
-
-  } finally {
-    if (event?.target) event.target.value = "";
-  }
-}
-
-/* =====================================================
-   13. HILFE
-   ===================================================== */
-
-function getHelpText() {
-  return `
-LERNBOT 6.0 – BEFEHLE
-
-LERNEN
-Lerne: Die Hauptstadt von Deutschland ist Berlin.
-Lerne: Okapi: Fellfarbe – rotbraun
-Lerne: Hier kommt ein längerer Text über ein Thema.
-
-WISSEN
-Wissensübersicht
-Wissen: Okapi
-Erkläre: Photosynthese
-Wissensgraph: Okapi
-Wissensanalyse
-Analysiere: Okapi
-
-GEDÄCHTNIS
-Merke dir: Ich lerne gerne.
-Erinnerungen
-Vergiss: Suchbegriff (zeigt zuerst nur, was gelöscht würde)
-Vergiss bestätigen
-Vergiss abbrechen
-
-RECHERCHE
-Recherchiere: Schwarze Löcher
-
-AGENTEN
-Agenten
-
-PROJEKTE
-Projekt erstellen: Mein Projekt
-Projekte
-
-AUFGABEN
-Aufgabe erstellen: Mathematik lernen
-Aufgaben
-Aufgabe erledigt: AUFGABEN-ID
-
-DOKUMENTE
-Dokumente
-Dokument suchen: Suchbegriff
-Dokument zusammenfassen: DOKUMENT-ID
-
-SICHERUNGEN
-Sicherung erstellen
-Sicherungen
-Sicherung wiederherstellen: SICHERUNGS-ID
-Export
-Auto-Sicherungen
-Auto-Sicherung wiederherstellen: NUMMER
-Auto-Sicherung exportieren: NUMMER
-
-CODE
-Code prüfen: DEIN QUELLCODE
-
-Du kannst auch normale Fragen stellen.
-  `.trim();
-}
-
-/* =====================================================
-   14. BEFEHLSVERARBEITUNG (GEÄNDERT)
-   ===================================================== */
-
-/*
-   Befehle werden mit fold() verglichen: "Erkläre"/"Erklaere" und
-   "Wissensübersicht"/"Wissensuebersicht" sind jeweils gleichwertig.
-*/
-
-function getCommandValue(text, prefix) {
-  const original = String(text ?? "").trim();
-  const colon = original.indexOf(":");
-
-  if (colon < 0) return null;
-
-  const enteredPrefix = original.slice(0, colon + 1);
-
-  if (fold(enteredPrefix) !== fold(prefix)) {
-    return null;
-  }
-
-  return original.slice(colon + 1).trim();
-}
-
-async function handle(text) {
-  text = safeText(text, 100000);
-
-  if (!text) {
-    return "Bitte schreibe zuerst eine Nachricht.";
-  }
-
-  /* Alle Vergleichswerte unten sind in gefalteter Schreibweise */
-
-  const lower = fold(text);
-
-  try {
-    /* HILFE */
-
+  bind(UI.input(), 'keydown', e => {
     if (
-      lower === "hilfe" ||
-      lower === "befehle"
+      e.key === 'Enter' &&
+      !e.shiftKey &&
+      !e.isComposing
     ) {
-      return getHelpText();
+      e.preventDefault();
+      send();
     }
-
-    /* BEGRÜSSUNG */
-
-    if (
-      ["hi", "hallo", "hey", "guten tag"].includes(lower)
-    ) {
-      return "Hallo! Ich bin " + NAME + ". Was möchtest du lernen?";
-    }
-
-    let value;
-
-    /* LERNEN */
-
-    value = getCommandValue(text, "Lerne:");
-
-    if (value !== null) {
-      return getLearningResponse(value);
-    }
-
-    /* WISSENSÜBERSICHT */
-
-    if (lower === "wissensubersicht") {
-      return knowledgeOverview();
-    }
-
-    /* WISSENSANALYSE */
-
-    if (lower === "wissensanalyse") {
-      return analyzeKnowledge();
-    }
-
-    /* WISSENSGRAPH */
-
-    value = getCommandValue(text, "Wissensgraph:");
-
-    if (value !== null) {
-      return value
-        ? graphReport(value)
-        : "Bitte gib ein Thema an.";
-    }
-
-    /* WISSEN UND ERKLÄREN */
-
-    value = getCommandValue(text, "Wissen:");
-
-    if (value !== null) return getKnowledgeResponse(value);
-
-    value = getCommandValue(text, "Erkläre:");
-
-    if (value !== null) return getKnowledgeResponse(value);
-
-    /* RECHERCHE */
-
-    value = getCommandValue(text, "Recherchiere:");
-
-    if (value !== null) return await getResearchResponse(value);
-
-    /* GEDÄCHTNIS SPEICHERN */
-
-    value = getCommandValue(text, "Merke dir:");
-
-    if (value !== null) return rememberResponse(value);
-
-    value = getCommandValue(text, "Merke:");
-
-    if (value !== null) return rememberResponse(value);
-
-    /* GEDÄCHTNIS ANZEIGEN */
-
-    if (
-      lower === "erinnerungen" ||
-      lower === "zeige erinnerungen"
-    ) {
-      return getMemoryList();
-    }
-
-    /* GEDÄCHTNIS LÖSCHEN (zweistufig) */
-
-    if (lower === "vergiss bestatigen") {
-      return confirmForgetResponse();
-    }
-
-    if (lower === "vergiss abbrechen") {
-      return cancelForgetResponse();
-    }
-
-    value = getCommandValue(text, "Vergiss:");
-
-    if (value !== null) return forgetResponse(value);
-
-    /* DOKUMENTE */
-
-    if (lower === "dokumente") return getDocumentList();
-
-    value = getCommandValue(text, "Dokument suchen:");
-
-    if (value !== null) return searchDocumentResponse(value);
-
-    value = getCommandValue(text, "Dokument zusammenfassen:");
-
-    if (value !== null) return summarizeDocumentResponse(value);
-
-    /* PROJEKTE */
-
-    if (lower === "projekte") return getProjectResponse();
-
-    value = getCommandValue(text, "Projekt erstellen:");
-
-    if (value !== null) {
-      return value
-        ? createProject(value)
-        : "Bitte gib einen Projektnamen an.";
-    }
-
-    /* AUFGABEN */
-
-    if (lower === "aufgaben") return getTaskResponse();
-
-    value = getCommandValue(text, "Aufgabe erstellen:");
-
-    if (value !== null) return createTaskResponse(value);
-
-    value = getCommandValue(text, "Aufgabe erledigt:");
-
-    if (value !== null) return completeTaskResponse(value);
-
-    /* AGENTEN */
-
-    if (lower === "agenten") return agentOverview();
-
-    /* AUTOMATISCHE SICHERUNGEN */
-
-    if (
-      lower === "auto sicherungen" ||
-      lower === "autosicherungen"
-    ) {
-      return getAutoBackupList();
-    }
-
-    value = getCommandValue(text, "Auto-Sicherung wiederherstellen:");
-
-    if (value !== null) {
-      return value
-        ? restoreAutoBackup(value)
-        : "Bitte gib die Nummer der Auto-Sicherung an. Siehe „Auto-Sicherungen“.";
-    }
-
-    value = getCommandValue(text, "Auto-Sicherung exportieren:");
-
-    if (value !== null) {
-      return value
-        ? exportAutoBackupResponse(value)
-        : "Bitte gib die Nummer der Auto-Sicherung an. Siehe „Auto-Sicherungen“.";
-    }
-
-    /* SICHERUNGEN */
-
-    if (
-      lower === "sicherung erstellen" ||
-      lower === "sicherung speichern"
-    ) {
-      return createSnapshotResponse();
-    }
-
-    if (lower === "sicherungen") return getSnapshotList();
-
-    value = getCommandValue(text, "Sicherung wiederherstellen:");
-
-    if (value !== null) return restoreSnapshotResponse(value);
-
-    /* EXPORT */
-
-    if (
-      lower === "export" ||
-      lower === "daten exportieren"
-    ) {
-      return downloadExport();
-    }
-
-    /* CODEPRÜFUNG */
-
-    value = getCommandValue(text, "Code prüfen:");
-
-    if (value !== null) {
-      return value
-        ? inspectCodeReport(value)
-        : "Bitte füge den zu prüfenden Code ein.";
-    }
-
-    /* ANALYSE */
-
-    value = getCommandValue(text, "Analysiere:");
-
-    if (value !== null) {
-      if (!value) return "Bitte gib ein Thema an.";
-
-      return await agentRunAsync("analyse", async () => {
-        const facts = findRelatedFacts(value, 10);
-        const explanation = explainTopic(value);
-        const documents = getDocumentKnowledge(value);
-
-        return [
-          "ANALYSEERGEBNIS",
-          "",
-          explanation,
-          documents || "",
-          "",
-          "VERWANDTE FAKTEN",
-          facts.length
-            ? facts.map(fact =>
-                `• ${fact.subject}: ${fact.property} – ${fact.value}`
-              ).join("\n")
-            : "Keine verwandten Fakten gefunden."
-        ].filter(Boolean).join("\n");
-      });
-    }
-
-    /* ALLGEMEINE FRAGEN */
-
-    const knowledge = getKnowledgeResponse(text);
-
-    if (
-      knowledge &&
-      !normalize(knowledge).includes(
-        "noch keine passenden informationen gespeichert"
-      )
-    ) {
-      return knowledge;
-    }
-
-    return [
-      "Dazu habe ich noch keine ausreichenden Informationen in meiner Wissensbank.",
-      "",
-      "Du kannst mir das Thema mit „Lerne: ...“ beibringen oder mit „Recherchiere: ...“ recherchieren."
-    ].join("\n");
-
-  } catch (error) {
-    console.error("LernBot Befehlsfehler:", error);
-
-    return [
-      "Bei der Verarbeitung ist ein Fehler aufgetreten:",
-      "",
-      error?.message || String(error)
-    ].join("\n");
-  }
-}
-
-/* =====================================================
-   15. NACHRICHTEN SENDEN
-   ===================================================== */
-
-async function sendMessage() {
-  if (lb6Busy) return;
-
-  const input = UI.input();
-
-  if (!input) {
-    console.error("LernBot: Eingabefeld nicht gefunden.");
-    return;
-  }
-
-  const messageText = String(input.value || "").trim();
-
-  if (!messageText) return;
-
-  lb6Busy = true;
-
-  const send = UI.send();
-
-  if (send) send.disabled = true;
-
-  input.value = "";
-
-  addMessage("user", messageText);
-
-  const typing = addTyping();
-
-  try {
-    const response = await handle(messageText);
-
-    removeTyping(typing);
-
-    addMessage(
-      "assistant",
-      response === undefined || response === null
-        ? "Die Verarbeitung hat keine Antwort zurückgegeben."
-        : response
-    );
-
-    save();
-
-  } catch (error) {
-    removeTyping(typing);
-
-    console.error("LernBot Sendefehler:", error);
-
-    addMessage(
-      "assistant",
-      "Unerwarteter Fehler:\n" +
-      (error?.message || String(error))
-    );
-
-  } finally {
-    lb6Busy = false;
-
-    if (send) send.disabled = false;
-
-    if (document.activeElement !== input) {
-      input.focus();
-    }
-  }
-}
-
-/* =====================================================
-   16. CHAT-EINRICHTUNG
-   ===================================================== */
-
-function setupChat() {
-  const input = UI.input();
-  const send = UI.send();
-  const form = UI.form();
-
-  if (!input) {
-    console.warn("LernBot: Kein Eingabefeld vorhanden.");
-    return;
-  }
-
-  if (input.dataset.lb6Bound !== "true") {
-    input.dataset.lb6Bound = "true";
-
-    input.addEventListener("keydown", event => {
-      if (
-        event.key === "Enter" &&
-        !event.shiftKey &&
-        !event.isComposing
-      ) {
-        event.preventDefault();
-        sendMessage();
-      }
-    });
-  }
-
-  if (send && send.dataset.lb6Bound !== "true") {
-    send.dataset.lb6Bound = "true";
-
-    send.addEventListener("click", event => {
-      event.preventDefault();
-      sendMessage();
-    });
-  }
-
-  if (form && form.dataset.lb6Bound !== "true") {
-    form.dataset.lb6Bound = "true";
-
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      sendMessage();
-    });
-  }
-}
-
-/* =====================================================
-   17. VORSCHLÄGE
-   ===================================================== */
-
-function setupSuggestions() {
-  document.querySelectorAll("#suggestions [data-msg]").forEach(button => {
-    if (button.dataset.lb6Bound === "true") return;
-
-    button.dataset.lb6Bound = "true";
-
-    button.addEventListener("click", () => {
-      const message = safeText(button.dataset.msg, 100000);
+  });
+
+  bind(UI.send(), 'click', e => {
+    e.preventDefault();
+    send();
+  });
+
+  bind($('bar'), 'submit', e => {
+    e.preventDefault();
+    send();
+  });
+
+  bind(fileInput(), 'change', fileChanged);
+
+  document.querySelectorAll(
+    '#suggestions [data-msg]'
+  ).forEach(el => {
+    bind(el, 'click', () => {
       const input = UI.input();
 
-      if (!message || !input) return;
-
-      input.value = message;
-      input.focus();
-
-      sendMessage();
+      input.value = el.dataset.msg;
+      send();
     });
   });
-}
 
-/* =====================================================
-   18. DATEI-EINRICHTUNG
-   ===================================================== */
-
-function setupFileUpload() {
-  const file = getFileInput();
-
-  if (!file || file.dataset.lb6Bound === "true") return;
-
-  file.dataset.lb6Bound = "true";
-  file.addEventListener("change", handleFileUpload);
-}
-
-/* =====================================================
-   19. SIDEBAR UND NAVIGATION (GEÄNDERT)
-   ===================================================== */
-
-function showSection(title, content) {
-  addMessage(
-    "assistant",
-    `${title}\n\n${asReadable(content)}`
-  );
-}
-
-/*
-   Fehlerbehebung: normalize() macht aus "-" ein Leerzeichen
-   ("KI-Agenten" → "ki agenten"). Die alten Vergleiche mit Bindestrich
-   konnten daher nie zutreffen.
-*/
-
-function handleSidebarAction(label) {
-  const key = fold(label);
-
-  if (key.includes("neuer chat")) {
-    clearChat();
-    return;
-  }
-
-  if (key.includes("chatverlauf")) {
-    const history = arr(data.log);
-
-    showSection(
-      "CHATVERLAUF",
-      history.length
-        ? history.map(item =>
-            `${formatDate(item.time)} – ${item.text || item.content || ""}`
-          ).join("\n")
-        : "Noch kein gespeicherter Chatverlauf vorhanden."
+  document.querySelectorAll(
+    '#drawer .side-button'
+  ).forEach(el => {
+    bind(el, 'click', () =>
+      sidebar(el.textContent, el.dataset.cmd || '')
     );
-
-    return;
-  }
-
-  if (key.includes("wissensspeicher")) {
-    showSection("WISSENSSPEICHER", knowledgeOverview());
-    return;
-  }
-
-  if (key.includes("agenten")) {
-    showSection("KI-AGENTEN", agentOverview());
-    return;
-  }
-
-  if (key.includes("projekte")) {
-    showSection("PROJEKTE", listProjects());
-    return;
-  }
-
-  if (key.includes("dokumente")) {
-    showSection("DOKUMENTE", getDocumentList());
-    return;
-  }
-
-  if (key.includes("code labor")) {
-    showSection(
-      "CODE-LABOR",
-      "Nutze den Befehl:\n\nCode prüfen: DEIN QUELLCODE"
-    );
-    return;
-  }
-
-  if (key.includes("einstellungen")) {
-    showSection(
-      "EINSTELLUNGEN",
-      [
-        `Automatische Recherche: ${data.settings.autoResearch ? "Aktiv" : "Aus"}`,
-        `Automatisches Lernen: ${data.settings.autoLearn ? "Aktiv" : "Aus"}`,
-        `Änderungen bestätigen: ${data.settings.confirmChanges ? "Ja" : "Nein"}`,
-        `Maximale Verlaufseinträge: ${data.settings.maxHistory}`,
-        `Theme: ${data.theme}`
-      ].join("\n")
-    );
-  }
-}
-
-function setupSidebar() {
-  const drawer = $("drawer");
-
-  if (!drawer) return;
-
-  drawer.querySelectorAll(".side-button").forEach(button => {
-    if (button.dataset.lb6Bound === "true") return;
-
-    button.dataset.lb6Bound = "true";
-
-    button.addEventListener("click", () => {
-      const command = fold(button.dataset.cmd || "");
-      const label = fold(button.textContent || "");
-
-      if (command === "theme" || label.includes("theme")) {
-        toggleTheme();
-        return;
-      }
-
-      if (command === "hilfe" || label === "hilfe") {
-        addMessage("assistant", getHelpText());
-        return;
-      }
-
-      /* "Was weißt du?" → gefaltet "was weisst du" */
-
-      if (command === "was weisst du") {
-        addMessage("assistant", knowledgeOverview());
-        return;
-      }
-
-      if (command === "export" || label.includes("export")) {
-        addMessage("system", downloadExport());
-        return;
-      }
-
-      if (command === "import" || label.includes("import")) {
-        getFileInput().click();
-        return;
-      }
-
-      /* "Verlauf löschen" → gefaltet "verlauf loschen" */
-
-      if (command === "verlauf loschen") {
-        const confirmed = window.confirm(
-          "Möchtest du den Chatverlauf wirklich löschen? Dein gespeichertes Wissen bleibt erhalten."
-        );
-
-        if (!confirmed) return;
-
-        data.log = [];
-        save();
-        clearChat();
-        return;
-      }
-
-      if (command === "refresh" || label.includes("aktualisieren")) {
-        window.location.reload();
-        return;
-      }
-
-      handleSidebarAction(button.textContent || "");
-    });
   });
-}
 
-/* =====================================================
-   20. THEME
-   ===================================================== */
+  document.querySelectorAll(
+    '[data-lb6-export], #lb6-export, #export-button, #export-btn'
+  ).forEach(el => {
+    bind(el, 'click', () =>
+      addMessage('system', exportData())
+    );
+  });
 
-function toggleTheme() {
-  data.theme = data.theme === "dark" ? "light" : "dark";
-
+  document.documentElement.dataset.lb6Started = 'true';
   document.documentElement.dataset.theme = data.theme;
   document.body.dataset.theme = data.theme;
 
-  save();
-
-  addMessage(
-    "system",
-    "Theme geändert: " + data.theme
-  );
-}
-
-/* =====================================================
-   21. EXPORT-BUTTONS
-   ===================================================== */
-
-function setupExportButtons() {
-  const buttons = document.querySelectorAll(
-    "[data-lb6-export], #lb6-export, #export-button, #export-btn"
-  );
-
-  buttons.forEach(button => {
-    if (button.dataset.lb6Bound === "true") return;
-
-    button.dataset.lb6Bound = "true";
-
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      addMessage("system", downloadExport());
-    });
-  });
-}
-
-/* =====================================================
-   22. START UND INITIALISIERUNG (GEÄNDERT)
-   ===================================================== */
-
-function startLernBot() {
-  if (document.documentElement.dataset.lb6Started === "true") {
-    return;
-  }
-
-  try {
-    installStyles();
-
-    /*
-       Die neue HTML-Oberfläche wird verwendet.
-       Nur wenn wichtige Elemente fehlen, wird
-       eine einfache Ersatzoberfläche erstellt.
-    */
-
-    if (!UI.input() || !UI.chat()) {
-      createFallbackUI();
-    }
-
-    setupChat();
-    setupSuggestions();
-    setupFileUpload();
-    setupSidebar();
-    setupExportButtons();
-
-    document.documentElement.dataset.lb6Started = "true";
-
-    if (UI.chat() && !UI.chat().children.length) {
-      addMessage(
-        "assistant",
-        "Hallo! Ich bin " + NAME + ".\n\n" +
-        "Dein LernBot ist bereit.\n\n" +
-        "Schreibe „Hilfe“, um alle Funktionen und Befehle zu sehen."
-      );
-    }
-
-    /* Wichtige Hinweise zum Datenbestand anzeigen (z. B. beschädigter Speicher) */
-
-    for (const notice of startupNotices.splice(0)) {
-      addMessage("system", notice);
-    }
-
-    setStatus(
-      storageLocked
-        ? "Speicher gesperrt – Änderungen werden NICHT gespeichert."
-        : "Bereit"
-    );
-
-    console.log(NAME + " erfolgreich gestartet.");
-
-  } catch (error) {
-    console.error("LernBot Startfehler:", error);
-
-    document.documentElement.dataset.lb6Started = "false";
-
+  if (UI.chat() && !UI.chat().children.length) {
     addMessage(
-      "assistant",
-      "Der LernBot konnte nicht vollständig gestartet werden:\n" +
-      (error?.message || String(error))
+      'assistant',
+      'Hallo! Ich bin ' + NAME +
+      '.\nDein Wissen bleibt auf diesem Gerät.' +
+      '\nSchreibe „Hilfe“ für alle Befehle.'
     );
   }
+
+  for (const n of notices) {
+    addMessage('system', n);
+  }
+
+  status(locked ? 'Speicher gesperrt' : 'Bereit');
+
+  console.log(NAME + ' gestartet');
 }
 
-/* =====================================================
-   23. SYSTEMSTART
-   ===================================================== */
-
-if (document.readyState === "loading") {
+if (document.readyState === 'loading') {
   document.addEventListener(
-    "DOMContentLoaded",
-    startLernBot,
-    { once: true }
+    'DOMContentLoaded',
+    start,
+    {once: true}
   );
 } else {
-  startLernBot();
+  start();
 }
 
-/* =====================================================
-   ENDE LERNBOT 6.0
-   ===================================================== */
-
 })();
+ 
