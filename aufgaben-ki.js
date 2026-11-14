@@ -1,7 +1,10 @@
 
-/* Mein LernBot 6.0 – Paket 3.2: Aufgaben-KI */
+/* Mein LernBot 6.0 – Paket 3.3: Automatische Aufgabenverwaltung */
 (() => {
   "use strict";
+
+  // Die alte Kennung bleibt, damit Aufgaben aus 3.2 erhalten bleiben.
+  const SOURCE = "aufgaben-ki-3.2";
 
   const norm = value => String(value ?? "")
     .toLocaleLowerCase("de")
@@ -34,8 +37,11 @@
     p === "lebensraum" ? 70 :
     p === "familie" ? 60 : 50;
 
-  const taskKey = (s, p) =>
+  const keyOf = (s, p) =>
     norm(s) + "::" + norm(p);
+
+  let lastSignature = null;
+  let busy = false;
 
   function bridge() {
     const api = window.LernBotBridge;
@@ -57,37 +63,44 @@
   function collect(facts) {
     const topics = new Map();
 
-    for (const f of facts) {
-      const subject = String(f?.subject ?? "").trim();
-      const property = norm(f?.property);
+    for (const fact of facts) {
+      const subject = String(
+        fact?.subject ?? ""
+      ).trim();
+
+      const property = norm(fact?.property);
 
       if (!subject || !property) continue;
 
-      const key = norm(subject);
+      const subjectKey = norm(subject);
 
-      if (!topics.has(key)) {
-        topics.set(key, {
+      if (!topics.has(subjectKey)) {
+        topics.set(subjectKey, {
           subject,
-          props: new Set()
+          properties: new Set()
         });
       }
 
-      topics.get(key).props.add(property);
+      topics.get(subjectKey)
+        .properties.add(property);
     }
 
     const missing = [];
 
-    for (const t of topics.values()) {
-      const type = [...t.props].some(p => animal.has(p))
-        ? "animal"
-        : [...t.props].some(p => planet.has(p))
-          ? "planet"
-          : "general";
+    for (const topic of topics.values()) {
+      const type =
+        [...topic.properties].some(
+          p => animal.has(p)
+        ) ? "animal" :
+        [...topic.properties].some(
+          p => planet.has(p)
+        ) ? "planet" :
+        "general";
 
       for (const property of rules[type]) {
-        if (!t.props.has(property)) {
+        if (!topic.properties.has(property)) {
           missing.push({
-            subject: t.subject,
+            subject: topic.subject,
             property,
             priority: priority(property)
           });
@@ -98,8 +111,22 @@
     return missing;
   }
 
+  function signature(facts) {
+    return JSON.stringify(
+      facts.map(f => [
+        norm(f?.subject),
+        norm(f?.property)
+      ]).sort((a, b) =>
+        JSON.stringify(a).localeCompare(
+          JSON.stringify(b)
+        )
+      )
+    );
+  }
+
   function reconcile() {
     const api = bridge();
+
     const facts = api.getFacts();
     const existing = api.getTasks();
 
@@ -113,85 +140,104 @@
     }
 
     const missing = collect(facts);
+
     const missingKeys = new Set(
-      missing.map(t => taskKey(t.subject, t.property))
+      missing.map(t =>
+        keyOf(t.subject, t.property)
+      )
     );
 
-    const knownKeys = new Set();
-    const updated = existing.map(t => ({ ...t }));
+    const updated = existing.map(t =>
+      t &&
+      typeof t === "object" &&
+      !Array.isArray(t)
+        ? { ...t }
+        : t
+    );
+
+    const known = new Set();
+
+    const timestamp = Date.now();
 
     let created = 0;
     let completed = 0;
     let reopened = 0;
     let changed = false;
 
-    const now = Date.now();
-
     for (const task of updated) {
       if (
-        task?.source !== "aufgaben-ki-3.2" ||
+        !task ||
+        task.source !== SOURCE ||
         !task.subject ||
         !task.property
       ) continue;
 
-      const key = taskKey(
+      const key = keyOf(
         task.subject,
         task.property
       );
 
-      knownKeys.add(key);
-
-      const shouldOpen = missingKeys.has(key);
+      known.add(key);
 
       if (
-        shouldOpen &&
+        missingKeys.has(key) &&
         task.status === "done"
       ) {
         task.status = "open";
         task.completedAt = null;
-        task.updatedAt = now;
+        task.updatedAt = timestamp;
+
         reopened++;
         changed = true;
+
       } else if (
-        !shouldOpen &&
+        !missingKeys.has(key) &&
         task.status !== "done"
       ) {
         task.status = "done";
-        task.completedAt = now;
-        task.updatedAt = now;
+        task.completedAt = timestamp;
+        task.updatedAt = timestamp;
+
         completed++;
         changed = true;
       }
     }
 
-    for (const m of missing) {
-      const key = taskKey(
-        m.subject,
-        m.property
+    for (const item of missing) {
+      const key = keyOf(
+        item.subject,
+        item.property
       );
 
-      if (knownKeys.has(key)) continue;
-
-      const id =
-        "LB-TASK-" +
-        now.toString(36) +
-        "-" +
-        Math.random().toString(36).slice(2, 10);
+      if (known.has(key)) continue;
 
       updated.push({
-        id,
-        source: "aufgaben-ki-3.2",
-        title: `${m.subject} – ${m.property}`,
-        subject: m.subject,
-        property: m.property,
-        priority: m.priority,
+        id:
+          "LB-TASK-" +
+          timestamp.toString(36) +
+          "-" +
+          Math.random()
+            .toString(36)
+            .slice(2, 10),
+
+        source: SOURCE,
+
+        title:
+          `${item.subject} – ${item.property}`,
+
+        subject: item.subject,
+        property: item.property,
+        priority: item.priority,
+
         status: "open",
-        createdAt: now,
-        updatedAt: now,
+
+        createdAt: timestamp,
+        updatedAt: timestamp,
         completedAt: null
       });
 
-      knownKeys.add(key);
+      known.add(key);
+
       created++;
       changed = true;
     }
@@ -201,20 +247,24 @@
 
       if (!result?.ok) {
         throw new Error(
-          result?.message || "Speichern fehlgeschlagen."
+          result?.message ||
+          "Speichern fehlgeschlagen."
         );
       }
     }
 
     const ours = updated.filter(
-      t => t?.source === "aufgaben-ki-3.2"
+      t => t && t.source === SOURCE
     );
 
     const open = ours
       .filter(t => t.status === "open")
       .sort((a, b) =>
-        b.priority - a.priority ||
-        a.title.localeCompare(b.title, "de")
+        (b.priority || 0) -
+        (a.priority || 0) ||
+        String(a.title).localeCompare(
+          String(b.title), "de"
+        )
       );
 
     const done = ours.filter(
@@ -222,7 +272,7 @@
     );
 
     const lines = [
-      "AUFGABEN-KI 3.2",
+      "AUFGABEN-KI 3.3",
       `Gespeicherte Fakten: ${facts.length}`,
       `Eigene Aufgaben: ${ours.length}`,
       `Offen: ${open.length}`,
@@ -246,7 +296,10 @@
       );
     }
 
-    lines.push("", "ERLEDIGTE LERNAUFGABEN");
+    lines.push(
+      "",
+      "ERLEDIGTE LERNAUFGABEN"
+    );
 
     if (!done.length) {
       lines.push(
@@ -266,9 +319,14 @@
     );
 
     lines.push(
-      "Hinweis: Nur Aufgaben dieser Aufgaben-KI " +
-      "werden automatisch geändert."
+      "Automatische Prüfung aktiv, solange LernBot geöffnet ist."
     );
+
+    lines.push(
+      "Hinweis: Nur Aufgaben dieser Aufgaben-KI werden automatisch geändert."
+    );
+
+    lastSignature = signature(facts);
 
     return lines.join("\n");
   }
@@ -284,11 +342,16 @@
     const item = document.createElement("div");
 
     item.className =
-      role === "user" ? "msg user" : "msg bot";
+      role === "user"
+        ? "msg user"
+        : "msg bot";
 
-    const content = document.createElement("div");
+    const content =
+      document.createElement("div");
 
-    content.className = "lb6-message-content";
+    content.className =
+      "lb6-message-content";
+
     content.style.whiteSpace = "pre-wrap";
     content.textContent = message;
 
@@ -298,12 +361,44 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
+  function checkAutomatically() {
+    if (
+      busy ||
+      document.visibilityState === "hidden"
+    ) return;
+
+    try {
+      const api = bridge();
+      const facts = api.getFacts();
+
+      if (!Array.isArray(facts)) return;
+
+      if (
+        signature(facts) === lastSignature
+      ) return;
+
+      busy = true;
+      reconcile();
+
+    } catch (error) {
+      console.warn(
+        "Aufgaben-KI 3.3:",
+        error
+      );
+
+    } finally {
+      busy = false;
+    }
+  }
+
   function intercept(event) {
-    const input = document.getElementById("input");
+    const input =
+      document.getElementById("input");
 
     if (
       !input ||
-      norm(input.value) !== "aufgaben analyse"
+      norm(input.value) !==
+        "aufgaben analyse"
     ) return;
 
     if (
@@ -323,6 +418,16 @@
 
     show(command, "user");
 
+    if (busy) {
+      show(
+        "Aufgaben-KI: Prüfung läuft bereits.",
+        "bot"
+      );
+      return;
+    }
+
+    busy = true;
+
     try {
       show(reconcile(), "bot");
     } catch (error) {
@@ -330,22 +435,31 @@
         "Aufgaben-KI: " + error.message,
         "bot"
       );
+    } finally {
+      busy = false;
     }
   }
 
   function init() {
-    const form = document.getElementById("bar");
-    const button = document.getElementById("send");
+    const form =
+      document.getElementById("bar");
+
+    const button =
+      document.getElementById("send");
 
     if (form) {
       form.addEventListener(
-        "submit", intercept, true
+        "submit",
+        intercept,
+        true
       );
     }
 
     if (button) {
       button.addEventListener(
-        "click", intercept, true
+        "click",
+        intercept,
+        true
       );
     }
 
@@ -361,6 +475,20 @@
       },
       true
     );
+
+    // Alle 2,5 Sekunden auf neue Fakten prüfen.
+    setInterval(
+      checkAutomatically,
+      2500
+    );
+
+    // Auch nach Rückkehr zur App prüfen.
+    document.addEventListener(
+      "visibilitychange",
+      checkAutomatically
+    );
+
+    checkAutomatically();
   }
 
   if (document.readyState === "loading") {
