@@ -1,40 +1,58 @@
 
-/* Mein LernBot 6.0 – Feedback-KI 3.6 */
+/* =====================================================
+   MEIN LERNBOT 6.0
+   PAKET 3.7 – LERNENDE FEEDBACK-KI
+   Speicher, Bewertung und Prioritätsschnittstelle
+   ===================================================== */
+
 (() => {
-  'use strict';
+  "use strict";
 
-  const KEY = 'meinLernBot.feedback.v1';
+  const KEY = "meinLernBot.feedback.v1";
+  const VERSION = 1;
 
-  const normalize = value => String(value ?? '')
-    .toLocaleLowerCase('de')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/ß/g, 'ss')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
+  function normalize(value) {
+    return String(value ?? "")
+      .toLocaleLowerCase("de")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/ß/g, "ss")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  }
+
+  function identifier(subject, property) {
+    return normalize(subject) + "::" + normalize(property);
+  }
+
+  function emptyState() {
+    return {
+      version: VERSION,
+      ratings: {}
+    };
+  }
 
   function read() {
     const raw = localStorage.getItem(KEY);
 
-    if (!raw) {
-      return { version: 1, ratings: {} };
-    }
+    if (!raw) return emptyState();
 
-    const parsed = JSON.parse(raw);
+    const state = JSON.parse(raw);
 
     if (
-      !parsed ||
-      parsed.version !== 1 ||
-      !parsed.ratings ||
-      typeof parsed.ratings !== 'object' ||
-      Array.isArray(parsed.ratings)
+      !state ||
+      state.version !== VERSION ||
+      !state.ratings ||
+      typeof state.ratings !== "object" ||
+      Array.isArray(state.ratings)
     ) {
-      throw Error(
-        'Feedback-Speicher hat ein unbekanntes Format.'
+      throw new Error(
+        "Unbekanntes Feedback-Speicherformat. " +
+        "Vorhandene Daten wurden nicht verändert."
       );
     }
 
-    return parsed;
+    return state;
   }
 
   function write(state) {
@@ -44,21 +62,116 @@
     );
   }
 
-  function parse(input) {
-    const text = String(input ?? '').trim();
+  function validRating(r) {
+    return (
+      r &&
+      typeof r === "object" &&
+      typeof r.property === "string" &&
+      typeof r.subject === "string" &&
+      (
+        r.rating === "sinnvoll" ||
+        r.rating === "unwichtig"
+      )
+    );
+  }
 
-    if (normalize(text) === 'feedback analyse') {
-      return { type: 'report' };
+  function ratingsList() {
+    return Object.values(read().ratings)
+      .filter(validRating);
+  }
+
+  /* =====================================================
+     1. GELERNTE GEWICHTUNG
+     ===================================================== */
+
+  function calculateAdjustment(subject, property) {
+    const targetSubject = normalize(subject);
+    const targetProperty = normalize(property);
+
+    if (!targetSubject || !targetProperty) {
+      return {
+        general: 0,
+        individual: 0,
+        total: 0,
+        evaluations: 0
+      };
     }
 
-    const match = text.match(
-      /^feedback\s*:\s*(sinnvoll|unwichtig)\s*:\s*(.+?)\s*[-–—]\s*(.+)$/i
+    const relevant = ratingsList().filter(
+      r => normalize(r.property) === targetProperty
     );
 
-    if (!match) return null;
+    let positive = 0;
+    let negative = 0;
+    let individual = 0;
 
-    const subject = match[2].trim();
-    const property = match[3].trim();
+    for (const r of relevant) {
+      if (r.rating === "sinnvoll") {
+        positive++;
+      } else {
+        negative++;
+      }
+
+      if (normalize(r.subject) === targetSubject) {
+        individual =
+          r.rating === "sinnvoll" ? 5 : -5;
+      }
+    }
+
+    // Die allgemeine Anpassung entspricht dem
+    // bisherigen Feedback-KI-3.6-Verhalten.
+    const general = Math.max(
+      -20,
+      Math.min(
+        20,
+        (positive - negative) * 5
+      )
+    );
+
+    return {
+      general,
+      individual,
+      total: general + individual,
+      evaluations: relevant.length
+    };
+  }
+
+  function adjustPriority(subject, property, baseScore) {
+    const base = Number(baseScore);
+
+    if (!Number.isFinite(base)) {
+      throw new Error("Ungültige Grundpriorität.");
+    }
+
+    const feedback = calculateAdjustment(
+      subject,
+      property
+    );
+
+    // Ein persönliches Feedback wirkt zusätzlich
+    // auf das konkret bewertete Thema.
+    const adjusted = Math.max(
+      0,
+      Math.min(100, base + feedback.total)
+    );
+
+    return {
+      base,
+      adjusted,
+      general: feedback.general,
+      individual: feedback.individual,
+      evaluations: feedback.evaluations
+    };
+  }
+
+  /* =====================================================
+     2. BEWERTUNGEN SPEICHERN
+     ===================================================== */
+
+  function saveRating(subject, property, rating) {
+    subject = String(subject ?? "").trim();
+    property = String(property ?? "").trim();
+    rating = normalize(rating);
 
     if (
       !subject ||
@@ -66,44 +179,77 @@
       subject.length > 120 ||
       property.length > 80
     ) {
-      return { type: 'invalid' };
+      throw new Error(
+        "Ungültiges Thema oder Eigenschaft."
+      );
     }
 
-    return {
-      type: 'rate',
-      rating: match[1].toLocaleLowerCase('de'),
+    if (
+      rating !== "sinnvoll" &&
+      rating !== "unwichtig"
+    ) {
+      throw new Error(
+        "Erlaubt sind sinnvoll und unwichtig."
+      );
+    }
+
+    const state = read();
+    const id = identifier(subject, property);
+    const previous = state.ratings[id];
+
+    if (previous?.rating === rating) {
+      return (
+        "Diese Bewertung ist bereits gespeichert. " +
+        "Keine Änderung."
+      );
+    }
+
+    state.ratings[id] = {
+      subject,
+      property,
+      rating,
+      updatedAt: Date.now()
+    };
+
+    write(state);
+
+    const result = calculateAdjustment(
       subject,
       property
-    };
+    );
+
+    return [
+      "BEWERTUNG GESPEICHERT",
+      "",
+      `Thema: ${subject}`,
+      `Eigenschaft: ${property}`,
+      `Bewertung: ${rating}`,
+      previous
+        ? "Vorherige Bewertung ersetzt."
+        : "Neue Bewertung angelegt.",
+      "",
+      `Allgemeine Anpassung: ${result.general >= 0 ? "+" : ""}${result.general}`,
+      `Individuelle Anpassung: ${result.individual >= 0 ? "+" : ""}${result.individual}`,
+      "",
+      "Die Wissens-KI kann diese Werte " +
+      "über die Feedback-Schnittstelle abrufen."
+    ].join("\n");
   }
 
-  function score(ratings, property) {
-    const relevant = Object.values(ratings)
-      .filter(
-        r => normalize(r.property) === normalize(property)
-      );
-
-    const positive = relevant.filter(
-      r => r.rating === 'sinnvoll'
-    ).length;
-
-    const negative = relevant.filter(
-      r => r.rating === 'unwichtig'
-    ).length;
-
-    return {
-      positive,
-      negative,
-      adjustment: Math.max(
-        -20,
-        Math.min(20, (positive - negative) * 5)
-      )
-    };
-  }
+  /* =====================================================
+     3. FEEDBACK-ANALYSE
+     ===================================================== */
 
   function report() {
-    const state = read();
-    const ratings = Object.values(state.ratings);
+    const ratings = ratingsList();
+
+    const positive = ratings.filter(
+      r => r.rating === "sinnvoll"
+    ).length;
+
+    const negative = ratings.filter(
+      r => r.rating === "unwichtig"
+    ).length;
 
     const properties = [
       ...new Set(
@@ -112,115 +258,153 @@
     ].sort();
 
     const lines = [
-      'FEEDBACK-KI 3.6',
+      "FEEDBACK-KI 3.7 – LERNANALYSE",
+      "",
       `Gespeicherte Bewertungen: ${ratings.length}`,
-      `Sinnvoll: ${
-        ratings.filter(r => r.rating === 'sinnvoll').length
-      }`,
-      `Unwichtig: ${
-        ratings.filter(r => r.rating === 'unwichtig').length
-      }`,
-      '',
-      'GELERNTE PRIORITÄTSANPASSUNGEN'
+      `Sinnvoll: ${positive}`,
+      `Unwichtig: ${negative}`,
+      "",
+      "GELERNTE EIGENSCHAFTSGEWICHTE"
     ];
 
     if (!properties.length) {
       lines.push(
-        'Noch keine Bewertungen vorhanden.'
+        "Noch keine Bewertungen vorhanden."
       );
     }
 
     for (const property of properties) {
-      const result = score(
-        state.ratings,
-        property
+      const matches = ratings.filter(
+        r => normalize(r.property) === property
+      );
+
+      const plus = matches.filter(
+        r => r.rating === "sinnvoll"
+      ).length;
+
+      const minus = matches.filter(
+        r => r.rating === "unwichtig"
+      ).length;
+
+      const adjustment = Math.max(
+        -20,
+        Math.min(20, (plus - minus) * 5)
       );
 
       lines.push(
-        `• ${property}: ${
-          result.adjustment >= 0 ? '+' : ''
-        }${result.adjustment} Punkte ` +
-        `(${result.positive} sinnvoll, ` +
-        `${result.negative} unwichtig)`
+        `• ${property}: ` +
+        `${adjustment >= 0 ? "+" : ""}${adjustment} ` +
+        `(${plus} sinnvoll, ${minus} unwichtig)`
       );
     }
 
     lines.push(
-      '',
-      'Die Bewertungen sind gespeichert. ' +
-      'Die Wissens-KI 3.5 verwendet diese ' +
-      'Anpassungen noch nicht; die Verbindung ' +
-      'folgt im nächsten Schritt.'
+      "",
+      "INDIVIDUELLE BEWERTUNGEN"
     );
 
-    return lines.join('\n');
+    if (!ratings.length) {
+      lines.push("Keine vorhanden.");
+    }
+
+    for (const r of ratings.slice(0, 20)) {
+      lines.push(
+        `• ${r.subject} – ${r.property}: ${r.rating}`
+      );
+    }
+
+    lines.push(
+      "",
+      "PRIORITÄTS-SCHNITTSTELLE",
+      "Bereit: LernBotFeedback.adjustPriority",
+      "",
+      "Hinweis: Die Wissens-KI muss noch " +
+      "mit dieser Schnittstelle verbunden werden.",
+      "Es wurden keine Fakten oder Aufgaben verändert."
+    );
+
+    return lines.join("\n");
   }
 
-  function run(command) {
-    if (command.type === 'report') {
-      return report();
+  /* =====================================================
+     4. SICHERE ÖFFENTLICHE SCHNITTSTELLE
+     ===================================================== */
+
+  window.LernBotFeedback = Object.freeze({
+    version: "3.7",
+
+    getAdjustment(subject, property) {
+      return calculateAdjustment(
+        subject,
+        property
+      );
+    },
+
+    adjustPriority(subject, property, baseScore) {
+      return adjustPriority(
+        subject,
+        property,
+        baseScore
+      );
+    },
+
+    getSummary() {
+      const ratings = ratingsList();
+
+      return {
+        count: ratings.length,
+        positive: ratings.filter(
+          r => r.rating === "sinnvoll"
+        ).length,
+        negative: ratings.filter(
+          r => r.rating === "unwichtig"
+        ).length
+      };
+    }
+  });
+
+  /* =====================================================
+     5. CHAT-BEFEHLE
+     ===================================================== */
+
+  function parseCommand(input) {
+    const text = String(input ?? "").trim();
+
+    if (normalize(text) === "feedback analyse") {
+      return { type: "report" };
     }
 
-    if (command.type === 'invalid') {
-      return 'Feedback-KI: Ungültiger Themenname oder Eigenschaft.';
-    }
-
-    const state = read();
-
-    const id =
-      normalize(command.subject) +
-      '::' +
-      normalize(command.property);
-
-    if (!id || id === '::') {
-      return 'Feedback-KI: Ungültige Bewertung.';
-    }
-
-    const previous = state.ratings[id];
-
-    if (previous?.rating === command.rating) {
-      return 'Diese Bewertung ist bereits gespeichert. Keine Änderung.';
-    }
-
-    state.ratings[id] = {
-      subject: command.subject,
-      property: command.property,
-      rating: command.rating,
-      updatedAt: Date.now()
-    };
-
-    write(state);
-
-    return (
-      `Bewertung gespeichert: ` +
-      `${command.subject} – ${command.property}` +
-      ` → ${command.rating}\n` +
-      (
-        previous
-          ? 'Vorherige Bewertung ersetzt.'
-          : 'Neue Bewertung angelegt.'
-      ) +
-      '\nBefehl für Übersicht: Feedback Analyse'
+    const match = text.match(
+      /^feedback\s*:\s*(sinnvoll|unwichtig)\s*:\s*(.+?)\s+[-–—]\s+(.+)$/i
     );
+
+    if (!match) return null;
+
+    return {
+      type: "rating",
+      rating: match[1],
+      subject: match[2].trim(),
+      property: match[3].trim()
+    };
   }
 
   function show(message, role) {
-    const chat = document.getElementById('log');
+    const chat = document.getElementById("log");
 
     if (!chat) {
       alert(message);
       return;
     }
 
-    const item = document.createElement('div');
+    const item = document.createElement("div");
 
     item.className =
-      role === 'user' ? 'msg user' : 'msg bot';
+      role === "user" ? "msg user" : "msg bot";
 
-    const content = document.createElement('div');
+    const content = document.createElement("div");
 
-    content.className = 'lb6-message-content';
-    content.style.whiteSpace = 'pre-wrap';
+    content.className = "lb6-message-content";
+    content.style.whiteSpace = "pre-wrap";
     content.textContent = message;
 
     item.appendChild(content);
@@ -230,20 +414,22 @@
   }
 
   function intercept(event) {
-    const input = document.getElementById('input');
+    const input = document.getElementById("input");
 
     if (!input) return;
 
     if (
-      event.type === 'keydown' &&
+      event.type === "keydown" &&
       (
-        event.key !== 'Enter' ||
+        event.key !== "Enter" ||
         event.shiftKey ||
         event.isComposing
       )
-    ) return;
+    ) {
+      return;
+    }
 
-    const command = parse(input.value);
+    const command = parseCommand(input.value);
 
     if (!command) return;
 
@@ -251,42 +437,55 @@
     event.stopImmediatePropagation();
 
     const original = input.value.trim();
-    input.value = '';
+    input.value = "";
 
-    show(original, 'user');
+    show(original, "user");
 
     try {
-      show(run(command), 'bot');
+      const response =
+        command.type === "report"
+          ? report()
+          : saveRating(
+              command.subject,
+              command.property,
+              command.rating
+            );
+
+      show(response, "bot");
     } catch (error) {
       show(
-        'Feedback-KI: ' + error.message,
-        'bot'
+        "Feedback-KI: " + error.message,
+        "bot"
       );
     }
   }
 
   function init() {
-    const form = document.getElementById('bar');
-    const button = document.getElementById('send');
+    const form = document.getElementById("bar");
+    const button = document.getElementById("send");
 
     if (form) {
       form.addEventListener(
-        'submit', intercept, true
+        "submit",
+        intercept,
+        true
       );
     }
 
     if (button) {
       button.addEventListener(
-        'click', intercept, true
+        "click",
+        intercept,
+        true
       );
     }
 
     document.addEventListener(
-      'keydown',
+      "keydown",
       event => {
         if (
           event.target ===
-          document.getElementById('input')
+          document.getElementById("input")
         ) {
           intercept(event);
         }
@@ -295,9 +494,9 @@
     );
   }
 
-  if (document.readyState === 'loading') {
+  if (document.readyState === "loading") {
     document.addEventListener(
-      'DOMContentLoaded',
+      "DOMContentLoaded",
       init,
       { once: true }
     );
