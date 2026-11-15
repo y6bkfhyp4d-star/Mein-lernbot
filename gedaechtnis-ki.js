@@ -1,22 +1,30 @@
 
 /* =====================================================
    MEIN LERNBOT 6.0
-   PAKET 4.2 – INTELLIGENTES GEDÄCHTNIS
+   PAKET 4.3 – INTELLIGENTE GEDÄCHTNISORGANISATION
 
-   Faktenanalyse, Erinnerungssuche,
-   Ähnlichkeitserkennung und persönliche Übersicht
+   - Persönliche Erinnerungen getrennt anzeigen
+   - Fachwissen und Dokumente erkennen
+   - Ähnliche Erinnerungen vergleichen
+   - Unterschiedliche Faktenwerte zur Prüfung melden
+   - Erinnerungen gezielt durchsuchen
 
-   Nur lesend. Bestehende Daten bleiben erhalten.
+   SICHERHEIT:
+   Nur lesend. Keine Daten werden verändert.
    ===================================================== */
 
 (() => {
   "use strict";
 
-  const VERSION = "4.2";
+  const VERSION = "4.3";
   const KEY = "meinLernBot.v1";
 
-  const normalize = value =>
-    String(value ?? "")
+  function clean(value) {
+    return String(value ?? "").trim();
+  }
+
+  function normalize(value) {
+    return clean(value)
       .toLocaleLowerCase("de")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -24,61 +32,13 @@
       .replace(/[^\p{L}\p{N}]+/gu, " ")
       .replace(/\s+/g, " ")
       .trim();
-
-  const clean = value =>
-    String(value ?? "").trim();
-
-  const stopwords = new Set([
-    "ich", "du", "er", "sie", "es", "wir",
-    "ihr", "der", "die", "das", "den",
-    "dem", "des", "ein", "eine", "einer",
-    "einen", "und", "oder", "aber",
-    "mit", "von", "fur", "auf", "aus",
-    "ist", "sind", "bin", "habe",
-    "hat", "im", "in", "am", "an",
-    "zu", "als", "auch", "mich",
-    "mir", "mein", "meine", "meinen",
-    "dass", "was", "wie", "uber"
-  ]);
-
-  function words(value) {
-    return new Set(
-      normalize(value)
-        .split(" ")
-        .filter(word =>
-          word.length > 2 &&
-          !stopwords.has(word)
-        )
-    );
   }
 
-  function similarity(a, b) {
-    const x = words(a);
-    const y = words(b);
-
-    if (!x.size || !y.size) {
-      return normalize(a) === normalize(b) ? 1 : 0;
-    }
-
-    const overlap = [...x].filter(
-      word => y.has(word)
-    ).length;
-
-    return overlap / Math.max(x.size, y.size);
-  }
-
-  /* =====================================================
-     1. DATEN LESEN
-     ===================================================== */
-
-  function readData() {
+  function readMemory() {
     const raw = localStorage.getItem(KEY);
 
     if (raw === null) {
-      throw new Error(
-        "Kein Hauptspeicher gefunden. " +
-        "Es wurden keine Daten verändert."
-      );
+      throw new Error("Hauptspeicher nicht gefunden.");
     }
 
     const data = JSON.parse(raw);
@@ -86,23 +46,9 @@
     if (
       !data ||
       typeof data !== "object" ||
-      Array.isArray(data)
+      !Array.isArray(data.memory)
     ) {
-      throw new Error(
-        "Ungültige Speicherstruktur."
-      );
-    }
-
-    return data;
-  }
-
-  function getMemories() {
-    const data = readData();
-
-    if (!Array.isArray(data.memory)) {
-      throw new Error(
-        "Das Feld memory ist kein Array."
-      );
+      throw new Error("Ungültige Gedächtnisstruktur.");
     }
 
     return data.memory.map((item, index) => {
@@ -112,127 +58,277 @@
           : { content: item };
 
       return {
-        index,
+        index: index + 1,
         id: clean(entry.id),
-        type: clean(entry.type || "notiz"),
+        type: normalize(entry.type || "notiz"),
         content: clean(
           entry.content ??
           entry.text ??
           entry.value ??
           ""
-        ),
-        created: entry.createdAt ??
-          entry.created ??
-          entry.timestamp ??
-          null
+        )
       };
     });
   }
 
-  function getFacts() {
-    const api = window.LernBotBridge;
+  function readFacts() {
+    const bridge = window.LernBotBridge;
 
     if (
-      !api ||
-      typeof api.getFacts !== "function"
+      !bridge ||
+      typeof bridge.getFacts !== "function"
     ) {
-      throw new Error(
-        "LernBotBridge.getFacts fehlt."
-      );
+      throw new Error("LernBotBridge.getFacts fehlt.");
     }
 
-    const facts = api.getFacts();
+    const facts = bridge.getFacts();
 
     if (!Array.isArray(facts)) {
-      throw new Error(
-        "getFacts liefert kein Array."
-      );
+      throw new Error("Ungültige Faktenliste.");
     }
 
     return facts.filter(
-      fact =>
-        fact &&
-        typeof fact === "object"
+      fact => fact && typeof fact === "object"
     );
   }
 
   /* =====================================================
-     2. FAKTENANALYSE
+     1. ERINNERUNGEN EINORDNEN
      ===================================================== */
 
-  function analyzeFacts(facts) {
+  function classify(memory) {
+    const type = memory.type;
+    const content = normalize(memory.content);
+
+    if (
+      type === "dokument" ||
+      content.startsWith("dokument importiert")
+    ) {
+      return "dokument";
+    }
+
+    if (
+      type === "fakt" ||
+      type === "lerninhalt" ||
+      content.startsWith("lerninhalt gespeichert") ||
+      content.startsWith("lerninhalt ")
+    ) {
+      return "fachwissen";
+    }
+
+    if (
+      type === "notiz" ||
+      type === "personlich" ||
+      type === "persoenlich"
+    ) {
+      return "persoenlich";
+    }
+
+    return "sonstige";
+  }
+
+  function organize(memories) {
+    const groups = {
+      persoenlich: [],
+      fachwissen: [],
+      dokument: [],
+      sonstige: []
+    };
+
+    for (const memory of memories) {
+      groups[classify(memory)].push(memory);
+    }
+
+    return groups;
+  }
+
+  /* =====================================================
+     2. FAKTEN AUS ERINNERUNGEN ERKENNEN
+     ===================================================== */
+
+  function parseFact(memory) {
+    if (classify(memory) !== "fachwissen") {
+      return null;
+    }
+
+    let content = memory.content;
+
+    content = content.replace(
+      /^lerninhalt gespeichert\s*:\s*/i,
+      ""
+    );
+
+    content = content.replace(
+      /^lerninhalt\s*:\s*/i,
+      ""
+    );
+
+    const match = content.match(
+      /^([^:\n]+)\s*:\s*([^=–—:\n]+?)\s*(?:=|–|—|:)\s*(.+)$/s
+    );
+
+    if (!match) return null;
+
+    return {
+      subject: clean(match[1]),
+      property: normalize(match[2]),
+      value: clean(match[3]),
+      source: `Erinnerung ${memory.index}`
+    };
+  }
+
+  function comparableNumber(value) {
+    const match = clean(value).match(
+      /^\s*(\d[\d.,\s]*)\s*(.*)$/
+    );
+
+    if (!match) return null;
+
+    const numberText = match[1]
+      .replace(/\s/g, "")
+      .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+      .replace(",", ".");
+
+    const number = Number(numberText);
+
+    if (!Number.isFinite(number)) return null;
+
+    return {
+      number,
+      unit: normalize(match[2])
+    };
+  }
+
+  /* =====================================================
+     3. WERTABWEICHUNGEN ERKENNEN
+     ===================================================== */
+
+  function findValueDifferences(facts) {
     const groups = new Map();
 
     for (const fact of facts) {
+      const subject = clean(fact.subject);
+      const property = normalize(fact.property);
+      const value = clean(fact.value);
+
+      if (!subject || !property || !value) continue;
+
       const key =
-        normalize(fact.subject) + "\u0000" +
-        normalize(fact.property);
+        normalize(subject) + "\u0000" + property;
 
       if (!groups.has(key)) {
         groups.set(key, []);
       }
 
-      groups.get(key).push(fact);
+      groups.get(key).push({
+        subject,
+        property,
+        value,
+        source: clean(fact.source)
+      });
     }
 
-    const duplicates = [];
-    const similar = [];
-    const different = [];
+    const differences = [];
 
-    for (const group of groups.values()) {
-      for (let i = 0; i < group.length; i++) {
-        for (let j = i + 1; j < group.length; j++) {
-          const a = group[i];
-          const b = group[j];
+    for (const entries of groups.values()) {
+      const uniqueValues = new Map();
 
-          const detail =
-            `${clean(a.subject)} – ${clean(a.property)}\n` +
-            `• ${clean(a.value)}\n` +
-            `• ${clean(b.value)}`;
+      for (const entry of entries) {
+        const key = normalize(entry.value);
 
-          if (
-            normalize(a.value) ===
-            normalize(b.value)
-          ) {
-            duplicates.push(detail);
-          } else if (
-            similarity(a.value, b.value) >= 0.65
-          ) {
-            similar.push(detail);
-          } else {
-            different.push(detail);
-          }
+        if (!uniqueValues.has(key)) {
+          uniqueValues.set(key, entry);
         }
       }
+
+      const values = [...uniqueValues.values()];
+
+      if (values.length < 2) continue;
+
+      const numeric = values.map(
+        item => comparableNumber(item.value)
+      );
+
+      let note =
+        "Unterschiedliche Angaben – manuell prüfen.";
+
+      if (
+        numeric.every(Boolean) &&
+        numeric.every(
+          item => item.unit === numeric[0].unit
+        )
+      ) {
+        const numbers = numeric.map(
+          item => item.number
+        );
+
+        const min = Math.min(...numbers);
+        const max = Math.max(...numbers);
+
+        const difference = max - min;
+        const percent = max
+          ? (difference / max) * 100
+          : 0;
+
+        note =
+          `Numerische Abweichung: ${difference.toLocaleString("de-DE")} ` +
+          `(${percent.toFixed(1).replace(".", ",")} %). ` +
+          "Rundung und Messdefinition prüfen.";
+      }
+
+      differences.push({
+        subject: values[0].subject,
+        property: values[0].property,
+        values,
+        note
+      });
     }
 
-    return {
-      duplicates,
-      similar,
-      different
-    };
+    return differences;
   }
 
   /* =====================================================
-     3. ERINNERUNGEN ANALYSIEREN
+     4. ÄHNLICHE ERINNERUNGEN
      ===================================================== */
 
-  function analyzeMemories(memories) {
+  const stopwords = new Set([
+    "ich", "du", "der", "die", "das", "ein",
+    "eine", "und", "oder", "ist", "sind",
+    "mit", "von", "fur", "den", "dem",
+    "im", "in", "am", "auf", "als",
+    "gespeichert", "lerninhalt", "dokument",
+    "importiert"
+  ]);
+
+  function wordSet(value) {
+    return new Set(
+      normalize(value)
+        .split(" ")
+        .filter(
+          word =>
+            word.length > 2 &&
+            !stopwords.has(word)
+        )
+    );
+  }
+
+  function similarity(a, b) {
+    const x = wordSet(a);
+    const y = wordSet(b);
+
+    if (!x.size || !y.size) return 0;
+
+    const overlap = [...x].filter(
+      word => y.has(word)
+    ).length;
+
+    return overlap /
+      Math.max(x.size, y.size);
+  }
+
+  function findSimilar(memories) {
     const duplicates = [];
     const similar = [];
-    const empty = [];
-    const types = new Map();
-
-    for (const memory of memories) {
-      types.set(
-        memory.type,
-        (types.get(memory.type) || 0) + 1
-      );
-
-      if (!memory.content) {
-        empty.push(memory.index + 1);
-      }
-    }
 
     for (let i = 0; i < memories.length; i++) {
       const a = memories[i];
@@ -244,115 +340,81 @@
 
         if (!b.content) continue;
 
-        const detail =
-          `Eintrag ${a.index + 1} ↔ ${b.index + 1}\n` +
-          `• ${a.content.slice(0, 180)}\n` +
-          `• ${b.content.slice(0, 180)}`;
+        if (classify(a) !== classify(b)) {
+          continue;
+        }
 
-        if (
+        const exact =
           normalize(a.content) ===
-          normalize(b.content)
-        ) {
+          normalize(b.content);
+
+        const parsedA = parseFact(a);
+        const parsedB = parseFact(b);
+
+        if (parsedA && parsedB) {
+          if (
+            normalize(parsedA.subject) !==
+              normalize(parsedB.subject) ||
+            parsedA.property !== parsedB.property
+          ) {
+            continue;
+          }
+        }
+
+        const detail =
+          `Eintrag ${a.index} ↔ ${b.index}\n` +
+          `• ${a.content.slice(0, 150)}\n` +
+          `• ${b.content.slice(0, 150)}`;
+
+        if (exact) {
           duplicates.push(detail);
         } else if (
-          similarity(a.content, b.content) >= 0.7
+          similarity(a.content, b.content) >= 0.8
         ) {
           similar.push(detail);
         }
       }
     }
 
-    return {
-      duplicates,
-      similar,
-      empty,
-      types
-    };
+    return { duplicates, similar };
   }
 
   /* =====================================================
-     4. RELEVANZ DER ERINNERUNGEN
+     5. PERSÖNLICHE ÜBERSICHT
      ===================================================== */
 
-  function scoreMemory(memory, query) {
-    const content = normalize(memory.content);
-    const search = normalize(query);
-
-    if (!content || !search) return 0;
-
-    let score = 0;
-
-    if (content === search) {
-      score += 100;
-    }
-
-    if (content.includes(search)) {
-      score += 60;
-    }
-
-    const queryWords = words(query);
-    const memoryWords = words(memory.content);
-
-    for (const word of queryWords) {
-      if (memoryWords.has(word)) {
-        score += 12;
-      }
-    }
-
-    if (
-      queryWords.size &&
-      [...queryWords].every(
-        word => memoryWords.has(word)
-      )
-    ) {
-      score += 25;
-    }
-
-    return score;
-  }
-
-  function searchMemories(query, memories) {
-    const results = memories
-      .map(memory => ({
-        ...memory,
-        score: scoreMemory(memory, query)
-      }))
-      .filter(memory => memory.score > 0)
-      .sort((a, b) =>
-        b.score - a.score ||
-        a.index - b.index
-      );
+  function personalOverview() {
+    const memories = readMemory();
+    const groups = organize(memories);
 
     const lines = [
-      "GEDÄCHTNIS-KI 4.2 – ERINNERUNGSSUCHE",
+      `GEDÄCHTNIS-KI ${VERSION}`,
+      "WAS WEISS ICH ÜBER DICH?",
       "",
-      `Suchbegriff: ${query}`,
-      `Treffer: ${results.length}`,
-      ""
+      `Persönliche Erinnerungen: ${groups.persoenlich.length}`,
+      "",
+      "GESPEICHERTE PERSÖNLICHE INFORMATIONEN"
     ];
 
-    if (!results.length) {
+    if (!groups.persoenlich.length) {
       lines.push(
-        "Keine passende Erinnerung gefunden.",
-        "Das bedeutet nicht, dass die Information falsch ist."
+        "Noch keine persönlichen Erinnerungen erkannt."
       );
     }
 
-    for (const memory of results.slice(0, 12)) {
-      lines.push(
-        `• [${memory.type}] ${memory.content}`
-      );
-    }
-
-    if (results.length > 12) {
-      lines.push(
-        `… ${results.length - 12} weitere Treffer`
-      );
+    for (const memory of groups.persoenlich) {
+      lines.push("• " + memory.content);
     }
 
     lines.push(
       "",
-      "Die Treffer beruhen auf Textähnlichkeit.",
+      "WEITERES GESPEICHERTES WISSEN",
+      `Fachwissen: ${groups.fachwissen.length}`,
+      `Importierte Dokumente: ${groups.dokument.length}`,
+      `Sonstige Erinnerungen: ${groups.sonstige.length}`,
+      "",
+      "Die Einordnung basiert auf Erinnerungstypen.",
+      "Nicht jede Notiz muss eine persönliche Tatsache sein.",
       "Es wurden keine Daten verändert."
     );
 
@@ -360,161 +422,183 @@
   }
 
   /* =====================================================
-     5. PERSÖNLICHE WISSENSÜBERSICHT
+     6. ERINNERUNGSSUCHE
      ===================================================== */
 
-  function personalOverview(memories) {
-    const entries = memories.filter(
-      memory => memory.content
-    );
+  function search(query) {
+    const memories = readMemory();
+    const q = normalize(query);
+    const queryWords = wordSet(query);
+
+    const matches = memories
+      .map(memory => {
+        const content = normalize(memory.content);
+        const contentWords = wordSet(memory.content);
+
+        let score = 0;
+
+        if (content === q) score += 100;
+        if (q && content.includes(q)) score += 50;
+
+        for (const word of queryWords) {
+          if (contentWords.has(word)) {
+            score += 10;
+          }
+        }
+
+        return { memory, score };
+      })
+      .filter(item => item.score > 0)
+      .sort((a, b) =>
+        b.score - a.score ||
+        a.memory.index - b.memory.index
+      );
 
     const lines = [
-      "MEIN LERNBOT – WAS WEISS ICH ÜBER DICH?",
-      "",
-      `Gespeicherte Erinnerungen: ${memories.length}`,
-      `Erinnerungen mit Inhalt: ${entries.length}`,
-      "",
-      "DEINE GESPEICHERTEN INFORMATIONEN"
+      `GEDÄCHTNIS-KI ${VERSION} – SUCHE`,
+      `Suchbegriff: ${query}`,
+      `Treffer: ${matches.length}`,
+      ""
     ];
 
-    if (!entries.length) {
-      lines.push(
-        "Noch keine Erinnerungen mit lesbarem Inhalt."
-      );
+    if (!matches.length) {
+      lines.push("Keine passende Erinnerung gefunden.");
     }
 
-    for (const memory of entries.slice(0, 25)) {
+    for (const item of matches.slice(0, 15)) {
       lines.push(
-        `• ${memory.content.slice(0, 350)}`
-      );
-    }
-
-    if (entries.length > 25) {
-      lines.push(
-        `… ${entries.length - 25} weitere Erinnerungen`
+        `• [${classify(item.memory)}] ` +
+        item.memory.content
       );
     }
 
     lines.push(
       "",
-      "HINWEIS",
-      "Diese Informationen stammen aus deinem gespeicherten Gedächtnis.",
-      "Ihre sachliche Richtigkeit wurde nicht unabhängig geprüft.",
-      "Es wurden keine Erinnerungen verändert."
+      "Die Suche verwendet Textübereinstimmungen.",
+      "Es wurden keine Daten verändert."
     );
 
     return lines.join("\n");
   }
 
   /* =====================================================
-     6. VOLLSTÄNDIGE GEDÄCHTNISANALYSE
+     7. GESAMTANALYSE
      ===================================================== */
 
-  function section(title, items) {
-    return (
-      `${title}: ${items.length}` +
-      (
-        items.length
-          ? "\n" + items.slice(0, 10)
-              .map(item => "• " + item)
-              .join("\n")
-          : ""
-      ) +
-      (
-        items.length > 10
-          ? "\n… weitere Einträge vorhanden"
-          : ""
-      )
-    );
-  }
-
   function analyze() {
-    const facts = getFacts();
-    const memories = getMemories();
+    const memories = readMemory();
+    const facts = readFacts();
+    const groups = organize(memories);
+    const similar = findSimilar(memories);
 
-    const factAnalysis = analyzeFacts(facts);
-    const memoryAnalysis =
-      analyzeMemories(memories);
+    const memoryFacts = memories
+      .map(parseFact)
+      .filter(Boolean);
+
+    const allFacts = [
+      ...facts.map(fact => ({
+        subject: fact.subject,
+        property: fact.property,
+        value: fact.value,
+        source: "Wissensdatenbank"
+      })),
+      ...memoryFacts
+    ];
+
+    const differences =
+      findValueDifferences(allFacts);
+
+    const empty = memories.filter(
+      memory => !memory.content
+    );
 
     const lines = [
       `GEDÄCHTNIS-KI ${VERSION} – ANALYSE`,
       "",
       "DATENBESTAND",
-      `Gespeicherte Fakten: ${facts.length}`,
-      `Gespeicherte Erinnerungen: ${memories.length}`,
+      `Fakten: ${facts.length}`,
+      `Erinnerungen: ${memories.length}`,
       "",
-      "ERINNERUNGEN",
-      section(
-        "Exakte doppelte Erinnerungen",
-        memoryAnalysis.duplicates
-      ),
+      "GEDÄCHTNISORGANISATION",
+      `Persönlich: ${groups.persoenlich.length}`,
+      `Fachwissen: ${groups.fachwissen.length}`,
+      `Dokumente: ${groups.dokument.length}`,
+      `Sonstige: ${groups.sonstige.length}`,
       "",
-      section(
-        "Ähnliche Erinnerungen – prüfen",
-        memoryAnalysis.similar
-      ),
+      "QUALITÄTSPRÜFUNG",
+      `Exakte doppelte Erinnerungen: ${similar.duplicates.length}`,
+      `Ähnliche Erinnerungen: ${similar.similar.length}`,
+      `Leere Erinnerungen: ${empty.length}`,
+      `Unterschiedliche Faktenwerte: ${differences.length}`,
       "",
-      section(
-        "Leere Erinnerungen",
-        memoryAnalysis.empty
-      ),
-      "",
-      "ERINNERUNGSTYPEN"
+      "MÖGLICHE DUBLETTEN"
     ];
 
-    for (const [type, count] of
-      memoryAnalysis.types) {
-      lines.push(`• ${type}: ${count}`);
+    if (!similar.duplicates.length) {
+      lines.push("Keine exakten Dubletten erkannt.");
+    }
+
+    for (const item of similar.duplicates.slice(0, 5)) {
+      lines.push("• " + item);
     }
 
     lines.push(
       "",
-      "FAKTEN",
-      section(
-        "Exakte doppelte Fakten",
-        factAnalysis.duplicates
-      ),
-      "",
-      section(
-        "Ähnliche Fakten",
-        factAnalysis.similar
-      ),
-      "",
-      section(
-        "Unterschiedliche Angaben – prüfen",
-        factAnalysis.different
-      ),
-      "",
-      "BEWERTUNG"
+      "ÄHNLICHE ERINNERUNGEN"
     );
 
-    if (
-      !memoryAnalysis.duplicates.length &&
-      !memoryAnalysis.similar.length &&
-      !memoryAnalysis.empty.length
-    ) {
-      lines.push(
-        "Keine auffälligen Erinnerungen nach den aktuellen Regeln."
-      );
-    } else {
-      lines.push(
-        "Es gibt Erinnerungen, die manuell geprüft werden sollten."
-      );
+    if (!similar.similar.length) {
+      lines.push("Keine auffälligen Ähnlichkeiten erkannt.");
+    }
+
+    for (const item of similar.similar.slice(0, 5)) {
+      lines.push("• " + item);
     }
 
     lines.push(
       "",
-      "WICHTIG",
-      "Ähnliche Erinnerungen müssen keine Dubletten sein.",
-      "Unterschiedliche Aussagen sind nicht automatisch Widersprüche.",
-      "Es wurden keine Daten verändert."
+      "UNTERSCHIEDLICHE FAKTENWERTE"
+    );
+
+    if (!differences.length) {
+      lines.push("Keine Wertabweichungen erkannt.");
+    }
+
+    for (const item of differences.slice(0, 10)) {
+      lines.push(
+        `• ${item.subject} – ${item.property}`
+      );
+
+      for (const value of item.values.slice(0, 5)) {
+        lines.push(
+          `  - ${value.value} (${value.source})`
+        );
+      }
+
+      lines.push("  " + item.note);
+    }
+
+    lines.push(
+      "",
+      "SYSTEMSTATUS",
+      "Persönliches Gedächtnis: getrennt",
+      "Fachwissen: getrennt",
+      "Dokumente: getrennt",
+      "Faktenvergleich: aktiv",
+      "Automatische Änderungen: deaktiviert",
+      "",
+      "HINWEIS",
+      "Die Trennung erfolgt nur bei der Anzeige.",
+      "Unterschiedliche Werte sind nicht zwingend Widersprüche.",
+      "Die Diagnose kann Unterschiede übersehen.",
+      "Keine Daten wurden verändert."
     );
 
     return lines.join("\n");
   }
 
   /* =====================================================
-     7. CHAT-AUSGABE
+     8. CHAT
      ===================================================== */
 
   function output(message, role) {
@@ -526,12 +610,10 @@
     }
 
     const item = document.createElement("div");
-
     item.className =
       role === "user" ? "msg user" : "msg bot";
 
     const content = document.createElement("div");
-
     content.className = "lb6-message-content";
     content.style.whiteSpace = "pre-wrap";
     content.textContent = String(message);
@@ -541,10 +623,6 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  /* =====================================================
-     8. BEFEHLE ERKENNEN
-     ===================================================== */
-
   function commandType(value) {
     const command = normalize(value);
 
@@ -552,9 +630,7 @@
       command === "gedachtnis analyse" ||
       command === "gedaechtnis analyse"
     ) {
-      return {
-        type: "analyse"
-      };
+      return { type: "analyse" };
     }
 
     if (
@@ -563,16 +639,14 @@
       command === "was weisst du uber mich" ||
       command === "was weisst du uber mich?"
     ) {
-      return {
-        type: "overview"
-      };
+      return { type: "overview" };
     }
 
     const match = clean(value).match(
       /^(?:gedächtnis|gedaechtnis|gedachtnis)\s+suche\s*:?\s*(.+)$/i
     );
 
-    if (match && clean(match[1])) {
+    if (match) {
       return {
         type: "search",
         query: clean(match[1])
@@ -583,8 +657,7 @@
   }
 
   function intercept(event) {
-    const input =
-      document.getElementById("input");
+    const input = document.getElementById("input");
 
     if (!input) return;
 
@@ -617,14 +690,9 @@
       if (command.type === "analyse") {
         result = analyze();
       } else if (command.type === "overview") {
-        result = personalOverview(
-          getMemories()
-        );
+        result = personalOverview();
       } else {
-        result = searchMemories(
-          command.query,
-          getMemories()
-        );
+        result = search(command.query);
       }
 
       output(result, "bot");
@@ -641,11 +709,8 @@
      ===================================================== */
 
   function init() {
-    const form =
-      document.getElementById("bar");
-
-    const button =
-      document.getElementById("send");
+    const form = document.getElementById("bar");
+    const button = document.getElementById("send");
 
     if (form) {
       form.addEventListener(
