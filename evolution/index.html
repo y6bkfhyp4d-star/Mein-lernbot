@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e101b">
+  <title>LernBot 7.0 · Forschungswelt</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <header><p class="sub">MEIN LERNBOT · FORSCHUNGSLABOR</p><h1>LernBot 7.0 – Phase 1</h1><p class="sub">Virtuelle Welt und reproduzierbare Experimente. Der Agent handelt noch zufällig.</p></header>
+  <section class="panel" aria-label="Virtuelle Welt">
+    <h2>Experimentierwelt</h2>
+    <canvas id="world" width="600" height="600" role="img" aria-label="Virtuelle 20 mal 20 Welt mit Ressourcen, Hindernissen, Gefahren und Agent"></canvas>
+    <div class="legend"><span style="--c:#e9d5ff">Agent</span><span style="--c:#16a34a">Ressource</span><span style="--c:#dc5353">Gefahr</span><span style="--c:#64748b">Wand</span></div>
+    <div class="controls"><button id="run">Start</button><button class="secondary" id="once">Einzelschritt</button><button class="secondary" id="reset">Zurücksetzen</button></div>
+    <div class="fields"><label>Seed <input id="seed" type="number" min="1" max="4294967295" step="1" value="2027"></label><label>Tempo <input id="speed" type="range" min="1" max="30" value="5"></label><span class="hint" id="speedText">5 Schritte/s</span></div>
+    <div class="controls"><button class="secondary" id="save">Speichern</button><button class="secondary" id="load">Laden</button></div>
+    <p class="hint">Beim Verlassen des Tabs pausiert die Simulation automatisch. Speichern legt einen lokalen Stand im Browser an.</p>
+  </section>
+  <section class="panel"><h2>Messwerte</h2><div class="stats"><div class="stat"><small>Status</small><strong id="state">Pausiert</strong></div><div class="stat"><small>Energie</small><strong id="energy">100%</strong></div><div class="stat"><small>Schritte</small><strong id="steps">0</strong></div><div class="stat"><small>Ressourcen</small><strong id="foods">0</strong></div><div class="stat"><small>Hindernisse</small><strong id="hits">0</strong></div><div class="stat"><small>Besuchte Felder</small><strong id="unique">1</strong></div></div></section>
+  <section class="panel"><h2>Wahrnehmung des Agenten</h2><p class="hint">Nur Position, Energie und vier Nachbarfelder. Kein direkter Zugriff auf die gesamte Welt.</p><pre id="observation"></pre></section>
+  <section class="panel"><h2>Experimentprotokoll</h2><ol id="events" aria-live="polite"></ol></section>
+  <p class="hint">Phase 1 · Keine API · Keine Verbindung zum LernBot-6.0-Speicher · Läuft lokal im Browser nach dem Laden</p>
+</main>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
