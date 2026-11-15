@@ -1,47 +1,120 @@
 
-/* Mein LernBot 6.0 – Paket 3.3: Automatische Aufgabenverwaltung */
+/* =====================================================
+   MEIN LERNBOT 6.0
+   PAKET 3.4 – SICHERE AUFGABENVERWALTUNG
+
+   - Keine automatischen Schreibvorgänge
+   - Bestehende Aufgaben bleiben erhalten
+   - Einheitliches done-Schema
+   - Alte status-Felder bleiben kompatibel
+   - Eigenschafts-Aliase
+   - Vorschau vor Änderungen
+   - Bestätigung erforderlich
+   - Prüfung auf zwischenzeitliche Änderungen
+   ===================================================== */
+
 (() => {
   "use strict";
 
-  // Die alte Kennung bleibt, damit Aufgaben aus 3.2 erhalten bleiben.
+  const VERSION = "3.4";
   const SOURCE = "aufgaben-ki-3.2";
 
-  const norm = value => String(value ?? "")
-    .toLocaleLowerCase("de")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ß/g, "ss")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim();
+  let pending = null;
+  let busy = false;
+
+  const norm = value =>
+    String(value ?? "")
+      .toLocaleLowerCase("de")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/ß/g, "ss")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const clone = value =>
+    JSON.parse(JSON.stringify(value));
 
   const rules = {
     animal: [
-      "definition", "aussehen", "lebensraum",
-      "nahrung", "familie"
+      "definition",
+      "aussehen",
+      "lebensraum",
+      "nahrung",
+      "familie"
     ],
-    planet: ["definition", "durchmesser"],
-    general: ["definition"]
+    planet: [
+      "definition",
+      "durchmesser"
+    ],
+    general: [
+      "definition"
+    ]
   };
 
   const animal = new Set([
-    "lebensraum", "nahrung", "familie", "fellfarbe"
+    "lebensraum",
+    "nahrung",
+    "familie",
+    "fellfarbe",
+    "aussehen"
   ]);
 
   const planet = new Set([
-    "durchmesser", "umlaufzeit", "masse"
+    "durchmesser",
+    "umlaufzeit",
+    "masse"
   ]);
 
-  const priority = p =>
-    p === "definition" ? 90 :
-    p === "nahrung" ? 75 :
-    p === "lebensraum" ? 70 :
-    p === "familie" ? 60 : 50;
+  const aliases = {
+    aussehen: [
+      "aussehen",
+      "fellfarbe",
+      "erscheinungsbild",
+      "optik"
+    ],
+    lebensraum: [
+      "lebensraum",
+      "habitat"
+    ],
+    nahrung: [
+      "nahrung",
+      "ernaehrung",
+      "ernahrung"
+    ],
+    familie: [
+      "familie"
+    ],
+    definition: [
+      "definition",
+      "beschreibung"
+    ],
+    durchmesser: [
+      "durchmesser"
+    ]
+  };
 
-  const keyOf = (s, p) =>
-    norm(s) + "::" + norm(p);
+  function canonical(value) {
+    const property = norm(value);
 
-  let lastSignature = null;
-  let busy = false;
+    for (const [key, values] of
+      Object.entries(aliases)) {
+      if (values.some(v => norm(v) === property)) {
+        return key;
+      }
+    }
+
+    return property;
+  }
+
+  const keyOf = (subject, property) =>
+    norm(subject) + "::" + canonical(property);
+
+  const priority = property =>
+    property === "definition" ? 90 :
+    property === "nahrung" ? 75 :
+    property === "lebensraum" ? 70 :
+    property === "familie" ? 60 : 50;
 
   function bridge() {
     const api = window.LernBotBridge;
@@ -52,53 +125,96 @@
       typeof api.getTasks !== "function" ||
       typeof api.saveTasks !== "function"
     ) {
-      throw new Error(
-        "LernBotBridge ist nicht vollständig eingebunden."
+      throw Error(
+        "LernBotBridge ist nicht vollständig."
       );
     }
 
     return api;
   }
 
+  function read() {
+    const api = bridge();
+
+    const facts = api.getFacts();
+    const tasks = api.getTasks();
+
+    if (
+      !Array.isArray(facts) ||
+      !Array.isArray(tasks)
+    ) {
+      throw Error("Ungültige Datenstruktur.");
+    }
+
+    if (tasks.some(t =>
+      !t ||
+      typeof t !== "object" ||
+      Array.isArray(t)
+    )) {
+      throw Error(
+        "Aufgaben enthalten ungültige Einträge."
+      );
+    }
+
+    return {
+      facts: clone(facts),
+      tasks: clone(tasks)
+    };
+  }
+
+  function isDone(task) {
+    return task.done === true ||
+      task.status === "done";
+  }
+
+  /* ==========================================
+     1. WISSENSLÜCKEN ERMITTELN
+     ========================================== */
+
   function collect(facts) {
     const topics = new Map();
 
     for (const fact of facts) {
-      const subject = String(
-        fact?.subject ?? ""
-      ).trim();
+      const subject =
+        String(fact?.subject ?? "").trim();
 
-      const property = norm(fact?.property);
+      const property =
+        canonical(fact?.property);
 
-      if (!subject || !property) continue;
+      if (
+        !subject ||
+        !property ||
+        !String(fact?.value ?? "").trim()
+      ) {
+        continue;
+      }
 
-      const subjectKey = norm(subject);
+      const key = norm(subject);
 
-      if (!topics.has(subjectKey)) {
-        topics.set(subjectKey, {
+      if (!topics.has(key)) {
+        topics.set(key, {
           subject,
           properties: new Set()
         });
       }
 
-      topics.get(subjectKey)
-        .properties.add(property);
+      topics.get(key).properties.add(property);
     }
 
     const missing = [];
 
     for (const topic of topics.values()) {
+      const properties = topic.properties;
+
       const type =
-        [...topic.properties].some(
-          p => animal.has(p)
-        ) ? "animal" :
-        [...topic.properties].some(
-          p => planet.has(p)
-        ) ? "planet" :
-        "general";
+        [...properties].some(p => animal.has(p))
+          ? "animal"
+          : [...properties].some(p => planet.has(p))
+            ? "planet"
+            : "general";
 
       for (const property of rules[type]) {
-        if (!topic.properties.has(property)) {
+        if (!properties.has(property)) {
           missing.push({
             subject: topic.subject,
             property,
@@ -111,66 +227,40 @@
     return missing;
   }
 
-  function signature(facts) {
-    return JSON.stringify(
-      facts.map(f => [
-        norm(f?.subject),
-        norm(f?.property)
-      ]).sort((a, b) =>
-        JSON.stringify(a).localeCompare(
-          JSON.stringify(b)
-        )
-      )
-    );
-  }
+  /* ==========================================
+     2. ÄNDERUNGEN VORBEREITEN
+     ========================================== */
 
-  function reconcile() {
-    const api = bridge();
+  function prepare(data) {
+    const updated = clone(data.tasks);
+    const missing = collect(data.facts);
 
-    const facts = api.getFacts();
-    const existing = api.getTasks();
-
-    if (
-      !Array.isArray(facts) ||
-      !Array.isArray(existing)
-    ) {
-      throw new Error(
-        "Fakten oder Aufgaben sind ungültig."
-      );
-    }
-
-    const missing = collect(facts);
-
-    const missingKeys = new Set(
-      missing.map(t =>
-        keyOf(t.subject, t.property)
-      )
-    );
-
-    const updated = existing.map(t =>
-      t &&
-      typeof t === "object" &&
-      !Array.isArray(t)
-        ? { ...t }
-        : t
+    const missingMap = new Map(
+      missing.map(item => [
+        keyOf(item.subject, item.property),
+        item
+      ])
     );
 
     const known = new Set();
 
-    const timestamp = Date.now();
+    const stats = {
+      created: 0,
+      completed: 0,
+      reopened: 0,
+      normalized: 0
+    };
 
-    let created = 0;
-    let completed = 0;
-    let reopened = 0;
-    let changed = false;
+    const timestamp = Date.now();
 
     for (const task of updated) {
       if (
-        !task ||
         task.source !== SOURCE ||
         !task.subject ||
         !task.property
-      ) continue;
+      ) {
+        continue;
+      }
 
       const key = keyOf(
         task.subject,
@@ -179,27 +269,36 @@
 
       known.add(key);
 
+      const shouldBeDone = !missingMap.has(key);
+      const wasDone = isDone(task);
+
+      if (shouldBeDone && !wasDone) {
+        stats.completed++;
+      }
+
+      if (!shouldBeDone && wasDone) {
+        stats.reopened++;
+      }
+
       if (
-        missingKeys.has(key) &&
-        task.status === "done"
+        task.done !== shouldBeDone ||
+        task.status !==
+          (shouldBeDone ? "done" : "open")
       ) {
-        task.status = "open";
-        task.completedAt = null;
+        stats.normalized++;
+
+        task.done = shouldBeDone;
+        task.status =
+          shouldBeDone ? "done" : "open";
+
         task.updatedAt = timestamp;
 
-        reopened++;
-        changed = true;
-
-      } else if (
-        !missingKeys.has(key) &&
-        task.status !== "done"
-      ) {
-        task.status = "done";
-        task.completedAt = timestamp;
-        task.updatedAt = timestamp;
-
-        completed++;
-        changed = true;
+        if (shouldBeDone) {
+          task.completedAt =
+            task.completedAt || timestamp;
+        } else {
+          task.completedAt = null;
+        }
       }
     }
 
@@ -209,7 +308,9 @@
         item.property
       );
 
-      if (known.has(key)) continue;
+      if (known.has(key)) {
+        continue;
+      }
 
       updated.push({
         id:
@@ -223,12 +324,13 @@
         source: SOURCE,
 
         title:
-          `${item.subject} – ${item.property}`,
+          item.subject + " – " + item.property,
 
         subject: item.subject,
         property: item.property,
         priority: item.priority,
 
+        done: false,
         status: "open",
 
         createdAt: timestamp,
@@ -237,62 +339,68 @@
       });
 
       known.add(key);
-
-      created++;
-      changed = true;
+      stats.created++;
     }
 
-    if (changed) {
-      const result = api.saveTasks(updated);
+    return {
+      updated,
+      stats,
+      changed:
+        JSON.stringify(updated) !==
+        JSON.stringify(data.tasks)
+    };
+  }
 
-      if (!result?.ok) {
-        throw new Error(
-          result?.message ||
-          "Speichern fehlgeschlagen."
-        );
-      }
-    }
+  /* ==========================================
+     3. BERICHT ERSTELLEN
+     ========================================== */
 
-    const ours = updated.filter(
-      t => t && t.source === SOURCE
+  function report(data, plan) {
+    const ours = plan.updated.filter(
+      task => task.source === SOURCE
     );
 
     const open = ours
-      .filter(t => t.status === "open")
+      .filter(task => !isDone(task))
       .sort((a, b) =>
         (b.priority || 0) -
-        (a.priority || 0) ||
-        String(a.title).localeCompare(
-          String(b.title), "de"
-        )
+        (a.priority || 0)
       );
 
-    const done = ours.filter(
-      t => t.status === "done"
-    );
+    const done = ours.filter(isDone);
 
     const lines = [
-      "AUFGABEN-KI 3.3",
-      `Gespeicherte Fakten: ${facts.length}`,
-      `Eigene Aufgaben: ${ours.length}`,
-      `Offen: ${open.length}`,
-      `Erledigt: ${done.length}`,
-      `Neu erstellt: ${created}`,
-      `Jetzt erledigt: ${completed}`,
-      `Wieder geöffnet: ${reopened}`,
+      "AUFGABEN-KI " + VERSION,
+      "",
+      "DATENBESTAND",
+      "Fakten: " + data.facts.length,
+      "Gesamte Aufgaben: " + data.tasks.length,
+      "Eigene Aufgaben nach Vorschau: " +
+        ours.length,
+      "",
+      "GEPLANTE ÄNDERUNGEN",
+      "Neue Aufgaben: " +
+        plan.stats.created,
+      "Jetzt erledigt: " +
+        plan.stats.completed,
+      "Wieder geöffnet: " +
+        plan.stats.reopened,
+      "Angepasste Aufgaben: " +
+        plan.stats.normalized,
       "",
       "OFFENE LERNAUFGABEN"
     ];
 
     if (!open.length) {
+      lines.push("Keine offenen Aufgaben.");
+    }
+
+    for (const task of open.slice(0, 15)) {
       lines.push(
-        "Keine offenen Aufgaben nach den aktuellen Regeln."
-      );
-    } else {
-      open.slice(0, 15).forEach(t =>
-        lines.push(
-          `• Priorität ${t.priority}: ${t.title}`
-        )
+        "• Priorität " +
+        task.priority +
+        ": " +
+        task.title
       );
     }
 
@@ -302,34 +410,111 @@
     );
 
     if (!done.length) {
-      lines.push(
-        "Noch keine erledigten Aufgaben gespeichert."
-      );
-    } else {
-      done.slice(-10).forEach(t =>
-        lines.push(`• ${t.title}`)
-      );
+      lines.push("Keine erledigten Aufgaben.");
+    }
+
+    for (const task of done.slice(-10)) {
+      lines.push("• " + task.title);
     }
 
     lines.push(
       "",
-      changed
-        ? "Änderungen gespeichert."
-        : "Keine Änderungen notwendig."
+      plan.changed
+        ? "Änderungen sind nur vorbereitet."
+        : "Keine Änderungen erforderlich.",
+      "Es wurde nichts gespeichert."
     );
-
-    lines.push(
-      "Automatische Prüfung aktiv, solange LernBot geöffnet ist."
-    );
-
-    lines.push(
-      "Hinweis: Nur Aufgaben dieser Aufgaben-KI werden automatisch geändert."
-    );
-
-    lastSignature = signature(facts);
 
     return lines.join("\n");
   }
+
+  /* ==========================================
+     4. ANALYSE UND VORSCHAU
+     ========================================== */
+
+  function analyze() {
+    pending = null;
+
+    const data = read();
+    const plan = prepare(data);
+
+    if (plan.changed) {
+      pending = {
+        baseline: JSON.stringify(data),
+        updated: plan.updated
+      };
+    }
+
+    let result = report(data, plan);
+
+    if (pending) {
+      result +=
+        "\n\nZum Speichern:\n" +
+        "Aufgaben Bestätigen\n\n" +
+        "Zum Verwerfen:\n" +
+        "Aufgaben Abbrechen";
+    }
+
+    return result;
+  }
+
+  /* ==========================================
+     5. BESTÄTIGUNG
+     ========================================== */
+
+  function confirm() {
+    if (!pending) {
+      return "Keine Änderung wartet auf Bestätigung.";
+    }
+
+    const current = read();
+
+    if (
+      JSON.stringify(current) !==
+      pending.baseline
+    ) {
+      pending = null;
+
+      return (
+        "Daten wurden zwischenzeitlich verändert.\n" +
+        "Keine Änderung gespeichert.\n" +
+        "Bitte Aufgaben Analyse erneut ausführen."
+      );
+    }
+
+    const api = bridge();
+
+    const result = api.saveTasks(
+      clone(pending.updated)
+    );
+
+    if (!result?.ok) {
+      return (
+        "Speichern fehlgeschlagen:\n" +
+        (result?.message || "Unbekannter Fehler")
+      );
+    }
+
+    pending = null;
+
+    return [
+      "AUFGABEN ERFOLGREICH AKTUALISIERT",
+      "",
+      "Änderungen wurden bestätigt.",
+      "Gespeicherte Aufgaben: " +
+        current.tasks.length +
+        " bisher; neuer Bestand wird geprüft.",
+      "",
+      "Ergebnis: " +
+        (result.message || "Speicherung erfolgreich."),
+      "",
+      "Bitte Aufgaben Analyse erneut ausführen."
+    ].join("\n");
+  }
+
+  /* ==========================================
+     6. CHAT
+     ========================================== */
 
   function show(message, role) {
     const chat = document.getElementById("log");
@@ -342,64 +527,45 @@
     const item = document.createElement("div");
 
     item.className =
-      role === "user"
-        ? "msg user"
-        : "msg bot";
+      role === "user" ? "msg user" : "msg bot";
 
-    const content =
-      document.createElement("div");
+    const content = document.createElement("div");
 
-    content.className =
-      "lb6-message-content";
-
+    content.className = "lb6-message-content";
     content.style.whiteSpace = "pre-wrap";
-    content.textContent = message;
+    content.textContent = String(message);
 
     item.appendChild(content);
     chat.appendChild(item);
-
     chat.scrollTop = chat.scrollHeight;
   }
 
-  function checkAutomatically() {
-    if (
-      busy ||
-      document.visibilityState === "hidden"
-    ) return;
+  function commandType(value) {
+    const command = norm(value);
 
-    try {
-      const api = bridge();
-      const facts = api.getFacts();
-
-      if (!Array.isArray(facts)) return;
-
-      if (
-        signature(facts) === lastSignature
-      ) return;
-
-      busy = true;
-      reconcile();
-
-    } catch (error) {
-      console.warn(
-        "Aufgaben-KI 3.3:",
-        error
-      );
-
-    } finally {
-      busy = false;
+    if (command === "aufgaben analyse") {
+      return "analyze";
     }
+
+    if (command === "aufgaben bestatigen") {
+      return "confirm";
+    }
+
+    if (command === "aufgaben abbrechen") {
+      return "cancel";
+    }
+
+    return null;
   }
 
   function intercept(event) {
-    const input =
-      document.getElementById("input");
+    const input = document.getElementById("input");
 
-    if (
-      !input ||
-      norm(input.value) !==
-        "aufgaben analyse"
-    ) return;
+    if (!input) return;
+
+    const type = commandType(input.value);
+
+    if (!type) return;
 
     if (
       event.type === "keydown" &&
@@ -408,7 +574,9 @@
         event.shiftKey ||
         event.isComposing
       )
-    ) return;
+    ) {
+      return;
+    }
 
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -419,17 +587,26 @@
     show(command, "user");
 
     if (busy) {
-      show(
-        "Aufgaben-KI: Prüfung läuft bereits.",
-        "bot"
-      );
+      show("Aufgaben-KI ist beschäftigt.", "bot");
       return;
     }
 
     busy = true;
 
     try {
-      show(reconcile(), "bot");
+      let result;
+
+      if (type === "analyze") {
+        result = analyze();
+      } else if (type === "confirm") {
+        result = confirm();
+      } else {
+        pending = null;
+        result = "Aufgabenänderung abgebrochen.";
+      }
+
+      show(result, "bot");
+
     } catch (error) {
       show(
         "Aufgaben-KI: " + error.message,
@@ -440,12 +617,17 @@
     }
   }
 
-  function init() {
-    const form =
-      document.getElementById("bar");
+  /* ==========================================
+     7. INITIALISIERUNG
+     ========================================== */
 
-    const button =
-      document.getElementById("send");
+  function init() {
+    if (window.__lernBotTasks34) return;
+
+    window.__lernBotTasks34 = true;
+
+    const form = document.getElementById("bar");
+    const button = document.getElementById("send");
 
     if (form) {
       form.addEventListener(
@@ -475,20 +657,6 @@
       },
       true
     );
-
-    // Alle 2,5 Sekunden auf neue Fakten prüfen.
-    setInterval(
-      checkAutomatically,
-      2500
-    );
-
-    // Auch nach Rückkehr zur App prüfen.
-    document.addEventListener(
-      "visibilitychange",
-      checkAutomatically
-    );
-
-    checkAutomatically();
   }
 
   if (document.readyState === "loading") {
@@ -500,4 +668,5 @@
   } else {
     init();
   }
+
 })();
