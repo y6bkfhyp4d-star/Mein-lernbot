@@ -33,5 +33,6 @@ export function experiment(o,action){
   }
   if(o.type==='crystal'&&o.temp>=60&&o.integrity>0){o.charged=true;message+=' Kristall reagiert und lädt sich auf.';}
   if(o.type==='water'&&o.temp>=100){message+=' Wasser verdampft teilweise.';o.integrity=Math.max(0,o.integrity-15);}
-  return {message,energyCost:action==='touch'?1:3,discovery:{type:o.type,hardness:m.hardness,mass:m.mass,conductivity:m.conductivity,heatLimit:m.heatLimit,energy:m.energy}};
+  const discovery=action==='touch'?{hardness:m.hardness,mass:m.mass}:action==='heat'?{heatLimit:m.heatLimit,energy:m.energy}:{conductivity:m.conductivity};
+  return {message,energyCost:action==='touch'?1:3,discovery};
 }

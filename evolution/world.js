@@ -35,12 +35,14 @@ export function stepWorld(world,action){
  return {event,observation:observe(world)};
 }
 export function inspectWorld(world,direction,action){
+ return inspectAtWorld(world,target(world,direction),action);
+}
+export function inspectAtWorld(world,p,action){
  if(!world.alive)return {event:'Keine Energie'};
- const p=target(world,direction);
  if(p<0||world.cells[p]!=='object')return {event:'Dort befindet sich kein untersuchbares Objekt.'};
  const o=world.objects[p],result=experiment(o,action);
  world.experiments++;world.steps++;world.energy=Math.max(0,world.energy-result.energyCost);
- if(result.discovery)world.knowledge[o.type]=result.discovery;
+ if(result.discovery)world.knowledge[o.type]={...(world.knowledge[o.type]||{}),...result.discovery};
  if(o.integrity<=0){world.cells[p]='floor';delete world.objects[p];}
  if(world.energy===0)world.alive=false;
  return {event:result.message};
