@@ -3069,6 +3069,125 @@ function start() {
    ========================================== */
 
 window.LernBotBridge = Object.freeze({
+   
+  /* ==========================================
+     PAKET 4.4 – GEDÄCHTNIS-SCHNITTSTELLE
+     ========================================== */
+
+  getMemories() {
+    return copy(arr(data.memory));
+  },
+
+  saveMemories(memories, confirmed = false) {
+    if (locked) {
+      return {
+        ok: false,
+        message: 'Speicher gesperrt.'
+      };
+    }
+
+    if (confirmed !== true) {
+      return {
+        ok: false,
+        message: 'Bestätigung erforderlich.'
+      };
+    }
+
+    if (!Array.isArray(memories)) {
+      return {
+        ok: false,
+        message: 'Ungültige Erinnerungsdaten.'
+      };
+    }
+
+    if (!memories.every(item =>
+      obj(item) &&
+      typeof item.id === 'string' &&
+      item.id.length > 0 &&
+      typeof item.type === 'string' &&
+      typeof item.content === 'string'
+    )) {
+      return {
+        ok: false,
+        message: 'Ungültige Erinnerungsstruktur.'
+      };
+    }
+
+    const ids = memories.map(item => item.id);
+
+    if (new Set(ids).size !== ids.length) {
+      return {
+        ok: false,
+        message: 'Doppelte Erinnerungs-IDs.'
+      };
+    }
+
+    const previous = copy(data.memory);
+
+    const currentIds = new Set(
+      previous.map(item => item.id)
+    );
+
+    const newIds = new Set(ids);
+
+    if (
+      currentIds.size !== previous.length ||
+      memories.length !== previous.length ||
+      ids.some(id => !currentIds.has(id)) ||
+      previous.some(item => !newIds.has(item.id))
+    ) {
+      return {
+        ok: false,
+        message:
+          'Hinzufügen oder Löschen über diese ' +
+          'Schnittstelle ist nicht erlaubt.'
+      };
+    }
+
+    const original = JSON.stringify(data);
+
+    const backupId = backup(
+      'vorGedaechtnisUpdate',
+      original,
+      3
+    );
+
+    if (!backupId) {
+      return {
+        ok: false,
+        message: 'Sicherung fehlgeschlagen.'
+      };
+    }
+
+    const oldAudit = copy(data.audit);
+
+    data.memory = copy(memories);
+
+    audit(
+      'Gedächtnis-KI 4.4',
+      'Erinnerungen aktualisiert',
+      String(memories.length)
+    );
+
+    if (!save()) {
+      data.memory = previous;
+      data.audit = oldAudit;
+
+      return {
+        ok: false,
+        message: 'Speichern fehlgeschlagen.'
+      };
+    }
+
+    return {
+      ok: true,
+      message: 'Erinnerungen sicher gespeichert.',
+      count: data.memory.length,
+      backupId
+    };
+  },
+
+
          getTasks() {
     return copy(arr(data.tasks));
   },
