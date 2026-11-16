@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {extractEntry,applyReviews,collectCandidates,reasonWithApproved,benchmarkExtraction,conflictsFromCandidates} from './extract73.js';
+const example={title:'Okapi',url:'https://de.wikipedia.org/wiki/Okapi',excerpt:'Das Okapi (Okapia johnstoni) ist ein Säugetier. Es lebt im Regenwald.'};
+const actual=extractEntry(example);assert.equal(actual.length,1);assert.equal(actual[0].object,'Säugetier');
+assert.equal(extractEntry({title:'Mars (Planet)',excerpt:'Der Mars ist ein Planet.',url:'https://de.wikipedia.org/wiki/Mars'}).length,1);
+assert.equal(extractEntry({title:'Mars',excerpt:'Mars ist kein Stern.',url:'https://de.wikipedia.org/wiki/Mars'}).length,0);
+assert.equal(extractEntry({title:'Mars',excerpt:'Die Venus ist ein Planet.',url:'https://de.wikipedia.org/wiki/Mars'}).length,0);
+const db={entries:[example]};assert.equal(collectCandidates(db).length,1);
+const approved=applyReviews(actual,{[actual[0].id]:'reviewed'});assert.equal(reasonWithApproved(approved).reviewed,1);
+assert.equal(reasonWithApproved(actual).reviewed,0);
+assert.equal(conflictsFromCandidates(actual).length,0);
+assert.deepEqual(benchmarkExtraction(),{passed:4,total:4});
+console.log('Phase 7.3 extraction tests OK');
