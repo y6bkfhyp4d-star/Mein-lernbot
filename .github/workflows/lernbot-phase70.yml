@@ -1,1 +1,40 @@
+name: LernBot 7.0 – automatisches Wissen
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2,8,14,20 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lernbot-phase70
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Tests
+        run: python -m unittest discover -s evolution/phase70 -p 'test_*.py' -v
+      - name: Neue Quellen einsammeln
+        run: python evolution/phase70/engine.py
+      - name: Wissensstand sichern
+        run: |
+          git config user.name "LernBot Research Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evolution/phase70/knowledge.json
+          if ! git diff --cached --quiet; then
+            git commit -m "LernBot: automatischer Wissenslauf"
+            git push
+          else
+            echo "Keine Änderungen"
+          fi
