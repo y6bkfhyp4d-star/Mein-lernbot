@@ -1,36 +1,25 @@
-
 # LernBot 7.0 – Phase 4.3.4
 
 ## Intelligente Kontrollmessungen
 
-Phase 4.3.4 entwickelt die aktive Sicherheitsprüfung aus Phase 4.3.3 weiter.
+Dieses Paket ist **vollständig** und enthält alle Dateien, die Phase 4.3.4 benötigt.
 
-### Ziele
-- Verdächtige Messungen nach Priorität bewerten
-- Fehlalarme reduzieren
-- Echte Veränderungen möglichst zuverlässig erkennen
-- Zusätzliche Kontrollmessungen gezielt einsetzen
-- Verschiedene Strategien auf unbekannten Testwelten vergleichen
+## Installation auf GitHub
 
-### Dateien
-- index434.html – Benutzeroberfläche
-- main434.js – Teststeuerung und Ergebnisse
-- guard434.js – Neue Kontrolllogik
-- style434.css – Design
+1. Öffne den Ordner `Mein-lernbot/evolution/phase434/`.
+2. Lade **alle sieben Dateien** aus der ZIP direkt in diesen Ordner hoch (keinen weiteren Unterordner anlegen).
+3. Bestehende Dateien mit demselben Namen in `phase434` ersetzen; andere Phasen nicht verändern.
+4. Öffne `https://y6bkfhyp4d-star.github.io/Mein-lernbot/evolution/phase434/index434.html`.
+5. Starte den Test über „Training & Test starten“.
 
-### Abhängigkeiten
-- model.js
-- portfolio.js
+## Dateien
 
-### Testverfahren
-Die Simulation vergleicht verschiedene Erkennungsstrategien unter unterschiedlichen Rauschbedingungen.
+- `index434.html` – Startseite
+- `main434.js` – Benutzeroberfläche und Bericht
+- `guard434.js` – Kontrollmessungen und Phase-4.3.4-Test
+- `model.js` – Weltmodell und Evolution
+- `portfolio.js` – Vergleichsstrategie Phase 4.2
+- `style434.css` – Darstellung
+- `README.md` – diese Anleitung
 
-Jede Testwelt hat ein begrenztes Messbudget von 90 Beobachtungen.
-
-### Wichtig
-Die Simulation arbeitet lokal im Browser und benötigt keine externe KI-API.
-
-Der LernBot optimiert seine Entscheidungsregeln, verändert aber nicht selbstständig seinen JavaScript-Quellcode.
-
-### Status
-Phase 4.3.4 – Bereit zum Testen
+Die Anwendung läuft kostenlos und ohne externe API im Browser. Es ist eine Simulation und keine selbstständige Veränderung des JavaScript-Codes.
