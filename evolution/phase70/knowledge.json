@@ -9,7 +9,17 @@
     "18. Oktober",
     "Achämenidenreich",
     "Abdus Salam",
-    "Akkumulator"
+    "Akkumulator",
+    "Akustik",
+    "Althochdeutsch",
+    "Abschirmung (Gravitation)",
+    "Al-Bīrūnī",
+    "Aerologie",
+    "Aerosol",
+    "ATP-Synthase",
+    "Abiotisch",
+    "Abklingbecken",
+    "Abwasser"
   ],
   "entries": [
     {
@@ -61,6 +71,56 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Elektrizität"
+    },
+    {
+      "collected_at": "2026-11-16T21:04:15+00:00",
+      "excerpt": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper). Diese Schwingungen rufen Druck- und Dichteschwankungen hervor, die sich in dem Medium ausbreiten und so die Schallwellen bilden. Umgangssprachlich bezeichnet Schall vor allem das Geräusch, den Klang, den Ton, den Knall (Schallarten), wie er von Menschen und Tieren mit dem Gehör, also dem Ohr-Gehirn-System auditiv wahrgenommen werden kann. Man unterscheidet dabei den Nutzschall, wie Musik oder die Stimme beim Gespräch, und den Störschall, wie Baustellen- oder Verkehrslärm. „Schall“ ist ein Kollektivum und wird nur im Singular benutzt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Schall",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Schall"
+    },
+    {
+      "collected_at": "2026-11-16T21:04:15+00:00",
+      "excerpt": "Die Gravitation (von lateinisch gravitas für „Schwere“), auch Massenanziehung oder Gravitationskraft, ist eine der vier Grundkräfte der Physik. Sie äußert sich in der gegenseitigen Anziehung von Massen. Sie nimmt mit zunehmender Entfernung der Massen ab, besitzt aber unbegrenzte Reichweite. Im Gegensatz zu elektrischen oder magnetischen Kräften lässt sie sich nicht abschirmen. Auf der Erde bewirkt die Gravitation (Erdanziehungskraft), dass alle Körper nach „unten“, d. h. in Richtung Erdmittelpunkt, fallen, sofern sie nicht durch andere Kräfte daran gehindert werden. Im Sonnensystem bestimmt die Gravitation die Bahnen der Planeten, Monde, Satelliten und Kometen und im Kosmos die Bildung von Sternen und Galaxien sowie dessen Entwicklung im Großen. Der Begriff Schwerkraft wird oft synonym zu „Gravitation“ verwendet. In manchem Zusammenhang –",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Gravitation",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Gravitation"
+    },
+    {
+      "collected_at": "2026-11-16T21:04:15+00:00",
+      "excerpt": "Die Atmosphäre der Erde, auch Erdatmosphäre (von altgriechisch ἀτμός atmós, deutsch ‚Dampf‘ und σφαῖρα sphaira, deutsch ‚Kugel‘) ist die gas­förmige Hülle der Erdoberfläche und eine der sogenannten Erdsphären. Sie hat einen hohen Anteil an Stickstoff und Sauerstoff und somit oxidierende Verhältnisse. Ihre vertikale Gliederung ist durch unterschiedliche Temperaturen bedingt. Das Wettergeschehen findet in den unteren etwa 10 Kilometern statt, der Troposphäre. Die höheren Schichten haben keinen großen Einfluss mehr.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Erdatmosph%C3%A4re",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Erdatmosphäre"
+    },
+    {
+      "collected_at": "2026-11-16T21:04:15+00:00",
+      "excerpt": "Eine Zelle (lateinisch cellula ‚Kämmerchen, Zelle‘) ist die kleinste lebende Einheit aller Organismen. Man unterscheidet Einzeller, also Lebewesen, die nur aus einer Zelle bestehen, und Mehrzeller, also Lebewesen, die aus mehr als nur einer Zelle bestehen. Besteht das Lebewesen aus vielen Zellen (Vielzeller), können Zellen zu funktionellen Einheiten verbunden sein und dadurch Gewebe bilden. Der menschliche Körper besteht aus mehreren hundert verschiedenen Zell- und Gewebetypen. Evolutionsbiologisch betrachtet und im Vergleich zu Einzellern haben die Zellen von Vielzellern größtenteils ihre Fähigkeit, für sich allein leben zu können, verloren und haben sich auf eine Arbeitsteilung in Geweben spezialisiert. Die Wissenschaft und Lehre von den Zellen der Lebewesen ist die Zytologie (altgriechisch κύτος kytos, deutsch ‚Zelle‘).",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Zelle_%28Biologie%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Zelle (Biologie)"
+    },
+    {
+      "collected_at": "2026-11-16T21:04:15+00:00",
+      "excerpt": "Wasser (lateinisch Aqua; altgriechisch hydor) ist die chemische Verbindung H2O, bestehend aus den Elementen Sauerstoff (O) und Wasserstoff (H). Die Bezeichnung Wasser wird dabei für den flüssigen Aggregatzustand verwendet. Im festen Zustand spricht man von Eis, im gasförmigen Zustand von Wasserdampf. In der Natur kommt Wasser selten rein vor, sondern enthält meist gelöste Anteile von Salzen, Gasen und organischen Verbindungen. Wasser ist die Grundlage allen Lebens auf der Erde. Als die wichtigste Flüssigkeit wird es auch als das Blaue Gold bezeichnet. Die international anerkannte Hydrologin Malin Falkenmark bezeichnete den Wasserkreislauf als den „Blutkreislauf der Biosphäre“. Biologische Vorgänge laufen nur dank Wasser ab. Der Mensch als biologisches Wesen (Wasseranteil ca. 70 %) nutzt das Wasser zur Sicherung seines eigenen Überlebens u",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Wasser",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Wasser"
     }
   ],
   "failed_titles": [],
@@ -78,6 +138,20 @@
         "Elektrizität"
       ],
       "time": "2026-11-16T20:22:58+00:00"
+    },
+    {
+      "added": 5,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Schall",
+        "Gravitation",
+        "Erdatmosphäre",
+        "Zelle (Biologie)",
+        "Wasser"
+      ],
+      "time": "2026-11-16T21:04:15+00:00"
     }
   ],
   "schema": 1
