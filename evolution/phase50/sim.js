@@ -1,0 +1,6 @@
+import{createWorld,createState,observe,action,snapshot}from'./world.js';
+import{createPolicy}from'./agent.js';
+export const MAX_STEPS=180;
+export function run(seed=2027,mode='planner',budget=MAX_STEPS){const w=createWorld(seed),s=createState(w);observe(s);const policy=createPolicy(seed,mode);for(let i=0;i<budget&&!s.success;i++){const a=policy(s);if(!a||a.type==='idle'||a.type==='done')break;const result=action(s,a);if(!result.ok&&a.type==='move')break;}return{seed,mode,success:s.success,steps:s.steps,explored:s.known.size,events:s.events,world:w,state:s};}
+export function compare(base=2027,count=24){const rows=[];for(let i=0;i<count;i++){const seed=(base+i*1997)>>>0;const planner=run(seed,'planner'),baseline=run(seed,'baseline');rows.push({seed,planner:{success:planner.success,steps:planner.steps,explored:planner.explored},baseline:{success:baseline.success,steps:baseline.steps,explored:baseline.explored}});}const score=mode=>{const arr=rows.map(r=>r[mode]),done=arr.filter(x=>x.success);return{success:done.length,total:arr.length,avgSteps:done.length?done.reduce((a,x)=>a+x.steps,0)/done.length:null,avgExplored:arr.reduce((a,x)=>a+x.explored,0)/arr.length};};return{base,count,budget:MAX_STEPS,planner:score('planner'),baseline:score('baseline'),rows};}
+export function exportState(result){return snapshot(result.state);}
