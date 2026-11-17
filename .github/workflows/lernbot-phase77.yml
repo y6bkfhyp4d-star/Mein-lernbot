@@ -1,1 +1,50 @@
 
+name: LernBot 7.0 - Nachrecherche 7.7
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "43 2,8,14,20 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/lernbot-phase77.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lernbot-phase77
+  cancel-in-progress: false
+
+jobs:
+  followup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gezielte Nachrecherche
+        run: python3 evolution/phase77/research77.py
+
+      - name: Tests
+        run: python3 -m unittest discover -s evolution/phase77 -p "test_research77.py"
+
+      - name: Geänderten Recherchebericht speichern
+        run: |
+          if ! git diff --quiet -- evolution/phase77/research77.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add evolution/phase77/research77.json
+            git commit -m "LernBot 7.7: Nachrecherche aktualisieren"
+            git pull --rebase
+            git push
+          else
+            echo "Keine Änderungen am Recherchebericht."
+          fi
