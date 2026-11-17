@@ -1,0 +1,333 @@
+{
+  "independent_confirmations": 0,
+  "last_batch": [
+    "Magnetismus",
+    "Regenwald",
+    "Schall",
+    "Chemische Reaktion",
+    "Desoxyribonukleinsäure",
+    "Elektrizität"
+  ],
+  "records": [
+    {
+      "checked_at": "2026-11-17T16:42:51+00:00",
+      "claims": [
+        {
+          "id": "p711-9ff2cd08660a1f",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=12163",
+          "statement": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Chemische Reaktion",
+          "subject_form": "Chemische Reaktion"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 5,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Chemische Reaktion",
+      "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=12163",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:42:51+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 7
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Desoxyribonukleinsäure",
+      "question": "Was ist Desoxyribonukleinsäure und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=1108",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Desoxyribonukleinsäure",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:42:51+00:00",
+      "claims": [
+        {
+          "id": "p711-c93e5c3cc521de",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=12733",
+          "statement": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Elektrizität",
+          "subject_form": "Elektrizität"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 7,
+        "unsicher_oder_negiert": 1,
+        "zu_kurz": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Elektrizität",
+      "question": "Was ist Elektrizität und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=12733",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Elektrizität",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:41:03+00:00",
+      "claims": [
+        {
+          "id": "p711-ff5a12a019beb6",
+          "independent_verified": false,
+          "pattern": "definitionseinleitung",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Unter Evolution (von lateinisch evolvere „herausrollen“, „auseinanderrollen“, „auswickeln“, „entwickeln“) versteht man im deutschsprachigen Raum in erster Linie die biologische Evolution.",
+          "relation": "quellenbeschreibung",
+          "rule": "definiert_als",
+          "source": "https://de.wikipedia.org/?curid=92236",
+          "statement": "Unter Evolution (von lateinisch evolvere „herausrollen“, „auseinanderrollen“, „auswickeln“, „entwickeln“) versteht man im deutschsprachigen Raum in erster Linie die biologische Evolution.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Evolution",
+          "subject_form": "Evolution"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 5
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 0,
+      "page_title": "Evolution",
+      "question": "Was ist Evolution und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=92236",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Evolution",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:41:03+00:00",
+      "claims": [
+        {
+          "id": "p711-f44d2318188410",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=1896",
+          "statement": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Geologie",
+          "subject_form": "Geologie"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 4
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 0,
+      "page_title": "Geologie",
+      "question": "Was ist Geologie und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=1896",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Geologie",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:41:03+00:00",
+      "claims": [
+        {
+          "id": "p711-9a3cb2c2c01eb7",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Licht ist eine Form der elektromagnetischen Strahlung.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=13299",
+          "statement": "Licht ist eine Form der elektromagnetischen Strahlung.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Licht",
+          "subject_form": "Licht"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 6
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Licht",
+      "question": "Was ist Licht und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=13299",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Licht",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:42:51+00:00",
+      "claims": [
+        {
+          "id": "p711-bec120c7c377af",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=19658",
+          "statement": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Magnetismus",
+          "subject_form": "Magnetismus"
+        },
+        {
+          "id": "p711-1e1f5b849f5e5a",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Der Magnetismus ist ein Teilgebiet des Elektromagnetismus.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=19658",
+          "statement": "Der Magnetismus ist ein Teilgebiet des Elektromagnetismus.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Magnetismus",
+          "subject_form": "Magnetismus"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 6
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 2,
+      "old_claims_same_page": 2,
+      "page_title": "Magnetismus",
+      "question": "Was ist Magnetismus und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=19658",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Magnetismus",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:42:51+00:00",
+      "claims": [
+        {
+          "id": "p711-c39ef9c565bb3e",
+          "independent_verified": false,
+          "pattern": "definitionseinleitung",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Als Regenwald bezeichnet man Wälder, die durch ganzjährig fallende, große Niederschlagsmengen gekennzeichnet sind.",
+          "relation": "quellenbeschreibung",
+          "rule": "definiert_als",
+          "source": "https://de.wikipedia.org/?curid=9049",
+          "statement": "Als Regenwald bezeichnet man Wälder, die durch ganzjährig fallende, große Niederschlagsmengen gekennzeichnet sind.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Regenwald",
+          "subject_form": "Regenwald"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 2
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 0,
+      "page_title": "Regenwald",
+      "question": "Was ist Regenwald und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=9049",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Regenwald",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T16:42:51+00:00",
+      "claims": [
+        {
+          "id": "p711-b8056219e26a5d",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper).",
+          "relation": "quellenbeschreibung",
+          "rule": "bezeichnet",
+          "source": "https://de.wikipedia.org/?curid=9344",
+          "statement": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper).",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Schall",
+          "subject_form": "Schall"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 4
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Schall",
+      "question": "Was ist Schall und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=9344",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Schall",
+      "verified_correction": false
+    }
+  ],
+  "runs": [
+    {
+      "at": "2026-11-17T16:41:03+00:00",
+      "claims": 5,
+      "errors": 0,
+      "new_extractor_same_pages": 5,
+      "old_extractor_same_pages": 3,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 5,
+      "unresolved_topics": [
+        "Desoxyribonukleinsäure"
+      ]
+    },
+    {
+      "at": "2026-11-17T16:42:51+00:00",
+      "claims": 6,
+      "errors": 0,
+      "new_extractor_same_pages": 6,
+      "old_extractor_same_pages": 5,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 5,
+      "unresolved_topics": [
+        "Desoxyribonukleinsäure"
+      ]
+    }
+  ],
+  "schema": 711,
+  "verified_corrections": 0
+}

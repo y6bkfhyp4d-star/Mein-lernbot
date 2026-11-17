@@ -1,0 +1,163 @@
+{
+  "schema": 713,
+  "generated_at": "2026-11-17T17:12:18+00:00",
+  "phase7_closure": "technisch_abgeschlossen_mit_offenen_wahrheitsfragen",
+  "status_explanation": "Phase-7-Pipeline vorhanden und automatisierte Strukturtests dokumentiert. Keine unabhängige Sachverifikation.",
+  "source_schema": 711,
+  "source_records": 9,
+  "audit": {
+    "checked": 9,
+    "rows": [
+      {
+        "topic": "Chemische Reaktion",
+        "statement": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird.",
+        "source": "https://de.wikipedia.org/?curid=12163",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Elektrizität",
+        "statement": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+        "source": "https://de.wikipedia.org/?curid=12733",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Evolution",
+        "statement": "Unter Evolution (von lateinisch evolvere „herausrollen“, „auseinanderrollen“, „auswickeln“, „entwickeln“) versteht man im deutschsprachigen Raum in erster Linie die biologische Evolution.",
+        "source": "https://de.wikipedia.org/?curid=92236",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Geologie",
+        "statement": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen.",
+        "source": "https://de.wikipedia.org/?curid=1896",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Licht",
+        "statement": "Licht ist eine Form der elektromagnetischen Strahlung.",
+        "source": "https://de.wikipedia.org/?curid=13299",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Magnetismus",
+        "statement": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw.",
+        "source": "https://de.wikipedia.org/?curid=19658",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Magnetismus",
+        "statement": "Der Magnetismus ist ein Teilgebiet des Elektromagnetismus.",
+        "source": "https://de.wikipedia.org/?curid=19658",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Regenwald",
+        "statement": "Als Regenwald bezeichnet man Wälder, die durch ganzjährig fallende, große Niederschlagsmengen gekennzeichnet sind.",
+        "source": "https://de.wikipedia.org/?curid=9049",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Schall",
+        "statement": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper).",
+        "source": "https://de.wikipedia.org/?curid=9344",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      }
+    ],
+    "flagged": 0,
+    "conflict_pairs": [],
+    "independent_confirmations": 0,
+    "verified_corrections": 0
+  },
+  "checks": {
+    "synthetic_holdout": {
+      "tested": 13,
+      "true_positive": 6,
+      "false_positive": 1,
+      "true_negative": 5,
+      "false_negative": 1,
+      "miss_types": [
+        "inhaltlicher_fehler_nicht_strukturell"
+      ],
+      "accuracy": 0.846
+    },
+    "baseline_holdout": {
+      "tested": 13,
+      "true_positive": 6,
+      "false_positive": 1,
+      "true_negative": 5,
+      "false_negative": 1,
+      "miss_types": [
+        "inhaltlicher_fehler_nicht_strukturell"
+      ],
+      "accuracy": 0.846
+    },
+    "contradiction_test_passed": true,
+    "synthetic_never_merged": true,
+    "calibrated_parameter": 35,
+    "train_scores": {
+      "25": {
+        "tested": 8,
+        "true_positive": 5,
+        "false_positive": 0,
+        "true_negative": 3,
+        "false_negative": 0,
+        "miss_types": [],
+        "accuracy": 1.0
+      },
+      "35": {
+        "tested": 8,
+        "true_positive": 5,
+        "false_positive": 0,
+        "true_negative": 3,
+        "false_negative": 0,
+        "miss_types": [],
+        "accuracy": 1.0
+      },
+      "45": {
+        "tested": 8,
+        "true_positive": 5,
+        "false_positive": 0,
+        "true_negative": 3,
+        "false_negative": 0,
+        "miss_types": [],
+        "accuracy": 1.0
+      }
+    }
+  },
+  "limitations": [
+    "Kein allgemeiner semantischer Wahrheitsprüfer",
+    "Fachlich falsche, sprachlich saubere Aussagen können unentdeckt bleiben",
+    "Wikipedia und Wikidata sind keine unabhängigen Quellen",
+    "Korrekturen erfolgen nicht autonom und nicht ohne belegte Validierung",
+    "Trainings- und Testbeispiele sind synthetisch und nicht Teil des Wissensbestands"
+  ],
+  "independent_confirmations": 0,
+  "verified_corrections": 0
+}
