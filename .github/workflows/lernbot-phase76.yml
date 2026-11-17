@@ -1,1 +1,40 @@
+name: LernBot 7.0 - Quellenabgleich 7.6
 
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '29 2,8,14,20 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lernbot-phase76
+  cancel-in-progress: false
+
+jobs:
+  crosscheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Vorhandene Quellen konservativ abgleichen
+        run: python3 evolution/phase76/check76.py
+      - name: Automatisierte Tests
+        run: python3 -m unittest discover -s evolution/phase76 -p 'test_check76.py'
+      - name: Nur geänderten Prüfbericht speichern
+        run: |
+          if ! git diff --quiet -- evolution/phase76/review76.json; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add evolution/phase76/review76.json
+            git commit -m 'LernBot 7.6: Quellenabgleich aktualisieren'
+            git push
+          else
+            echo 'Kein neuer Prüfbericht.'
+          fi
