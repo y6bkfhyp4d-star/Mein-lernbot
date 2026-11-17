@@ -1,0 +1,1 @@
+export function assess712(raw){const d=raw?.schema===712?raw:null;return {available:!!d,checked:Number(d?.checked||0),findings:Array.isArray(d?.findings)?d.findings:[],runs:Array.isArray(d?.runs)?d.runs:[]};}
