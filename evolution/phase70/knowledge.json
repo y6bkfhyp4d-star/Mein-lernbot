@@ -39,7 +39,15 @@
     "Achluophobie",
     "Adaptation (Auge)",
     "2. Hauptsatz der Thermodynamik",
-    "Absolute Temperatur"
+    "Absolute Temperatur",
+    "Ablenkspule",
+    "Abschirmung (Elektrotechnik)",
+    "Afrika",
+    "Amazonasbecken",
+    "-logie",
+    "Abraham Gottlob Werner",
+    "Absorptionsspektrum",
+    "Agatha von Catania"
   ],
   "entries": [
     {
@@ -241,6 +249,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Temperatur"
+    },
+    {
+      "collected_at": "2026-11-17T15:09:36+00:00",
+      "excerpt": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw. magnetisierbaren Gegenständen und bewegten elektrischen Ladungen äußert. Er lässt sich beschreiben durch ein Feld (Magnetfeld), das einerseits von diesen Objekten erzeugt wird und andererseits auf sie wirkt. Magnetfelder entstehen zum einen bei jeder Bewegung von elektrischen Ladungen. Das ist Grundlage von Elektromagneten und wegen des Induktionsgesetzes auch der induktiven elektronischen Bauelemente. Zum anderen existiert das magnetische (Dipol-)moment von Elementarteilchen als Folge ihres Spins, was zu Dauermagneten und anderen magnetischen Eigenschaften von Festkörpern, aber auch Flüssigkeiten und Gasen führt. Der Magnetismus ist ein Teilgebiet des Elektromagnetismus. Die zugrundeliegende Grundkraft heißt",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Magnetismus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Magnetismus"
+    },
+    {
+      "collected_at": "2026-11-17T15:09:36+00:00",
+      "excerpt": "Als Regenwald bezeichnet man Wälder, die durch ganzjährig fallende, große Niederschlagsmengen gekennzeichnet sind. Wegen der völlig unterschiedlichen Klimabedingungen unterscheidet man nach den Klimazonen verschiedene Regenwaldtypen: Tropischer Regenwald (der in wenigen Regionen in subtropischen Regenwald übergeht) – mit meist mehr als 1800 mm Jahresniederschlag (siehe auch Tropische Regenwaldklimate) Gemäßigter Regenwald – mit meist über 1000 mm Jahresniederschlag, auch als Schnee (siehe auch Gemäßigte Regenwaldklimate). Im weiteren Sinne werden mitunter auch die saisonalen Feuchtwälder der Tropen und Subtropen als Regenwälder behandelt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Regenwald",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Regenwald"
+    },
+    {
+      "collected_at": "2026-11-17T15:09:36+00:00",
+      "excerpt": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen. Der Begriff wird auch für den geologischen Aufbau verwendet, etwa Die Geologie der Alpen. Die Bezeichnung Geologie im heutigen Sinn findet sich erstmals 1778 bei Jean-André Deluc (1727–1817). Als feststehenden Begriff führte sie 1779 Horace-Bénédict de Saussure (1740–1799) ein. Vor allem in Deutschland war anfangs alternativ die Bezeichnung Geognosie gebräuchlich.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Geologie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Geologie"
+    },
+    {
+      "collected_at": "2026-11-17T15:09:36+00:00",
+      "excerpt": "Ein Vulkan ist eine geologische Struktur, die entsteht, wenn Magma (Gesteinsschmelze) bis an die Oberfläche eines Planeten (z. B. der Erde) aufsteigt. Alle Begleiterscheinungen, die mit dem Aufstieg und Austritt der glutflüssigen Gesteinsschmelze verbunden sind, bezeichnet man als Vulkanismus. Bei einem Vulkanausbruch werden nicht nur glutflüssige, sondern auch feste und gasförmige Stoffe freigesetzt. Im Fall der Erde schmelzen Gesteine ab 100 km Tiefe bei Temperaturen zwischen 1000 und 1300 °C. Das flüssige Magma sammelt sich in großen Magmaherden in 2 bis 50 km Tiefe. Wenn der Druck zu groß wird, steigt das Magma über Spalten und Klüfte der Lithosphäre auf. Magma, das an die Erdoberfläche gelangt, wird als Lava bezeichnet. Die meisten Vulkane haben annähernd die Form eines Kegels, dessen Hangneigung von der Viskosität der Lava abhängt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Vulkan",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Vulkan"
     }
   ],
   "failed_titles": [],
@@ -300,6 +348,19 @@
         "Temperatur"
       ],
       "time": "2026-11-17T09:20:33+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Magnetismus",
+        "Regenwald",
+        "Geologie",
+        "Vulkan"
+      ],
+      "time": "2026-11-17T15:09:36+00:00"
     }
   ],
   "schema": 1
