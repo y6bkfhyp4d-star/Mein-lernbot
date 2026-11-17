@@ -1,21 +1,46 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Geologie",
-    "Magnetismus",
-    "Regenwald",
+    "Algorithmus",
+    "Computer",
+    "Internet",
     "Chemische Reaktion"
   ],
   "records": [
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-17T15:56:54+00:00",
+      "checked_at": "2026-11-17T21:54:52+00:00",
+      "claims": [],
+      "excerpt_available": true,
+      "independent_verified": false,
+      "page_title": "Algorithmus",
+      "question": "Was ist Algorithmus und wie wird es eingeordnet?",
+      "reasons": [],
+      "source": "https://de.wikipedia.org/?curid=342",
+      "status": "subjekt_nicht_am_anfang",
+      "topic": "Algorithmus",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T21:54:52+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
       "reasons": [],
       "status": "kein_passender_titel",
       "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T21:54:52+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Computer und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Computer",
       "verified_correction": false
     },
     {
@@ -76,6 +101,17 @@
       "reasons": [],
       "status": "kein_passender_titel",
       "topic": "Geologie",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T21:54:52+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Internet und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Internet",
       "verified_correction": false
     },
     {
@@ -153,6 +189,16 @@
       "processed": 4,
       "with_claims": 0,
       "without_matching_hit": 4
+    },
+    {
+      "at": "2026-11-17T21:54:52+00:00",
+      "baseline_candidates_same_pages": 0,
+      "baseline_topics_same_pages": 0,
+      "candidates": 0,
+      "errors": 0,
+      "processed": 4,
+      "with_claims": 0,
+      "without_matching_hit": 3
     }
   ],
   "schema": 79,
