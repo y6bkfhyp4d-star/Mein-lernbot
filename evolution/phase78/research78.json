@@ -1,8 +1,61 @@
 {
-  "schema": 78,
-  "records": [],
-  "runs": [],
-  "last_batch": [],
   "independent_confirmations": 0,
+  "last_batch": [
+    "Chemische Reaktion",
+    "Desoxyribonukleinsäure",
+    "Elektrizität"
+  ],
+  "records": [
+    {
+      "checked_at": "2026-11-17T14:26:42+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T14:26:42+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Desoxyribonukleinsäure und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Desoxyribonukleinsäure",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T14:26:42+00:00",
+      "claims": [
+        {
+          "id": "p78-22a34ee9b38e8f",
+          "independent_verified": false,
+          "object": "physikalische Oberbegriff für alle Phänomene",
+          "quote": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "relation": "text_klassifikation",
+          "source": "https://de.wikipedia.org/?curid=12733",
+          "status": "vorlaeufige_quellenbehauptung",
+          "subject": "Elektrizität"
+        }
+      ],
+      "independent_verified": false,
+      "page_title": "Elektrizität",
+      "question": "Was ist Elektrizität und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=12733",
+      "status": "kandidaten_gefunden",
+      "topic": "Elektrizität",
+      "verified_correction": false
+    }
+  ],
+  "runs": [
+    {
+      "at": "2026-11-17T14:26:42+00:00",
+      "candidates": 1,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 1
+    }
+  ],
+  "schema": 78,
   "verified_corrections": 0
 }
