@@ -1,6 +1,14 @@
 {
   "schema": 712,
-  "checked": 0,
+  "checked": 9,
   "findings": [],
-  "runs": []
+  "independent_confirmations": 0,
+  "verified_corrections": 0,
+  "runs": [
+    {
+      "time": "2026-11-17T16:56:42+00:00",
+      "checked": 9,
+      "flags": 0
+    }
+  ]
 }
