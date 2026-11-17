@@ -1,0 +1,8 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NERYX · Verbindungstest</title><style>body{font:16px system-ui;background:#14101f;color:#f8f4ff;max-width:650px;margin:35px auto;padding:20px}button,input{font:inherit;padding:12px;border-radius:10px}button{background:#9870ff;color:#170f28;border:0;font-weight:700;margin:5px 0}input{display:block;width:95%;background:#28213d;color:white;border:1px solid #51446b}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#28213d;padding:16px;border-radius:12px}</style></head><body><h1>✦ NERYX Verbindungstest</h1><p>Dieser Test prüft die Verbindung zum lokalen Modell, ohne deinen bestehenden LernBot zu verändern.</p><button id="load">1. NERYX-Modell laden</button><input id="question" value="Hallo NERYX! Erkläre in einem Satz, was ein Okapi ist."><button id="ask">2. Testfrage senden</button><pre id="result">Noch nicht gestartet.</pre><script type="module">
+import {createNeryxClient} from './client.js';
+const client=createNeryxClient({url:'./'});
+const out=document.querySelector('#result');
+const act=async(fn)=>{out.textContent='NERYX arbeitet …';try{out.textContent=await fn()}catch(e){out.textContent='Fehler: '+e.message}};
+document.querySelector('#load').onclick=()=>act(async()=>JSON.stringify(await client.load(),null,2));
+document.querySelector('#ask').onclick=()=>act(()=>client.ask(document.querySelector('#question').value));
+</script></body></html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#110f1b">
+<title>NERYX · Deine eigene KI</title>
+<style>
+:root{color-scheme:dark;--bg:#110f1b;--panel:#1d192c;--panel2:#272139;--line:#403653;--text:#f6f0ff;--muted:#b5aac9;--accent:#9870ff;--accent2:#cdb8ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.layout{display:grid;grid-template-columns:265px minmax(0,1fr);min-height:100dvh}.side{background:#171323;padding:22px;border-right:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:850;letter-spacing:.06em}.logo{width:43px;height:43px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(130deg,#8c5cf6,#c19cff);color:#120d22}.small,.note{color:var(--muted);font-size:13px}.side h2{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:28px 0 12px}.side button{width:100%;margin-bottom:10px}.side p{font-size:13px;color:var(--muted)}.main{display:flex;flex-direction:column;min-height:100dvh;min-width:0}.top{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line)}.status{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}.dot{display:inline-block;width:9px;height:9px;background:#b59a66;border-radius:50%}.dot.ok{background:#6dd9a5}.chat{width:min(850px,100%);margin:0 auto;flex:1;padding:22px 18px 100px;display:flex;flex-direction:column;gap:14px;overflow-wrap:anywhere}.intro{text-align:center;margin:auto;color:var(--muted)}.intro h1{color:var(--text);font-size:clamp(30px,6vw,48px);margin-bottom:8px}.msg{padding:14px 16px;border:1px solid var(--line);border-radius:18px;max-width:92%;white-space:pre-wrap}.msg.user{background:#342658;align-self:flex-end}.msg.assistant{background:var(--panel);align-self:flex-start}.msg .by{font-size:11px;color:var(--accent2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}.barwrap{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 14%);padding:25px 12px max(15px,env(safe-area-inset-bottom))}.composer{display:flex;align-items:end;gap:8px;margin:auto;width:min(850px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px}.composer textarea{resize:none;max-height:140px;min-height:42px;background:transparent;color:var(--text);border:0;outline:0;flex:1;padding:10px}.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:11px 13px;font-weight:650}.btn.primary{background:var(--accent);color:#160d2e;border-color:transparent}.btn:hover:not(:disabled){filter:brightness(1.13)}.settings{margin-top:16px;background:var(--panel);padding:14px;border:1px solid var(--line);border-radius:14px}.settings label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}.settings input,.settings select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px;border-radius:9px}.progress{width:100%;height:7px;appearance:none;overflow:hidden;border:0;border-radius:99px;background:var(--panel2);margin-top:8px}.progress::-webkit-progress-bar{background:var(--panel2)}.progress::-webkit-progress-value{background:var(--accent)}.wide{width:100%}.actions{display:flex;gap:6px;flex-wrap:wrap}.hidden{display:none!important}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line);padding:14px}.side h2,.side .help{display:none}.side .settings{display:none}.side.expanded .settings{display:block}.brand{font-size:19px}.top{padding:10px 12px}.chat{padding:16px 10px 85px}.msg{max-width:98%}}
+body.embed .side,body.embed .top{display:none}body.embed .layout{grid-template-columns:1fr}body.embed .chat{padding-top:10px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side" id="sidebar">
+    <div class="brand"><span class="logo">✦</span><span>NERYX</span></div>
+    <div class="small">Deine eigene KI · lokal zuerst</div>
+    <h2>Steuerung</h2>
+    <button class="btn primary wide" id="load">Sprachmodell laden</button>
+    <button class="btn wide" id="new">Neuer Chat</button>
+    <button class="btn wide" id="copy">Ergebnisse kopieren</button>
+    <button class="btn wide" id="settingsToggle">⚙ Einstellungen</button>
+    <div class="settings" id="settings">
+      <label for="mode">Betriebsart</label><select id="mode"><option value="local">Lokal auf diesem Gerät</option><option value="server">Eigener Server (optional)</option></select>
+      <label for="model">Lokales Modell</label><select id="model"><option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen 2.5 · 0,5B (Start)</option><option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen 2.5 · 1,5B (mehr Speicher)</option></select>
+      <label for="serverUrl">Server-API (nur bei Servermodus)</label><input id="serverUrl" inputmode="url" placeholder="http://127.0.0.1:8787" autocomplete="off" spellcheck="false">
+      <p>Keine Passwörter oder geheimen API-Schlüssel in diese öffentliche Webseite eintragen.</p>
+    </div>
+    <div id="progressText" class="small" role="status" aria-live="polite">Modell noch nicht geladen.</div>
+    <progress id="progress" class="progress" value="0" max="100"></progress>
+    <p class="help">Beim ersten Laden benötigt NERYX Internet und ausreichend freien Gerätespeicher. Danach läuft die Textgenerierung beim lokalen Modus auf deinem Gerät. Browser-Caches können gelöscht werden.</p>
+  </aside>
+  <main class="main">
+    <header class="top"><strong>✦ NERYX Chat</strong><div class="status"><span class="dot" id="dot"></span><span id="status">Nicht gestartet</span></div></header>
+    <section class="chat" id="chat" role="log" aria-live="polite"><div class="intro" id="intro"><h1>Hallo, ich bin NERYX.</h1><p>Ein persönlicher KI-Assistent in Entwicklung.<br>Starte das Sprachmodell und stelle mir eine Frage.</p></div></section>
+    <div class="barwrap"><form id="form" class="composer"><textarea id="prompt" rows="1" maxlength="6000" placeholder="Schreibe an NERYX …" aria-label="Nachricht"></textarea><button class="btn primary" id="send" type="submit">Senden</button></form></div>
+  </main>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
