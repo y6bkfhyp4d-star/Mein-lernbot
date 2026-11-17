@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Chemische Reaktion",
-    "Desoxyribonukleinsäure",
-    "Elektrizität"
+    "Evolution",
+    "Licht",
+    "Schall"
   ],
   "questions": [
     {
@@ -92,11 +92,106 @@
       "source": "https://de.wikipedia.org/wiki/Elektrizit%C3%A4t",
       "status": "suchtreffer",
       "topic": "Elektrizität"
+    },
+    {
+      "checked_at": "2026-11-17T13:17:30+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "benetzt wurden und wieder trocken fielen (siehe Chemische Evolution: §Mitwirkung von Mineralen und Gesteinen). Für den Urvorfahren wird entsprechend dem",
+          "title": "Urvorfahr",
+          "url": "https://de.wikipedia.org/?curid=1158767"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Stachelratten (Echimyidae) eingeordnet. Nach neueren molekularen Analysen (aufgrund homologer DNA-Sequenzen, mitochondrialer und nuklearer Gene) gehört die",
+          "title": "Nutria",
+          "url": "https://de.wikipedia.org/?curid=223745"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Sinne der allgemeinen Semiotik eingeordnet werden. Sie wird dann gegliedert in ein Inventar von einzelnen Zeichen und in grammatikalische Regeln (Syntaktik)",
+          "title": "Sprache",
+          "url": "https://de.wikipedia.org/?curid=4700"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Evolution und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Evolution",
+      "status": "suchtreffer",
+      "topic": "Evolution"
+    },
+    {
+      "checked_at": "2026-11-17T13:17:30+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Prosawerk ‚Wie es ist‘ als Roman zu begreifen versucht – und unter diesem Gesichtspunkt erscheint es immer wieder fälschlich eingeordnet –, kommt man",
+          "title": "Wie es ist",
+          "url": "https://de.wikipedia.org/?curid=1724793"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "(altgriechisch φῶς phō̂s, deutsch ‚Licht‘ und σύνθεσις sýnthesis, deutsch ‚Zusammensetzung‘, auch Fotosynthese geschrieben) ist ein physiologischer Prozess zur",
+          "title": "Photosynthese",
+          "url": "https://de.wikipedia.org/?curid=3327081"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Wolken sind deshalb sichtbar, weil Licht aufgrund der Mie-Streuung gestreut wird, wodurch der Tyndall-Effekt auftritt und die eigentlich farblosen Tröpfchen",
+          "title": "Wolke",
+          "url": "https://de.wikipedia.org/?curid=10026"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Licht und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Licht",
+      "status": "suchtreffer",
+      "topic": "Licht"
+    },
+    {
+      "checked_at": "2026-11-17T13:17:30+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "2008. Angelika Unger: Intim-OPs: Wie schön ist meine Scham? Schönheits-OPs im Intimbereich – ein Tabu-Thema wird Trend. Was steckt dahinter? (Memento vom",
+          "title": "Vulva",
+          "url": "https://de.wikipedia.org/?curid=27639"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "ungeskriptet“, „Hard Talk“: Wie Gespräche scheitern. 10. Oktober 2026, abgerufen am 11. Oktober 2026. Melanie Amann, Alexandra Schaller: Wie viel hast du mit Björn",
+          "title": "Ungeskriptet",
+          "url": "https://de.wikipedia.org/?curid=13870826"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "emittierten Schall wird infolge der subjektiven Wahrnehmung der Betroffenen schließlich Lärm, was bedeutet, dass Lärm anders als Schall nicht objektiv",
+          "title": "Fluglärm",
+          "url": "https://de.wikipedia.org/?curid=7574135"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Schall und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Schall",
+      "status": "suchtreffer",
+      "topic": "Schall"
     }
   ],
   "runs": [
     {
       "at": "2026-11-17T13:15:19+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 20,
+      "searched": 3,
+      "with_results": 3
+    },
+    {
+      "at": "2026-11-17T13:17:30+00:00",
       "errors": 0,
       "no_results": 0,
       "open_gaps": 20,
