@@ -1,15 +1,15 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Licht",
-    "Schall",
-    "Chemische Reaktion",
-    "Desoxyribonukleinsäure"
+    "Geologie",
+    "Magnetismus",
+    "Regenwald",
+    "Chemische Reaktion"
   ],
   "records": [
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-17T15:02:59+00:00",
+      "checked_at": "2026-11-17T15:56:54+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
@@ -69,6 +69,17 @@
     },
     {
       "baseline_claims": 0,
+      "checked_at": "2026-11-17T15:56:54+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Geologie und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Geologie",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
       "checked_at": "2026-11-17T15:02:59+00:00",
       "claims": [],
       "independent_verified": false,
@@ -76,6 +87,28 @@
       "reasons": [],
       "status": "kein_passender_titel",
       "topic": "Licht",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T15:56:54+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Magnetismus und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Magnetismus",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T15:56:54+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Regenwald und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Regenwald",
       "verified_correction": false
     },
     {
@@ -103,6 +136,16 @@
     },
     {
       "at": "2026-11-17T15:02:59+00:00",
+      "baseline_candidates_same_pages": 0,
+      "baseline_topics_same_pages": 0,
+      "candidates": 0,
+      "errors": 0,
+      "processed": 4,
+      "with_claims": 0,
+      "without_matching_hit": 4
+    },
+    {
+      "at": "2026-11-17T15:56:54+00:00",
       "baseline_candidates_same_pages": 0,
       "baseline_topics_same_pages": 0,
       "candidates": 0,
