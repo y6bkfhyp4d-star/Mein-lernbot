@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {benchmarkExtraction,extractEntry,analyzeDatabase,applyReviews,reasonWithApproved,splitSentences} from './extract74.js';
+assert.deepEqual(benchmarkExtraction(),{passed:10,total:10});
+const data={title:'Okapi',url:'https://de.wikipedia.org/wiki/Okapi',excerpt:'Das Okapi ist ein Säugetier. Das Okapi gehört zur Familie der Giraffenartigen. Es ist nicht ein Vogel.'};
+const a=analyzeDatabase({entries:[data]});assert.equal(a.candidates.length,2);assert.equal(a.sentences,3);assert.equal(a.reasons.anderes_subjekt_oder_titel_nicht_am_anfang,1);
+const reviewed=applyReviews(a.candidates,Object.fromEntries(a.candidates.map(c=>[c.id,'reviewed'])));
+const rr=reasonWithApproved(reviewed);assert.equal(rr.reviewed,2);assert.equal(rr.unsupported,1);assert.equal(rr.facts.length,1);
+const detail=analyzeDatabase({entries:[{title:'Mars',url:'https://de.wikipedia.org/wiki/Mars',excerpt:'Der Mars ist vermutlich ein Planet. Die Venus ist ein Planet.'}]});
+assert.equal(detail.candidates.length,0);assert.equal(detail.sentences,2);
+console.log('Phase 7.4 extraction, diagnostics and review tests OK');
