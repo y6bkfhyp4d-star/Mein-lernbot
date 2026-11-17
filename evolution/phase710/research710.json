@@ -1,14 +1,32 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Chemische Reaktion",
-    "Desoxyribonukleinsäure",
-    "Elektrizität",
-    "Evolution",
-    "Licht",
-    "Schall"
+    "Algorithmus",
+    "Computer",
+    "Geologie",
+    "Internet",
+    "Magnetismus",
+    "Regenwald"
   ],
   "records": [
+    {
+      "checked_at": "2026-11-17T22:17:15+00:00",
+      "claims": [],
+      "had_exact_search_hit": true,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Algorithmus",
+      "question": "Was ist Algorithmus und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=342",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Algorithmus",
+      "verified_correction": false
+    },
     {
       "checked_at": "2026-11-17T15:24:10+00:00",
       "claims": [
@@ -38,6 +56,24 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T22:17:15+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Computer",
+      "question": "Was ist Computer und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=782",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Computer",
       "verified_correction": false
     },
     {
@@ -108,6 +144,42 @@
       "verified_correction": false
     },
     {
+      "checked_at": "2026-11-17T22:17:15+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Geologie",
+      "question": "Was ist Geologie und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=1896",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Geologie",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T22:17:15+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Internet",
+      "question": "Was ist Internet und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=2181304",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Internet",
+      "verified_correction": false
+    },
+    {
       "checked_at": "2026-11-17T15:24:10+00:00",
       "claims": [
         {
@@ -136,6 +208,67 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "Licht",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T22:17:15+00:00",
+      "claims": [
+        {
+          "id": "p79-cef288ffacf399",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=19658",
+          "statement": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Magnetismus"
+        },
+        {
+          "id": "p79-ffec337b5ff153",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Der Magnetismus ist ein Teilgebiet des Elektromagnetismus.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=19658",
+          "statement": "Der Magnetismus ist ein Teilgebiet des Elektromagnetismus.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Magnetismus"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 2,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Magnetismus",
+      "question": "Was ist Magnetismus und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=19658",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Magnetismus",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T22:17:15+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Regenwald",
+      "question": "Was ist Regenwald und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=9049",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Regenwald",
       "verified_correction": false
     },
     {
@@ -182,6 +315,19 @@
       "resolved_without_exact_hit": 5,
       "titles_resolved": 6,
       "topics_with_claims": 4,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-17T22:17:15+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "previously_without_exact_hit": 5,
+      "processed": 6,
+      "resolved_without_exact_hit": 5,
+      "titles_resolved": 6,
+      "topics_with_claims": 1,
       "unresolved": 0
     }
   ],
