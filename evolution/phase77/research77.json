@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Evolution",
-    "Licht",
-    "Schall"
+    "Geologie",
+    "Magnetismus",
+    "Regenwald"
   ],
   "questions": [
     {
@@ -123,6 +123,35 @@
       "topic": "Evolution"
     },
     {
+      "checked_at": "2026-11-17T15:29:34+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "gefährdet – eingeordnet. Obwohl die Habitatzerstörung in den Lebensräumen der Äskulapnatter nur als sekundäre Rückzugsursache angesehen wird, gibt es eine Reihe",
+          "title": "Äskulapnatter",
+          "url": "https://de.wikipedia.org/?curid=73877"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Thomas Reischmann, Hessisches Landesamt für Naturschutz, Umwelt und Geologie (Hrsg.): Geologie von Hessen. Verlag Schweizerbart, Stuttgart 2021, ISBN 978-3-510-65442-0",
+          "title": "Hessen",
+          "url": "https://de.wikipedia.org/?curid=2166425"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "– wie Bayern und Sachsen – offiziell den Namenszusatz Freistaat, der historisch auf die Ablösung der Monarchie durch die Republik zurückzuführen ist. Die",
+          "title": "Thüringen",
+          "url": "https://de.wikipedia.org/?curid=5128"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Geologie und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Geologie",
+      "status": "suchtreffer",
+      "topic": "Geologie"
+    },
+    {
       "checked_at": "2026-11-17T13:17:30+00:00",
       "hits": [
         {
@@ -150,6 +179,64 @@
       "source": "https://de.wikipedia.org/wiki/Licht",
       "status": "suchtreffer",
       "topic": "Licht"
+    },
+    {
+      "checked_at": "2026-11-17T15:29:34+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Phänomene wie Blitze oder die Kraftwirkung des Magnetismus. Der Begriff der Elektrizität ist in der Naturwissenschaft nicht streng abgegrenzt, es werden",
+          "title": "Elektrizität",
+          "url": "https://de.wikipedia.org/?curid=12733"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Ausbildung und in der Forschung wird die Regel als Teilaspekt des Induktionsgesetzes und der Maxwell-Gleichungen eingeordnet. Nähert man einen Permanentmagneten",
+          "title": "Lenzsche Regel",
+          "url": "https://de.wikipedia.org/?curid=691163"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Entfernen des äußeren Feldes bestehen bleibt und das Eisenobjekt somit zu einem Dauermagneten wird. Dieser Magnetismus verliert sich bei reinem α-Eisen nach",
+          "title": "Eisen",
+          "url": "https://de.wikipedia.org/?curid=1249"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Magnetismus und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Magnetismus",
+      "status": "suchtreffer",
+      "topic": "Magnetismus"
+    },
+    {
+      "checked_at": "2026-11-17T15:29:34+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "gilt der Regenwald-Nilwaran nunmehr als eigenständige Art. Er wird etwa 2 m lang, ist ähnlich wie der Nilwaran stark ans Wasser gebunden und ernährt sich",
+          "title": "Regenwald-Nilwaran",
+          "url": "https://de.wikipedia.org/?curid=5910209"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Top Gear ist ein Automagazin, das vom britischen Fernsehsender BBC Two ausgestrahlt wurde und 2020 zu BBC One wechselte. Es gilt als erfolgreichste Sendung",
+          "title": "Top Gear",
+          "url": "https://de.wikipedia.org/?curid=1521823"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Die Rattenigel hingegen bevorzugen feuchte Habitate und finden sich vorrangig in Regenwäldern. Nicht näher mit den Igeln verwandt sind die zu den Kloakentieren",
+          "title": "Igel",
+          "url": "https://de.wikipedia.org/?curid=4761737"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Regenwald und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Regenwald",
+      "status": "suchtreffer",
+      "topic": "Regenwald"
     },
     {
       "checked_at": "2026-11-17T13:17:30+00:00",
@@ -195,6 +282,14 @@
       "errors": 0,
       "no_results": 0,
       "open_gaps": 20,
+      "searched": 3,
+      "with_results": 3
+    },
+    {
+      "at": "2026-11-17T15:29:34+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 24,
       "searched": 3,
       "with_results": 3
     }
