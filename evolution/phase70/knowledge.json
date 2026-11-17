@@ -19,7 +19,17 @@
     "ATP-Synthase",
     "Abiotisch",
     "Abklingbecken",
-    "Abwasser"
+    "Abwasser",
+    "-gen",
+    "Abgeschlossenes System",
+    "Abfallprodukt",
+    "Absorption (Physik)",
+    "(136472) Makemake",
+    "(2) Pallas",
+    "AGB-Stern",
+    "Absolute Helligkeit",
+    "Adalbert W. A. Pauldrach",
+    "Adler (Sternbild)"
   ],
   "entries": [
     {
@@ -121,6 +131,56 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Wasser"
+    },
+    {
+      "collected_at": "2026-11-17T03:05:16+00:00",
+      "excerpt": "Wasserstoff ist ein chemisches Element mit dem Symbol H (für lateinisch hydrogenium ‚Wassererzeuger‘ von altgriechisch ὕδωρ hydōr, deutsch ‚Wasser‘) und der Ordnungszahl 1. Im Periodensystem steht das Element Wasserstoff in der 1. Periode und in der 1. IUPAC-Gruppe. Wasserstoff ist mit einem Massenanteil von etwa 70 % das häufigste chemische Element im Universum, jedoch nicht auf der Erde, wo sein Massenanteil an der Erdhülle nur 0,87 % beträgt. Der Großteil des Wasserstoffs auf der Erde ist im Wasser gebunden, der Verbindung mit Sauerstoff, deren Masse zu 11 % aus Wasserstoff besteht. Wasserstoff kommt gebunden an andere Elemente in sämtlichen Pflanzen und lebenden Organismen vor. Wasserstoff ist ein fester Bestandteil fast aller organischen chemischen Substanzen. Wasserstoff ist das chemische Element mit der geringsten Atommasse. Sein h",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Wasserstoff",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Wasserstoff"
+    },
+    {
+      "collected_at": "2026-11-17T03:05:16+00:00",
+      "excerpt": "Sauerstoff (auch Oxygenium, kurz Oxygen, genannt; gebildet aus altgriechisch ὀξύς oxýs „scharf, spitz, sauer“ und -gen, zusammen „Säureerzeuger, Säurebildner“) ist ein chemisches Element mit dem Symbol O und der Ordnungszahl 8. Es steht an achter Stelle im Periodensystem und dort zusammen mit den Elementen Schwefel, Selen, Tellur, Polonium und Livermorium, die die Chalkogene bilden, in der sechsten Hauptgruppe, bzw. 16. IUPAC-Gruppe. Sauerstoff ist bezüglich der Masse mit 48,9 % das häufigste Element der Erdkruste, das häufigste Element der Erdhülle und mit rund 30 % das zweithäufigste Element der Erde insgesamt (Eisen ist an 1. Stelle). Unter Normalbedingung tritt Sauerstoff in Form eines kovalenten Homodimers auf, also einer Verbindung aus zwei Sauerstoff-Atomen und mit der Summenformel O2, bezeichnet als molekularer Sauerstoff, Dioxyge",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Sauerstoff",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Sauerstoff"
+    },
+    {
+      "collected_at": "2026-11-17T03:05:16+00:00",
+      "excerpt": "Ein Planet (von altgriechisch πλανήτης planḗtēs, deutsch ‚Umherschweifender, Wanderer‘) ist ein Himmelskörper, der einen Stern oder Braunen Zwerg umkreist und dessen Masse nicht ausreicht, um Kernfusion in Gang zu setzen. Er leuchtet daher nicht selbst, sondern reflektiert nur das Licht des Sterns. Im Sonnensystem sind die Planeten die acht größten Himmelskörper, die die Sonne umkreisen. Die vier inneren Planeten – Merkur, Venus, Erde, Mars – bestehen aus Gestein mit einem Metallkern, die äußeren vier – Jupiter, Saturn, Uranus, Neptun – bestehen größtenteils aus Gas. Entstanden sind die Planeten aus der protoplanetaren Scheibe, deren kleine Teilchen sich immer mehr zusammenballten. Kleinere Objekte im Sonnensystem, wie zum Beispiel Pluto, werden gemäß Definition der IAU entweder als Zwergplanet oder als Kleinkörper eingeordnet. Objekte, w",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Planet",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Planet"
+    },
+    {
+      "collected_at": "2026-11-17T03:05:16+00:00",
+      "excerpt": "Unter einem Stern (altgriechisch ἀστήρ, ἄστρον astēr, ástron und lateinisch aster, astrum, stella, sidus für ‘Stern, Gestirn’; ahd. sterno; astronomisches Symbol: ✱) versteht man in der Astronomie einen massereichen, selbstleuchtenden Himmelskörper aus sehr heißem Gas und Plasma, wie zum Beispiel die Sonne. Dass nahezu alle mit dem bloßen Auge sichtbaren selbstleuchtenden Himmelskörper sonnenähnliche Objekte sind, die nur wegen ihrer weiten Entfernung punktförmig erscheinen, ist eine der wichtigsten Erkenntnisse der modernen Astronomie. Etwa drei Viertel der Sterne sind Teil eines Doppelstern- oder Mehrfachsystems, viele haben ein Planetensystem. Gemeinsam entstandene Sterne bilden öfter Sternhaufen. Unter günstigen Bedingungen können mehrere Tausend Sterne freiäugig unterschieden werden. Diese gehören alle zur gleichen Galaxie wie die So",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Stern",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Stern"
+    },
+    {
+      "collected_at": "2026-11-17T03:05:16+00:00",
+      "excerpt": "Eine Galaxie ist eine durch Gravitation gebundene große Ansammlung von Sternen und ihren Planetensystemen sowie interstellaren Objekten, Gasnebeln, Staubwolken, Dunkler Materie und sonstigen astronomischen Objekten. Galaxien variieren stark in Aussehen (Morphologie), Größe und Zusammensetzung. Während große Galaxien häufig die Struktur von Spiralen ausbilden, sind Zwerggalaxien zumeist irregulären Typs. Daneben existieren weitere Arten und Formen. Die Milchstraße, Heimatgalaxie unseres Sonnensystems, ist eine Balkenspirale von rund 1,5 Billionen Sonnenmassen (M☉) mit etwa 250 Milliarden Sternen. Galaxien haben typischerweise eine Gesamtmasse von 109 bis 1013 M☉. Ihr Durchmesser kann mehrere hunderttausend Lichtjahre betragen. Die Milchstraße hat einen Durchmesser von bis zu 200.000 Lichtjahren und gehört damit zu den größeren Galaxien. Vo",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Galaxie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Galaxie"
     }
   ],
   "failed_titles": [],
@@ -152,6 +212,20 @@
         "Wasser"
       ],
       "time": "2026-11-16T21:04:15+00:00"
+    },
+    {
+      "added": 5,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Wasserstoff",
+        "Sauerstoff",
+        "Planet",
+        "Stern",
+        "Galaxie"
+      ],
+      "time": "2026-11-17T03:05:16+00:00"
     }
   ],
   "schema": 1
