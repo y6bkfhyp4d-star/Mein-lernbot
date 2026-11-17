@@ -1,11 +1,40 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Geologie",
-    "Magnetismus",
-    "Regenwald"
+    "Algorithmus",
+    "Computer",
+    "Internet"
   ],
   "questions": [
+    {
+      "checked_at": "2026-11-17T21:28:40+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Ein Algorithmus (benannt nach dem Mathematiker und Universalgelehrten al-Chwarizmi, von arabisch: الخوارزمی al-Ḫwārizmī, deutsch ‚der Choresmier‘) ist eine",
+          "title": "Algorithmus",
+          "url": "https://de.wikipedia.org/?curid=342"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "wenigsten Zeit benötigt, wird er in der neuen Reihenfolge so weit vorn wie möglich eingeordnet usw. Im Folgenden wird der Algorithmus anhand eines Beispiels",
+          "title": "Johnson-Algorithmus",
+          "url": "https://de.wikipedia.org/?curid=564737"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Kryptographie. Daraus ergeben sich folgende Vorteile: Es ist viel schwieriger, einen Algorithmus geheim zu halten als einen Schlüssel. Geheime Algorithmen",
+          "title": "Kerckhoffs’ Prinzip",
+          "url": "https://de.wikipedia.org/?curid=591944"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Algorithmus und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Algorithmus",
+      "status": "suchtreffer",
+      "topic": "Algorithmus"
+    },
     {
       "checked_at": "2026-11-17T13:15:19+00:00",
       "hits": [
@@ -34,6 +63,35 @@
       "source": "https://de.wikipedia.org/wiki/Chemische_Reaktion",
       "status": "suchtreffer",
       "topic": "Chemische Reaktion"
+    },
+    {
+      "checked_at": "2026-11-17T21:28:40+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "eigenes, mit dem Computer verbundenes Gerät (externes Laufwerk) sein. Während im Wort „Laufwerk“ ein mechanisches Gerät impliziert ist, gibt es auch Medien",
+          "title": "Laufwerk (Computer)",
+          "url": "https://de.wikipedia.org/?curid=121622"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "eingesetzt. Sie sind dabei jeweils nach dem primären Zielbetriebssystem eingeordnet. FFS (Amiga Fast File System): Dateisystem unter AmigaOS ab Version 1",
+          "title": "Liste von Dateisystemen",
+          "url": "https://de.wikipedia.org/?curid=3933882"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Spanischen ist eñe []. Es bezeichnet einen palatalen nasalen Konsonanten und wird in der alphabetischen Reihenfolge zwischen N und O eingeordnet. Auf der spanischen",
+          "title": "Ñ",
+          "url": "https://de.wikipedia.org/?curid=304678"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Computer und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Computer",
+      "status": "suchtreffer",
+      "topic": "Computer"
     },
     {
       "checked_at": "2026-11-17T13:15:19+00:00",
@@ -150,6 +208,35 @@
       "source": "https://de.wikipedia.org/wiki/Geologie",
       "status": "suchtreffer",
       "topic": "Geologie"
+    },
+    {
+      "checked_at": "2026-11-17T21:28:40+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Semantik, welches Datenmodell und welche Syntax es sich handelt. Hierzu ist ein Identifikationsmechanismus erforderlich, wie ihn die URIs (Uniform Resource",
+          "title": "Metadaten",
+          "url": "https://de.wikipedia.org/?curid=37379"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Wahlforscher Thorsten Faas und im Februar 2024 vom Politikwissenschaftler Hajo Funke eingeordnet, der das BSW als „pragmatisch, sozial und ökonomisch links sowie",
+          "title": "Bündnis Soziale Gerechtigkeit und Wirtschaftliche Vernunft",
+          "url": "https://de.wikipedia.org/?curid=12853745"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Französischen, dem Okzitanischen und weiteren kleineren romanischen Sprachen wie Norditalienisch in die Westromania eingeordnet werden. Die Wissenschaft, die",
+          "title": "Spanische Sprache",
+          "url": "https://de.wikipedia.org/?curid=8719"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Internet und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Internet",
+      "status": "suchtreffer",
+      "topic": "Internet"
     },
     {
       "checked_at": "2026-11-17T13:17:30+00:00",
@@ -290,6 +377,14 @@
       "errors": 0,
       "no_results": 0,
       "open_gaps": 24,
+      "searched": 3,
+      "with_results": 3
+    },
+    {
+      "at": "2026-11-17T21:28:40+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 28,
       "searched": 3,
       "with_results": 3
     }
