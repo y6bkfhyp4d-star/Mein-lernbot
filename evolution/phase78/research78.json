@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Chemische Reaktion",
-    "Desoxyribonukleinsäure",
-    "Elektrizität"
+    "Evolution",
+    "Geologie",
+    "Licht"
   ],
   "records": [
     {
@@ -45,6 +45,33 @@
       "status": "kandidaten_gefunden",
       "topic": "Elektrizität",
       "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:40:41+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Evolution und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Evolution",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:40:41+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Geologie und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Geologie",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:40:41+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Licht und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Licht",
+      "verified_correction": false
     }
   ],
   "runs": [
@@ -54,6 +81,13 @@
       "errors": 0,
       "processed": 3,
       "with_claims": 1
+    },
+    {
+      "at": "2026-11-17T15:40:41+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
     }
   ],
   "schema": 78,
