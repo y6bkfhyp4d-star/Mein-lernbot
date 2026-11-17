@@ -1,9 +1,17 @@
+
 name: LernBot 7.0 - Quellenabgleich 7.6
 
 on:
   workflow_dispatch: {}
+
   schedule:
-    - cron: '29 2,8,14,20 * * *'
+    - cron: "29 2,8,14,20 * * *"
+
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/lernbot-phase76.yml"
 
 permissions:
   contents: write
@@ -14,27 +22,40 @@ concurrency:
 
 jobs:
   crosscheck:
+    name: Automatischer Quellenabgleich
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Repository laden
+        uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - uses: actions/setup-python@v5
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - name: Vorhandene Quellen konservativ abgleichen
-        run: python3 evolution/phase76/check76.py
-      - name: Automatisierte Tests
-        run: python3 -m unittest discover -s evolution/phase76 -p 'test_check76.py'
-      - name: Nur geänderten Prüfbericht speichern
+          python-version: "3.12"
+
+      - name: Quellen automatisch abgleichen
+        run: |
+          python3 evolution/phase76/check76.py
+
+      - name: Automatische Tests ausführen
+        run: |
+          python3 -m unittest discover \
+            -s evolution/phase76 \
+            -p "test_check76.py"
+
+      - name: Prüfbericht speichern
         run: |
           if ! git diff --quiet -- evolution/phase76/review76.json; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
             git add evolution/phase76/review76.json
-            git commit -m 'LernBot 7.6: Quellenabgleich aktualisieren'
+            git commit -m "LernBot 7.6: Quellenabgleich aktualisieren"
             git push
           else
-            echo 'Kein neuer Prüfbericht.'
+            echo "Keine Änderungen am Prüfbericht."
           fi
