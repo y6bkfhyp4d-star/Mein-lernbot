@@ -1,8 +1,85 @@
 {
-  "schema": 79,
-  "records": [],
-  "runs": [],
-  "last_batch": [],
   "independent_confirmations": 0,
+  "last_batch": [
+    "Chemische Reaktion",
+    "Desoxyribonukleinsäure",
+    "Elektrizität",
+    "Evolution"
+  ],
+  "records": [
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T15:02:31+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T15:02:31+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Desoxyribonukleinsäure und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Desoxyribonukleinsäure",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 1,
+      "checked_at": "2026-11-17T15:02:31+00:00",
+      "claims": [
+        {
+          "id": "p79-0756811a1070e0",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=12733",
+          "statement": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Elektrizität"
+        }
+      ],
+      "excerpt_available": true,
+      "independent_verified": false,
+      "page_title": "Elektrizität",
+      "question": "Was ist Elektrizität und wie wird es eingeordnet?",
+      "reasons": [],
+      "source": "https://de.wikipedia.org/?curid=12733",
+      "status": "aussagen_gefunden",
+      "topic": "Elektrizität",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-17T15:02:31+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Evolution und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Evolution",
+      "verified_correction": false
+    }
+  ],
+  "runs": [
+    {
+      "at": "2026-11-17T15:02:31+00:00",
+      "baseline_candidates_same_pages": 1,
+      "baseline_topics_same_pages": 1,
+      "candidates": 1,
+      "errors": 0,
+      "processed": 4,
+      "with_claims": 1,
+      "without_matching_hit": 3
+    }
+  ],
+  "schema": 79,
   "verified_corrections": 0
 }
