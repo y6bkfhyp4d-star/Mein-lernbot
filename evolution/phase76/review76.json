@@ -1,8 +1,92 @@
 {
-  "schema": 76,
-  "entities": [],
   "changes": [],
-  "runs": [],
-  "snapshots": {},
-  "cursor": 0
+  "cursor": 5,
+  "entities": [
+    {
+      "checked_at": "2026-11-17T11:58:12+00:00",
+      "classes": [
+        "Planetensystem"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Sonnensystem",
+      "wikidata_id": "Q544",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q544"
+    },
+    {
+      "checked_at": "2026-11-17T11:58:12+00:00",
+      "classes": [
+        "innerer Planet",
+        "oberer Planet"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Mars (Planet)",
+      "wikidata_id": "Q111",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q111"
+    },
+    {
+      "checked_at": "2026-11-17T11:58:12+00:00",
+      "classes": [
+        "biologischer Vorgang"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Photosynthese",
+      "wikidata_id": "Q11982",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q11982"
+    },
+    {
+      "checked_at": "2026-11-17T11:58:12+00:00",
+      "classes": [
+        "Taxon"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Okapi",
+      "wikidata_id": "Q82037",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q82037"
+    },
+    {
+      "checked_at": "2026-11-17T11:58:12+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Elektrizität",
+      "wikidata_id": "Q12725",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q12725"
+    }
+  ],
+  "runs": [
+    {
+      "at": "2026-11-17T11:58:12+00:00",
+      "checked": 5,
+      "error_count": 0,
+      "known_sources": 20,
+      "source_changes": 0
+    }
+  ],
+  "schema": 76,
+  "snapshots": {
+    "Chemische Reaktion": "9e3d50613cc0a78c4822",
+    "Desoxyribonukleinsäure": "4fa90446ccd5f141d41a",
+    "Elektrizität": "6ac428b9609722249834",
+    "Erdatmosphäre": "be5cfe1df067c3de55c7",
+    "Evolution": "ca8f6e8623f7f6c8bcc7",
+    "Galaxie": "7907468151af09102e33",
+    "Gravitation": "7200035478cc80a8d6d5",
+    "Licht": "766ff9708187782da9ea",
+    "Mars (Planet)": "f379e0bcdf0e2e11bd86",
+    "Okapi": "7adf83c49c699c2cb725",
+    "Photosynthese": "edc5a11eed8509cd30c6",
+    "Planet": "3bf31a61b9c93858ece7",
+    "Sauerstoff": "b3437dd9d51e798d90f7",
+    "Schall": "391e4065cfc04c5bec60",
+    "Sonnensystem": "5735d9ddbaa6e2ce0cd8",
+    "Stern": "4a9814fa32d3238b46f1",
+    "Temperatur": "0e0a5b8b8ffb7b4aafd6",
+    "Wasser": "a687c11c03621dc26f2b",
+    "Wasserstoff": "e25b16f31b8362068e7f",
+    "Zelle (Biologie)": "a68ca8f349b367dc3862"
+  }
 }
