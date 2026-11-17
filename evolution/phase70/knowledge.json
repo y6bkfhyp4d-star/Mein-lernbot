@@ -29,7 +29,17 @@
     "AGB-Stern",
     "Absolute Helligkeit",
     "Adalbert W. A. Pauldrach",
-    "Adler (Sternbild)"
+    "Adler (Sternbild)",
+    "Adaptive Radiation",
+    "Adult",
+    "1,2-Propandiol",
+    "2,6-Diaminopurin",
+    "(2+2)-Cycloaddition",
+    "1,3-Dipole",
+    "Achluophobie",
+    "Adaptation (Auge)",
+    "2. Hauptsatz der Thermodynamik",
+    "Absolute Temperatur"
   ],
   "entries": [
     {
@@ -181,6 +191,56 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Galaxie"
+    },
+    {
+      "collected_at": "2026-11-17T09:20:33+00:00",
+      "excerpt": "Unter Evolution (von lateinisch evolvere „herausrollen“, „auseinanderrollen“, „auswickeln“, „entwickeln“) versteht man im deutschsprachigen Raum in erster Linie die biologische Evolution. Darunter wird die von Generation zu Generation stattfindende allmähliche Veränderung der vererbbaren Merkmale einer Population von Lebewesen und von anderen organischen Strukturen (z. B. Viren) verstanden. Das Lehr- und Forschungsgebiet der Evolution wird als Evolutionsbiologie bezeichnet und unterliegt, wie viele andere Wissenschaften, einem kontinuierlichen Erkenntnisfortschritt. Hierzu können insbesondere neue Einsichten durch die Entdeckung neuer Fossilien oder die Anwendung neuer Forschungsmethoden beitragen. Das Themenfeld der Evolution wurde zuweilen unterteilt in die Evolutionsgeschichte, in der die Veränderungen der Lebewesen im Laufe der Erdges",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Evolution",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Evolution"
+    },
+    {
+      "collected_at": "2026-11-17T09:20:33+00:00",
+      "excerpt": "Desoxyribonukleinsäure (), meist kurz als DNA (Abkürzung für englisch deoxyribonucleic acid), seltener auch als DNS abgekürzt, ist eine aus unterschiedlichen Desoxyribonukleotiden aufgebaute Nukleinsäure. Sie trägt die Erbinformation bei allen Lebewesen und den DNA-Viren. Das langkettige Polynukleotid enthält in Abschnitten von Genen besondere Abfolgen seiner Nukleotide. Diese DNA-Abschnitte dienen als Matrizen für den Aufbau entsprechender Ribonukleinsäuren (RNA), wenn genetische Information von DNA in RNA umgeschrieben wird (siehe Transkription). Die hierbei an der DNA-Vorlage aufgebauten RNA-Stränge erfüllen unterschiedliche Aufgaben; sie sind als rRNA (englisch ribosomal RNA), als tRNA (englisch transfer RNA) und als mRNA (englisch messenger RNA) an der Biosynthese von Proteinen beteiligt (siehe Proteinbiosynthese). Im Falle einer Mes",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Desoxyribonukleins%C3%A4ure",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Desoxyribonukleinsäure"
+    },
+    {
+      "collected_at": "2026-11-17T09:20:33+00:00",
+      "excerpt": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird. Auch Elemente können an Reaktionen beteiligt sein. Chemische Reaktionen sind in der Regel mit Veränderungen der chemischen Bindungen in Molekülen oder Kristallen verbunden. Durch eine chemische Reaktion können sich die Eigenschaften der Produkte im Vergleich zu den Edukten stark ändern. Nicht zu den chemischen Reaktionen zählen physikalische Vorgänge, bei denen sich lediglich der Aggregatzustand ändert wie Schmelzen oder Verdampfen, Diffusion, das Vermengen von Reinstoffen zu Stoffgemischen sowie Kernreaktionen, bei denen Elemente in andere umgewandelt werden. Reaktionen bestehen aus einer meist recht komplizierten Folge einzelner Teilschritte, den sogenannten Elementar",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Chemische_Reaktion",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Chemische Reaktion"
+    },
+    {
+      "collected_at": "2026-11-17T09:20:33+00:00",
+      "excerpt": "Licht ist eine Form der elektromagnetischen Strahlung. Im engeren Sinne sind nur die für das menschliche Auge sichtbaren Anteile des elektromagnetischen Spektrums gemeint. Die untere Grenze dieses Bereichs wird bei Wellenlängen von 360 bis 400 nm, die obere Grenze bei 760 bis 830 nm angesetzt. Im weiteren Sinne werden in der Physik auch elektromagnetische Wellen kürzerer Wellenlänge (Ultraviolett oder Röntgenstrahlung) und größerer Wellenlänge (Infrarot und Terahertz-Strahlung) dazu gezählt, wobei die Internationale Beleuchtungskommission von der Verwendung der Bezeichnung Licht in diesem Kontext abrät. Die physikalischen Eigenschaften des Lichts werden durch verschiedene Modelle beschrieben: In der Strahlenoptik wird die geradlinige Ausbreitung des Lichts durch „Lichtstrahlen“ veranschaulicht; in der Wellenoptik wird die Wellennatur des",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Licht",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Licht"
+    },
+    {
+      "collected_at": "2026-11-17T09:20:33+00:00",
+      "excerpt": "Die Temperatur ist eine physikalische Zustandsgröße aus der Thermodynamik. Sie wird mit einem Thermometer in den SI-Einheiten Kelvin (K) und Grad Celsius (°C) gemessen. Im Alltag ist sie mit dem Gefühl von „warm“ und „kalt“ verbunden, die gemessene Temperatur kann sich aber erheblich von der gefühlten Temperatur unterscheiden. Bringt man zwei Körper mit unterschiedlichen Temperaturen in thermischen Kontakt, findet Wärmeübertragung statt. Die Wärme fließt dabei stets vom heißeren zum kälteren Körper. Dadurch nimmt die Temperaturdifferenz so lange ab, bis sich die beiden Temperaturen einander angeglichen haben. Wenn die Temperaturen gleich sind, herrscht thermisches Gleichgewicht, in dem kein Wärmeaustausch mehr stattfindet. Die tiefste überhaupt mögliche Temperatur ist 0 K, gleichbedeutend mit −273,15 °C. Sie heißt Absoluter Nullpunkt. Die",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Temperatur",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Temperatur"
     }
   ],
   "failed_titles": [],
@@ -226,6 +286,20 @@
         "Galaxie"
       ],
       "time": "2026-11-17T03:05:16+00:00"
+    },
+    {
+      "added": 5,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Evolution",
+        "Desoxyribonukleinsäure",
+        "Chemische Reaktion",
+        "Licht",
+        "Temperatur"
+      ],
+      "time": "2026-11-17T09:20:33+00:00"
     }
   ],
   "schema": 1
