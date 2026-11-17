@@ -1,8 +1,190 @@
 {
-  "schema": 710,
-  "records": [],
-  "runs": [],
-  "last_batch": [],
   "independent_confirmations": 0,
+  "last_batch": [
+    "Chemische Reaktion",
+    "Desoxyribonukleinsäure",
+    "Elektrizität",
+    "Evolution",
+    "Licht",
+    "Schall"
+  ],
+  "records": [
+    {
+      "checked_at": "2026-11-17T15:24:10+00:00",
+      "claims": [
+        {
+          "id": "p79-c353cef1512eda",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=12163",
+          "statement": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Chemische Reaktion"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Chemische Reaktion",
+      "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=12163",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:24:10+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Desoxyribonukleinsäure",
+      "question": "Was ist Desoxyribonukleinsäure und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=1108",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Desoxyribonukleinsäure",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:24:10+00:00",
+      "claims": [
+        {
+          "id": "p79-0756811a1070e0",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=12733",
+          "statement": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Elektrizität"
+        }
+      ],
+      "had_exact_search_hit": true,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Elektrizität",
+      "question": "Was ist Elektrizität und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=12733",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Elektrizität",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:24:10+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Evolution",
+      "question": "Was ist Evolution und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=92236",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Evolution",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:24:10+00:00",
+      "claims": [
+        {
+          "id": "p79-2df32afcd558b6",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Licht ist eine Form der elektromagnetischen Strahlung.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=13299",
+          "statement": "Licht ist eine Form der elektromagnetischen Strahlung.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Licht"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Licht",
+      "question": "Was ist Licht und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=13299",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Licht",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T15:24:10+00:00",
+      "claims": [
+        {
+          "id": "p79-2f7067bbd28844",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper).",
+          "relation": "quellenbeschreibung",
+          "rule": "bezeichnet",
+          "source": "https://de.wikipedia.org/?curid=9344",
+          "statement": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper).",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Schall"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Schall",
+      "question": "Was ist Schall und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=9344",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Schall",
+      "verified_correction": false
+    }
+  ],
+  "runs": [
+    {
+      "at": "2026-11-17T15:24:10+00:00",
+      "claims": 4,
+      "errors": 0,
+      "new_extractor_same_pages": 4,
+      "old_extractor_same_pages": 3,
+      "previously_without_exact_hit": 5,
+      "processed": 6,
+      "resolved_without_exact_hit": 5,
+      "titles_resolved": 6,
+      "topics_with_claims": 4,
+      "unresolved": 0
+    }
+  ],
+  "schema": 710,
   "verified_corrections": 0
 }
