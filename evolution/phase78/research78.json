@@ -1,11 +1,22 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Evolution",
-    "Geologie",
-    "Licht"
+    "Algorithmus",
+    "Computer",
+    "Internet"
   ],
   "records": [
+    {
+      "checked_at": "2026-11-17T21:38:38+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "page_title": "Algorithmus",
+      "question": "Was ist Algorithmus und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=342",
+      "status": "kein_sicheres_muster",
+      "topic": "Algorithmus",
+      "verified_correction": false
+    },
     {
       "checked_at": "2026-11-17T14:26:42+00:00",
       "claims": [],
@@ -13,6 +24,15 @@
       "question": "Was ist Chemische Reaktion und wie wird es eingeordnet?",
       "status": "nur_suchtreffer",
       "topic": "Chemische Reaktion",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-17T21:38:38+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Computer und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Computer",
       "verified_correction": false
     },
     {
@@ -65,6 +85,15 @@
       "verified_correction": false
     },
     {
+      "checked_at": "2026-11-17T21:38:38+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Internet und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Internet",
+      "verified_correction": false
+    },
+    {
       "checked_at": "2026-11-17T15:40:41+00:00",
       "claims": [],
       "independent_verified": false,
@@ -84,6 +113,13 @@
     },
     {
       "at": "2026-11-17T15:40:41+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
+    },
+    {
+      "at": "2026-11-17T21:38:38+00:00",
       "candidates": 0,
       "errors": 0,
       "processed": 3,
