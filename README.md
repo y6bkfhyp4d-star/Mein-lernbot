@@ -17,6 +17,28 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Lernlabor 0.1 – Lernen aus Rückmeldungen (experimentell)
+
+Mit `Lernversuch: 2, 4, 8, 16` zeigt NERYX mehrere passende
+Fortsetzungen. Über `Lernfeedback: 32` gibst du nach dem Versuch
+die gewünschte richtige Fortsetzung an. NERYX belohnt Strategien,
+deren Vorhersage passt, und senkt das Gewicht unpassender Strategien.
+`Lernstand` zeigt die Strategiegewichte und `Lernvergleich` kontrolliert
+vier weitere, fest definierte Aufgaben.
+
+Das Lernlabor verwendet nur die sechs implementierten Musterklassen
+(Arithmetik, Geometrie, Quadrat, Wechselmuster, Kubik, Fibonacci).
+Es lernt **keine neuen Algorithmen** und prüft das vom Nutzer gelieferte
+Feedback nicht gegen die Wirklichkeit. Ungünstiges Feedback kann die
+Ergebnisse verschlechtern; ein höherer Gewichtswert beweist keine
+wahre oder universelle Regel. Bei nicht unterstütztem Feedback
+wird nichts gespeichert.
+
+Erfahrungsgewichte und Zähler liegen separat im lokalen Browser-Speicher
+unter `neryx.learning.strategies.v1`. Persönliche Fakten, App-Code und
+Modellgewichte werden nicht verändert. Es handelt sich nicht um AGI
+oder um einen unabhängigen wissenschaftlichen Lernbenchmark.
+
 ## Zahlenmuster 0.2
 
 Die Befehle `Regel lösen: 1=1, 2=4, 3=9; 4` und
