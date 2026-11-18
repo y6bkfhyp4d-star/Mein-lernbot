@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 35,
+  "cursor": 40,
   "entities": [
     {
       "checked_at": "2026-11-17T11:58:12+00:00",
@@ -403,6 +403,60 @@
       "title": "ATP-Citrat-Lyase",
       "wikidata_id": "Q3602265",
       "wikidata_url": "https://www.wikidata.org/wiki/Q3602265"
+    },
+    {
+      "checked_at": "2026-11-18T21:17:02+00:00",
+      "classes": [
+        "Zeitpunkt innerhalb eines wiederkehrenden Zeitrahmens"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "18. Oktober",
+      "wikidata_id": "Q2964",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q2964"
+    },
+    {
+      "checked_at": "2026-11-18T21:17:02+00:00",
+      "classes": [
+        "historischer Staat",
+        "historische Periode"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Achämenidenreich",
+      "wikidata_id": "Q389688",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q389688"
+    },
+    {
+      "checked_at": "2026-11-18T21:17:02+00:00",
+      "classes": [
+        "Mensch"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abdus Salam",
+      "wikidata_id": "Q28189",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q28189"
+    },
+    {
+      "checked_at": "2026-11-18T21:17:02+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Akkumulator",
+      "wikidata_id": "Q187510",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q187510"
+    },
+    {
+      "checked_at": "2026-11-18T21:17:02+00:00",
+      "classes": [
+        "Einzelwissenschaft"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Akustik",
+      "wikidata_id": "Q82811",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q82811"
     }
   ],
   "runs": [
@@ -454,6 +508,13 @@
       "error_count": 1,
       "known_sources": 39,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-18T21:17:02+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 43,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -466,9 +527,13 @@
     "3-Hydroxypropionatzyklus": "d3b69fab85022eae2ed0",
     "ATP-Citrat-Lyase": "8538b68b42bd9ef9584e",
     "Abdus Salam": "1736b2e53bd698bce3c5",
+    "Abschirmung (Gravitation)": "a7513d7c79d0b8a57abc",
     "Achämenidenreich": "b95fd585994902a62a11",
     "Akkumulator": "e0e64a933525e075dbe3",
+    "Akustik": "6b29301f6434da9497eb",
+    "Al-Bīrūnī": "db8db0ba87075447910c",
     "Algorithmus": "2e117fc2cba9ccd398d2",
+    "Althochdeutsche Sprache": "8b351251df9a2132b0f9",
     "Chemische Reaktion": "9e3d50613cc0a78c4822",
     "Computer": "67018e719a29a864eb97",
     "Desoxyribonukleinsäure": "4fa90446ccd5f141d41a",
