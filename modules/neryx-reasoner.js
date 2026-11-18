@@ -50,5 +50,22 @@ function compose(value,steps) {
   }
   return result;
 }
-window.NERYXReasoner=Object.freeze({version:'0.1',inferRule,shortestPath,compose});
+function ruleFromText(input) {
+  const text=String(input??'').trim();
+  const sections=text.split(';');
+  if(sections.length!==2)return 'Format: Regel lösen: 2=5, 4=9; 7';
+  const matches=sections[0].split(',').map(s=>s.trim().match(/^(-?\d+(?:\.\d+)?)\s*=\s*(-?\d+(?:\.\d+)?)$/));
+  if(matches.length<2||matches.length>20||matches.some(m=>!m))
+    return 'Bitte mindestens zwei Zahlenpaare angeben: 2=5, 4=9; 7';
+  if(!/^-?\d+(?:\.\d+)?$/.test(sections[1].trim()))
+    return 'Bitte nach dem Semikolon eine Zielzahl angeben.';
+  const samples=matches.map(m=>[Number(m[1]),Number(m[2])]),x=Number(sections[1].trim());
+  const result=inferRule(samples,x);
+  if(!result)return 'Keine eindeutige lineare Regel aus diesen Beispielen ableitbar.';
+  const rounded=n=>Number(n.toPrecision(12));
+  return `Abgeleitete Regel: y = ${rounded(result.slope)} × x + ${rounded(result.offset)}\n`+
+    `Für x = ${x}: y = ${rounded(result.result)}\n`+
+    `Hinweis: Dies ist eine passende lineare Regel, nicht die einzig denkbare Regel.`;
+}
+window.NERYXReasoner=Object.freeze({version:'0.1',inferRule,shortestPath,compose,ruleFromText});
 })();
