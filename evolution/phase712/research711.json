@@ -1,16 +1,33 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
+    "(1) Ceres",
+    "Künstliche Intelligenz",
     "Algorithmus",
-    "Computer",
-    "Internet",
     "Chemische Reaktion",
-    "Desoxyribonukleinsäure",
-    "Elektrizität"
+    "Computer",
+    "Desoxyribonukleinsäure"
   ],
   "records": [
     {
-      "checked_at": "2026-11-17T22:28:47+00:00",
+      "checked_at": "2026-11-18T04:37:01+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 6
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "(1) Ceres",
+      "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=30371",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "(1) Ceres",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T04:37:01+00:00",
       "claims": [
         {
           "id": "p711-f87b072e139a98",
@@ -43,7 +60,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-17T22:28:47+00:00",
+      "checked_at": "2026-11-18T04:37:01+00:00",
       "claims": [
         {
           "id": "p711-9ff2cd08660a1f",
@@ -76,7 +93,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-17T22:28:47+00:00",
+      "checked_at": "2026-11-18T04:37:01+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 7
@@ -93,7 +110,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-17T22:28:47+00:00",
+      "checked_at": "2026-11-18T04:37:01+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 7
@@ -222,6 +239,38 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Internet",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T04:37:01+00:00",
+      "claims": [
+        {
+          "id": "p711-026cef10d3e677",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=2653",
+          "statement": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Künstliche Intelligenz",
+          "subject_form": "Künstliche Intelligenz"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Künstliche Intelligenz",
+      "question": "Was ist Künstliche Intelligenz und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=2653",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Künstliche Intelligenz",
       "verified_correction": false
     },
     {
@@ -406,6 +455,21 @@
       "unresolved_topics": [
         "Computer",
         "Internet",
+        "Desoxyribonukleinsäure"
+      ]
+    },
+    {
+      "at": "2026-11-18T04:37:01+00:00",
+      "claims": 3,
+      "errors": 0,
+      "new_extractor_same_pages": 3,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 3,
+      "unresolved_topics": [
+        "(1) Ceres",
+        "Computer",
         "Desoxyribonukleinsäure"
       ]
     }
