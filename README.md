@@ -17,6 +17,24 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## GENESIS 2.0 – Erweiterte Gegenprobe
+
+Im Chat startet `GENESIS` die erweiterte Gegenprobe. `GENESIS 1` ruft die alte
+Gegenprobe 1.1 auf, `GENESIS Verlauf` zeigt den lokalen Benchmark-Verlauf.
+
+GENESIS 2.0 prüft zusätzliche Frageformulierungen, den Umgang mit unbekannten
+Themen und unbekannten Eigenschaften sowie einen **simulierten** widersprüchlichen
+Fakt in einer temporären Kopie des Wissens. Der echte Faktenbestand wird dabei
+nicht verändert. Für Vergleiche werden ausschließlich Summen, Zeit,
+Antwort-KI-Version und eine einfache Prüfsumme des Faktenstands unter
+`neryx.genesis.benchmark.v2` im lokalen Browser gespeichert (maximal 20 Läufe).
+Die Prüfsumme ist nicht kryptografisch geschützt.
+
+**Grenzen:** Die Tests kennen nur ausgewählte Faktenarten und prüfen lokale
+Antwortregeln. Sie beweisen weder die sachliche Wahrheit der Fakten noch
+allgemeine Intelligenz. Es findet kein automatisches Training des Sprachmodells
+und keine automatische Korrektur persönlicher Fakten statt.
+
 ## Neue Funktion: NERYX GENESIS – Gegenprobe
 
 Im NERYX-Chat `GENESIS`, `Gedankenlabor` oder `Gegenprobe` eingeben, oder die Schnellaktion **Gegenprobe** wählen.
