@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "18. Oktober",
-    "Abdus Salam",
-    "Achämenidenreich"
+    "Abschirmung (Gravitation)",
+    "Akkumulator",
+    "Al-Bīrūnī"
   ],
   "records": [
     {
@@ -52,12 +52,39 @@
       "verified_correction": false
     },
     {
+      "checked_at": "2026-11-18T21:39:40+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Abschirmung (Gravitation) und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Abschirmung (Gravitation)",
+      "verified_correction": false
+    },
+    {
       "checked_at": "2026-11-18T15:43:50+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist Achämenidenreich und wie wird es eingeordnet?",
       "status": "nur_suchtreffer",
       "topic": "Achämenidenreich",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T21:39:40+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Akkumulator und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Akkumulator",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T21:39:40+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Al-Bīrūnī und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Al-Bīrūnī",
       "verified_correction": false
     },
     {
@@ -222,6 +249,13 @@
     },
     {
       "at": "2026-11-18T15:43:50+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
+    },
+    {
+      "at": "2026-11-18T21:39:40+00:00",
       "candidates": 0,
       "errors": 0,
       "processed": 3,
