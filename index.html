@@ -483,6 +483,22 @@
         transition-duration: .01ms !important;
       }
     }
+    /* NERYX Navigation: klare Gliederung, konsistente Symbole, dezenter Glow */
+    #drawer {background:linear-gradient(165deg,#1c1730 0%,#171722 48%,#13121e 100%);border-right-color:rgba(167,139,250,.18)}
+    .brand {margin:0 0 8px;padding:12px 10px 21px;border-bottom:1px solid rgba(167,139,250,.16)}
+    .brand strong {font-size:19px;letter-spacing:.08em}
+    .brand-icon {background:linear-gradient(140deg,#a78bfa,#6d3ed0);border:1px solid rgba(255,255,255,.22)}
+    .side-label {color:#b8a4e5;padding-top:18px;letter-spacing:1.5px}
+    .side-button {min-height:46px;border-radius:14px;gap:12px;transition:background .2s,border-color .2s,transform .2s,box-shadow .2s}
+    .side-button:hover {background:rgba(167,139,250,.12);border-color:rgba(167,139,250,.12)}
+    .side-button:active {transform:scale(.975)}
+    .side-button.active {background:linear-gradient(90deg,rgba(139,92,246,.32),rgba(139,92,246,.10));border-color:rgba(167,139,250,.36);box-shadow:inset 3px 0 #a78bfa}
+    .side-icon {width:23px;flex-basis:23px;display:grid;place-items:center;color:#bda9ef}
+    .side-icon svg {display:block}
+    .side-button.active .side-icon {color:#eee5ff}
+    #sidebar-backdrop.open {backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+    @media(max-width:760px){#drawer{width:304px;max-width:88vw;box-shadow:14px 0 55px rgba(0,0,0,.55)}}
+    @media(prefers-reduced-motion:reduce){.side-button{transition:none!important}}
     /* NERYX – energiesparende Animationen, respektiert Bewegungseinstellungen */
     .brand-icon {animation:neryxGlow 4s ease-in-out infinite}
     .online-dot {animation:neryxPulse 2.6s ease-in-out infinite}
@@ -501,7 +517,7 @@
   <nav id="drawer" aria-label="Hauptnavigation">
 
     <div class="brand">
-      <div class="brand-icon" aria-hidden="true">N</div>
+      <div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 48 48" width="29" height="29" fill="none"><path d="M11 35V13l26 22V13" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="11" r="3" fill="currentColor"/></svg></div>
       <div>
         <strong>NERYX</strong>
         <small>Lernkern 6.0 · NERYX</small>
@@ -511,39 +527,39 @@
     <div class="side-label">Chat</div>
 
     <button class="side-button active" type="button">
-      <span class="side-icon">✚</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14 M5 12h14"/></svg></span>
       Neuer Chat
     </button>
 
     <button class="side-button" type="button">
-      <span class="side-icon">◷</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20"/></svg></span>
       Chatverlauf
     </button>
 
     <div class="side-label">Arbeitsbereich</div>
 
     <button class="side-button" type="button">
-      <span class="side-icon">🧠</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V5 M12 7c-4-5-10-1-8 4-3 4 0 8 5 8h3 M12 7c4-5 10-1 8 4 3 4 0 8-5 8h-3"/></svg></span>
       Wissensspeicher
     </button>
 
     <button class="side-button" type="button">
-      <span class="side-icon">🤖</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3 M7 6h10a4 4 0 0 1 4 4v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7a4 4 0 0 1 4-4Z M8 13h.01 M16 13h.01 M9 17h6"/></svg></span>
       KI-Agenten
     </button>
 
     <button class="side-button" type="button">
-      <span class="side-icon">▣</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7l2 2h9v11H3V7Z M3 7V5h8l2 2"/></svg></span>
       Projekte
     </button>
 
     <button class="side-button" type="button">
-      <span class="side-icon">▤</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6V3Z M15 3v5h4 M9 12h7 M9 16h7"/></svg></span>
       Dokumente
     </button>
 
     <button class="side-button" type="button">
-      <span class="side-icon">⌘</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8 4 12l4 4 M16 8l4 4-4 4 M14 5l-4 14"/></svg></span>
       Code-Labor
     </button>
 
@@ -552,44 +568,44 @@
     <div class="side-label">System</div>
 
     <button class="side-button" type="button">
-      <span class="side-icon">⚙</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2 M12 19v2 M3 12h2 M19 12h2 M5.6 5.6 7 7 M17 17l1.4 1.4 M18.4 5.6 17 7 M7 17l-1.4 1.4 M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg></span>
       Einstellungen
     </button>
 
     <button class="side-button" type="button" data-cmd="theme">
-      <span class="side-icon">◐</span>
+      <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z M12 2v20"/></svg></span>
       Design & Darstellung
     </button>
 
     <div class="sidebar-footer">
 
       <button class="side-button" type="button" data-cmd="hilfe">
-        <span class="side-icon">?</span>
+        <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 9a3 3 0 1 1 5 2c-1.5 1-2.5 1.5-2.5 3 M12 18h.01"/></svg></span>
         Hilfe
       </button>
 
       <button class="side-button" type="button" data-cmd="was weißt du?">
-        <span class="side-icon">✧</span>
+        <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6L12 2Z"/></svg></span>
         Mein Wissen
       </button>
 
       <button class="side-button" type="button" data-cmd="export">
-        <span class="side-icon">⇧</span>
+        <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3 M7 8l5-5 5 5 M4 16v5h16v-5"/></svg></span>
         Daten exportieren
       </button>
 
       <button class="side-button" type="button" data-cmd="import">
-        <span class="side-icon">⇩</span>
+        <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13 M7 11l5 5 5-5 M4 18v3h16v-3"/></svg></span>
         Daten importieren
       </button>
 
       <button class="side-button" type="button" data-cmd="verlauf löschen">
-        <span class="side-icon">⌫</span>
+        <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h12v14H9L2 12l7-7Z M13 9l5 6 M18 9l-5 6"/></svg></span>
         Chat leeren
       </button>
 
       <button class="side-button" type="button" data-cmd="refresh">
-        <span class="side-icon">↻</span>
+        <span class="side-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2 6 M20 4v7h-7"/></svg></span>
         App aktualisieren
       </button>
 
