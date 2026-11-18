@@ -51,7 +51,7 @@ function compose(value,steps) {
   return result;
 }
 function ruleFromText(input) {
-  const text=String(input??'').trim();
+  const text=String(input??'').trim().replace(/:\s*$/,'').trim();
   const sections=text.split(';');
   if(sections.length!==2)return 'Format: Regel lösen: 2=5, 4=9; 7';
   const matches=sections[0].split(',').map(s=>s.trim().match(/^(-?\d+(?:\.\d+)?)\s*=\s*(-?\d+(?:\.\d+)?)$/));
