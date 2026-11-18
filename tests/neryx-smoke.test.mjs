@@ -212,3 +212,36 @@ test('GENESIS 2: Verlauf lokal separat und nur zusammengefasste Ergebnisse', () 
   assert.match(window.NERYXGenesis2.historyReport(),/TESTVERLAUF/);
   assert.equal(db.has('meinLernBot.v1'),false,'Wissensspeicher nicht verändert');
 });
+
+test('Antwort-KI 1.7: neue GENESIS-2-Formulierungen und bisherige Fragen', () => {
+  const window = {}, console = {log() {}};
+  runInNewContext(read('antwort-ki.js'), {window,console});
+  runInNewContext(read('modules/genesis-2.js'), {window});
+  const facts=[
+    {subject:'Okapi',property:'definition',value:'ein Säugetier'},
+    {subject:'Okapi',property:'aussehen',value:'gestreifte Beine'},
+    {subject:'Okapi',property:'lebensraum',value:'Regenwald'},
+    {subject:'Metaanalyse',property:'definition',value:'eine statistische Auswertung'},
+    {subject:'Dropdown-Liste',property:'definition',value:'ein Auswahlfeld'},
+    {subject:'Mars',property:'durchmesser',value:'6779 Kilometer'}
+  ];
+  const answer=(q,db=facts)=>window.LernBotAntwortKI.answer(q,{facts:db,context:{},documents:[]});
+  for(const [question,expected] of [
+    ['Beschreibe, was Okapi ist.','Säugetier'],
+    ['Kannst du Okapi definieren?','Säugetier'],
+    ['Beschreibe, wie Okapi aussieht.','gestreifte Beine'],
+    ['Wo ist Okapi beheimatet?','Regenwald'],
+    ['Beschreibe, was Metaanalyse ist.','statistische Auswertung'],
+    ['Kannst du Dropdown-Liste definieren?','Auswahlfeld'],
+    ['Was ist Okapi?','Säugetier'],
+    ['Wie sieht Okapi aus?','gestreifte Beine'],
+    ['Welchen Durchmesser hat Mars?','6779 Kilometer']
+  ]) assert.match(answer(question)?.text||'',new RegExp(expected),question);
+  const oldSnapshot=JSON.stringify(facts);
+  const result=window.NERYXGenesis2.examine(facts,answer);
+  assert.equal(result.paraphrase.checked,12);
+  assert.equal(result.paraphrase.passed,12);
+  assert.equal(result.unknown.passed,2);
+  assert.equal(result.conflict.passed,1);
+  assert.equal(JSON.stringify(facts),oldSnapshot,'Kein Wissen bei Tests verändern');
+});
