@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -352,4 +352,29 @@ test('Regel lösen akzeptiert normale und angehängte Doppelpunkte', () => {
     const prefix=phrase.slice(0,phrase.indexOf(':'));
     assert.equal(norm(prefix),norm('Regel lösen'));
   }
+});
+
+test('Mustererkennung 0.2 bewahrt lineare Regeln und ergänzt quadratische', () => {
+  const window={};
+  runInNewContext(read('modules/neryx-reasoner.js'),{window});
+  runInNewContext(read('modules/rule-patterns.js'),{window});
+  const p=window.NERYXPatterns;
+  assert.match(p.solvePairs('2=5, 4=9; 7'),/y = 15/);
+  assert.match(p.solvePairs('1=1, 2=4, 3=9; 4'),/y = 16/);
+  assert.match(p.solvePairs('1=1, 2=4, 3=9; 4'),/nicht eindeutig bewiesen/);
+  assert.match(p.solvePairs('1=1, 1=2, 3=9; 4'),/nur einmal/);
+  assert.match(p.solvePairs('1=2, 2=4, 3=13, 4=21; 5'),/Keine passende/);
+});
+test('Mustererkennung 0.2 erkennt Folgen, verweigert ungeeignete Angaben', () => {
+  const window={};
+  runInNewContext(read('modules/rule-patterns.js'),{window});
+  const p=window.NERYXPatterns;
+  assert.match(p.solveSequence('2, 4, 8, 16'),/32/);
+  assert.match(p.solveSequence('1, 3, 2, 4, 3, 5'),/4/);
+  assert.match(p.solveSequence('3, 6, 9, 12'),/15/);
+  assert.match(p.solveSequence('1, 4, 9, 16'),/25/);
+  assert.match(p.solveSequence('1, 2'),/Format/);
+  assert.match(p.solveSequence('1, 2, wort'),/Format/);
+  assert.ok(app.includes("command(s,'Folge lösen')"));
+  assert.ok(html.includes('src="modules/rule-patterns.js"'));
 });
