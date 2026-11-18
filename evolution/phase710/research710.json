@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "18. Oktober",
-    "Abdus Salam",
-    "Achämenidenreich",
+    "Abschirmung (Gravitation)",
+    "Akkumulator",
+    "Al-Bīrūnī",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris"
   ],
   "records": [
     {
-      "checked_at": "2026-11-18T16:24:53+00:00",
+      "checked_at": "2026-11-18T22:14:04+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -28,7 +28,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T16:24:53+00:00",
+      "checked_at": "2026-11-18T22:14:04+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -46,7 +46,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T16:24:53+00:00",
+      "checked_at": "2026-11-18T22:14:04+00:00",
       "claims": [
         {
           "id": "p79-8db9ea00710e2a",
@@ -126,6 +126,24 @@
       "verified_correction": false
     },
     {
+      "checked_at": "2026-11-18T22:14:04+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 1,
+      "page_title": "Abschirmung (Gravitation)",
+      "question": "Was ist Abschirmung (Gravitation) und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=3402435",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Abschirmung (Gravitation)",
+      "verified_correction": false
+    },
+    {
       "checked_at": "2026-11-18T16:24:53+00:00",
       "claims": [],
       "had_exact_search_hit": false,
@@ -141,6 +159,42 @@
       "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "Achämenidenreich",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T22:14:04+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Akkumulator",
+      "question": "Was ist Akkumulator und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=226",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Akkumulator",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T22:14:04+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Al-Bīrūnī",
+      "question": "Was ist Al-Bīrūnī und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=147",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Al-Bīrūnī",
       "verified_correction": false
     },
     {
@@ -532,6 +586,19 @@
       "resolved_without_exact_hit": 6,
       "titles_resolved": 6,
       "topics_with_claims": 2,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-18T22:14:04+00:00",
+      "claims": 1,
+      "errors": 0,
+      "new_extractor_same_pages": 1,
+      "old_extractor_same_pages": 1,
+      "previously_without_exact_hit": 6,
+      "processed": 6,
+      "resolved_without_exact_hit": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 1,
       "unresolved": 0
     }
   ],
