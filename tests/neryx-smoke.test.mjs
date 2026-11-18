@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -167,4 +167,48 @@ test('GENESIS: Okapi-Aussehen wird über unterschiedliche Fragen erkannt', () =>
   const r = window.NERYXGenesis.examine(facts, answer);
   assert.equal(r.checked, 2);
   assert.equal(r.passed, 2);
+});
+
+test('GENESIS 2: schwere Fragen, Nichtwissen und Konflikt ohne Faktenänderung', () => {
+  const window = {}, console = {log() {}};
+  runInNewContext(read('antwort-ki.js'), {window, console});
+  runInNewContext(read('modules/genesis-2.js'), {window});
+  const facts = [
+    {subject:'Mars',property:'durchmesser',value:'6.779 Kilometer'},
+    {subject:'Okapi',property:'aussehen',value:'schwarz-weiße Streifen an den Beinen'}
+  ];
+  const before = JSON.stringify(facts);
+  const r = window.NERYXGenesis2.examine(facts,
+    (q,db) => window.LernBotAntwortKI.answer(q,{facts:db,documents:[],context:{}}));
+  assert.equal(r.facts, 2);
+  assert.equal(r.unknown.checked, 2);
+  assert.equal(r.unknown.passed, 2);
+  assert.equal(r.conflict.checked, 1);
+  assert.equal(r.conflict.passed, 1);
+  assert.ok(r.paraphrase.checked >= 4);
+  assert.equal(JSON.stringify(facts), before, 'GENESIS muss read-only bleiben');
+  assert.ok(app.includes("n==='genesis verlauf'"));
+  assert.ok(html.includes('src="modules/genesis-2.js"'));
+});
+
+test('GENESIS 2: Verlauf lokal separat und nur zusammengefasste Ergebnisse', () => {
+  const db = new Map();
+  const storage = {
+    getItem: key => db.get(key) ?? null,
+    setItem: (key,value) => db.set(key,String(value))
+  };
+  const facts = [{subject:'Mars',property:'durchmesser',value:'6.779 Kilometer'}];
+  const window = {LernBotBridge:{getFacts:()=>facts},localStorage:storage};
+  window.LernBotAntwortKI = {version:'test', answer:(q,db) => {
+    const f = db.facts.find(x=>x.subject==='Mars');
+    return q.includes('Testobjekt') ? null : f ? {text:'Der Durchmesser beträgt '+f.value+(f.conflict?' – Widerspruch!':'')} : null;
+  }};
+  runInNewContext(read('modules/genesis-2.js'), {window,localStorage:storage});
+  const result=window.NERYXGenesis2.report();
+  assert.match(result,/GENESIS 2.0/);
+  const raw=db.get('neryx.genesis.benchmark.v2');
+  assert.ok(raw,'Separate Speicherung');
+  assert.doesNotMatch(raw,/Mars|Kilometer/,'Keine Faktentexte im Verlauf');
+  assert.match(window.NERYXGenesis2.historyReport(),/TESTVERLAUF/);
+  assert.equal(db.has('meinLernBot.v1'),false,'Wissensspeicher nicht verändert');
 });
