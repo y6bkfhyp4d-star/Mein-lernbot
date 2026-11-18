@@ -67,17 +67,51 @@
       passed:tested.filter(x=>x.success).length,conflicts:conflicts.length,
       problems:problems.slice(0,12)};
   }
+  function inventory(facts, bridge) {
+    const rows = Array.isArray(facts) ? facts : [];
+    const usable = rows.filter(f => f && typeof f.subject==='string' &&
+      typeof f.property==='string' && typeof f.value==='string' &&
+      f.subject.trim() && f.property.trim() && f.value.trim());
+    const supported = usable.filter(f => template[cleanProperty(f.property)]);
+    const size = getter => { try {
+      const result = getter?.();
+      return Array.isArray(result) ? result.length : null;
+    } catch { return null; } };
+    return {stored:rows.length,usable:usable.length,supported:supported.length,
+      memories:size(bridge?.getMemories),tasks:size(bridge?.getTasks)};
+  }
   function report() {
     const bridge = window.LernBotBridge, ai=window.LernBotAntwortKI;
     if (!bridge?.getFacts || !ai?.answer) return 'GENESIS: Wissensschnittstelle oder Antwort-KI nicht geladen.';
-    const facts=bridge.getFacts();
+    const facts=bridge.getFacts(), info=inventory(facts,bridge);
     const r=examine(facts,q=>ai.answer(q,{facts,documents:[],context:{}}));
-    const lines=[`NERYX GENESIS · GEGENPROBE 1.0`,
-      `Wissenseinträge: ${r.facts}`,`Getestete Fragevarianten: ${r.checked}`,
+    const lines=[`NERYX GENESIS · GEGENPROBE 1.1`,
+      `Gespeicherte strukturierte Fakten: ${info.stored}`,
+      `Davon verwendbar: ${info.usable}`,
+      `Davon mit Testvorlagen: ${info.supported}`,
+      `Getestete Fragevarianten: ${r.checked}`,
       `Erfolgreich beantwortet: ${r.passed}/${r.checked}`,
       `Widersprüchliche Fakten-Gruppen: ${r.conflicts}`];
-    if (!r.checked) lines.push('Noch keine geeigneten Fakten für Fragevarianten vorhanden.');
-    if (!r.problems.length) lines.push('Keine Probleme in den getesteten Varianten erkannt.');
+    if (!r.checked) {
+      if (info.stored===0) {
+        lines.push('','Keine strukturierten Fakten in diesem App-Speicher vorhanden.');
+        lines.push('Gespeicherte Aufgaben oder Erinnerungen sind nicht automatisch strukturierte Fakten.');
+        lines.push('Probiere: Lerne: Mars: Durchmesser – 6.779 Kilometer');
+        lines.push('Prüfe vorher mit „Wissensübersicht“, ob du Fakten auf diesem Gerät gespeichert hast.');
+        lines.push('Wenn Safari andere Fakten anzeigt als die Homescreen-App, verwenden sie möglicherweise getrennte Speicherbereiche.');
+      } else if (info.usable===0) {
+        lines.push('','Vorhandene Fakt-Einträge haben keine vollständigen Felder subject/property/value.');
+      } else if (info.supported===0) {
+        lines.push('','Es gibt Fakten, aber noch keine passenden Fragevorlagen für ihre Eigenschaften.');
+      } else {
+        lines.push('','Keine Testfragen ausgeführt: bitte Faktstruktur und Fragevorlagen prüfen.');
+      }
+      const extras=[];
+      if (info.memories!==null) extras.push(`Erinnerungen: ${info.memories}`);
+      if (info.tasks!==null) extras.push(`Aufgaben: ${info.tasks}`);
+      if (extras.length) lines.push(extras.join(' · '));
+    }
+    if (r.checked && !r.problems.length) lines.push('Keine Probleme in den getesteten Varianten erkannt.');
     else {
       lines.push('','LERNCHANCEN (keine automatischen Änderungen):');
       r.problems.forEach((p,i)=>lines.push(`${i+1}. ${p.subject} · ${p.property}: ${p.kind==='widerspruch'?'Widerspruch prüfen':'Frage nicht zuverlässig beantwortet'}${p.question?' – '+p.question:''}`));
@@ -85,5 +119,5 @@
     lines.push('','Die Gegenprobe ist ein begrenzter Selbsttest, kein Wahrheitsbeweis.');
     return lines.join('\n');
   }
-  window.NERYXGenesis=Object.freeze({version:'1.0',examine,report});
+  window.NERYXGenesis=Object.freeze({version:'1.1',examine,report,inventory});
 })();
