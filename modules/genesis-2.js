@@ -76,7 +76,14 @@ function examine(facts,responder,limit=20) {
     const f=selected[0],target=compact(f.subject)+'|'+prop(f.property);
     const cloned=rows.map(x=>(compact(x.subject)+'|'+prop(x.property)===target)
       ?{...x,conflict:true,alternatives:[{value:'GENESIS Testkonflikt'}]}:{...x});
-    test('conflict',questions[prop(f.property)](f.subject)[0],'',f,cloned);
+    const key=prop(f.property);
+    const baseline={definition:`Was ist ${f.subject}?`,aussehen:`Wie sieht ${f.subject} aus?`,
+      durchmesser:`Welchen Durchmesser hat ${f.subject}?`,gewicht:`Wie viel wiegt ${f.subject}?`,
+      hauptstadt:`Was ist die Hauptstadt von ${f.subject}?`,
+      fellfarbe:`Welche Fellfarbe hat ${f.subject}?`,
+      lebensraum:`Wo lebt ${f.subject}?`,nahrung:`Was frisst ${f.subject}?`,
+      familie:`Zu welcher Familie gehört ${f.subject}?`,groesse:`Wie groß ist ${f.subject}?`};
+    test('conflict',baseline[key]||questions[key](f.subject)[0],'',f,cloned);
   }
   const summary=type=>({checked:tests.filter(x=>x.type===type).length,
     passed:tests.filter(x=>x.type===type&&x.passed).length});
@@ -136,7 +143,7 @@ function historyReport() {
   if(!rows.length)return 'GENESIS: Noch kein lokal gespeicherter Testverlauf.';
   const lines=['NERYX GENESIS · TESTVERLAUF',`${rows.length} letzte Testläufe (maximal ${MAX_RUNS}):`];
   for(const x of rows.slice(-10))lines.push(`${new Date(x.time).toLocaleString('de-DE')}: ${x.passed}/${x.checked} · Antwort-KI ${x.model}`);
-  lines.push('Nur Zähler, Zeit und ein nicht rückrechenbarer Kurz-Fingerabdruck werden gespeichert; keine Fakten oder Chattexte.');
+  lines.push('Gespeichert werden Zähler, Zeit und eine einfache Prüfsumme des Faktenstands, aber keine Klartext-Fakten oder Chattexte. Die Prüfsumme ist nicht kryptografisch geschützt.');
   lines.push('Ergebnisse sind nur bei identischem Faktenbestand, gleichem Modell und gleicher Testanzahl direkt vergleichbar.');
   return lines.join('\n');
 }
