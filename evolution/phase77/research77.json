@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(1) Ceres",
     "(10199) Chariklo",
-    "Künstliche Intelligenz"
+    "(136108) Haumea",
+    "(136199) Eris"
   ],
   "questions": [
     {
@@ -36,7 +36,7 @@
       "topic": "(1) Ceres"
     },
     {
-      "checked_at": "2026-11-18T03:30:45+00:00",
+      "checked_at": "2026-11-18T09:36:16+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (10199) Chariklo und wie wird es eingeordnet?",
@@ -44,6 +44,46 @@
       "source": "https://de.wikipedia.org/wiki/%2810199%29_Chariklo",
       "status": "keine_treffer",
       "topic": "(10199) Chariklo"
+    },
+    {
+      "checked_at": "2026-11-18T09:36:16+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "ʻOkina enthalten. Beispiele sind: der Mond Hiʻiaka des Zwergplaneten (136108) Haumea (entdeckt 2005, benannt 2008), der Asteroid (514107) Kaʻepaokaʻawela",
+          "title": "ʻOkina",
+          "url": "https://de.wikipedia.org/?curid=2132952"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%28136108%29_Haumea",
+      "status": "suchtreffer",
+      "topic": "(136108) Haumea"
+    },
+    {
+      "checked_at": "2026-11-18T09:36:16+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Perihel meist bei 35 AE liegt. Teil dieser Gruppe ist der massereichste bekannte Zwergplanet (136199) Eris. → Hauptartikel: Trojaner (Astronomie) Asteroiden",
+          "title": "Asteroid",
+          "url": "https://de.wikipedia.org/?curid=412"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "wie (136199) Eris sind Objekte mit einer Halbachse größer als 50 AE außerhalb des Kuipergürtels und einem Perihel kleiner als 50 AE. Von ihnen wird angenommen",
+          "title": "Kleinplanet",
+          "url": "https://de.wikipedia.org/?curid=8397945"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%28136199%29_Eris",
+      "status": "suchtreffer",
+      "topic": "(136199) Eris"
     },
     {
       "checked_at": "2026-11-17T21:28:40+00:00",
@@ -461,6 +501,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 31,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-18T09:36:16+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 35,
       "searched": 3,
       "with_results": 2
     }
