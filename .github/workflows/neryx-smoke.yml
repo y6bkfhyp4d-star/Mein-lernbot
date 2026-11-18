@@ -1,0 +1,27 @@
+name: NERYX – Haupt-App Schutztests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.webmanifest'
+      - '*-ki.js'
+      - 'modules/**'
+      - 'tests/neryx-smoke.test.mjs'
+      - '.github/workflows/neryx-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prüfe aktive NERYX-App (ohne Nutzerdaten)
+        run: node --test tests/neryx-smoke.test.mjs
