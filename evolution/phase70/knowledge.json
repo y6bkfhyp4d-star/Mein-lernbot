@@ -1,7 +1,5 @@
 {
   "discovered_queue": [
-    "(1) Ceres",
-    "(10199) Chariklo",
     "(136108) Haumea",
     "(136199) Eris",
     "3-Hydroxypropionatzyklus",
@@ -55,7 +53,13 @@
     "6Bone",
     "ARD/ZDF-Onlinestudie",
     "A*-Algorithmus",
-    "A.I. (Lied)"
+    "A.I. (Lied)",
+    "A priori",
+    "Aktienmarkt",
+    "(103) Hera",
+    "(3) Juno",
+    "(2060) Chiron",
+    "Albedo"
   ],
   "entries": [
     {
@@ -337,9 +341,41 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Künstliche Intelligenz"
+    },
+    {
+      "collected_at": "2026-11-18T03:07:25+00:00",
+      "excerpt": "Maschinelles Lernen (ML) entwickelt, untersucht und verwendet statistische Algorithmen, auch Lernalgorithmen genannt. Solche Algorithmen können lernen, komplizierte Probleme zu lösen, obwohl der Lösungsweg nicht einfach durch Regeln beschrieben werden kann. Dazu benötigen die Algorithmen viele Beispieldaten. Ein bekanntes Anwendungsbeispiel ist die Bilderkennung. In der mathematischen Statistik bezeichnet man dieses Fachgebiet auch als statistisches Lernen. Ein Lernalgorithmus bildet vorgegebene Beispieldaten auf ein mathematisches Modell ab. Dabei passt der Lernalgorithmus das Modell so an, dass es von den Beispieldaten auf neue Fälle verallgemeinern kann. Dieser Vorgang wird Training genannt. Nach dem Training ist der gefundene Lösungsweg im Modell gespeichert. Er wird nicht explizit programmiert. Das trainierte Modell kann für neue Dat",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Maschinelles_Lernen",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Maschinelles Lernen"
+    },
+    {
+      "collected_at": "2026-11-18T03:07:25+00:00",
+      "excerpt": "Ceres (IPA: [ˈtseːrεs] ) oder – in der Nomenklatur für Asteroiden – (1) Ceres ist mit einem mittleren Äquatordurchmesser von 964 km das größte Objekt im Asteroidengürtel und der kleinste von der Internationalen Astronomischen Union als Zwergplanet klassifizierte Himmelskörper. Ceres ist nach der römischen Göttin des Ackerbaus benannt; ihr astronomisches Symbol ist daher eine stilisierte Sichel: . Sie wurde am 1. Januar 1801 von Giuseppe Piazzi an der Sternwarte Palermo als erster Kleinplanet entdeckt. Im ersten halben Jahrhundert nach ihrer Entdeckung wurde sie als Planet, später als Asteroid eingestuft; seit 2006 zählt sie zur Gruppe der Zwergplaneten. Ceres ist der erste Zwergplanet, der durch eine Raumsonde untersucht wurde. Die mittlerweile inaktive Dawn umkreist den Zwergplaneten seit März 2015 als ein künstlicher Satellit.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%281%29_Ceres",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(1) Ceres"
+    },
+    {
+      "collected_at": "2026-11-18T03:07:25+00:00",
+      "excerpt": "Die in den 1990er entdeckte (10199) Chariklo ist der größte Asteroid aus der Gruppe der Zentauren. Der Äquivalentdurchmesser beträgt etwa 248 km.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%2810199%29_Chariklo",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(10199) Chariklo"
     }
   ],
-  "failed_titles": [],
+  "failed_titles": [
+    "Neurales Netz"
+  ],
   "runs": [
     {
       "added": 5,
@@ -422,6 +458,20 @@
         "Künstliche Intelligenz"
       ],
       "time": "2026-11-17T21:09:05+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [
+        "Neurales Netz: kein geeigneter Artikel"
+      ],
+      "errors": 1,
+      "new_titles": [
+        "Maschinelles Lernen",
+        "(1) Ceres",
+        "(10199) Chariklo"
+      ],
+      "time": "2026-11-18T03:07:25+00:00"
     }
   ],
   "schema": 1
