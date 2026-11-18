@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(10199) Chariklo",
-    "(136108) Haumea",
-    "(136199) Eris"
+    "18. Oktober",
+    "Abdus Salam",
+    "Achämenidenreich"
   ],
   "questions": [
     {
@@ -84,6 +84,93 @@
       "source": "https://de.wikipedia.org/wiki/%28136199%29_Eris",
       "status": "suchtreffer",
       "topic": "(136199) Eris"
+    },
+    {
+      "checked_at": "2026-11-18T15:32:24+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Mission in der Regel nur wenige Minuten Zeit, was verglichen mit Ego-Shootern relativ kurz ist. Zusätzlich wird dadurch die in einigen Ego-Shootern vorkommende",
+          "title": "Grand Theft Auto",
+          "url": "https://de.wikipedia.org/?curid=860842"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Thema vorhanden seien, desto leichter könnten weitere Informationen eingeordnet werden. Das Wissens-Netz war zugleich Grundlage mehrerer von Birkenbihl",
+          "title": "Vera F. Birkenbihl",
+          "url": "https://de.wikipedia.org/?curid=658185"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "ist ein 2022 gegründetes deutschsprachiges Onlinemedium, das als rechtspopulistisches und rechtskonservatives Portal im Stil von Fox News eingeordnet",
+          "title": "Nius",
+          "url": "https://de.wikipedia.org/?curid=12755113"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist 18. Oktober und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/18._Oktober",
+      "status": "suchtreffer",
+      "topic": "18. Oktober"
+    },
+    {
+      "checked_at": "2026-11-18T15:32:24+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Glashow, Steven Weinberg und Abdus Salam den Nobelpreis für Physik „für ihre Beiträge an der Theorie der vereinigten schwachen und elektromagnetischen Wechselwirkung",
+          "title": "Elektrizität",
+          "url": "https://de.wikipedia.org/?curid=12733"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Trennung von Astronomen und Mathematikern noch nicht deutlich ausgeprägt und heute überwiegend als Mathematiker oder Astronomen eingeordnete Wissenschaftler leisteten",
+          "title": "Liste bedeutender Physiker",
+          "url": "https://de.wikipedia.org/?curid=6890986"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Nischapur war. Tarā'ifīya Gründer dieser Untersekte war der Gelehrte Ahmad ibn ʿAbdūs at-Tarā'ifī (gest. 958). Weitere Untersekten, die in den arabischen Quellen",
+          "title": "Karrāmīya",
+          "url": "https://de.wikipedia.org/?curid=9678857"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Abdus Salam und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Abdus_Salam",
+      "status": "suchtreffer",
+      "topic": "Abdus Salam"
+    },
+    {
+      "checked_at": "2026-11-18T15:32:24+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Früchten ab. Als im 4. Jahrhundert v. Chr. Alexander der Große das Achämenidenreich eroberte, war die Zitronatzitrone dort bereits weit verbreitet. In",
+          "title": "Zitronatzitrone",
+          "url": "https://de.wikipedia.org/?curid=539199"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "symbolisiert wird. Das Chaos trägt den Keim für Gutes wie auch für Teuflisches und wird vertikal unterschieden. Das Wasser um den Himmel ist die Quelle",
+          "title": "Religion der Achämeniden",
+          "url": "https://de.wikipedia.org/?curid=12857739"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "auf der Basis dessen, was die Natur von sich aus zur Verfügung stellt, ist bei Dikaiarch nicht wie bei Hesiod durch Fülle und Üppigkeit, sondern im Gegenteil",
+          "title": "Goldenes Zeitalter",
+          "url": "https://de.wikipedia.org/?curid=45190"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Achämenidenreich und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Ach%C3%A4menidenreich",
+      "status": "suchtreffer",
+      "topic": "Achämenidenreich"
     },
     {
       "checked_at": "2026-11-17T21:28:40+00:00",
@@ -511,6 +598,14 @@
       "open_gaps": 35,
       "searched": 3,
       "with_results": 2
+    },
+    {
+      "at": "2026-11-18T15:32:24+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 39,
+      "searched": 3,
+      "with_results": 3
     }
   ],
   "schema": 77,
