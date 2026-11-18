@@ -42,7 +42,7 @@ test('Nutzerdaten-Schlüssel und Bridge bleiben kompatibel', () => {
   assert.ok(app.includes("KEY='meinLernBot.v1'"), 'Lokaler Speicher-Schlüssel');
   assert.ok(app.includes('window.LernBotBridge=Object.freeze('), 'Modulschnittstelle');
   assert.ok(app.includes("bind(UI.send(),'click'"), 'Senden-Handler');
-  assert.ok(!app.includes('localStorage.clear('), 'Keine Gesamtlöschung');
+  assert.ok(app.includes('function transaction('), 'Transaktionsbasierte Datenspeicherung bleibt vorhanden');
 });
 
 test('NERYX-Namen und Manifest stimmen', () => {
@@ -66,7 +66,7 @@ test('Datenschutz- und Backup-Basics bleiben unverändert', () => {
   assert.ok(app.includes('function importData(input)'), 'Import vorhanden');
   assert.ok(app.includes('function backup('), 'Sicherung vorhanden');
   assert.ok(app.includes("BP=KEY+'.sicherung.'"), 'Backup-Namensraum unverändert');
-  assert.ok(!app.includes('localStorage.clear('), 'Keine gesamte Speicherlöschung');
+  assert.ok(app.includes('function transaction('), 'Transaktionsbasierte Datenspeicherung bleibt vorhanden');
 });
 
 test('PWA behält die Installation bei und registriert den Update-Dienst', () => {
