@@ -88,7 +88,16 @@ test('GENESIS erkennt Widersprüche und beschädigt keine Fakten', () => {
   const result = window.NERYXGenesis.examine(before, () => ({text:''}));
   assert.equal(result.conflicts, 1);
   assert.equal(JSON.stringify(before), snapshot);
+  const unique = [{subject:'Mars', property:'durchmesser', value:'6779 km'}];
+  const success = window.NERYXGenesis.examine(unique,
+    () => ({text:'Der Durchmesser von Mars beträgt 6779 km.'}));
+  assert.equal(success.checked, 3);
+  assert.equal(success.passed, 3);
+  const failure = window.NERYXGenesis.examine(unique, () => ({text:'Unbekannt'}));
+  assert.equal(failure.passed, 0);
+  assert.equal(failure.problems.length, 3);
   assert.ok(app.includes("n==='genesis'"));
+  assert.ok(html.includes('data-msg="GENESIS"'));
 });
 
 function requireVm() {
