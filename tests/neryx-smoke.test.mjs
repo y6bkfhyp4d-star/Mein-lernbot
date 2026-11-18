@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -294,4 +294,42 @@ test('Antwort-KI 1.8 erkennt Erklär-mir und An-welchem-Ort für mehrere Themen'
     ['Wo lebt Okapi?','Regenwald']
   ]) assert.match(window.LernBotAntwortKI.answer(question,{facts})?.text||'',
     new RegExp(answer),question);
+});
+
+test('Denkmodul: Regelübertragung, Routenplanung und mehrstufige Operatoren', () => {
+  const window = {};
+  runInNewContext(read('modules/neryx-reasoner.js'),{window});
+  const r=window.NERYXReasoner;
+  assert.equal(r.inferRule([[2,5],[4,9],[6,13]],7).result,15);
+  assert.equal(r.inferRule([[1,2],[2,7],[3,5]],4),null);
+  assert.equal(r.ruleFromText('2=5, 4=9; 7').includes('y = 15'),true);
+  assert.equal(r.compose(3,[['multiply',4],['subtract',2],['add',5]]),15);
+  assert.equal(r.compose(2,[['divide',0]]),null);
+  const route=r.shortestPath([[0,0,0],[1,1,0],[0,0,0]],[0,0],[2,2]);
+  assert.equal(route.length,5);
+  assert.equal(r.shortestPath([[0,1],[1,0]],[0,0],[1,1]),null);
+});
+
+test('Fähigkeitstest: zufällige Probleme mit unabhängigen Sollwerten', () => {
+  const window={};
+  runInNewContext(read('modules/neryx-reasoner.js'),{window});
+  runInNewContext(read('modules/capability-test.js'),{window});
+  const test=window.NERYXCapabilityTest;
+  for(let seed=1;seed<=30;seed++){
+    const report=test.benchmark(seed);
+    assert.equal(report.correct,36,'Denkmodul prüft neue Eingaben: '+seed);
+    assert.equal(report.total,36);
+  }
+  const wrong={
+    inferRule:()=>({result:0}),
+    shortestPath:()=>null,
+    compose:()=>0
+  };
+  const negative=test.benchmark(100,wrong);
+  assert.ok(negative.correct<36,'Test erkennt schwaches Modell');
+  assert.match(test.report(),/kein|nicht allgemeine Intelligenz/i);
+  assert.ok(app.includes("n==='denktest'"));
+  assert.ok(app.includes("command(s,'Regel lösen')"));
+  assert.ok(html.includes('src="modules/neryx-reasoner.js"'));
+  assert.ok(html.includes('src="modules/capability-test.js"'));
 });
