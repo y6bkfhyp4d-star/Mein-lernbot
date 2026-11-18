@@ -8,12 +8,12 @@
   <meta name="theme-color" content="#11111a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Mein LernBot">
+  <meta name="apple-mobile-web-app-title" content="NERYX">
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <title>Mein LernBot 6.0</title>
+  <title>NERYX – Persönliche KI</title>
 
   <style>
     :root {
@@ -483,6 +483,14 @@
         transition-duration: .01ms !important;
       }
     }
+    /* NERYX – energiesparende Animationen, respektiert Bewegungseinstellungen */
+    .brand-icon {animation:neryxGlow 4s ease-in-out infinite}
+    .online-dot {animation:neryxPulse 2.6s ease-in-out infinite}
+    @keyframes neryxGlow {0%,100%{box-shadow:0 0 6px rgba(167,139,250,.18)}50%{box-shadow:0 0 21px rgba(167,139,250,.48)}}
+    @keyframes neryxPulse {0%,100%{opacity:1}50%{opacity:.5}}
+    @media (prefers-reduced-motion:reduce) {
+      .brand-icon,.online-dot {animation:none!important}
+    }
   </style>
 </head>
 
@@ -493,10 +501,10 @@
   <nav id="drawer" aria-label="Hauptnavigation">
 
     <div class="brand">
-      <div class="brand-icon">L</div>
+      <div class="brand-icon" aria-hidden="true">N</div>
       <div>
-        <strong>Mein LernBot</strong>
-        <small>Version 6.0 · KI-Lernsystem</small>
+        <strong>NERYX</strong>
+        <small>Lernkern 6.0 · NERYX</small>
       </div>
     </div>
 
@@ -605,8 +613,8 @@
         >☰</button>
 
         <div class="header-title">
-          <strong>Mein LernBot 6.0</strong>
-          <small>Dein persönlicher KI-Lernassistent</small>
+          <strong>NERYX</strong>
+          <small>Dein persönlicher KI-Assistent</small>
         </div>
 
       </div>
@@ -634,7 +642,7 @@
         <input
           id="input"
           type="text"
-          placeholder="Schreib deinem LernBot ..."
+          placeholder="Schreib an NERYX ..."
           autocomplete="off"
           enterkeyhint="send"
         >
