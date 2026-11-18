@@ -3,6 +3,17 @@
   'use strict';
   const fmt = x => String(x ?? '').toLocaleLowerCase('de').normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').replace(/[^\p{L}\p{N}]/gu, '');
+  // Compare complete word/number sequences, never substring matches (12 != 112).
+  const pieces = value => String(value ?? '').toLocaleLowerCase('de')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss')
+    .replace(/(\d)[.,](?=\d{3}(?:\D|$))/g,'$1')
+    .match(/[\p{L}\p{N}]+/gu) || [];
+  function containsValue(answer, expected) {
+    const actual = pieces(answer), needed = pieces(expected);
+    if (!needed.length || needed.length > actual.length) return false;
+    return actual.some((_, i) => i+needed.length<=actual.length &&
+      needed.every((word,j)=>word===actual[i+j]));
+  }
   const template = {
     definition:s=>[`Was ist ${s}?`,`Erkläre ${s}.`,`Was bedeutet ${s}?`],
     durchmesser:s=>[`Welchen Durchmesser hat ${s}?`,`Wie groß ist der Durchmesser von ${s}?`,`Was ist der Durchmesser von ${s}?`],
@@ -29,11 +40,15 @@
     }
     const conflicts = [...groups.values()].filter(group =>
       new Set(group.map(x=>fmt(x.value))).size>1);
-    const problems = [], tested = [];
-    for (const f of valid.slice(0,Math.min(50,Math.max(1,Math.floor(limit))))) {
+    const problems = [], tested = [], seen = new Set();
+    for (const f of valid) {
+      if (seen.size >= Math.min(50,Math.max(1,Number.isFinite(limit)?Math.floor(limit):20))) break;
+      const key = fmt(f.subject)+'|'+fmt(f.property);
+      if (seen.has(key)) continue;
+      seen.add(key);
       const questions = template[cleanProperty(f.property)]?.(f.subject);
       if (!questions) continue;
-      const group = groups.get(fmt(f.subject)+'|'+fmt(f.property));
+      const group = groups.get(key);
       if (group?.some(x=>fmt(x.value)!==fmt(f.value))) {
         problems.push({subject:f.subject,property:f.property,kind:'widerspruch',
           detail:'Unterschiedliche Werte im gespeicherten Wissen'});
@@ -43,7 +58,7 @@
         let answer;
         try {answer=responder(question)?.text || '';}
         catch (e) {answer='';}
-        const success = !!fmt(f.value) && fmt(answer).includes(fmt(f.value));
+        const success = containsValue(answer, f.value);
         tested.push({subject:f.subject,property:f.property,question,success});
         if (!success) problems.push({subject:f.subject,property:f.property,kind:'antwortluecke',question});
       }
