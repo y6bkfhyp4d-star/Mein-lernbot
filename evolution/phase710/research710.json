@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
+    "(136108) Haumea",
+    "(136199) Eris",
     "(1) Ceres",
-    "Künstliche Intelligenz",
     "Algorithmus",
     "Chemische Reaktion",
-    "Computer",
-    "Desoxyribonukleinsäure"
+    "Computer"
   ],
   "records": [
     {
-      "checked_at": "2026-11-18T04:22:00+00:00",
+      "checked_at": "2026-11-18T10:26:16+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -28,7 +28,56 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T04:22:00+00:00",
+      "checked_at": "2026-11-18T10:26:16+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 1,
+      "page_title": "(136108) Haumea",
+      "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=833508",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "(136108) Haumea",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T10:26:16+00:00",
+      "claims": [
+        {
+          "id": "p79-8db9ea00710e2a",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=832658",
+          "statement": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "(136199) Eris"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 2,
+      "page_title": "(136199) Eris",
+      "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=832658",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "(136199) Eris",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T10:26:16+00:00",
       "claims": [],
       "had_exact_search_hit": true,
       "independent_verified": false,
@@ -46,7 +95,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T04:22:00+00:00",
+      "checked_at": "2026-11-18T10:26:16+00:00",
       "claims": [
         {
           "id": "p79-c353cef1512eda",
@@ -77,7 +126,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T04:22:00+00:00",
+      "checked_at": "2026-11-18T10:26:16+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -381,6 +430,19 @@
     },
     {
       "at": "2026-11-18T04:22:00+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "previously_without_exact_hit": 5,
+      "processed": 6,
+      "resolved_without_exact_hit": 5,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-18T10:26:16+00:00",
       "claims": 2,
       "errors": 0,
       "new_extractor_same_pages": 2,
