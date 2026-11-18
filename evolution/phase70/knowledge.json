@@ -1,9 +1,5 @@
 {
   "discovered_queue": [
-    "18. Oktober",
-    "Achämenidenreich",
-    "Abdus Salam",
-    "Akkumulator",
     "Akustik",
     "Althochdeutsch",
     "Abschirmung (Gravitation)",
@@ -63,7 +59,15 @@
     "3-Hydroxypropionat/4-Hydroxybutyratzyklus",
     "Acetyl-CoA",
     "Acetylgruppe",
-    "Bempedoinsäure"
+    "Bempedoinsäure",
+    "1. Oktober",
+    "10. Oktober",
+    "2. Buch der Chronik",
+    "3. Buch Esra",
+    "1926",
+    "1996",
+    "Airbus",
+    "Akkumulator (Begriffsklärung)"
   ],
   "entries": [
     {
@@ -415,6 +419,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "ATP-Citrat-Lyase"
+    },
+    {
+      "collected_at": "2026-11-18T15:14:33+00:00",
+      "excerpt": "Der 18. Oktober ist der 291. Tag des gregorianischen Kalenders (der 292. in Schaltjahren), somit verbleiben 74 Tage bis zum Jahresende.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/18._Oktober",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "18. Oktober"
+    },
+    {
+      "collected_at": "2026-11-18T15:14:33+00:00",
+      "excerpt": "Das Achämenidenreich oder Achaimenidenreich (auch als Altpersisches Reich bezeichnet) war das erste persische Großreich. Es erstreckte sich vom späten 6. Jahrhundert v. Chr. bis ins späte 4. Jahrhundert v. Chr. über Gebiete der heutigen Staaten Türkei, Zypern, Iran, Irak, Afghanistan, Usbekistan, Tadschikistan, Turkmenistan, Syrien, Libanon, Israel und Ägypten. Das durch Herodot und andere altgriechische Historiker der Geschichtswissenschaft bekannt gemachte Achämenidenreich expandierte erstmals 550 v. Chr. unter Kyros II. (regierte von etwa 559 bis 530 v. Chr.) durch die Annexion des Mederreiches. Unter den Nachfolgern erfolgte die Fortsetzung bis zur späteren größten Ausdehnung, die ihren Höhepunkt um 500 v. Chr. unter Dareios I. erreichte und zu dieser Zeit auch Teile der heutigen Staaten Libyen, Griechenland, Bulgarien, Pakistan sowie",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Ach%C3%A4menidenreich",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Achämenidenreich"
+    },
+    {
+      "collected_at": "2026-11-18T15:14:33+00:00",
+      "excerpt": "Abdus Salam (Urdu عبد السلام DMG ʿAbd as-Salām; * 29. Januar 1926 in Jhang, Punjab, Britisch-Indien, heute Pakistan; † 21. November 1996 in Oxford, England) war ein pakistanischer Physiker und der erste pakistanische Nobelpreisträger für Physik. Salam befasste sich mit Elementarteilchenphysik und Quantenfeldtheorie und war ein Pionier und Begründer der Vereinigung der Naturkräfte seit den 1950er Jahren, was schließlich in das Standardmodell der Elementarteilchen führte. Dafür erhielt er 1979 mit Sheldon Lee Glashow und Steven Weinberg den Nobelpreis. Er war aber auch ab den 1970er Jahren in der Entwicklung von GUTs, Supersymmetrie und Stringtheorie aktiv, also Themen der Physik jenseits des Standardmodells. Dazu gehört unter anderem das nach ihm benannte Pati-Salam-Modell. Er war der erste pakistanische Nobelpreisträger sowie nach Anwar a",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abdus_Salam",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abdus Salam"
+    },
+    {
+      "collected_at": "2026-11-18T15:14:33+00:00",
+      "excerpt": "Ein Akkumulator (kurz Akku), auch Sekundärbatterie genannt, ist ein wiederaufladbares galvanisches Element, bestehend aus zwei Elektroden und einem Elektrolyten, das elektrische Energie auf elektrochemischer Basis speichert. Ein einzelnes wiederaufladbares Speicherelement wird Sekundärelement oder Sekundärzelle genannt, im Gegensatz zur nicht (oder nur sehr begrenzt) wiederaufladbaren Primärzelle. Der Ladevorgang basiert auf der elektrolytischen Umkehrung der bei der Entladung ablaufenden chemischen Reaktionen durch Anlegen einer elektrischen Spannung. Sekundärzellen lassen sich – wie Primärzellen – zu Batterien zusammenschalten, in Reihenschaltung (für höhere elektrische Spannung) oder in Parallelschaltung (für höhere Stromstärken). Beide Schaltungsvarianten führen zur entsprechenden Erhöhung des Gesamt-Energiegehalts [Produkt aus Kapazi",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Akkumulator",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Akkumulator"
     }
   ],
   "failed_titles": [
@@ -529,6 +573,19 @@
         "ATP-Citrat-Lyase"
       ],
       "time": "2026-11-18T09:21:47+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "18. Oktober",
+        "Achämenidenreich",
+        "Abdus Salam",
+        "Akkumulator"
+      ],
+      "time": "2026-11-18T15:14:33+00:00"
     }
   ],
   "schema": 1
