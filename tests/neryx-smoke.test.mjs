@@ -55,7 +55,7 @@ test('NERYX-Namen und Manifest stimmen', () => {
 });
 
 test('Aufgaben-Befehl ist eindeutig und die Chat-Verarbeitung bleibt verfügbar', () => {
-  assert.equal((app.match(/if\\(n==='aufgaben'\\)return tasks\\(\\);/g) || []).length, 1);
+  assert.equal((app.match(/if\(n==='aufgaben'\)return tasks\(\);/g) || []).length, 1);
   assert.ok(app.includes('async function send()'), 'Senden-Funktion vorhanden');
   assert.ok(app.includes('async function handle(input)'), 'Befehlsverarbeitung vorhanden');
   assert.ok(app.includes("bind($('bar'),'submit'"), 'Formular-Handler vorhanden');
