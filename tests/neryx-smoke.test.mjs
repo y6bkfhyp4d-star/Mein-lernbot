@@ -96,6 +96,19 @@ test('GENESIS erkennt Widersprüche und beschädigt keine Fakten', () => {
   const failure = window.NERYXGenesis.examine(unique, () => ({text:'Unbekannt'}));
   assert.equal(failure.passed, 0);
   assert.equal(failure.problems.length, 3);
+  const wrongNumber = window.NERYXGenesis.examine(
+    [{subject:'Mars',property:'durchmesser',value:'6779 km'}],
+    () => ({text:'16779 km'}));
+  assert.equal(wrongNumber.passed, 0, 'Teilzahl darf kein richtiger Treffer sein');
+  const thousands = window.NERYXGenesis.examine(
+    [{subject:'Mars',property:'durchmesser',value:'6.779 Kilometer'}],
+    () => ({text:'Der Durchmesser beträgt 6779 Kilometer.'}));
+  assert.equal(thousands.passed, 3, 'Gleichwertige Tausender-Schreibweise');
+  const repeated = window.NERYXGenesis.examine(
+    [{subject:'Mars',property:'durchmesser',value:'6779 km'},
+      {subject:'Mars',property:'durchmesser',value:'6779 km'}],
+    () => ({text:'6779 km'}));
+  assert.equal(repeated.checked, 3, 'Identische Fakten nur einmal prüfen');
   assert.ok(app.includes("n==='genesis'"));
   assert.ok(html.includes('data-msg="GENESIS"'));
 });
