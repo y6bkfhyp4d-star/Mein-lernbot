@@ -53,3 +53,27 @@ test('NERYX-Namen und Manifest stimmen', () => {
   assert.equal(manifest.scope, './');
   assert.ok(html.includes('<strong>NERYX</strong>'));
 });
+
+test('Aufgaben-Befehl ist eindeutig und die Chat-Verarbeitung bleibt verfügbar', () => {
+  assert.equal((app.match(/if\\(n==='aufgaben'\\)return tasks\\(\\);/g) || []).length, 1);
+  assert.ok(app.includes('async function send()'), 'Senden-Funktion vorhanden');
+  assert.ok(app.includes('async function handle(input)'), 'Befehlsverarbeitung vorhanden');
+  assert.ok(app.includes("bind($('bar'),'submit'"), 'Formular-Handler vorhanden');
+});
+
+test('Datenschutz- und Backup-Basics bleiben unverändert', () => {
+  assert.ok(app.includes('function exportData()'), 'Export vorhanden');
+  assert.ok(app.includes('function importData(input)'), 'Import vorhanden');
+  assert.ok(app.includes('function backup('), 'Sicherung vorhanden');
+  assert.ok(app.includes("BP=KEY+'.sicherung.'"), 'Backup-Namensraum unverändert');
+  assert.ok(!app.includes('localStorage.clear('), 'Keine gesamte Speicherlöschung');
+});
+
+test('PWA behält die Installation bei und registriert den Update-Dienst', () => {
+  assert.ok(html.includes("serviceWorker.register('./sw.js'"));
+  const sw = read('sw.js');
+  assert.ok(sw.includes('skipWaiting()'));
+  assert.ok(sw.includes('clients.claim()'));
+  assert.ok(sw.includes("fetch(req, {cache:'no-store'})"));
+});
+
