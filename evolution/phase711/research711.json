@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(136108) Haumea",
-    "(136199) Eris",
+    "18. Oktober",
+    "Abdus Salam",
+    "Achämenidenreich",
     "(1) Ceres",
-    "Algorithmus",
-    "Chemische Reaktion",
-    "Computer"
+    "(136108) Haumea",
+    "(136199) Eris"
   ],
   "records": [
     {
-      "checked_at": "2026-11-18T10:34:05+00:00",
+      "checked_at": "2026-11-18T16:38:56+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T10:34:05+00:00",
+      "checked_at": "2026-11-18T16:38:56+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T10:34:05+00:00",
+      "checked_at": "2026-11-18T16:38:56+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -73,6 +73,71 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "(136199) Eris",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T16:38:56+00:00",
+      "claims": [
+        {
+          "id": "p711-b0412689b701e4",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Der 18. Oktober ist der 291. Tag des gregorianischen Kalenders (der 292. in Schaltjahren), somit verbleiben 74 Tage bis zum Jahresende.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=6299",
+          "statement": "Der 18. Oktober ist der 291. Tag des gregorianischen Kalenders (der 292. in Schaltjahren), somit verbleiben 74 Tage bis zum Jahresende.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "18. Oktober",
+          "subject_form": "18. Oktober"
+        }
+      ],
+      "diagnostics": {},
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "18. Oktober",
+      "question": "Was ist 18. Oktober und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=6299",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "18. Oktober",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T16:38:56+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 7
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abdus Salam",
+      "question": "Was ist Abdus Salam und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=159473",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Abdus Salam",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T16:38:56+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 7,
+        "zu_kurz": 5
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Achämenidenreich",
+      "question": "Was ist Achämenidenreich und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=63658",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Achämenidenreich",
       "verified_correction": false
     },
     {
@@ -535,6 +600,22 @@
         "(136108) Haumea",
         "(1) Ceres",
         "Computer"
+      ]
+    },
+    {
+      "at": "2026-11-18T16:38:56+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "Abdus Salam",
+        "Achämenidenreich",
+        "(1) Ceres",
+        "(136108) Haumea"
       ]
     }
   ],
