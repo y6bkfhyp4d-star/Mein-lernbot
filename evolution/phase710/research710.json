@@ -1,16 +1,34 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
+    "(1) Ceres",
+    "Künstliche Intelligenz",
     "Algorithmus",
+    "Chemische Reaktion",
     "Computer",
-    "Geologie",
-    "Internet",
-    "Magnetismus",
-    "Regenwald"
+    "Desoxyribonukleinsäure"
   ],
   "records": [
     {
-      "checked_at": "2026-11-17T22:17:15+00:00",
+      "checked_at": "2026-11-18T04:22:00+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "(1) Ceres",
+      "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=30371",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "(1) Ceres",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T04:22:00+00:00",
       "claims": [],
       "had_exact_search_hit": true,
       "independent_verified": false,
@@ -28,7 +46,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-17T15:24:10+00:00",
+      "checked_at": "2026-11-18T04:22:00+00:00",
       "claims": [
         {
           "id": "p79-c353cef1512eda",
@@ -59,7 +77,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-17T22:17:15+00:00",
+      "checked_at": "2026-11-18T04:22:00+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -77,7 +95,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-17T15:24:10+00:00",
+      "checked_at": "2026-11-18T04:22:00+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -177,6 +195,37 @@
       "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "Internet",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T04:22:00+00:00",
+      "claims": [
+        {
+          "id": "p79-261614e62c0d68",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=2653",
+          "statement": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Künstliche Intelligenz"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Künstliche Intelligenz",
+      "question": "Was ist Künstliche Intelligenz und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=2653",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Künstliche Intelligenz",
       "verified_correction": false
     },
     {
@@ -328,6 +377,19 @@
       "resolved_without_exact_hit": 5,
       "titles_resolved": 6,
       "topics_with_claims": 1,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-18T04:22:00+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "previously_without_exact_hit": 5,
+      "processed": 6,
+      "resolved_without_exact_hit": 5,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
       "unresolved": 0
     }
   ],
