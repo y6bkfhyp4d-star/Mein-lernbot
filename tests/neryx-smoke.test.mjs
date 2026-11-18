@@ -330,6 +330,26 @@ test('Fähigkeitstest: zufällige Probleme mit unabhängigen Sollwerten', () => 
   assert.match(test.report(),/kein|nicht allgemeine Intelligenz/i);
   assert.ok(app.includes("n==='denktest'"));
   assert.ok(app.includes("command(s,'Regel lösen')"));
+  assert.ok(app.indexOf("command(s,'Regel lösen')") <
+    app.indexOf("if(context.awaiting)"),'Denkbefehl muss vor Themen-Rückfragen laufen');
   assert.ok(html.includes('src="modules/neryx-reasoner.js"'));
   assert.ok(html.includes('src="modules/capability-test.js"'));
+});
+
+test('Regel lösen akzeptiert normale und angehängte Doppelpunkte', () => {
+  const window = {};
+  runInNewContext(read('modules/neryx-reasoner.js'), {window});
+  const reasoner = window.NERYXReasoner;
+  for (const input of ['2=5, 4=9; 7','2=5, 4=9; 7:','2=5, 4=9; 7 :']) {
+    const answer = reasoner.ruleFromText(input);
+    assert.match(answer, /y = 15/, input);
+  }
+  const norm = x => x.toLocaleLowerCase('de').normalize('NFD')
+    .replace(/[\\u0300-\\u036f]/g,'').replace(/ß/g,'ss')
+    .replace(/ae/g,'a').replace(/oe/g,'o').replace(/ue/g,'u')
+    .replace(/[^\\p{L}\\p{N}\\s]/gu,' ').replace(/\\s+/g,' ').trim();
+  for(const phrase of ['Regel lösen: 2=5, 4=9; 7','Regel loesen: 2=5, 4=9; 7']) {
+    const prefix=phrase.slice(0,phrase.indexOf(':'));
+    assert.equal(norm(prefix),norm('Regel lösen'));
+  }
 });
