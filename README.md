@@ -17,6 +17,20 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## GENESIS 3.0 – Verbesserungslabor
+
+Der Chat-Befehl `GENESIS 3` startet zusätzliche Herausforderungen und
+vergleicht eine misslungene Frage mit einer bekannten, in einer isolierten
+Prüfung erfolgreichen Umformulierung. Die Vorschläge entstehen aus einem
+fest definierten Satz von Vorlagen; **es gibt noch keine freie
+Code-Generierung oder automatische Modell-Nachtrainierung**.
+
+Die Diagnose verändert weder die gespeicherten Fakten noch die Antwort-KI,
+und sie übernimmt keine vorgeschlagene Regel automatisch. Vor einer
+tatsächlichen Änderung wären vollständige Regressionstests und
+Benutzerfreigabe erforderlich. `GENESIS` und `GENESIS Verlauf` bleiben
+unverändert verfügbar.
+
 ## GENESIS 2.0 – Erweiterte Gegenprobe
 
 Im Chat startet `GENESIS` die erweiterte Gegenprobe. `GENESIS 1` ruft die alte
