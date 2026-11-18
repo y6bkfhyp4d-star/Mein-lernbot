@@ -1,11 +1,50 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Algorithmus",
-    "Computer",
-    "Internet"
+    "(1) Ceres",
+    "(10199) Chariklo",
+    "Künstliche Intelligenz"
   ],
   "questions": [
+    {
+      "checked_at": "2026-11-18T03:30:45+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Gottfried Galle. Am 1. Januar 1801 entdeckte Giuseppe Piazzi den Zwergplaneten Ceres, der zwischen Mars und Jupiter die Sonne umrundet. Ceres wurde damals achter",
+          "title": "Planet",
+          "url": "https://de.wikipedia.org/?curid=3895"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "verschiedene Sprachen angepasst. (1) Ceres, wobei Ceres der anglo-lateinische Name war, wurde eigentlich Cerere benannt, was der italienischen Form des Namens",
+          "title": "Kleinplanet",
+          "url": "https://de.wikipedia.org/?curid=8397945"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "entdeckt. Piazzi taufte den Himmelskörper auf den Namen „Ceres Ferdinandea“. Die römische Göttin Ceres ist Schutzpatronin der Insel Sizilien. Mit dem zweiten",
+          "title": "Asteroid",
+          "url": "https://de.wikipedia.org/?curid=412"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%281%29_Ceres",
+      "status": "suchtreffer",
+      "topic": "(1) Ceres"
+    },
+    {
+      "checked_at": "2026-11-18T03:30:45+00:00",
+      "hits": [],
+      "independent_confirmation": false,
+      "question": "Was ist (10199) Chariklo und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%2810199%29_Chariklo",
+      "status": "keine_treffer",
+      "topic": "(10199) Chariklo"
+    },
     {
       "checked_at": "2026-11-17T21:28:40+00:00",
       "hits": [
@@ -239,6 +278,35 @@
       "topic": "Internet"
     },
     {
+      "checked_at": "2026-11-18T03:30:45+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Die Verordnung über künstliche Intelligenz (KI) (informell KI-Verordnung, KI-VO, englisch AI Act oder EU AI Act) ist ein Rechtsakt der Europäischen Union",
+          "title": "Verordnung über künstliche Intelligenz",
+          "url": "https://de.wikipedia.org/?curid=12539131"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Überwiegend wird darunter ein hypothetischer zukünftiger Zeitpunkt verstanden, an dem künstliche Intelligenz (KI) die menschliche Intelligenz übertrifft und sich",
+          "title": "Technologische Singularität",
+          "url": "https://de.wikipedia.org/?curid=303337"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Informationstechnologie eingeordnet, die kognitive Prozesse unterstützt, indem sie ein begrenztes biologisches Gedächtnis durch ein künstliches System ergänzt",
+          "title": "Abakus (Rechenhilfsmittel)",
+          "url": "https://de.wikipedia.org/?curid=35264"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Künstliche Intelligenz und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/K%C3%BCnstliche_Intelligenz",
+      "status": "suchtreffer",
+      "topic": "Künstliche Intelligenz"
+    },
+    {
       "checked_at": "2026-11-17T13:17:30+00:00",
       "hits": [
         {
@@ -387,6 +455,14 @@
       "open_gaps": 28,
       "searched": 3,
       "with_results": 3
+    },
+    {
+      "at": "2026-11-18T03:30:45+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 31,
+      "searched": 3,
+      "with_results": 2
     }
   ],
   "schema": 77,
