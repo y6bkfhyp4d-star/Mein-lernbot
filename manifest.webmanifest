@@ -1,12 +1,12 @@
 {
-  "name": "Mein LernBot",
-  "short_name": "LernBot",
+  "name": "NERYX",
+  "short_name": "NERYX",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#171715",
-  "theme_color": "#20201e",
-  "description": "Ein lokaler Chatbot, der aus deinen Eingaben lernt.",
+  "background_color": "#11111a",
+  "theme_color": "#11111a",
+  "description": "NERYX – persönlicher KI-Assistent mit lokalem Lernkern.",
   "icons": [
     {
       "src": "icon-192.png",
