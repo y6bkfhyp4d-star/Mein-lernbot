@@ -17,6 +17,25 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Allgemeine Problemlösung – erste experimentelle Stufe
+
+Mit `Fähigkeitstest` (auch `Denktest`) erhält NERYX 36 bei jedem Aufruf
+neu generierte Probleme aus drei begrenzten Aufgabenbereichen: lineare Regeln
+aus Beispielen ableiten, Wege auf Rastern planen und Rechenoperationen in
+mehreren Schritten kombinieren. Die Ergebnisse werden durch getrennte
+Sollwertberechnung kontrolliert. Keine privaten Nutzerdaten sind nötig.
+
+Über `Regel lösen: 2=5, 4=9; 7` lässt sich eine passende lineare Regel
+im Chat ableiten. Bei widersprüchlichen oder nicht eindeutigen Beispielen
+verzichtet das Modul auf eine Behauptung. Die Regel ist nicht notwendigerweise
+die einzig mögliche mathematische Fortsetzung.
+
+**Wichtig:** Die generierten Aufgaben und ihre Bewertung sind im öffentlichen
+Quellcode einsehbar und testen nur drei bekannte Problemklassen. Auch
+100 % in diesem Test belegen keine allgemeine Intelligenz. Das ist eine
+Grundlage für weitergehende, unabhängige und überraschende Tests – keine
+Integration eines nachtrainierten Sprachmodells.
+
 ## GENESIS 3.0 – Verbesserungslabor
 
 Der Chat-Befehl `GENESIS 3` startet zusätzliche Herausforderungen und
