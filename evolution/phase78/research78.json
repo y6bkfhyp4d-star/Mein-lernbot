@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(136108) Haumea",
-    "(136199) Eris",
-    "Regenwald"
+    "18. Oktober",
+    "Abdus Salam",
+    "Achämenidenreich"
   ],
   "records": [
     {
@@ -31,6 +31,33 @@
       "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
       "status": "nur_suchtreffer",
       "topic": "(136199) Eris",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T15:43:50+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist 18. Oktober und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "18. Oktober",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T15:43:50+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Abdus Salam und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Abdus Salam",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T15:43:50+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Achämenidenreich und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Achämenidenreich",
       "verified_correction": false
     },
     {
@@ -188,6 +215,13 @@
     },
     {
       "at": "2026-11-18T09:44:00+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
+    },
+    {
+      "at": "2026-11-18T15:43:50+00:00",
       "candidates": 0,
       "errors": 0,
       "processed": 3,
