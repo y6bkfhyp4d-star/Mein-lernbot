@@ -1,9 +1,6 @@
 {
   "discovered_queue": [
-    "Akustik",
     "Althochdeutsch",
-    "Abschirmung (Gravitation)",
-    "Al-Bīrūnī",
     "Aerologie",
     "Aerosol",
     "ATP-Synthase",
@@ -67,7 +64,15 @@
     "1926",
     "1996",
     "Airbus",
-    "Akkumulator (Begriffsklärung)"
+    "Akkumulator (Begriffsklärung)",
+    "Abstandsgesetz",
+    "Adiabatische Zustandsänderung",
+    "11. Jahrhundert",
+    "Ablaut",
+    "Albert Einstein",
+    "Allgemeine Relativitätstheorie",
+    "(9936) Al-Biruni",
+    "1048"
   ],
   "entries": [
     {
@@ -459,6 +464,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Akkumulator"
+    },
+    {
+      "collected_at": "2026-11-18T21:09:49+00:00",
+      "excerpt": "Die Akustik (von griechisch ἀκούειν akúein ‚hören‘ bzw. ἀκουστικός akustikós, ‚das Gehör betreffend‘) ist die Lehre vom Schall und seiner Ausbreitung. Im Wissenschaftsgebiet sind eine Vielzahl damit zusammenhängender Gesichtspunkte enthalten, so die Entstehung und Erzeugung, die Ausbreitung, die Beeinflussung und die Analyse von Schall, seine Wahrnehmung durch das Gehör und die Wirkung auf Menschen und Tiere. Akustik ist ein interdisziplinäres Fachgebiet, das auf Erkenntnissen aus zahlreichen Fachgebieten aufbaut, unter anderem der Physik, der Psychologie, der Nachrichtentechnik und der Materialwissenschaft. Akustik wird auch (unscharf) in drei Teilgebiete unterteilt: Die physikalische Akustik (oft auch nur als „Akustik“ bezeichnet) umfasst insbesondere Teilgebiete der klassischen Mechanik, die physiologische Akustik behandelt Schallaufna",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Akustik",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Akustik"
+    },
+    {
+      "collected_at": "2026-11-18T21:09:49+00:00",
+      "excerpt": "Als althochdeutsche Sprache oder Althochdeutsch (abgekürzt Ahd.) bezeichnet man die älteste schriftlich überlieferte Sprachstufe des Deutschen, die zwischen 650 und 1050 gesprochen wurde und ab Mitte des 8. Jahrhunderts erstmals in Handschriften fassbar wird. Ihr unmittelbarer Vorläufer war das Voralthochdeutsche, das sich vom Althochdeutschen vor allem durch die noch nicht durchgeführte Zweite Lautverschiebung unterscheidet und im 5. bis 7. Jahrhundert gesprochen wurde. Das Voralthochdeutsche wiederum ist die südliche Teilgruppe des Westgermanischen, zu dem auch die Vorläufer des Altsächsischen, Altfriesischen, Altniederländischen und Altenglischen gehören.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Althochdeutsche_Sprache",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Althochdeutsche Sprache"
+    },
+    {
+      "collected_at": "2026-11-18T21:09:49+00:00",
+      "excerpt": "Die Abschirmung der Gravitation (auch Absorption der Gravitation) ist ein hypothetischer Prozess, bei dem ein Objekt gegen den Einfluss des Gravitationsfeldes – zumindest teilweise – abgeschirmt wird, was zu einer Verringerung des Gewichts des Objektes führen soll. Kein von der Fachwelt anerkanntes und mehrfach reproduziertes Experiment konnte bislang erfolgreich positive Abschirmungsresultate erbringen. Nach derzeitigem Kenntnisstand widerspricht jegliche Abschirmung der Gravitation dem Äquivalenzprinzip der allgemeinen Relativitätstheorie von Albert Einstein, welches bislang bei allen Experimenten bestätigt wurde.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abschirmung_%28Gravitation%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abschirmung (Gravitation)"
+    },
+    {
+      "collected_at": "2026-11-18T21:09:49+00:00",
+      "excerpt": "Abu Raihan Muhammad ibn Ahmad al-Biruni (ابوریحان بیرونی Abū-Reyhān Bīrūnī; أبو الريحان محمد بن أحمد البيروني Abū Raiḥān Muḥammad b. Aḥmad al-Bīrūnī; * 4. September 973 in Kath, Choresmien, Choresmien (Usbekistan heute); † 9. Dezember 1048 in Ghazna (Afghanistan heute)), kurz Biruni oder al-Biruni, war ein choresmischer Universalgelehrter iranischer Herkunft aus der Blütezeit des Islam. Er war in Physik, Mathematik, Astronomie und den Naturwissenschaften bewandert und tat sich darüber hinaus als Historiker, Chronologe und Sprachwissenschaftler hervor. Er wird als erster Anthropologe und als eine der Gründerfiguren der vergleichenden Religionswissenschaft, der Geodäsie und der Indologie bezeichnet. Al-Bīrūnī verbrachte das erste Vierteljahrhundert seines Lebens in seiner Heimat Choresmien und hielt sich nach dem Sturz der Afrighiden im Jah",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Al-B%C4%ABr%C5%ABn%C4%AB",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Al-Bīrūnī"
     }
   ],
   "failed_titles": [
@@ -586,6 +631,19 @@
         "Akkumulator"
       ],
       "time": "2026-11-18T15:14:33+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Akustik",
+        "Althochdeutsche Sprache",
+        "Abschirmung (Gravitation)",
+        "Al-Bīrūnī"
+      ],
+      "time": "2026-11-18T21:09:49+00:00"
     }
   ],
   "schema": 1
