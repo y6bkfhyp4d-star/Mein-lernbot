@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -244,4 +244,35 @@ test('Antwort-KI 1.7: neue GENESIS-2-Formulierungen und bisherige Fragen', () =>
   assert.equal(result.unknown.passed,2);
   assert.equal(result.conflict.passed,1);
   assert.equal(JSON.stringify(facts),oldSnapshot,'Kein Wissen bei Tests verändern');
+});
+
+test('GENESIS 3 schlägt bei neuen Fragen geprüfte Umformulierungen vor', () => {
+  const window = {}, console = {log() {}};
+  runInNewContext(read('antwort-ki.js'), {window,console});
+  runInNewContext(read('modules/genesis-3.js'), {window});
+  const facts=[
+    {subject:'Okapi',property:'definition',value:'ein Säugetier'},
+    {subject:'Okapi',property:'lebensraum',value:'Regenwald'},
+    {subject:'Mars',property:'durchmesser',value:'6779 Kilometer'}
+  ];
+  const original=JSON.stringify(facts);
+  const r=window.NERYXGenesis3.examine(facts,
+    (q,db)=>window.LernBotAntwortKI.answer(q,{facts:db,context:{},documents:[]}));
+  assert.ok(r.checked>=3);
+  assert.ok(r.candidates>=1,'Mindestens ein nicht verstandenes Muster');
+  assert.ok(r.validated>=1,'Mindestens eine Ersatzfrage antwortet korrekt');
+  assert.ok(r.suggestions.every(x=>x.status==='Im isolierten Versuch erfolgreich'));
+  assert.equal(JSON.stringify(facts),original,'Originalfakten nicht verändern');
+  assert.ok(app.includes("n==='genesis 3'"));
+  assert.ok(html.includes('src="modules/genesis-3.js"'));
+});
+
+test('GENESIS 3: Unbelegte Vorschläge werden nicht als erfolgreich bezeichnet', () => {
+  const window = {};
+  runInNewContext(read('modules/genesis-3.js'), {window});
+  const r=window.NERYXGenesis3.examine(
+    [{subject:'Mars',property:'durchmesser',value:'6779 Kilometer'}],
+    ()=>({text:'Dazu habe ich keine Antwort.'}));
+  assert.equal(r.validated,0);
+  assert.ok(r.suggestions.every(x=>x.status.includes('Nicht bestätigt')));
 });
