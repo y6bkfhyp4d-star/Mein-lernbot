@@ -155,3 +155,16 @@ test('GENESIS nennt unbekannte Fakten-Eigenschaften als Grund', () => {
   runInNewContext(read('modules/genesis-gegenprobe.js'), {window});
   assert.match(window.NERYXGenesis.report(), /keine passenden Fragevorlagen/);
 });
+
+test('GENESIS: Okapi-Aussehen wird über unterschiedliche Fragen erkannt', () => {
+  const window = {}, console = {log() {}};
+  runInNewContext(read('antwort-ki.js'), {window, console});
+  runInNewContext(read('modules/genesis-gegenprobe.js'), {window});
+  const facts = [{subject:'Okapi',property:'aussehen',
+    value:'schwarz-weiße Streifen an den Beinen'}];
+  const answer = q => window.LernBotAntwortKI.answer(q, {facts,documents:[],context:{}});
+  assert.match(answer('Wie sieht Okapi aus?').text, /Streifen/);
+  const r = window.NERYXGenesis.examine(facts, answer);
+  assert.equal(r.checked, 2);
+  assert.equal(r.passed, 2);
+});
