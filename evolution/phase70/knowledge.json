@@ -1,9 +1,5 @@
 {
   "discovered_queue": [
-    "(136108) Haumea",
-    "(136199) Eris",
-    "3-Hydroxypropionatzyklus",
-    "ATP-Citrat-Lyase",
     "18. Oktober",
     "Achämenidenreich",
     "Abdus Salam",
@@ -59,7 +55,15 @@
     "(103) Hera",
     "(3) Juno",
     "(2060) Chiron",
-    "Albedo"
+    "Albedo",
+    "(120178) 2003 OP32",
+    "(145453) 2005 RR43",
+    "(120347) Salacia",
+    "(225088) Gonggong",
+    "3-Hydroxypropionat/4-Hydroxybutyratzyklus",
+    "Acetyl-CoA",
+    "Acetylgruppe",
+    "Bempedoinsäure"
   ],
   "entries": [
     {
@@ -371,6 +375,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "(10199) Chariklo"
+    },
+    {
+      "collected_at": "2026-11-18T09:21:47+00:00",
+      "excerpt": "(136108) Haumea () (frühere, provisorische Bezeichnung 2003 EL61) ist ein Zwergplanet der Unterklasse der Plutoiden und zählt zu den größten bisher bekannten Objekten im Kuipergürtel. Sie wurde einerseits erst als Cubewano klassifiziert, andererseits später in einer möglichen 7:12-Resonanz mit Neptun gesehen. Wegen ihrer schnellen Rotation hat sie mit einem Äquatordurchmesser von etwa 2300 km und einem Abstand der Pole von nur etwa 1100 km eine stark ellipsoide Form. Im Rahmen der Beobachtungen einer Sternbedeckung am 21. Januar 2017 wurde entdeckt, dass Haumea einen Ring hat.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28136108%29_Haumea",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(136108) Haumea"
+    },
+    {
+      "collected_at": "2026-11-18T09:21:47+00:00",
+      "excerpt": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems. Eris zählt zu den Plutoiden, einer Unterklasse von Zwergplaneten, die jenseits der Neptunbahn die Sonne umrunden. Eris ist (Stand 2019) das größte erfasste Objekt im Sonnensystem, welches noch nie von einer Raumsonde untersucht wurde; bekannt ist ein Mond namens Dysnomia. Der Zwergplanet ist nach Eris benannt, der griechischen Göttin der Zwietracht und des Streits. Nach der Bekanntgabe ihrer Entdeckung am 29. Juli 2005 bezeichneten die NASA und viele Medien dieses transneptunische Objekt mit einem ähnlichen Durchmesser wie Pluto zunächst als „zehnten Planeten“. Die Internationale Astronomische Union (IAU) verabschiedete allerdings am 24. August 2006 eine neue Planetendefinition, nach der E",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28136199%29_Eris",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(136199) Eris"
+    },
+    {
+      "collected_at": "2026-11-18T09:21:47+00:00",
+      "excerpt": "Der 3-Hydroxypropionatzyklus, auch 3-Hydroxypropionat-Bizyklus oder 3-Hydroxypropionat/Malyl-CoA-Zyklus, ist ein Stoffwechselweg, durch den bestimmte Mikroorganismen Kohlenstoffdioxid (CO2) fixieren können (Kohlenstoffdioxid-Assimilation). Hierbei werden zwei Moleküle CO2 in Form von Bicarbonat (HCO3−) zu einem Molekül Glyoxylat unter ATP- und NADPH-Verbrauch aufgebaut. Anschließend wird das entstandene Glyoxylat durch einen Folgezyklus unter Fixierung eines weiteren Moleküls Bicarbonat zu Pyruvat umgesetzt. Der 3-Hydroxypropionatzyklus wurde erstmals 1986 im phototrophen Bakterium Chloroflexus aurantiacus entdeckt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/3-Hydroxypropionatzyklus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "3-Hydroxypropionatzyklus"
+    },
+    {
+      "collected_at": "2026-11-18T09:21:47+00:00",
+      "excerpt": "ATP-Citrat-Lyase (auch: ATP-Citrat-Synthase) ist das Enzym, das im Zytosol eukaryotischer Zellen eine Acetylgruppe von Citrat auf Coenzym A überträgt, woraus unter anderem Acetyl-CoA resultiert. Dies ist der zweite Reaktionsschritt im Citrat-Shuttle, welches notwendig ist, um das bei der oxidativen Decarboxylierung produzierte Acetyl-CoA aus den Mitochondrien herauszubefördern. Diese Prozesse sind Teil des Energiestoffwechsels in allen Eukaryoten. Das erzeugte Acetyl-CoA ist Ausgangsstoff für die im Zytosol stattfindende Lipogenese. Hypocitraturie ist eine Ursache für Nierensteine und kann eine überhöhte Aktivität der ATP-Citrat-Lyase in Urin-Leukozyten als Ursache haben, wie in einer thailändischen Studie festgestellt. Nahrungsumstellung oder Kaliumcitrat-Supplementation sind mögliche Therapien. ATP-Citrat-Lyase ist ein mögliches Target",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/ATP-Citrat-Lyase",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "ATP-Citrat-Lyase"
     }
   ],
   "failed_titles": [
@@ -472,6 +516,19 @@
         "(10199) Chariklo"
       ],
       "time": "2026-11-18T03:07:25+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "(136108) Haumea",
+        "(136199) Eris",
+        "3-Hydroxypropionatzyklus",
+        "ATP-Citrat-Lyase"
+      ],
+      "time": "2026-11-18T09:21:47+00:00"
     }
   ],
   "schema": 1
