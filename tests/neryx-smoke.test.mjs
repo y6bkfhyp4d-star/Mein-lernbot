@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -377,4 +377,42 @@ test('Mustererkennung 0.2 erkennt Folgen, verweigert ungeeignete Angaben', () =>
   assert.match(p.solveSequence('1, 2, wort'),/Format/);
   assert.ok(app.includes("command(s,'Folge lösen')"));
   assert.ok(html.includes('src="modules/rule-patterns.js"'));
+});
+
+test('Lernlabor: Rückmeldung ändert spätere Strategie-Auswahl in getrenntem Speicher', () => {
+  const db=new Map(), localStorage={
+    getItem:key=>db.get(key)??null,
+    setItem:(key,value)=>db.set(key,String(value))
+  };
+  const window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  const lab=window.NERYXLearning;
+  assert.equal(lab.ranked([2,4,8,16])[0].next,32,'Vorher geometrisch favorisiert');
+  assert.match(lab.proposal('2, 4, 8, 16'),/geometrisch: 32/);
+  assert.match(lab.feedback('30'),/Feedback übernommen/);
+  assert.equal(lab.ranked([2,4,8,16])[0].next,30,'Nachher kubisch favorisiert');
+  assert.equal(lab.ranked([3,6,12,24])[0].next,45,'Erfahrungsübertragung auf andere Folge');
+  assert.ok(db.has('neryx.learning.strategies.v1'));
+  assert.equal(db.has('meinLernBot.v1'),false,'Persönliches Wissen nicht verändert');
+  assert.doesNotMatch(db.get('neryx.learning.strategies.v1'),/2,4,8,16/,'Keine Übungsbeispiele gespeichert');
+});
+
+test('Lernlabor: unbelegtes Feedback nicht übernehmen und Nachteile messbar', () => {
+  const db=new Map(),localStorage={
+    getItem:key=>db.get(key)??null,
+    setItem:(key,value)=>db.set(key,String(value))
+  },window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  const lab=window.NERYXLearning;
+  assert.match(lab.feedback('32'),/Zuerst/);
+  assert.match(lab.evaluate(),/4\/4/);
+  lab.proposal('2, 4, 8, 16');
+  assert.match(lab.feedback('999'),/nicht übernommen/);
+  assert.equal(db.size,0,'Unbelegtes Feedback verändert keinen Speicher');
+  lab.proposal('2, 4, 8, 16');
+  lab.feedback('30');
+  assert.match(lab.evaluate(),/3\/4/,'Verschlechterung wird angezeigt');
+  assert.ok(html.includes('src="modules/learning-lab.js"'));
+  assert.ok(app.indexOf("command(s,'Lernversuch')")<app.indexOf("if(context.awaiting)"));
+  assert.ok(app.includes("command(s,'Lernfeedback')"));
 });
