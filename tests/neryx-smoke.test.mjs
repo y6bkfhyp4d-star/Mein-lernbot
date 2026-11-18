@@ -129,3 +129,29 @@ test('Antwort-KI erkennt Satzzeichen und GENESIS testet die echten Antworten', (
   assert.equal(result.passed, 3);
   assert.equal(result.checked, 3);
 });
+
+test('GENESIS erklärt leere Faktenbank statt falscher Entwarnung', () => {
+  const window = {
+    LernBotBridge: {
+      getFacts: () => [],
+      getTasks: () => [{id:'task1'}],
+      getMemories: () => [{id:'memory1'}]
+    },
+    LernBotAntwortKI: {answer: () => null}
+  };
+  runInNewContext(read('modules/genesis-gegenprobe.js'), {window});
+  const message = window.NERYXGenesis.report();
+  assert.match(message, /Keine strukturierten Fakten/);
+  assert.match(message, /Aufgaben: 1/);
+  assert.match(message, /Erinnerungen: 1/);
+  assert.doesNotMatch(message, /Keine Probleme in den getesteten Varianten erkannt/);
+  assert.doesNotMatch(message, /LERNCHANCEN/);
+});
+
+test('GENESIS nennt unbekannte Fakten-Eigenschaften als Grund', () => {
+  const window = {LernBotBridge:{
+    getFacts: () => [{subject:'Mars',property:'temperatur',value:'-60 Grad'}]},
+    LernBotAntwortKI:{answer:()=>null}};
+  runInNewContext(read('modules/genesis-gegenprobe.js'), {window});
+  assert.match(window.NERYXGenesis.report(), /keine passenden Fragevorlagen/);
+});
