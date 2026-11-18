@@ -259,9 +259,8 @@ test('GENESIS 3 schlägt bei neuen Fragen geprüfte Umformulierungen vor', () =>
   const r=window.NERYXGenesis3.examine(facts,
     (q,db)=>window.LernBotAntwortKI.answer(q,{facts:db,context:{},documents:[]}));
   assert.ok(r.checked>=3);
-  assert.ok(r.candidates>=1,'Mindestens ein nicht verstandenes Muster');
-  assert.ok(r.validated>=1,'Mindestens eine Ersatzfrage antwortet korrekt');
-  assert.ok(r.suggestions.every(x=>x.status==='Im isolierten Versuch erfolgreich'));
+  assert.equal(r.passed,r.checked,'Bekannte GENESIS-3-Sprachmuster werden erkannt');
+  assert.equal(r.candidates,0,'Keine veralteten Verbesserungsvorschläge');
   assert.equal(JSON.stringify(facts),original,'Originalfakten nicht verändern');
   assert.ok(app.includes("n==='genesis 3'"));
   assert.ok(html.includes('src="modules/genesis-3.js"'));
@@ -275,4 +274,24 @@ test('GENESIS 3: Unbelegte Vorschläge werden nicht als erfolgreich bezeichnet',
     ()=>({text:'Dazu habe ich keine Antwort.'}));
   assert.equal(r.validated,0);
   assert.ok(r.suggestions.every(x=>x.status.includes('Nicht bestätigt')));
+});
+
+test('Antwort-KI 1.8 erkennt Erklär-mir und An-welchem-Ort für mehrere Themen', () => {
+  const window = {}, console = {log() {}};
+  runInNewContext(read('antwort-ki.js'),{window,console});
+  const facts=[
+    {subject:'Okapi',property:'definition',value:'ein Säugetier'},
+    {subject:'Okapi',property:'lebensraum',value:'Regenwald'},
+    {subject:'Mars',property:'definition',value:'ein Planet'},
+    {subject:'Metaanalyse',property:'definition',value:'eine Auswertung'}
+  ];
+  for(const [question,answer] of [
+    ['Erklär mir, was Okapi ist.','Säugetier'],
+    ['Erkläre mir, was Mars ist.','Planet'],
+    ['Erklär mir, was Metaanalyse ist.','Auswertung'],
+    ['An welchem Ort lebt Okapi?','Regenwald'],
+    ['Was ist Mars?','Planet'],
+    ['Wo lebt Okapi?','Regenwald']
+  ]) assert.match(window.LernBotAntwortKI.answer(question,{facts})?.text||'',
+    new RegExp(answer),question);
 });
