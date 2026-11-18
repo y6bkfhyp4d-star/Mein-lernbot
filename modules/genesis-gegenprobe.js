@@ -112,7 +112,7 @@
       if (extras.length) lines.push(extras.join(' · '));
     }
     if (r.checked && !r.problems.length) lines.push('Keine Probleme in den getesteten Varianten erkannt.');
-    else {
+    if (r.problems.length) {
       lines.push('','LERNCHANCEN (keine automatischen Änderungen):');
       r.problems.forEach((p,i)=>lines.push(`${i+1}. ${p.subject} · ${p.property}: ${p.kind==='widerspruch'?'Widerspruch prüfen':'Frage nicht zuverlässig beantwortet'}${p.question?' – '+p.question:''}`));
     }
