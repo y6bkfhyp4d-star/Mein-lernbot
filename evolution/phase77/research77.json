@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "18. Oktober",
-    "Abdus Salam",
-    "Achämenidenreich"
+    "Abschirmung (Gravitation)",
+    "Akkumulator",
+    "Al-Bīrūnī"
   ],
   "questions": [
     {
@@ -144,6 +144,23 @@
       "topic": "Abdus Salam"
     },
     {
+      "checked_at": "2026-11-18T21:29:38+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "CH4 betont und 2001 die Abschirmung von Ammoniak durch organische Spurengase in der Uratmosphäre bezweifelt. Pavlov und Kasting hatten 2000 und 2003 eine",
+          "title": "Paradoxon der schwachen jungen Sonne",
+          "url": "https://de.wikipedia.org/?curid=3475880"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Abschirmung (Gravitation) und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Abschirmung_%28Gravitation%29",
+      "status": "suchtreffer",
+      "topic": "Abschirmung (Gravitation)"
+    },
+    {
       "checked_at": "2026-11-18T15:32:24+00:00",
       "hits": [
         {
@@ -171,6 +188,64 @@
       "source": "https://de.wikipedia.org/wiki/Ach%C3%A4menidenreich",
       "status": "suchtreffer",
       "topic": "Achämenidenreich"
+    },
+    {
+      "checked_at": "2026-11-18T21:29:38+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Juli 2019 vorgestellt und hat einen 97-kWh-Akkumulator. Das Sport Utility Vehicle hat hinten sogenannte Selbstmördertüren und ausklappbare Dachhälften",
+          "title": "Hiphi",
+          "url": "https://de.wikipedia.org/?curid=12476008"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Recycling von ausgedienten Lithium-Ionen-Akkumulatoren benötigt noch viel Energie, was bisher wirtschaftlich unrentabel ist. Schon die Demontage kann durch die",
+          "title": "Umweltbilanz von Elektroautos",
+          "url": "https://de.wikipedia.org/?curid=13173252"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "KrWG Das Recycling wird dabei in eine Abfallhierarchie eingeordnet, die als grundlegende Prioritätenfolge für alle Rechtsvorschriften und politischen Maßnahmen",
+          "title": "Recycling",
+          "url": "https://de.wikipedia.org/?curid=3362978"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Akkumulator und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Akkumulator",
+      "status": "suchtreffer",
+      "topic": "Akkumulator"
+    },
+    {
+      "checked_at": "2026-11-18T21:29:38+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Invasoren, die einst in Chorasan eindrangen und später sogar eine Dynastie in Indien gründeten) wurde schon von al-Bīrūnī analysiert. Auch eine Verwandtschaft",
+          "title": "Hephthaliten",
+          "url": "https://de.wikipedia.org/?curid=60328"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "ist fast nichts bekannt und seine Lebensdaten sind unsicher. Nach Pingree kann er von 950 bis 1100 eingeordnet werden. Meist wird sein astronomisches Hauptwerk",
+          "title": "Aryabhata II.",
+          "url": "https://de.wikipedia.org/?curid=7689976"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Mineralogie und Kristallografie eingeordnet und wurde 1937 ein eigenständiges Laboratorium. Nach der kriegsbedingten Verlegung in den Ural und der Rückkehr",
+          "title": "Georgii Glebowitsch Lemmlein",
+          "url": "https://de.wikipedia.org/?curid=10060262"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Al-Bīrūnī und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Al-B%C4%ABr%C5%ABn%C4%AB",
+      "status": "suchtreffer",
+      "topic": "Al-Bīrūnī"
     },
     {
       "checked_at": "2026-11-17T21:28:40+00:00",
@@ -604,6 +679,14 @@
       "errors": 0,
       "no_results": 0,
       "open_gaps": 39,
+      "searched": 3,
+      "with_results": 3
+    },
+    {
+      "at": "2026-11-18T21:29:38+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 43,
       "searched": 3,
       "with_results": 3
     }
