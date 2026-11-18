@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { Script } from 'node:vm';
+import { Script, runInNewContext } from 'node:vm';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const html = read('index.html');
@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -77,3 +77,20 @@ test('PWA behält die Installation bei und registriert den Update-Dienst', () =>
   assert.ok(sw.includes("fetch(req, {cache:'no-store'})"));
 });
 
+
+test('GENESIS erkennt Widersprüche und beschädigt keine Fakten', () => {
+  const { runInNewContext } = requireVm();
+  const window = {};
+  runInNewContext(read('modules/genesis-gegenprobe.js'), {window});
+  const before = [{subject:'Mars',property:'durchmesser',value:'6779 km'},
+    {subject:'Mars',property:'durchmesser',value:'1234 km'}];
+  const snapshot = JSON.stringify(before);
+  const result = window.NERYXGenesis.examine(before, () => ({text:''}));
+  assert.equal(result.conflicts, 1);
+  assert.equal(JSON.stringify(before), snapshot);
+  assert.ok(app.includes("n==='genesis'"));
+});
+
+function requireVm() {
+  return {runInNewContext};
+}
