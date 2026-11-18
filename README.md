@@ -17,6 +17,19 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Zahlenmuster 0.2
+
+Die Befehle `Regel lösen: 1=1, 2=4, 3=9; 4` und
+`Folge lösen: 2, 4, 8, 16` testen das neue `modules/rule-patterns.js`.
+Unterstützt werden lineare und quadratische Zuordnungen sowie arithmetische,
+geometrische, quadratische und abwechselnd arithmetische Folgen.
+Unpassende oder widersprüchliche Angaben werden abgelehnt.
+
+Dies sind mathematische Hypothesen anhand vorgegebener Modellklassen, kein
+autonomes Erlernen beliebiger Regeln. Insbesondere können endlich viele
+Beispiele niemals die einzig mögliche Fortsetzung beweisen. Der bisherige
+`Fähigkeitstest` misst weiterhin nur die ursprünglichen drei Kategorien.
+
 ## Allgemeine Problemlösung – erste experimentelle Stufe
 
 Mit `Fähigkeitstest` (auch `Denktest`) erhält NERYX 36 bei jedem Aufruf
