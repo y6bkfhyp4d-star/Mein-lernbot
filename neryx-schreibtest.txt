@@ -1,0 +1,3 @@
+NERYX Schreibtest – 2026-11-18
+Diese Datei testet ausschließlich den Schreibzugriff von ChatGPT auf das GitHub-Repository.
+Keine bestehenden Dateien oder Nutzerdaten wurden verändert.
