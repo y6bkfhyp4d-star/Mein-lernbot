@@ -1,13 +1,22 @@
 {
   "schema": 713,
-  "generated_at": "2026-11-17T17:12:18+00:00",
+  "generated_at": "2026-11-18T05:10:44+00:00",
   "phase7_closure": "technisch_abgeschlossen_mit_offenen_wahrheitsfragen",
   "status_explanation": "Phase-7-Pipeline vorhanden und automatisierte Strukturtests dokumentiert. Keine unabhängige Sachverifikation.",
   "source_schema": 711,
-  "source_records": 9,
+  "source_records": 14,
   "audit": {
-    "checked": 9,
+    "checked": 11,
     "rows": [
+      {
+        "topic": "Algorithmus",
+        "statement": "Ein Algorithmus (benannt nach dem Mathematiker und Universalgelehrten al-Chwarizmi, von arabisch: الخوارزمی al-Ḫwārizmī, deutsch ‚der Choresmier‘) ist eine eindeutige Handlungsvorschrift zur Lösung eines Problems oder einer Klasse von Problemen.",
+        "source": "https://de.wikipedia.org/?curid=342",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
       {
         "topic": "Chemische Reaktion",
         "statement": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird.",
@@ -39,6 +48,15 @@
         "topic": "Geologie",
         "statement": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen.",
         "source": "https://de.wikipedia.org/?curid=1896",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Künstliche Intelligenz",
+        "statement": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik.",
+        "source": "https://de.wikipedia.org/?curid=2653",
         "flags": [],
         "risk": "keine_strukturhinweise",
         "independent_verified": false,
