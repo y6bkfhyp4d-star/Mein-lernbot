@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
+    "(136108) Haumea",
+    "(136199) Eris",
     "(1) Ceres",
-    "Künstliche Intelligenz",
     "Algorithmus",
     "Chemische Reaktion",
-    "Computer",
-    "Desoxyribonukleinsäure"
+    "Computer"
   ],
   "records": [
     {
-      "checked_at": "2026-11-18T04:37:01+00:00",
+      "checked_at": "2026-11-18T10:34:05+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,56 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T04:37:01+00:00",
+      "checked_at": "2026-11-18T10:34:05+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 4
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "(136108) Haumea",
+      "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=833508",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "(136108) Haumea",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T10:34:05+00:00",
+      "claims": [
+        {
+          "id": "p711-37f44a903c564d",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=832658",
+          "statement": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "(136199) Eris",
+          "subject_form": "(136199) Eris"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 5
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "(136199) Eris",
+      "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=832658",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "(136199) Eris",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-18T10:34:05+00:00",
       "claims": [
         {
           "id": "p711-f87b072e139a98",
@@ -60,7 +109,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T04:37:01+00:00",
+      "checked_at": "2026-11-18T10:34:05+00:00",
       "claims": [
         {
           "id": "p711-9ff2cd08660a1f",
@@ -93,7 +142,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T04:37:01+00:00",
+      "checked_at": "2026-11-18T10:34:05+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 7
@@ -471,6 +520,21 @@
         "(1) Ceres",
         "Computer",
         "Desoxyribonukleinsäure"
+      ]
+    },
+    {
+      "at": "2026-11-18T10:34:05+00:00",
+      "claims": 3,
+      "errors": 0,
+      "new_extractor_same_pages": 3,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 3,
+      "unresolved_topics": [
+        "(136108) Haumea",
+        "(1) Ceres",
+        "Computer"
       ]
     }
   ],
