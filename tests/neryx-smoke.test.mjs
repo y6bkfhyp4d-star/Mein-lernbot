@@ -116,3 +116,16 @@ test('GENESIS erkennt Widersprüche und beschädigt keine Fakten', () => {
 function requireVm() {
   return {runInNewContext};
 }
+
+test('Antwort-KI erkennt Satzzeichen und GENESIS testet die echten Antworten', () => {
+  const window = {};
+  const console = {log() {}};
+  runInNewContext(read('antwort-ki.js'), {window,console});
+  runInNewContext(read('modules/genesis-gegenprobe.js'), {window});
+  const facts = [{subject:'Okapi', property:'definition', value:'ein Säugetier'}];
+  const answer = q => window.LernBotAntwortKI.answer(q, {facts,documents:[],context:{}});
+  assert.match(answer('Erkläre Okapi.').text, /Säugetier/);
+  const result = window.NERYXGenesis.examine(facts,answer);
+  assert.equal(result.passed, 3);
+  assert.equal(result.checked, 3);
+});
