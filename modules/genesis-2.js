@@ -26,7 +26,7 @@ const questions={
   aussehen:s=>[`Beschreibe, wie ${s} aussieht.`,`Wie sieht ${s} aus?`],
   groesse:s=>[`Nenne die Größe von ${s}.`,`Wie groß ist ${s}?`]
 };
-const prop=p=>normalize(p).replace(/ae/g,'a').replace(/oe/g,'o').replace(/ue/g,'u');
+const prop=p=>{const n=normalize(p);return n==='grosse'||n==='groesse'?'groesse':n};
 const usable=f=>f&&typeof f.subject==='string'&&typeof f.property==='string'
   &&typeof f.value==='string'&&f.subject.trim()&&f.property.trim()&&f.value.trim();
 const noKnowledge=text=>!normalize(text)||/\b(nicht bekannt|keine passende antwort|nichts gespeichert|weiss ich nicht|kann ich nicht beantworten|nicht gespeichert|keine information|unbekannt)\b/.test(normalize(text));
