@@ -50,8 +50,10 @@ function teach(input){
  const type=derive(row.vals);
  if(!type)return 'Keine unterstützte Strategie sagt die bekannte nächste Zahl voraus. Nichts gespeichert.';
  const state=read(),fingerprint=row.vals.join(',');
- if(state.examples.some(x=>x.fingerprint===fingerprint))
-   return 'Diese Zahlen wurden bereits zum Lernen benutzt; kein weiterer Lernschritt.';
+ const existing=state.examples.find(x=>x.fingerprint===fingerprint);
+ if(existing)return 'Bereits gespeichert: „'+existing.phrase+'“ → '+existing.type+
+   '. Dieselbe Zahlenfolge wird nicht doppelt gezählt. Aktuell '+
+   state.examples.length+' unterschiedliche Trainingsbeispiele. Mit „Sprachlernstand“ kannst du sie anzeigen.';
  if(state.examples.length>=80)return 'Beispielspeicher voll (80 unterschiedliche Beispiele).';
  const features=tokens(row.phrase);
  state.examples.push({phrase:row.phrase,tokens:features,type,fingerprint});
@@ -98,9 +100,14 @@ function query(input){
 }
 function status(){
  const state=read();
- return 'NERYX · SPRACHLERNSTAND\nUnterschiedliche Trainingsbeispiele: '+state.examples.length+
- '\nGelernte Strategien: '+[...new Set(state.examples.map(x=>x.type))].join(', ')+
- '\nAchtung: Nur Oberflächenmerkmale wie gemeinsame Wortstämme, keine freie Semantik.';
+ return ['NERYX · SPRACHLERNSTAND',
+  'Unterschiedliche Trainingsbeispiele: '+state.examples.length,
+  'Gelernte Strategien: '+([ ...new Set(state.examples.map(x=>x.type))].join(', ')||'keine'),
+  'Gespeicherte Beispiele:',
+  ...state.examples.map((x,i)=>(i+1)+'. „'+x.phrase+'“ → '+x.type+
+    ' | Zahlen: '+x.fingerprint),
+  'Hinweis: Die Sprachlernprüfung verwendet eigene Demonstrationsdaten und zeigt NICHT deinen aktuellen Speicher.',
+  'Nur Oberflächenmerkmale wie gemeinsame Wortstämme, keine freie Semantik.'].join('\n');
 }
 function experiment(){
  const demo=[
@@ -134,5 +141,5 @@ function experiment(){
   'Unbekannte Synonyme ohne Wortähnlichkeit bleiben möglicherweise unerkannt.',
   'Deine gespeicherten Lernwerte wurden nicht verändert.'].join('\n');
 }
-window.NERYXWordLearning=Object.freeze({version:'0.1',teach,query,status,experiment,classify,derive});
+window.NERYXWordLearning=Object.freeze({version:'0.2',teach,query,status,experiment,classify,derive});
 })();
