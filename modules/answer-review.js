@@ -34,7 +34,7 @@ function inspect(question,answer){
   if(!h||!m)missing.push('Unterscheidung zwischen Hypothese und Messung');
   // Fachliche Minimalmerkmale dieser EINEN Begriffsabgrenzung.
   // Das ist keine allgemeine semantische Wahrheitsprüfung.
-  const testable=/\b(?:vermut\w*|annahm\w*|vermutung|prufbar|uberpruf\w*|testbar|erwart\w*|vorhersag\w*)/.test(a);
+  const testable=/\b(?:vermut\w*|annahm\w*|vermutung|prufbar|uberpruf\w*|testbar|erwart\w*|vorhersag\w*)/.test(a)||/\bhypothese\s*:\s*[^.!?]{5,150}\b(?:senkt|verringert|erhoht|vermindert|steigt|sinkt|nimmt|wirkt)\b/.test(a);
   const observed=/\b(?:mess\w*|ermittel\w*|erfass\w*|beobacht\w*)/.test(a)&&
    /\b(?:wert\w*|zahl\w*|daten|grosse\w*|menge\w*|wasseraufnahme|temperatur|feuchtigkeit)/.test(a);
   if(!testable)missing.push('prüfbare Annahme oder Vermutung');
