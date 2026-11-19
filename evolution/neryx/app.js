@@ -158,6 +158,14 @@ if(isEmbed){
     const reply=(type,data)=>event.source.postMessage({protocol:'neryx.v1',type,id:payload.id,...data},event.origin);
     try{
       if(payload.type==='PING') reply('READY',{ok:true});
+      else if(payload.type==='SET_MODEL'){
+        const m=String(payload.model||'');
+        const allowed=['Qwen2.5-0.5B-Instruct-q4f16_1-MLC','Qwen2.5-1.5B-Instruct-q4f16_1-MLC'];
+        if(!allowed.includes(m))throw Error('Unbekanntes lokales Sprachmodell.');
+        if(busy)throw Error('Modell wird gerade benutzt.');
+        $('mode').value='local';$('model').value=m;engine=null;initializedModel='';
+        reply('RESULT',{ok:true,data:{model:m}});
+      }
       else if(payload.type==='LOAD'){const data=await initialize();reply('RESULT',{ok:true,data});}
       else if(payload.type==='ASK'){
         const answer=await generate(payload.prompt,{display:false});
