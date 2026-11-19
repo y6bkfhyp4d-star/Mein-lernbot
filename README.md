@@ -17,6 +17,33 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Natürlicher Mathe-Dialog 0.1 – Fragen ohne Spezialbefehle
+
+NERYX kann jetzt begrenzte **gewöhnliche deutsche Zahlenfolgen-Fragen**
+erkennen, z. B. `Was passiert, wenn ich jede Zahl mit zwei multipliziere?`.
+Er fragt dann nach mindestens vier konkreten Werten. Die nächste
+Chatnachricht `11, 22, 44, 88` wird als Fortsetzung dieser
+Frage behandelt und mit den bisher gelernten Wortmerkmalen gelöst.
+Alternativ kann die komplette Frage in einer Nachricht stehen:
+`Wie geht die Folge weiter: 11, 22, 44, 88, wenn ich jede Zahl mit zwei multipliziere?`.
+
+Bei fehlender Wortzuordnung bittet NERYX um eine bekannte nächste Zahl.
+Im unmittelbar folgenden Chatturn akzeptiert er etwa
+`Die richtige Zahl ist 112` oder nur `112`, prüft sie anhand
+vorhandener mathematischer Verfahren und speichert bei Erfolg ein
+neues Wortmuster. `abbrechen` beendet diese Rückfrage.
+
+Das Dialoggedächtnis bleibt bewusst nur während der geöffneten
+Sitzung erhalten; dauerhafte Beispiele bleiben im unveränderten
+Schlüssel `neryx.learning.wordfeatures.v1` erhalten.
+Gewöhnliche Nachrichten ohne klar erkennbare Zahlenfolgenabsicht
+werden weiterhin durch den bisherigen Chat verarbeitet.
+
+**Grenze:** Dies ist eine eng begrenzte Erkennung deutscher
+Formulierungen mit Zahlenfolgen und bekannten Regeln, kein generelles
+Verständnis aller freien Fragen oder selbstständiges Training eines
+Sprachmodells.
+
 ## Sprachmuster-Lernen 0.3 – Lernen durch überprüfte Korrektur
 
 Wenn NERYX bei `Beispiel prüfen: Jede Zahl wird mit zwei multipliziert | 7, 14, 28, 56`
