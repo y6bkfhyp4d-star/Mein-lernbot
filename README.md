@@ -17,6 +17,34 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Lernzentrale 1.0 – Herkunft, Lernstände und Konflikte
+
+Neue Datei `modules/learning-hub.js`. Sie ist eine **rein lesende**
+gemeinsame Ansicht auf die vorhandenen Lernspeicher, keine Migration
+und keine Zusammenlegung von personenbezogenen Daten.
+
+Chatbefehle:
+
+- `Lernzentrale`: zählt Fakten im Hauptwissen, bestätigte Themenantworten,
+  Sprachlern-Beispiele, Kontext-Hinweise und Mathe-Rückmeldungen.
+- `Lernquellen: Okapi`: zeigt passende Einträge mit Speicher und Herkunft.
+  Nutzerbestätigt heißt ausdrücklich **nicht extern verifiziert**.
+- `Lernkonflikte`: vergleicht gleiche normalisierte Themen und
+  Eigenschaften aus Hauptwissen und Themenlernen und zeigt
+  abweichende Werte. Der vorhandene Konfliktstatus des Hauptwissens
+  wird ebenfalls berücksichtigt.
+
+Der Vergleich ist absichtlich konservativ. Er erkennt nur ausdrücklich
+vergleichbare Fakten und ist **kein Beweis**, dass andere Formulierungen
+übereinstimmen oder dass konfliktfreie Aussagen stimmen.
+Einträge mit historischen, bereits aufgelösten Alternativen werden
+nicht allein deswegen als neuer Konflikt gewertet.
+
+Es gibt **keine automatische Wahrheitsentscheidung, keine
+Gewichtsübertragung zwischen Modulen und keine Datenmutation**.
+Die gespeicherten Daten unter `meinLernBot.v1` und allen bisherigen
+Lernspeicher-Schlüsseln bleiben unangetastet.
+
 ## Themenlernen 0.1 – bestätigte Antworten über viele Wissensgebiete
 
 Neue Datei `modules/topic-learning.js`. NERYX nutzt sie ergänzend
