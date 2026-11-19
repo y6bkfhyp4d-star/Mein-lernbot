@@ -2,8 +2,6 @@
   "discovered_queue": [
     "Althochdeutsch",
     "-gen",
-    "Abgeschlossenes System",
-    "Abfallprodukt",
     "Absorption (Physik)",
     "(136472) Makemake",
     "(2) Pallas",
@@ -78,7 +76,13 @@
     "Abklinganlage",
     "Abklingzeit",
     "Abwasser (Album)",
-    "Abwasserabgabengesetz"
+    "Abwasserabgabengesetz",
+    "Adjektiv",
+    "Aktualgenese",
+    "Adiabatisch",
+    "Arbeit (Physik)",
+    "Abfallentsorgung",
+    "Achsteile"
   ],
   "entries": [
     {
@@ -570,6 +574,36 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Abwasser"
+    },
+    {
+      "collected_at": "2026-11-19T15:15:27+00:00",
+      "excerpt": "-genese (von altgriechisch γένεσις genesis „Geburt, Entstehung“) ist als zweiter Wortteil eines Kompositums Bestandteil zahlreicher Fachwörter. Bei Adjektiven wird stattdessen -gen ergänzt (von -γενής -genes; Bedeutung je nach Kontext „entstanden, erzeugt, verursacht“ oder „erzeugend, bewirkend, verursachend“ und substantiviert „Erzeuger, Bildner, Verursacher“).",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/-genese",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "-genese"
+    },
+    {
+      "collected_at": "2026-11-19T15:15:27+00:00",
+      "excerpt": "Als abgeschlossenes oder isoliertes System wird ein physikalisches System bezeichnet, welches mit seiner Umgebung nicht wechselwirkt, also mit seiner Umgebung keine Energie und/oder Materie austauscht.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abgeschlossenes_System",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abgeschlossenes System"
+    },
+    {
+      "collected_at": "2026-11-19T15:15:27+00:00",
+      "excerpt": "Ein Abfallprodukt bezeichnet generell einen Stoff, der erwartungsgemäß bei einem Umwandlungsprozess entsteht und im Sinne des Prozesses keinen weiteren Nutzen darstellt. Abfallprodukte müssen meist in einem Entsorgungsprozess entfernt werden, können aber auch Quelle eines neu zu verwendenden Produktes werden (Recycling). Sie sind zu unterscheiden von Fehlprodukten, die unbeabsichtigt durch Herstellungsfehler entstehen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abfallprodukt",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abfallprodukt"
     }
   ],
   "failed_titles": [
@@ -734,6 +768,18 @@
         "Abwasser"
       ],
       "time": "2026-11-19T09:26:12+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "-genese",
+        "Abgeschlossenes System",
+        "Abfallprodukt"
+      ],
+      "time": "2026-11-19T15:15:27+00:00"
     }
   ],
   "schema": 1
