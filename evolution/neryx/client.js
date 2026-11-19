@@ -45,6 +45,7 @@ export function createNeryxClient({url, timeoutMs=600000}={}) {
   }
   return {
     async ping(){const m=await send('PING');return m.ok===true;},
+    async selectModel(model){return (await send('SET_MODEL',{model})).data;},
     async load(){return (await send('LOAD')).data;},
     async ask(prompt){if(typeof prompt!=='string'||!prompt.trim())throw new Error('Leere Frage.');const r=await send('ASK',{prompt:prompt.slice(0,6000)});return r.answer;},
     destroy(){window.removeEventListener('message',onMessage);frame.remove();ready=false;for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('NERYX-Verbindung beendet.'));}pending.clear();}
