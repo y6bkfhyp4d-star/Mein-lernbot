@@ -106,7 +106,7 @@ async function handle(input){const s=safe(input,100000),n=norm(s);if(!s)return'B
 if(topicKnown)return topicKnown;
 const original=await intelligentAnswer(s);
 if(!window.NERYXTopicLearning?.parse(s))return original;
-if(original && !/(?:keine passende antwort gespeichert|keine passenden informationen gespeichert|weiß ich (?:noch )?nicht|weiss ich (?:noch )?nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich)/i.test(String(original)))return original;
+if(original && !/(?:keine passende antwort gespeichert|keine passenden informationen gespeichert|weiß ich (?:noch )?nicht|weiss ich (?:noch )?nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich|zu .* habe ich (?:noch )?keine)/i.test(String(original)))return original;
 return window.NERYXTopicLearning.ask(s)||original}
 
 const UI={input:()=>$('input')||$('lb6-input')||$('chat-input')||$('user-input')||$('lb6-fallback-input'),chat:()=>$('log')||$('lb6-chat')||$('chat-messages')||$('messages')||$('lb6-fallback-chat'),send:()=>$('send')||$('lb6-send')||$('send-button')||$('send-btn')||$('lb6-fallback-send')};
