@@ -515,3 +515,34 @@ test('Kontextlerntest überprüft neue Zahlen und verändert keine bestehenden G
   assert.equal(db.size,0,'Ungültiger Kontext speichert nichts');
   assert.match(c.solve('1, x, 3 | Hinweis: irgendwas'),/Format/);
 });
+
+test('Kontext-Rückfrage akzeptiert kurze Antwort als Gespräch statt Wissenssuche', () => {
+  const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/context-learning.js'),{window,localStorage});
+  const c=window.NERYXContextLearning;
+  assert.equal(c.reply('geometrisch'),null,'Ohne aktive Rückfrage keine Änderung');
+  assert.match(c.solve('2, 4, 8, 16 | Hinweis: vervielfachen'),/Welche Regel ist gemeint/);
+  assert.match(c.reply('geometrisch'),/Kontextbeispiel gespeichert/);
+  assert.match(c.status(),/Gespeicherte Beispiele: 1/);
+  assert.equal(c.reply('geometrisch'),null,'Doppelte Antwort zählt nicht mehrfach');
+  assert.match(c.solve('3, 6, 12, 24 | Hinweis: vervielfachen'),/Welche Regel ist gemeint/);
+  assert.match(c.reply('geometrisch'),/bevorzugt jetzt geometrisch/);
+  assert.match(c.solve('5, 10, 20, 40 | Hinweis: vervielfachen'),/geometrisch → 80/);
+  assert.equal(db.has('meinLernBot.v1'),false);
+  assert.ok(app.includes('NERYXContextLearning?.reply(s)'));
+  assert.ok(app.indexOf('NERYXContextLearning?.reply(s)')<app.indexOf('if(context.awaiting)'));
+});
+test('Kontext-Rückfrage wird bei Abbruch verworfen und beeinflusst keine anderen Fragen', () => {
+  const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/context-learning.js'),{window,localStorage});
+  const c=window.NERYXContextLearning;
+  c.solve('2, 4, 8, 16 | Hinweis: anders');
+  assert.match(c.reply('abbrechen'),/abgebrochen/);
+  assert.equal(c.reply('geometrisch'),null);
+  assert.equal(db.size,0);
+  c.solve('2, 4, 8, 16 | Hinweis: anders');
+  assert.equal(c.reply('Was ist ein Okapi?'),null);
+  assert.equal(db.size,0);
+});
