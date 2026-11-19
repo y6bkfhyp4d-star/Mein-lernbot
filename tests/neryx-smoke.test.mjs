@@ -1317,10 +1317,33 @@ test('Antwortkontrolle kennzeichnet die weiterhin fehlende Anforderung statt Erf
  const window={};let calls=0;
  runInNewContext(read('modules/answer-review.js'),{window});
  runInNewContext(read('modules/orchestrator.js'),{window});
- window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Eine Hypothese ist eine überprüfbare Annahme und eine Messung stellt fest, wie groß etwas wirklich ist.';}};
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Eine Hypothese ist eine überprüfbare Annahme und eine Messung ermittelt Werte oder Zahlen.';}};
  const answer=await window.NERYXOrchestrator.solve('Erkläre Hypothese und Messung mit einem Beispiel aus dem Malerhandwerk.',{knowledge:async()=>null});
  assert.equal(calls,2);
  assert.match(answer,/VOLLSTÄNDIGKEITSHINWEIS/);
  assert.match(answer,/Bezug zum Malerhandwerk/);
  assert.match(answer,/unverifiziert/);
+});
+
+test('Fachliche Kontrolle erkennt den aktuellen realen Fehler Hypothese-Messung',async()=>{
+ const window={};let calls=0;
+ runInNewContext(read('modules/answer-review.js'),{window});
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ const question='Erkläre mir den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const poor='Hypothesche Beispiele:\n1. Erkennt, dass es warm ist\n2. Erkennt, dass es wärmer als 15°C ist\n3. Erkennt, dass es warm sein sollte\nMessung anhand von Beispielen:\n1. Erkennt, dass es warm ist';
+ const check=window.NERYXAnswerReview.inspect(question,poor);
+ assert.equal(check.complete,false);
+ assert.ok(check.missing.includes('prüfbare Annahme oder Vermutung'));
+ assert.ok(check.missing.includes('ermittelte Messwerte oder messbare Größe'));
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return poor;}};
+ const answer=await window.NERYXOrchestrator.solve(question,{knowledge:async()=>null});
+ assert.equal(calls,2);
+ assert.match(answer,/FACHLICHE KONTROLLE/);
+ assert.doesNotMatch(answer,/Hypothesche Beispiele/);
+});
+test('Fachliche Kontrolle akzeptiert nachvollziehbare Hypothese mit Messung und Malerbeispiel',()=>{
+ const window={};runInNewContext(read('modules/answer-review.js'),{window});
+ const question='Erkläre den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const answer='Hypothese: Die Grundierung senkt die Wasseraufnahme einer Wand. Messung: Wir messen die Wasseraufnahme an der Wand. Beispiel: Mit und ohne Tiefgrund vergleichen.';
+ assert.equal(window.NERYXAnswerReview.inspect(question,answer).complete,true);
 });
