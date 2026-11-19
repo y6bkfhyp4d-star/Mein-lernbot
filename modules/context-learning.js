@@ -40,6 +40,7 @@ function selected(state,label){
  return ordered[0];
 }
 function learn(label,type){
+ pendingQuestion=null;
  const k=cue(label),kind=normalize(type);
  if(!k||!TYPES.includes(kind))return 'Format: Kontext lernen: HINWEIS = geometrisch (oder kubisch, quadratisch, arithmetisch, wechselnd, fibonacci)';
  const data=load();
@@ -65,6 +66,7 @@ function parse(input){
 }
 let pendingQuestion=null;
 function solve(input,state=load()){
+ pendingQuestion=null;
  const data=parse(input);
  if(!data)return 'Format: Muster prüfen: 2, 4, 8, 16 | Hinweis: verdoppeln';
  const lab=window.NERYXLearning;
