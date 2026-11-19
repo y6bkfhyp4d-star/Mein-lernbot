@@ -41,6 +41,14 @@ async function load(){
   '\nDer normale NERYX-Chat funktioniert weiterhin. Du kannst den separaten WebLLM-Prototyp öffnen.'}
  finally{loading=null}
 }
+async function askRaw(question){
+ const s=String(question??'').trim();
+ if(!s||s.length>3000)throw Error('Ungültige Modellanfrage.');
+ if(!loaded||!client)throw Error('Sprachmodell nicht geladen.');
+ const answer=await client.ask(s);
+ if(typeof answer!=='string'||!answer.trim())throw Error('Leere Modellantwort.');
+ return answer.trim();
+}
 async function ask(question){
  const s=String(question??'').trim();
  if(!s||s.length>3000)return 'Bitte eine konkrete Frage bis 3000 Zeichen eingeben.';
@@ -48,8 +56,7 @@ async function ask(question){
  if(verified)return verified;
  if(!loaded||!client)return 'Das Sprachmodell ist noch nicht geladen. Befehl: Sprachmodell laden';
  try{
-  const answer=await client.ask(s);
-  if(typeof answer!=='string'||!answer.trim())return 'Das Modell hat keine Antwort geliefert.';
+  const answer=await askRaw(s);
   return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\n'+answer.trim()+
    '\n\nHinweis: KI-generierte Antwort. Fakten vor Übernahme prüfen.';
  }catch(e){return 'Lokale Modellantwort fehlgeschlagen: '+String(e?.message||e)}
@@ -70,5 +77,5 @@ function unload(){
  if(client){client.destroy();client=null}
  return 'Sprachmodell-Verbindung getrennt. NERYX-Lernspeicher unverändert.';
 }
-window.NERYXLocalModel=Object.freeze({version:'1.0',status,load,ask,mode,shouldFallback,unload,info});
+window.NERYXLocalModel=Object.freeze({version:'1.1',status,load,ask,askRaw,mode,shouldFallback,unload,info});
 })();
