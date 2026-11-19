@@ -1,15 +1,15 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Aerosol",
-    "ATP-Synthase",
-    "Vulkan",
+    "Abiotisch",
+    "Abklingbecken",
+    "Abwasser",
     "(1) Ceres"
   ],
   "records": [
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-19T03:57:53+00:00",
+      "checked_at": "2026-11-19T10:07:07+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
@@ -64,6 +64,28 @@
     },
     {
       "baseline_claims": 0,
+      "checked_at": "2026-11-19T10:07:07+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Abiotisch und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Abiotisch",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-19T10:07:07+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Abklingbecken und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Abklingbecken",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
       "checked_at": "2026-11-18T21:53:42+00:00",
       "claims": [],
       "independent_verified": false,
@@ -71,6 +93,17 @@
       "reasons": [],
       "status": "kein_passender_titel",
       "topic": "Abschirmung (Gravitation)",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-19T10:07:07+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Abwasser und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "Abwasser",
       "verified_correction": false
     },
     {
@@ -385,6 +418,16 @@
     },
     {
       "at": "2026-11-19T03:57:53+00:00",
+      "baseline_candidates_same_pages": 0,
+      "baseline_topics_same_pages": 0,
+      "candidates": 0,
+      "errors": 0,
+      "processed": 4,
+      "with_claims": 0,
+      "without_matching_hit": 4
+    },
+    {
+      "at": "2026-11-19T10:07:07+00:00",
       "baseline_candidates_same_pages": 0,
       "baseline_topics_same_pages": 0,
       "candidates": 0,
