@@ -175,3 +175,12 @@ Deshalb prüft `modules/answer-review.js` **speziell bei dieser ausdrücklich er
 Wenn nach genau einem Ergänzungsversuch die zentralen Begriffe nicht nachvollziehbar getrennt sind, verwirft `modules/orchestrator.js` die Modellantwort und zeigt `NERYX · FACHLICHE KONTROLLE` mit den fehlenden Merkmalen. Bei weniger grundlegenden Lücken bleibt der `VOLLSTÄNDIGKEITSHINWEIS` erhalten. Frühere Lernspeicher und das Sprachmodell selbst werden nicht umgeschrieben.
 
 **Grenze:** Diese begrenzten Regeln sind keine zuverlässige allgemeine semantische Qualitäts- oder Wahrheitsprüfung. Ein auswendig gelerntes Fachbeispiel beweist weder Verständnis noch AGI. Für unbekannte Themen bleiben Antworten des kleinen Sprachmodells ungeprüft.
+
+## Architektur-Basis: Evidenzvertrag 1.0 (19.11.2026)
+
+Nach Abgleich mit den Vorschlägen für eine evidenzbasierte KI-Pipeline wurde ein **ausschließlich lesendes** Modul `modules/evidence-contract.js` hinzugefügt. Es nutzt `NERYXLearningHub.collect()` und setzt bestehende lokale Fakten in strukturierte Einträge um: `id`, `text`, `subject`, `property`, `value`, `status`, `source`, `createdAt`, `version`, `conflict`, `alternatives`. `createdAt` bleibt `null`, falls die Altquelle keinen belastbaren Zeitstempel bereitstellt. Die IDs sind vorerst *Snapshot-IDs*, nicht unveränderliche Datenbank-IDs.
+
+**Sicherheitsentscheidung:** Alle importierten Altangaben werden vorerst `user_claim`, **niemals automatisch `verified`**. Lokale Bestätigung ist kein unabhängiger Quellenbeweis. Modellvermutungen werden nicht übernommen; `unknown` bedeutet lediglich, dass im aktuell gelesenen Teil der bestehenden Faktenspeicher kein **exakter** Treffer gefunden wurde – nicht, dass die Information generell unbekannt wäre.
+
+Neue lesende Chat-Abfrage: `Evidenz: Okapi` oder `Evidenz: Okapi: Fellfarbe`. Sie zeigt Herkunft, Status und etwaige Widersprüche. Dieser erste Schritt ändert **weder den normalen Chat-Antwortweg noch die Speicherung**. Es gibt noch keine Promotion aus Quarantäne, keine belegbasierte LLM-Generierung und keine umfassende RAG-Suche; das wären getrennte, überprüfbare Schritte. Bestehende Sicherheitskopien und Daten bleiben unverändert.
+
