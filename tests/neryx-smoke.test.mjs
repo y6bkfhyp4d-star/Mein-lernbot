@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -779,4 +779,39 @@ test('Speicherabgleich unterscheidet fehlende Schlüssel, leere Daten und Sicher
  assert.match(x,/Hauptwissen-Sicherungen in diesem Speicherbereich: 1/);
  assert.match(x,/https:\/\/example\.test\/NERYX\//);
  assert.ok(app.includes("n==='speicherabgleich'"));
+});
+
+test('Aktiver Lernkoordinator: zwei übereinstimmende Wissensquellen ohne Änderungen bündeln',()=>{
+ const db=new Map([
+  ['meinLernBot.v1',JSON.stringify({facts:[{subject:'Testmaterial A',property:'zweck',value:'Zum Testen',source:'user'}]})],
+  ['neryx.learning.topics.v1',JSON.stringify({records:[{subject:'testmaterial a',type:'zweck',answer:'Zum Testen'}]})]
+ ]), localStorage={getItem:k=>db.get(k)??null,setItem(){throw Error('Koordinator darf nichts schreiben')}},window={};
+ const snapshot=JSON.stringify([...db]);
+ for(const path of ['modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const c=window.NERYXCoordinator;
+ assert.match(c.decide('Wozu dient Testmaterial A?'),/KOORDINIERTE ANTWORT/);
+ assert.match(c.decide('Für was verwendet man Testmaterial A?'),/Übereinstimmende gespeicherte Einträge: 2/);
+ assert.equal(c.decide('Was ist eine Banane?'),null);
+ assert.equal(JSON.stringify([...db]),snapshot);
+ assert.ok(html.includes('src="modules/learning-coordinator.js"'));
+ assert.ok(app.includes('NERYXCoordinator?.decide(s)'));
+ assert.ok(app.includes("command(s,'Lernentscheidung')"));
+});
+test('Aktiver Lernkoordinator: widersprüchliche Aussagen aus zwei Quellen nicht als Wahrheit ausgeben',()=>{
+ const db=new Map([
+  ['meinLernBot.v1',JSON.stringify({facts:[{subject:'Okapi',property:'lebensraum',value:'Regenwald',source:'user'}]})],
+  ['neryx.learning.topics.v1',JSON.stringify({records:[{subject:'okapi',type:'lebensraum',answer:'Savanne'}]})]
+ ]), localStorage={getItem:k=>db.get(k)??null,setItem(){throw Error('Koordinator darf nichts schreiben')}},window={};
+ const snapshot=JSON.stringify([...db]);
+ for(const path of ['modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const c=window.NERYXCoordinator;
+ const reply=c.decide('In welchem Lebensraum lebt das Okapi?');
+ assert.match(reply,/WISSENSKONFLIKT/);
+ assert.match(reply,/Regenwald/);
+ assert.match(reply,/Savanne/);
+ assert.doesNotMatch(reply,/KOORDINIERTE ANTWORT/);
+ assert.match(c.pendingReply('Abbrechen'),/abgebrochen/);
+ assert.equal(JSON.stringify([...db]),snapshot);
 });
