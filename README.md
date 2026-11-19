@@ -17,6 +17,33 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Kontextlernen 0.1 – Mehrdeutigkeit und Hinweise
+
+NERYX fragt bei `Muster prüfen: 2, 4, 8, 16 | Hinweis: vervielfachen`
+nach der gemeinten Strategie, wenn die Beispiele zu mehreren verschiedenen
+Fortsetzungen passen. Mit `Kontext lernen: vervielfachen = geometrisch`
+kann ein Hinweis einer der sechs vorhandenen Strategien zugeordnet werden.
+Erst ab **zwei gleichgerichteten Zuordnungen** ohne Gleichstand wird
+diese Präferenz angewandt; ein anderes Signal wie `interpolation = kubisch`
+kann andere Vorhersagen für dieselben Zahlen ergeben. `Kontextlernstand`
+zeigt die lokalen Zähler. `Kontextlerntest` simuliert einen Vorher-Nachher-
+Vergleich auf anderen Zahlen (0/12 → 12/12 im Basisszenario).
+
+**Begrenzung:** Kontext und gemeinte Strategie werden ausdrücklich
+als Beispiele vorgegeben. Wiederholte Angaben zählen als separate
+Bestätigungen; die App kann deren Unabhängigkeit nicht prüfen.
+Die Testkontexte wurden eigens für die Demonstration konstruiert und
+sind keine unbekannten freien Aufgaben. Dieses Verfahren lernt eine
+Zuordnung zwischen Texthinweis und **vorprogrammierter** Methode,
+nicht neue Algorithmen oder allgemeine Intelligenz. Bei fehlender
+Information fragt es nach, statt eine mathematisch eindeutige
+Fortsetzung vorzugeben.
+
+Die Kontextzählungen liegen ausschließlich unter
+`neryx.learning.context.v1`. Weder der bisherige Datenbestand
+`meinLernBot.v1` noch Auto-Lerngewichte, manuelles Lernlabor
+oder Modellcode werden bei der Simulation geändert.
+
 ## Lernprüfung 0.1 – Vorher/Nachher mit getrennten Testaufgaben
 
 Im Chat mit `Lernprüfung` oder `Lerntest` starten. Der Test erzeugt
