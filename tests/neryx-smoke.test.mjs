@@ -1431,3 +1431,28 @@ test('L1-Evaluation erkennt ausdrücklich eine bekannte Retrieval-Lücke',()=>{
  assert.equal(hits.some(x=>x.id==='fx-d90'),false);
  assert.equal(hits.some(x=>x.id==='fx-d10'),false); // aktuelle lexikalische Grenze offen ausweisen
 });
+
+test('L1-Triage: bekannte Fehler bleiben sichtbar, statt als bestanden zu zählen',()=>{
+ const suite=JSON.parse(read('eval/suite.json')),issues=JSON.parse(read('eval/known-issues.json'));
+ assert.equal(issues.schema,1);
+ assert.equal(issues.items.length,7);
+ const ids=new Set(suite.items.map(x=>x.id));
+ assert.ok(issues.items.every(x=>ids.has(x.id)&&x.reason&&['known_limit','system_defect','test_error','adapter_error'].includes(x.classification)));
+ const runner=read('eval/run-l1.mjs');
+ assert.match(runner,/knownFailures:knownFailures.length/);
+ assert.match(runner,/newRegressions:regressions.length/);
+ assert.match(runner,/unexpectedPasses:surprises.length/);
+ assert.match(runner,/--all-strict/);
+});
+test('Frozen-L1-Siegel ist inaktiv und Frozen-Dateien werden nicht im Repo vorausgesetzt',()=>{
+ const seal=JSON.parse(read('eval/frozen.seal.json'));
+ assert.equal(seal.active,false);
+ assert.equal(seal.sha256,null);
+ assert.equal(seal.itemCount,null);
+ const runner=read('eval/run-frozen.mjs');
+ assert.match(runner,/sha256/);
+ assert.match(runner,/realpathSync/);
+ assert.match(runner,/Frozen-Datei muss außerhalb des Repositories liegen/);
+ assert.doesNotMatch(runner,/localStorage|getItem\(|indexedDB/);
+ assert.match(runner,/byCategory/);
+});
