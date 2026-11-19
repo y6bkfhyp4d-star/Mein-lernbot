@@ -5,6 +5,7 @@ import {readFileSync,realpathSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname,relative,isAbsolute} from 'node:path';
 import {createHash} from 'node:crypto';
+import {scoreRetrieval} from './retrieval-score.mjs';
 import {runInNewContext} from 'node:vm';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const source=p=>readFileSync(resolve(root,p),'utf8');
@@ -35,10 +36,7 @@ for(const t of frozen.items){
  if(t.layers?.includes('retrieval')){
   const out=[...new Set(window.NERYXDocumentGate.rank(t.input.question,frozen.fixtures.documents,10)
    .map(x=>x.id).filter(Boolean))];
-  const x=t.expect?.retrieval;
-  if(!x)throw Error('Frozen-Retrieval-Test ungültig.');
-  pass=(x.mustInclude||[]).every(id=>out.includes(id))&&(x.mustExclude||[]).every(id=>!out.includes(id))&&
-   (t.expect.verdict==='none'?out.length===0:out.length>0);
+  pass=scoreRetrieval(out,t.expect).pass;
  }else if(t.layers?.includes('review')){
   pass=window.NERYXAnswerReview.inspect(t.input.question,t.input.draft).complete===t.expect.complete;
  }else throw Error('Unbekannte Frozen-Ebene.');
