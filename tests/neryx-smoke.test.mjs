@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -481,4 +481,37 @@ test('Lernprüfung: getrennte Beispiele weisen Verbesserung und gleichzeitig Reg
   assert.ok(db.has('neryx.learning.evaluation.v1'));
   assert.ok(html.includes('src="modules/learning-evaluation.js"'));
   assert.ok(app.includes("n==='lernprufung'"));
+});
+
+test('Kontextlernen fragt bei Mehrdeutigkeit nach und lernt getrennte Zuordnungen', () => {
+  const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/context-learning.js'),{window,localStorage});
+  const c=window.NERYXContextLearning;
+  assert.match(c.solve('2, 4, 8, 16 | Hinweis: vervielfachen'),/Welche Regel ist gemeint/);
+  c.learn('vervielfachen','geometrisch');
+  assert.match(c.solve('3, 6, 12, 24 | Hinweis: vervielfachen'),/Welche Regel ist gemeint/);
+  c.learn('vervielfachen','geometrisch');
+  c.learn('interpolation','kubisch');
+  c.learn('interpolation','kubisch');
+  assert.match(c.solve('3, 6, 12, 24 | Hinweis: vervielfachen'),/geometrisch → 48/);
+  assert.match(c.solve('3, 6, 12, 24 | Hinweis: interpolation'),/kubisch → 45/);
+  assert.match(c.status(),/Gespeicherte Beispiele: 4/);
+  assert.equal(db.has('meinLernBot.v1'),false);
+  assert.equal(db.has('neryx.learning.auto.v1'),false);
+  assert.equal(db.has('neryx.learning.strategies.v1'),false);
+  assert.ok(html.includes('src="modules/context-learning.js"'));
+  assert.ok(app.indexOf("command(s,'Muster prüfen')")<app.indexOf('if(context.awaiting)'));
+});
+test('Kontextlerntest überprüft neue Zahlen und verändert keine bestehenden Gewichte', () => {
+  const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/context-learning.js'),{window,localStorage});
+  const c=window.NERYXContextLearning;
+  assert.match(c.experiment(),/Vorher richtig: 0\/12/);
+  assert.match(c.experiment(),/Nachher richtig: 12\/12/);
+  assert.equal(db.size,0,'Experiment ist nur eine Simulation');
+  assert.match(c.learn('bad!','$wrong'),/Format/);
+  assert.equal(db.size,0,'Ungültiger Kontext speichert nichts');
+  assert.match(c.solve('1, x, 3 | Hinweis: irgendwas'),/Format/);
 });
