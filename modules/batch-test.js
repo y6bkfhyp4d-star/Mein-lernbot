@@ -14,8 +14,8 @@ const allow=[
 const trim=x=>String(x??'').trim();
 function parse(input){
  const s=trim(input);
- if(s.length>MAX_CHARS)return {error:'Stapeltest zu lang (maximal 2400 Zeichen).'};
  const explicit=/^Stapeltest\s*:/i.test(s);
+ if(s.length>MAX_CHARS)return explicit?{error:'Stapeltest zu lang (maximal 2400 Zeichen).'}:null;
  const body=explicit?s.replace(/^Stapeltest\s*:\s*/i,''):s;
  const lines=body.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  if(!explicit&&lines.length<2)return null;
