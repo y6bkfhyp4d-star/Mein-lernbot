@@ -34,11 +34,12 @@ function status(){
  'Rechenprüfer: '+(window.NERYXMathVerifier?.solve?'bereit':'fehlt'),
  'Problemlöser: '+(window.NERYXSystem?.solve?'bereit':'fehlt'),
  'Wissenskoordinator: '+(window.NERYXCoordinator?.decide?'bereit':'fehlt'),
- 'Sprachmodell: '+(model?.loaded?'lokal geladen':'nicht geladen'),
+ 'Sprachmodell: '+(model?.loaded?'lokal geladen':'bei Bedarf automatisch ladbar'),
  'Werkzeugwahl: Zahlenfolgen, Regeln, Rasterwege und Wandflächen',
  'Reihenfolge: Rechenkern → passendes lokales Wissen → geprüfte Werkzeugwahl/Qwen',
  'Unsichere Suchtreffer aus gespeicherten Dokumenten sind kein Fachbeweis.',
  'Qwen darf weder Code ausführen noch gespeicherte Daten verändern.',
+ 'Modellstart: automatisch erst bei ungeklärten Fragen (kein Download beim App-Start)',
  'Befehl: NERYX lösen: FRAGE',
  'Frei formulierte Modellantworten bleiben unverifiziert.'].join('\n');
 }
@@ -60,7 +61,11 @@ function modelSelection(raw,input){
 }
 async function modelFallback(input){
  const model=window.NERYXLocalModel;
- if(!model?.info?.().loaded)return 'NERYX · KI-SYSTEM\nKein passender überprüfbarer Fachtreffer. Bitte zuerst „Sprachmodell laden“ eingeben.\nKeine Fakten wurden erfunden oder gespeichert.';
+ if(!model?.info?.().loaded){
+  if(typeof model?.load!=='function')return 'NERYX · KI-SYSTEM\nKein Sprachmodell verfügbar. Vorhandene NERYX-Funktionen bleiben nutzbar.';
+  const started=await model.load();
+  if(!model.info?.().loaded)return 'NERYX · KI-SYSTEM\nAutomatischer Modellstart fehlgeschlagen.\n'+String(started??'Keine Details verfügbar.');
+ }
  if(typeof model.askRaw!=='function')return await model.ask(input);
  const prompt=[
  'Du bist die Sprachkomponente von NERYX. Wähle optional EIN verfügbares Werkzeug.',
@@ -96,5 +101,5 @@ async function solve(input,{knowledge}={}){
  }
  return await modelFallback(s);
 }
-window.NERYXOrchestrator=Object.freeze({version:'2.0',plan,execute,modelSelection,status,solve});
+window.NERYXOrchestrator=Object.freeze({version:'2.1',plan,execute,modelSelection,status,solve,isUnknown:unknown});
 })();
