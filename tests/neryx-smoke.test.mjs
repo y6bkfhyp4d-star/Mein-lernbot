@@ -983,3 +983,24 @@ test('Persönlicher Lerntest: direkt trainierte Prüfphrase nicht als neue Leist
  const out=p.finish();
  assert.match(out,/Prüfphrasen: 11 \| wegen direktem Training ausgeschlossen: 1/);
 });
+
+test('Stapeltest: persönliche Vorher-Nachher-Prüfung mit zwei unterschiedlichen Übungsbeispielen',async()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),removeItem:k=>db.delete(k)},window={};
+ for(const path of ['modules/learning-lab.js','modules/meaning-links.js','modules/word-learning.js','modules/personal-learning-test.js','modules/batch-test.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const input=['Stapeltest:','Persönlichen Lerntest starten',
+  'Beispiel lernen: Wir erhöhen die Zahl um fünf | 2,7,12,17,22',
+  'Beispiel lernen: Die Zahl wird jeweils um fünf erhöht | 4,9,14,19,24',
+  'Persönlichen Lerntest auswerten'].join('\n');
+ const b=window.NERYXBatch,model=window.NERYXWordLearning,p=window.NERYXPersonalTest;
+ assert.equal(b.parse(input).lines.length,4);
+ const output=await b.run(input,async line=>
+  line==='Persönlichen Lerntest starten'?p.start():
+  line==='Persönlichen Lerntest auswerten'?p.finish():
+  model.teach(line.slice('Beispiel lernen:'.length)));
+ assert.match(output,/Vorher richtig: 0\/12/);
+ assert.match(output,/Nachher richtig: 2\/12/);
+ assert.match(output,/Veränderung: \+2 richtige Zuordnungen/);
+ assert.equal(db.has('neryx.learning.personaltest.v1'),false);
+ assert.equal(JSON.parse(db.get('neryx.learning.wordfeatures.v1')).examples.length,2);
+});
