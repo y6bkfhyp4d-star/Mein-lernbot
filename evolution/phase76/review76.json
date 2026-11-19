@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 40,
+  "cursor": 45,
   "entities": [
     {
       "checked_at": "2026-11-17T11:58:12+00:00",
@@ -457,6 +457,62 @@
       "title": "Akustik",
       "wikidata_id": "Q82811",
       "wikidata_url": "https://www.wikidata.org/wiki/Q82811"
+    },
+    {
+      "checked_at": "2026-11-19T03:16:11+00:00",
+      "classes": [
+        "Einzelsprache",
+        "ausgestorbene Sprache",
+        "historische Sprache",
+        "Chronolekt"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Althochdeutsche Sprache",
+      "wikidata_id": "Q35218",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q35218"
+    },
+    {
+      "checked_at": "2026-11-19T03:16:11+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abschirmung (Gravitation)",
+      "wikidata_id": "Q331998",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q331998"
+    },
+    {
+      "checked_at": "2026-11-19T03:16:11+00:00",
+      "classes": [
+        "Mensch"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Al-Bīrūnī",
+      "wikidata_id": "Q11826",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q11826"
+    },
+    {
+      "checked_at": "2026-11-19T03:16:11+00:00",
+      "classes": [
+        "Wissenschaftsdisziplin",
+        "Fachgebiet",
+        "Technik"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Aerologie",
+      "wikidata_id": "Q381517",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q381517"
+    },
+    {
+      "checked_at": "2026-11-19T03:16:11+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Aerosol",
+      "wikidata_id": "Q104541",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q104541"
     }
   ],
   "runs": [
@@ -515,6 +571,13 @@
       "error_count": 1,
       "known_sources": 43,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-19T03:16:11+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 46,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -526,9 +589,12 @@
     "18. Oktober": "f86e5368d33bf440e3cc",
     "3-Hydroxypropionatzyklus": "d3b69fab85022eae2ed0",
     "ATP-Citrat-Lyase": "8538b68b42bd9ef9584e",
+    "ATP-Synthase": "5932b4b2f2907a6f1f41",
     "Abdus Salam": "1736b2e53bd698bce3c5",
     "Abschirmung (Gravitation)": "a7513d7c79d0b8a57abc",
     "Achämenidenreich": "b95fd585994902a62a11",
+    "Aerologie": "06b3f4b36704b4bc63c0",
+    "Aerosol": "8b6a119ae687cb359c79",
     "Akkumulator": "e0e64a933525e075dbe3",
     "Akustik": "6b29301f6434da9497eb",
     "Al-Bīrūnī": "db8db0ba87075447910c",
