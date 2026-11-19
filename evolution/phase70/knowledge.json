@@ -1,9 +1,6 @@
 {
   "discovered_queue": [
     "Althochdeutsch",
-    "Abiotisch",
-    "Abklingbecken",
-    "Abwasser",
     "-gen",
     "Abgeschlossenes System",
     "Abfallprodukt",
@@ -75,7 +72,13 @@
     "Abgas",
     "Aerodynamischer Durchmesser",
     "ATPasen",
-    "Adenosindiphosphat"
+    "Adenosindiphosphat",
+    "Abiotische Erdölentstehung",
+    "Abiotische Umweltfaktoren",
+    "Abklinganlage",
+    "Abklingzeit",
+    "Abwasser (Album)",
+    "Abwasserabgabengesetz"
   ],
   "entries": [
     {
@@ -537,6 +540,36 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "ATP-Synthase"
+    },
+    {
+      "collected_at": "2026-11-19T09:26:12+00:00",
+      "excerpt": "Abiotisch (altgriechisch ἀ, a-, un- und βίος, bíos, Leben = „leblos“, „ohne Leben“) bezeichnet Vorgänge und Zustände, gelegentlich auch Gegenstände in einem Ökosystem, an denen keine Lebewesen beteiligt sind. Beispiele: abiotische Stoffumsetzungen: nicht durch Lebewesen bewirkte chemische Stoffumwandlungen abiotische Umweltfaktoren: Faktoren, Zustände der Umwelt, die von Lebewesen nicht verursacht oder beeinflusst werden die Theorie der Abiotischen Erdölentstehung Weniger gebräuchlich ist die Anwendung des Ausdrucks auf Stoffe, die nicht von Lebewesen gebildet werden. Hierfür ist der Ausdruck abiogen gebräuchlicher. Der Ausdruck abiotisch wird hauptsächlich als Gegensatz zu biotisch verwendet.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abiotisch",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abiotisch"
+    },
+    {
+      "collected_at": "2026-11-19T09:26:12+00:00",
+      "excerpt": "Abklingbecken (auch Nasslager, Brennelementbecken oder Brennelementelager) sind mit Wasser gefüllte Becken in Kernkraftwerken, in denen die im Kernreaktor verbrauchten (abgebrannten), anfänglich hochradioaktiven Brennelemente zum Abklingen, das heißt zur Verminderung der restlichen Strahlungsaktivität und Temperatur (Nachzerfallswärme) bis zur Transportfähigkeit, mehrere Jahre gelagert und gekühlt werden können. Abklingbecken liegen in der Regel in unmittelbarer Nähe des Reaktors, da die Brennelemente beim Transport vom Reaktorkern zum Abklingbecken dauernd gekühlt werden müssen. Auch aus Strahlenschutzgründen müssen die Brennelemente ständig von genügend Wasser umgeben sein. Die Mindestüberdeckung mit Wasser beträgt ca. zwei Meter.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abklingbecken",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abklingbecken"
+    },
+    {
+      "collected_at": "2026-11-19T09:26:12+00:00",
+      "excerpt": "Abwasser ist ein Oberbegriff für aus verschiedenen Quellen stammendes Wasser, das über bauliche Anlagen fortgeleitet wird: Niederschlagswasser – von bebauten oder befestigten Flächen gesammelt abfließendes Wasser von Niederschlägen. Vom Dach oder Balkon abfließendes Regenwasser zählt auch hierzu. Schmutzwasser – das durch häuslichen, gewerblichen, landwirtschaftlichen oder sonstigen Gebrauch in seinen Eigenschaften veränderte Wasser und das bei Trockenwetter damit zusammen abfließende Wasser, das weiter unterschieden wird in: Grauwasser – nach EN 12056-1 fäkalienfreies, gering verschmutztes Abwasser, wie es etwa beim Duschen, Baden oder Händewaschen anfällt, aber auch aus der Waschmaschine kommt und zu Brauch- bzw. Betriebswasser aufbereitet werden kann. Schwarzwasser – nach ISO 6107-7:1997 häusliches Abwasser mit Urin und/oder fäkalen Fe",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abwasser",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abwasser"
     }
   ],
   "failed_titles": [
@@ -689,6 +722,18 @@
         "ATP-Synthase"
       ],
       "time": "2026-11-19T03:08:31+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Abiotisch",
+        "Abklingbecken",
+        "Abwasser"
+      ],
+      "time": "2026-11-19T09:26:12+00:00"
     }
   ],
   "schema": 1
