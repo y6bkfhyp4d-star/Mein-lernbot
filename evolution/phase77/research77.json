@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Abschirmung (Gravitation)",
-    "Akkumulator",
-    "Al-Bīrūnī"
+    "Aerosol",
+    "ATP-Synthase",
+    "Vulkan"
   ],
   "questions": [
     {
@@ -190,6 +190,35 @@
       "topic": "Achämenidenreich"
     },
     {
+      "checked_at": "2026-11-19T03:31:08+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "vorhanden ist. Solche Keime können zum Beispiel Staubkörnchen sein, aber auch größere Moleküle, Pollen oder – am Meer – Salzkristalle (siehe Aerosol). Über",
+          "title": "Wolke",
+          "url": "https://de.wikipedia.org/?curid=10026"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Zeitraum existiert keine Überwachung der Aerosol-Aktivitätsabgabe über den Kamin. Die Behörde schreibt dazu: Es ist bereits beanstandet worden, dass beim",
+          "title": "Kernkraftwerk THTR-300",
+          "url": "https://de.wikipedia.org/?curid=4564826"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "nukleare Ereignisse in die höchste Kategorie katastrophaler Unfall (INES 7) eingeordnet wurde. Im Block 4 des Kernkraftwerks Tschernobyl nahe der ukrainischen",
+          "title": "Nuklearkatastrophe von Tschernobyl",
+          "url": "https://de.wikipedia.org/?curid=18002"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Aerosol und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Aerosol",
+      "status": "suchtreffer",
+      "topic": "Aerosol"
+    },
+    {
       "checked_at": "2026-11-18T21:29:38+00:00",
       "hits": [
         {
@@ -275,6 +304,35 @@
       "source": "https://de.wikipedia.org/wiki/Algorithmus",
       "status": "suchtreffer",
       "topic": "Algorithmus"
+    },
+    {
+      "checked_at": "2026-11-19T03:31:08+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "3 ADP+3 Pi →ATP−Synthase 3 ATP+3 H2O Teilgleichung ATP-Synthese, dabei wird Wasser freigesetzt Die oben angegebene Zahl der entstehenden ATP-Moleküle von 3 ATP pro",
+          "title": "Photosynthese",
+          "url": "https://de.wikipedia.org/?curid=3327081"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Vielzellern wie einigen Myxozoen und Korsetttierchen,) sollte der LUCA bereits über eine Basisversion davon verfügt haben. Da die ATP-Synthase ein membrangebundenes",
+          "title": "Urvorfahr",
+          "url": "https://de.wikipedia.org/?curid=1158767"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "photosynthetischen Reaktions­zentrum und eine Variante der ATP-Synthase in der Regel vom F-Typ (in Archaeen und Eukaryoten-Vesikeln ist diese in der Regel vom A-Typ)",
+          "title": "Cyanobakterien",
+          "url": "https://de.wikipedia.org/?curid=22614"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist ATP-Synthase und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/ATP-Synthase",
+      "status": "suchtreffer",
+      "topic": "ATP-Synthase"
     },
     {
       "checked_at": "2026-11-17T13:15:19+00:00",
@@ -623,6 +681,35 @@
       "source": "https://de.wikipedia.org/wiki/Schall",
       "status": "suchtreffer",
       "topic": "Schall"
+    },
+    {
+      "checked_at": "2026-11-19T03:31:08+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "von mehr als 5 Prozent Orthopyroxen wird dieses Gestein als Norit eingeordnet. Neben den Noriten gehört Anorthosit und Hyperit zur Gruppe der Gabbros. Sie",
+          "title": "Gabbro",
+          "url": "https://de.wikipedia.org/?curid=110389"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "aus den Gängen aus („Vulkane“). Jede Kolonie wird von einer einzigen Königin dominiert, die als einziges Weibchen fruchtbar ist und ca. alle 70–80 Tage",
+          "title": "Nacktmull",
+          "url": "https://de.wikipedia.org/?curid=3187600"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "die Insel nicht auseinanderbricht. Die aktiven Vulkane in Island sind in etwa 30 Vulkansysteme eingeordnet. Island vergletscherte in den Eiszeiten fast",
+          "title": "Island",
+          "url": "https://de.wikipedia.org/?curid=2071594"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Vulkan und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Vulkan",
+      "status": "suchtreffer",
+      "topic": "Vulkan"
     }
   ],
   "runs": [
@@ -687,6 +774,14 @@
       "errors": 0,
       "no_results": 0,
       "open_gaps": 43,
+      "searched": 3,
+      "with_results": 3
+    },
+    {
+      "at": "2026-11-19T03:31:08+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 46,
       "searched": 3,
       "with_results": 3
     }
