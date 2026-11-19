@@ -29,6 +29,7 @@ const types=[
   /^woher (?:kommt|stammt) (.+)$/, /^woher kommen (.+)$/]],
  ['bestandteile',[
   /^woraus besteht (.+)$/, /^was ist in (.+) enthalten$/]],
+ ['allgemein',[]],
  ['dauer',[
   /^wie lange (?:dauert|braucht) (.+)$/,
   /^wie lange muss (.+) (?:trocknen|ausharten)$/]]
@@ -43,6 +44,8 @@ function parse(q){
    return {type,subject,key:type+'|'+subject,question:trim(q)};
   }
  }
+ if(/^(?:warum|weshalb|wieso|wann|wer|welche|welcher|welches|wie|wo|was|wodurch|womit|worauf|wofuer|wozu)\s+/.test(s)&&s.length<=180)
+  return {type:'allgemein',subject:s,key:'allgemein|'+s,question:trim(q)};
  return null;
 }
 function initial(){return {version:1,records:[]}}
