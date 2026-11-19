@@ -8,7 +8,7 @@ const pairs=/^-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?\s*=
 const embeddedList=/-?\d+(?:\.\d+)?(?:\s*[,;]\s*-?\d+(?:\.\d+)?){3,29}/;
 const embeddedPair=/-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?){1,19}\s*;\s*-?\d+(?:\.\d+)?/;
 const grid=/^[01]{2,20}(?:\s*;\s*[01]{2,20}){1,19}$/;
-const unknown=s=>!s||/^VERWANDTES WISSEN/i.test(String(s).trim())||/(?:keine passende antwort|keine passenden informationen|weiss ich nicht|weiß ich nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich|habe ich noch keine|nicht gelernt|zu .{1,100} habe ich noch keine)/i.test(String(s));
+const unknown=s=>!s||/^(?:VERWANDTES WISSEN|IN GESPEICHERTEN DOKUMENTEN:|GESPEICHERTES WISSEN)/i.test(String(s).trim())||/(?:keine passende antwort|keine passenden informationen|weiss ich nicht|weiß ich nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich|habe ich noch keine|nicht gelernt|zu .{1,100} habe ich noch keine)/i.test(String(s));
 function plan(input){
  const s=String(input??'').trim();
  if(!s||s.length>3000||s.includes('\n'))return {type:'invalid',source:'Eingabe'};
@@ -37,6 +37,7 @@ function status(){
  'Sprachmodell: '+(model?.loaded?'lokal geladen':'nicht geladen'),
  'Werkzeugwahl: Zahlenfolgen, Regeln, Rasterwege und Wandflächen',
  'Reihenfolge: Rechenkern → passendes lokales Wissen → geprüfte Werkzeugwahl/Qwen',
+ 'Unsichere Suchtreffer aus gespeicherten Dokumenten sind kein Fachbeweis.',
  'Qwen darf weder Code ausführen noch gespeicherte Daten verändern.',
  'Befehl: NERYX lösen: FRAGE',
  'Frei formulierte Modellantworten bleiben unverifiziert.'].join('\n');
