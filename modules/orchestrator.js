@@ -5,7 +5,7 @@
 'use strict';
 const numberList=/^-?\d+(?:\.\d+)?(?:\s*[,;]\s*-?\d+(?:\.\d+)?){3,29}$/;
 const pairs=/^-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?){1,19}\s*;\s*-?\d+(?:\.\d+)?$/;
-const unknown=s=>!s||/(?:keine passende antwort|keine passenden informationen|weiss ich nicht|weiß ich nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich|habe ich noch keine|nicht gelernt|zu .{1,100} habe ich noch keine)/i.test(String(s));
+const unknown=s=>!s||/^VERWANDTES WISSEN/i.test(String(s).trim())||/(?:keine passende antwort|keine passenden informationen|weiss ich nicht|weiß ich nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich|habe ich noch keine|nicht gelernt|zu .{1,100} habe ich noch keine)/i.test(String(s));
 function plan(input){
  const s=String(input??'').trim();
  if(!s||s.length>3000)return {type:'invalid',source:'Eingabe'};
