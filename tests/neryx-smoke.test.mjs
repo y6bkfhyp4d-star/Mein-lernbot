@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js', 'modules/answer-review.js', 'modules/orchestrator.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/evidence-contract.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js', 'modules/answer-review.js', 'modules/orchestrator.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -1346,4 +1346,40 @@ test('Fachliche Kontrolle akzeptiert nachvollziehbare Hypothese mit Messung und 
  const question='Erkläre den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
  const answer='Hypothese: Die Grundierung senkt die Wasseraufnahme einer Wand. Messung: Wir messen die Wasseraufnahme an der Wand. Beispiel: Mit und ohne Tiefgrund vergleichen.';
  assert.equal(window.NERYXAnswerReview.inspect(question,answer).complete,true);
+});
+
+test('Evidenzvertrag: Alt-Daten bekommen Herkunft, aber niemals automatisch verified',()=>{
+ const window={};
+ let written=0;
+ const localStorage={getItem(){throw Error('Kein Speicherzugriff im Adapter direkt')},setItem(){written++;throw Error('Keine Schreibzugriffe')}};
+ const claims=[
+  {subject:'okapi',property:'fellfarbe',value:'rotbraun',origin:'Hauptwissen',key:'main',source:'Nutzereingabe',conflict:false,alternatives:[]},
+  {subject:'saturn',property:'definition',value:'Planet',origin:'Themenlernen',key:'topics',source:'Nutzer bestätigt',conflict:false,alternatives:[]}
+ ];
+ window.NERYXLearningHub={collect:()=>({claims,warnings:[]})};
+ runInNewContext(read('modules/evidence-contract.js'),{window,localStorage});
+ const adapter=window.NERYXEvidence;
+ const result=adapter.retrieve('Okapi: Fellfarbe');
+ assert.equal(result.total,1);
+ assert.equal(result.status,'user_claim');
+ assert.equal(result.claims[0].status,'user_claim');
+ assert.equal(result.claims[0].source.verifiedExternally,false);
+ assert.equal(adapter.retrieve('Hypothese').status,'unknown');
+ assert.equal(adapter.retrieve('Okapi').total,1);
+ assert.equal(written,0);
+ assert.match(adapter.report('Okapi'),/NICHT extern verifiziert/);
+ assert.match(app,/command\(s,'Evidenz'\)/);
+ assert.match(html,/modules\/evidence-contract.js/);
+});
+test('Evidenzvertrag: widersprüchliches Wissen bleibt sichtbar statt unbemerkt überschrieben',()=>{
+ const window={};
+ window.NERYXLearningHub={collect:()=>({claims:[
+  {subject:'okapi',property:'fellfarbe',value:'rotbraun',origin:'Hauptwissen',key:'main',source:'Nutzer'},
+  {subject:'okapi',property:'fellfarbe',value:'blau',origin:'Themenlernen',key:'topics',source:'Nutzer'}
+ ],warnings:[]})};
+ runInNewContext(read('modules/evidence-contract.js'),{window});
+ const result=window.NERYXEvidence.retrieve('Okapi: Fellfarbe');
+ assert.equal(result.total,2);
+ assert.equal(result.hasConflict,true);
+ assert.match(window.NERYXEvidence.report('Okapi: Fellfarbe'),/Widerspruch/);
 });
