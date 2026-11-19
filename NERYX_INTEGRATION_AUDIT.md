@@ -79,3 +79,47 @@ ist ein weiterer expliziter Einstieg.
 Wichtig: **Keine allgemeine Mathematikverifikation**. Bei unbekannten
 Textaufgabentypen kann das Sprachmodell weiterhin unzutreffende
 Antworten geben. Sie gelten nicht als verifiziert.
+
+## Plan A – NERYX als gemeinsames KI-System (19.11.2026)
+
+Mit `modules/orchestrator.js` gibt es jetzt **eine zentrale Aufrufstelle**
+für bereits vorhandene Fähigkeiten. Qwen bleibt ein austauschbares,
+lokal gestartetes Sprachmodell – **NERYX ist das gesamte System**.
+
+- `NERYX lösen: FRAGE` prüft zuerst bekannte, kontrollierbar berechenbare
+  Aufgaben (Wandfläche, Zahlenregeln, Zahlenfolgen und über den
+  bestehenden Befehl `Weg planen:` auch Rasterplanung).
+- Danach versucht die Zentrale eine eindeutige lokale Wissensantwort
+  aus vorhandenem NERYX-Wissen. Bloß verwandte Stichwörter gelten nicht
+  als gesicherte Antwort.
+- Nur wenn kein passender deterministischer oder lokaler Treffer besteht,
+  kann das **vorher vom Nutzer geladene** Qwen-Modell antworten.
+  Die Modellantwort bleibt ausdrücklich *ungeprüft*.
+- Die ursprünglichen Befehle, darunter `KI fragen:` für den direkten
+  Modelltest, bleiben erhalten. Das System lädt das Modell nicht
+  automatisch und verschickt keine privaten gespeicherten Informationen
+  als Prompt an Qwen.
+- `KI-Systemstatus` zeigt die tatsächliche Verfügbarkeit.
+  Eine aktive Schnittstelle beweist keine umfassende allgemeine Intelligenz.
+
+Einfügetest (gesamter Block auf einmal):
+
+```text
+Stapeltest:
+KI-Systemstatus
+NERYX lösen: 2=5, 4=9; 7
+NERYX lösen: 2,4,8,16
+```
+
+Anschließend **einzeln** testen:
+`NERYX lösen: Was ist ein Okapi?`
+und nach `Sprachmodell laden` beispielsweise
+`NERYX lösen: Was ist der Unterschied zwischen einer Hypothese und einer Messung?`.
+Der letzte Fall ist eine ungeprüfte Qwen-Antwort, kein automatisch
+verifizierter Fakt und kein Gewichts-Nachtraining.
+
+**Grenze:** Der neue Router beherrscht nicht beliebige Textaufgaben,
+Werkzeugaufrufe durch das Sprachmodell oder autonomes Handeln.
+Anstatt eine neue Parallel-KI zu erstellen, erweitert Plan A die
+überprüfbare Verbindung der bestehenden Komponenten schrittweise.
+
