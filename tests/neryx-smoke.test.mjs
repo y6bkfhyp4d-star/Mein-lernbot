@@ -1136,3 +1136,66 @@ test('Stapeltest erlaubt Gesamt-KI-Diagnose und definierte Problembefehle',()=>{
  assert.equal(window.NERYXBatch.parse(input).lines.length,3);
  assert.equal(window.NERYXBatch.parse('Stapeltest:\nKI-Systemstatus\nFakt löschen: Mars: Größe').error.includes('kein erlaubter'),true);
 });
+
+test('Gesamt-KI 2.0: natürliche Zahlenfolge wird deterministisch erkannt',async()=>{
+ const window={};
+ for(const name of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/math-verifier.js','modules/system-hub.js','modules/orchestrator.js'])
+  runInNewContext(read(name),{window});
+ let modelCalls=0;
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{modelCalls++;return '5';}};
+ const result=await window.NERYXOrchestrator.solve('Setze die Folge 2,4,8,16 fort');
+ assert.match(result,/32/);
+ assert.equal(modelCalls,0);
+ assert.match(window.NERYXOrchestrator.status(),/GEMEINSAMES KI-SYSTEM 2\.0/);
+});
+test('Gesamt-KI 2.0: Modell darf nur originale und erlaubte Werkzeuge ausführen',async()=>{
+ const window={};
+ for(const name of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/math-verifier.js','modules/system-hub.js','modules/orchestrator.js'])
+  runInNewContext(read(name),{window});
+ const system=window.NERYXOrchestrator;
+ const input='Bitte analysiere diese Werte: 2,4,8,16.';
+ assert.equal(system.modelSelection('WERKZEUG: folge | 9,18,27,36',input).rejected,true);
+ assert.equal(system.modelSelection('WERKZEUG: löschen | alles',input),null);
+ assert.equal(system.modelSelection('WERKZEUG: wand | ORIGINAL',input).rejected,true);
+ assert.equal(system.modelSelection('WERKZEUG: regel | 2=5, 4=9; 7',input).rejected,true);
+ assert.equal(system.modelSelection('WERKZEUG: folge | 2,4,8,16',input).type,'sequence');
+ const runs=[];
+ window.NERYXLocalModel={
+  info:()=>({loaded:true}),
+  askRaw:async prompt=>{runs.push(prompt);return 'WERKZEUG: folge | 9,18,27,36';}
+ };
+ const rejected=await system.solve('Bitte beachte die Werte 2,4,8,16.',{knowledge:async()=>null});
+ assert.match(rejected,/unzulässigen Werkzeugaufruf/);
+ assert.equal(runs.length,1);
+ assert.equal(system.modelSelection('WERKZEUG: weg | 000;010;000','Raster 000;010;000').type,'grid');
+});
+test('Gesamt-KI 2.0: Modell-Erklärung ist ungeprüft; Fachberechnungen haben Vorrang',async()=>{
+ const window={};
+ for(const name of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/math-verifier.js','modules/system-hub.js','modules/orchestrator.js'])
+  runInNewContext(read(name),{window});
+ let calls=0;
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Das ist eine kurze Erklärung.';}};
+ const orchestrator=window.NERYXOrchestrator;
+ const area='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch.';
+ assert.match(await orchestrator.solve(area),/Ergebnis: 150 m²/);
+ assert.equal(calls,0);
+ assert.match(await orchestrator.solve('Erkläre den Unterschied zwischen Theorie und Hypothese.',{knowledge:async()=>null}),/unverifiziert/);
+ assert.equal(calls,1);
+ assert.match(await orchestrator.solve('Was ist ein Okapi?',{knowledge:async()=> 'Ein Säugetier.'}),/Säugetier/);
+ assert.equal(calls,1);
+});
+test('Modellwechsel 0,5B zu 1,5B ist explizit und lädt kein Modell automatisch',()=>{
+ const window={},navigator={gpu:{}},
+  document={baseURI:'https://example.test/Mein-lernbot/',currentScript:{src:'https://example.test/Mein-lernbot/modules/local-model-bridge.js'}};
+ runInNewContext(read('modules/local-model-bridge.js'),{window,navigator,document,URL});
+ const model=window.NERYXLocalModel;
+ assert.equal(model.info().loaded,false);
+ assert.match(model.selectModel('1,5B'),/1,5B/);
+ assert.match(model.status(),/1,5B/);
+ assert.equal(model.info().loaded,false);
+ assert.match(model.selectModel('0,5B'),/0,5B/);
+ assert.match(model.selectModel('7B'),/Nur 0,5B oder 1,5B/);
+ assert.match(read('evolution/neryx/client.js'),/selectModel\(model\)/);
+ assert.match(read('evolution/neryx/app.js'),/SET_MODEL/);
+ assert.match(app,/NERYXLocalModel\?\.selectModel\(v\)/);
+});
