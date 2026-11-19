@@ -1,9 +1,6 @@
 {
   "discovered_queue": [
     "Althochdeutsch",
-    "Aerologie",
-    "Aerosol",
-    "ATP-Synthase",
     "Abiotisch",
     "Abklingbecken",
     "Abwasser",
@@ -72,7 +69,13 @@
     "Albert Einstein",
     "Allgemeine Relativitätstheorie",
     "(9936) Al-Biruni",
-    "1048"
+    "1048",
+    "Aeronomie",
+    "Altgriechisch",
+    "Abgas",
+    "Aerodynamischer Durchmesser",
+    "ATPasen",
+    "Adenosindiphosphat"
   ],
   "entries": [
     {
@@ -504,6 +507,36 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Al-Bīrūnī"
+    },
+    {
+      "collected_at": "2026-11-19T03:08:31+00:00",
+      "excerpt": "Die Aerologie (IPA: [aeʁoloˈɡiː], ; von griech.: άέριος (aerios) „in der Luft befindlich, hoch“ und dem Morphem -logie), auch als Höhenwetterkunde bezeichnet, bildet den Zweig der Meteorologie, der sich mit dem Studium der freien Atmosphäre beschäftigt (den Luftschichten in über 1–2 Kilometern Höhe, oberhalb der atmosphärischen Grenzschicht). Der Begriff Aerologie wurde 1906 von Wladimir Köppen geprägt. Eine wesentliche Datenquelle der Aerologie sind Messwerte, die durch unbemannte Ballone (Radiosonden) und Wettersatelliten, aber auch Flugzeuge und Höhenforschungsraketen gewonnen werden. Viele staatliche Wetterstationen führen regelmäßige Messreihen durch, z. B. Ballonsondenaufstiege zweimal täglich (meist am Mittag und um Mitternacht). Eine weitere wichtige Methode der Aerologie ist die bodengebundene Fernerkundung mit Laserstrahlen (Lid",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aerologie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aerologie"
+    },
+    {
+      "collected_at": "2026-11-19T03:08:31+00:00",
+      "excerpt": "Ein Aerosol (IPA: [aeʁoˈzoːl], , umgangssprachlich auch: [ɛːʁoˈzoːl]; Kunstwort aus altgriechisch ἀήρ āḗr, deutsch ‚Luft‘ und lateinisch solutio ‚Lösung‘) ist ein heterogenes Gemisch (Dispersion) aus festen oder flüssigen Schwebeteilchen in einem Gas. Die Schwebeteilchen heißen Aerosolpartikel oder Aerosolteilchen. Die kleinsten Partikel sind wenige Nanometer groß. Eine fixe Obergrenze gibt es nicht, jedoch sind Partikel, die innerhalb weniger Sekunden ausfallen, selten Gegenstand von Untersuchungen. Ein Aerosol ist ein dynamisches System und unterliegt ständigen Änderungen durch Kondensation von Dämpfen an bereits vorhandenen Partikeln, Verdampfen flüssiger Bestandteile der Partikel, Koagulation kleiner Teilchen zu großen oder Abscheidung von Teilchen an umgebenden Gegenständen. Die Aerosolforschung beschäftigt sich unter anderem mit den",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aerosol",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aerosol"
+    },
+    {
+      "collected_at": "2026-11-19T03:08:31+00:00",
+      "excerpt": "Das Enzym ATP-Synthase oder FoF1-ATPase ist ein Transmembranprotein. Die ATP-Synthase tritt abhängig vom Verhältnis der Substrate und Produkte entweder als ATP-verbrauchende Protonenpumpe oder als Protonen-getriebene ATP-Synthase auf. Im lebenden Organismus besteht die Hauptaufgabe des Enzyms allerdings darin, die Synthese von ATP zu katalysieren. ATP ist eine energiereiche Verbindung, deren Bildung der Zufuhr von ADP, Phosphat und Energie bedarf: ADP + Phosphat → ATP + H2O mit ΔH ≈ 30,5 kJ/mol unter Standardbedingungen und ca. 50 kJ/mol unter physiologischen Bedingungen. Um diese Energie aufzubringen, koppelt die ATP-Synthase die ATP-Bildung mit dem energetisch begünstigten Transport von Protonen (oder anderen Ionen) entlang eines Protonengradienten über eine Membran. Das Enzym spielt im Stoffwechsel fast aller bekannten Organismen eine",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/ATP-Synthase",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "ATP-Synthase"
     }
   ],
   "failed_titles": [
@@ -644,6 +677,18 @@
         "Al-Bīrūnī"
       ],
       "time": "2026-11-18T21:09:49+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Aerologie",
+        "Aerosol",
+        "ATP-Synthase"
+      ],
+      "time": "2026-11-19T03:08:31+00:00"
     }
   ],
   "schema": 1
