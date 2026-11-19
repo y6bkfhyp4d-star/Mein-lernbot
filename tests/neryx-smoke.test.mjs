@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/evidence-contract.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js', 'modules/answer-review.js', 'modules/orchestrator.js',
+    'app.js', 'sw.js', 'modules/document-gate.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/evidence-contract.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js', 'modules/answer-review.js', 'modules/orchestrator.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -1382,4 +1382,30 @@ test('Evidenzvertrag: widersprüchliches Wissen bleibt sichtbar statt unbemerkt 
  assert.equal(result.total,2);
  assert.equal(result.hasConflict,true);
  assert.match(window.NERYXEvidence.report('Okapi: Fellfarbe'),/Widerspruch/);
+});
+
+test('Dokumentfilter: Aufgabenwörter werden ignoriert und Saturn lenkt Hypothesenfrage nicht ab',()=>{
+ const window={};
+ runInNewContext(read('modules/document-gate.js'),{window});
+ const gate=window.NERYXDocumentGate;
+ const docs=[
+  {title:'Saturn',content:'Der Saturn ist der sechste Planet unseres Sonnensystems und ein Gasriese.'},
+  {title:'Hypothese und Messung',content:'Eine Hypothese ist eine überprüfbare Vermutung. Eine Messung ermittelt messbare Werte.'}
+ ];
+ const q='Erkläre mir den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const result=gate.rank(q,docs);
+ assert.equal(result.length,2);
+ assert.ok(result.every(x=>x.title==='Hypothese und Messung'));
+ assert.equal(gate.rank(q,[docs[0]]).length,0);
+ assert.equal(gate.rank('Erkläre etwas',[docs[0]]).length,0);
+ assert.match(html,/modules\/document-gate.js/);
+ assert.match(app,/NERYXDocumentGate\?\.rank\(q,data\.documents,4\)/);
+});
+test('Dokumentfilter: thematische Ein-Wort-Frage funktioniert ohne irrelevanten Fallback',()=>{
+ const window={};runInNewContext(read('modules/document-gate.js'),{window});
+ const g=window.NERYXDocumentGate;
+ const docs=[{title:'Saturn',content:'Der Saturn ist ein Planet.'}];
+ assert.equal(g.rank('Was ist Saturn?',docs).length,1);
+ assert.equal(g.rank('Was ist ein Okapi?',docs).length,0);
+ assert.equal(g.rank('Vergleiche Saturn und Okapi',docs).length,0);
 });
