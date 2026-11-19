@@ -1409,3 +1409,25 @@ test('Dokumentfilter: thematische Ein-Wort-Frage funktioniert ohne irrelevanten 
  assert.equal(g.rank('Was ist ein Okapi?',docs).length,0);
  assert.equal(g.rank('Vergleiche Saturn und Okapi',docs).length,0);
 });
+
+test('L1-Evaluation enthält nur synthetische Testfälle ohne frozen-Selbstbewertung',()=>{
+ const fixture=JSON.parse(read('eval/fixtures.json'));
+ const suite=JSON.parse(read('eval/suite.json'));
+ const ids=suite.items.map(x=>x.id);
+ assert.equal(new Set(ids).size,ids.length);
+ assert.ok(suite.items.length>=20);
+ assert.ok(suite.items.every(x=>['dev','regression'].includes(x.suite)));
+ assert.ok(suite.items.some(x=>x.suite==='regression'));
+ assert.ok(suite.items.some(x=>x.suite==='dev'));
+ assert.ok(fixture.documents.every(x=>x.id&&x.title&&x.content));
+ assert.match(read('eval/run-l1.mjs'),/runInNewContext/);
+ assert.doesNotMatch(read('eval/run-l1.mjs'),/localStorage|indexedDB|getItem\(/);
+});
+test('L1-Evaluation erkennt ausdrücklich eine bekannte Retrieval-Lücke',()=>{
+ const window={};
+ runInNewContext(read('modules/document-gate.js'),{window});
+ const fixture=JSON.parse(read('eval/fixtures.json'));
+ const hits=window.NERYXDocumentGate.rank('Wie lange trocknet Terrafix-K?',fixture.documents,10);
+ assert.equal(hits.some(x=>x.id==='fx-d90'),false);
+ assert.equal(hits.some(x=>x.id==='fx-d10'),false); // aktuelle lexikalische Grenze offen ausweisen
+});
