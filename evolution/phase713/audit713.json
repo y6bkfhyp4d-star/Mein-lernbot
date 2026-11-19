@@ -1,13 +1,40 @@
 {
   "schema": 713,
-  "generated_at": "2026-11-18T05:10:44+00:00",
+  "generated_at": "2026-11-19T05:15:49+00:00",
   "phase7_closure": "technisch_abgeschlossen_mit_offenen_wahrheitsfragen",
   "status_explanation": "Phase-7-Pipeline vorhanden und automatisierte Strukturtests dokumentiert. Keine unabhängige Sachverifikation.",
   "source_schema": 711,
-  "source_records": 14,
+  "source_records": 25,
   "audit": {
-    "checked": 11,
+    "checked": 15,
     "rows": [
+      {
+        "topic": "(136199) Eris",
+        "statement": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
+        "source": "https://de.wikipedia.org/?curid=832658",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "18. Oktober",
+        "statement": "Der 18. Oktober ist der 291. Tag des gregorianischen Kalenders (der 292. in Schaltjahren), somit verbleiben 74 Tage bis zum Jahresende.",
+        "source": "https://de.wikipedia.org/?curid=6299",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Aerosol",
+        "statement": "Ein Aerosol ist ein dynamisches System und unterliegt ständigen Änderungen durch Kondensation von Dämpfen an bereits vorhandenen Partikeln, Verdampfen flüssiger Bestandteile der Partikel, Koagulation kleiner Teilchen zu großen oder Abscheidung von Teilchen an umgebenden Gegenständen.",
+        "source": "https://de.wikipedia.org/?curid=36642",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
       {
         "topic": "Algorithmus",
         "statement": "Ein Algorithmus (benannt nach dem Mathematiker und Universalgelehrten al-Chwarizmi, von arabisch: الخوارزمی al-Ḫwārizmī, deutsch ‚der Choresmier‘) ist eine eindeutige Handlungsvorschrift zur Lösung eines Problems oder einer Klasse von Problemen.",
@@ -102,6 +129,15 @@
         "topic": "Schall",
         "statement": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper).",
         "source": "https://de.wikipedia.org/?curid=9344",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Vulkan",
+        "statement": "Ein Vulkan ist eine geologische Struktur, die entsteht, wenn Magma (Gesteinsschmelze) bis an die Oberfläche eines Planeten (z. B. der Erde) aufsteigt.",
+        "source": "https://de.wikipedia.org/?curid=8504",
         "flags": [],
         "risk": "keine_strukturhinweise",
         "independent_verified": false,
