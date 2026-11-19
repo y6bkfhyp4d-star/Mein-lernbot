@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -668,4 +668,53 @@ test('Freier Dialog: unbekannte Sprache durch geprüfte Zahlenantwort lernen',()
  assert.equal(db.get('neryx.learning.wordfeatures.v1'),snapshot);
  assert.equal(db.has('meinLernBot.v1'),false);
  assert.match(w.status(),/Trainingsbeispiele: 2/);
+});
+
+test('Themenlernen: Lebensraum über neue Frageformulierung wiederfinden und dauerhaft speichern',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/topic-learning.js'),{window,localStorage});
+ const l=window.NERYXTopicLearning;
+ assert.match(l.ask('Wo lebt ein Okapi?'),/noch keine bestätigte Antwort/);
+ assert.equal(db.size,0,'Unbestätigte Frage speichert nichts');
+ assert.match(l.pendingReply('Antwort: Im Regenwald der Demokratischen Republik Kongo'),/Ja, speichern/);
+ assert.equal(db.size,0,'Antwort ohne Einwilligung nicht speichern');
+ assert.match(l.pendingReply('Ja, speichern'),/Themenwissen gespeichert/);
+ assert.match(l.match('In welchem Lebensraum lebt das Okapi?'),/Im Regenwald der Demokratischen Republik Kongo/);
+ assert.equal(db.has('meinLernBot.v1'),false);
+ const loaded={};runInNewContext(read('modules/topic-learning.js'),{window:loaded,localStorage});
+ assert.match(loaded.NERYXTopicLearning.match('Wo lebt das Okapi?'),/Im Regenwald/,'Neuladen erhält die Information');
+ assert.ok(html.includes('src="modules/topic-learning.js"'));
+ assert.ok(app.includes('NERYXTopicLearning?.pendingReply(s)'));
+ assert.ok(app.includes('NERYXTopicLearning?.match(s)'));
+});
+test('Themenlernen: Fachgebiete und freie Fragen, aber keine ungeprüften Behauptungen',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/topic-learning.js'),{window,localStorage});
+ const l=window.NERYXTopicLearning;
+ assert.match(l.beginTeaching('Wozu dient Tiefgrund? => Zur Verfestigung saugender Untergründe'),/Ja, speichern/);
+ assert.match(l.pendingReply('Abbrechen'),/abgebrochen/);
+ assert.equal(db.size,0);
+ l.beginTeaching('Wozu dient Tiefgrund? => Zur Verfestigung saugender Untergründe');
+ assert.match(l.pendingReply('Ja speichern'),/gespeichert/);
+ assert.match(l.match('Für was verwendet man Tiefgrund?'),/Zur Verfestigung/);
+ l.ask('Warum ist der Himmel blau?');
+ l.pendingReply('Antwort: Wegen der Streuung von Sonnenlicht');
+ l.pendingReply('Ja, speichern');
+ assert.match(l.match('Warum ist der Himmel blau?'),/Streuung/);
+ assert.equal(l.match('Warum ist das Meer blau?'),null);
+ assert.match(l.status(),/Gespeicherte bestätigte Einträge: 2/);
+ assert.equal(db.has('meinLernBot.v1'),false);
+});
+test('Themenlernen: Konflikte nicht überschreiben, kritische Eingaben nicht speichern',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/topic-learning.js'),{window,localStorage});
+ const l=window.NERYXTopicLearning;
+ l.beginTeaching('Was ist Grundierung? => Ein vorbereitender Anstrich');
+ l.pendingReply('Ja, speichern');
+ const snap=db.get('neryx.learning.topics.v1');
+ l.beginTeaching('Was ist Grundierung? => Eine Farbe zum Essen');
+ assert.match(l.pendingReply('Ja, speichern'),/Abweichende Angabe/);
+ assert.equal(db.get('neryx.learning.topics.v1'),snap,'Kein stilles Überschreiben');
+ assert.match(l.beginTeaching('Heute ist Donnerstag => Hi'),/noch nicht sicher/);
+ assert.equal(db.get('neryx.learning.topics.v1'),snap);
 });
