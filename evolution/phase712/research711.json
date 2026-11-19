@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
+    "-genese",
+    "Abfallprodukt",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
-    "18. Oktober",
-    "Abdus Salam",
-    "Abiotisch"
+    "18. Oktober"
   ],
   "records": [
     {
-      "checked_at": "2026-11-19T16:39:04+00:00",
+      "checked_at": "2026-11-19T22:25:57+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T16:39:04+00:00",
+      "checked_at": "2026-11-19T22:25:57+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T16:39:04+00:00",
+      "checked_at": "2026-11-19T22:25:57+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -76,7 +76,25 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T16:39:04+00:00",
+      "checked_at": "2026-11-19T22:25:57+00:00",
+      "claims": [],
+      "diagnostics": {
+        "keine_klare_klassifikation": 1,
+        "subjekt_nicht_erkannt": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "-genese",
+      "question": "Was ist -genese und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=279722",
+      "status": "keine_klare_klassifikation",
+      "title_resolution": "direkter_titel",
+      "topic": "-genese",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T22:25:57+00:00",
       "claims": [
         {
           "id": "p711-b0412689b701e4",
@@ -120,6 +138,24 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Abdus Salam",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T22:25:57+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 2,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abfallprodukt",
+      "question": "Was ist Abfallprodukt und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=6770970",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Abfallprodukt",
       "verified_correction": false
     },
     {
@@ -885,6 +921,22 @@
         "(136108) Haumea",
         "Abdus Salam",
         "Abiotisch"
+      ]
+    },
+    {
+      "at": "2026-11-19T22:25:57+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "-genese",
+        "Abfallprodukt",
+        "(1) Ceres",
+        "(136108) Haumea"
       ]
     }
   ],
