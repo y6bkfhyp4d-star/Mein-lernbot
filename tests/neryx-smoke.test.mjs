@@ -1016,7 +1016,9 @@ test('Systemzentrale: aktive Problemoperatoren lösen Regeln, Folgen und Raster'
  assert.match(center.route('010;111;010'),/Kein freier Weg/);
  assert.match(center.solve('fremdes Problem'),/noch keinen überprüften Lösungsweg/);
  assert.match(center.report(),/SYSTEMZENTRALE/);
- assert.deepEqual(window.NERYXCapabilityTest.benchmark(123456).domains.rule,{correct:12,total:12});
+ const rule=window.NERYXCapabilityTest.benchmark(123456).domains.rule;
+ assert.equal(rule.correct,12);
+ assert.equal(rule.total,12);
  assert.ok(html.includes('src="modules/system-hub.js"'));
  assert.ok(app.includes('NERYXSystem?.report()'));
  assert.ok(app.includes('NERYXSystem?.solve(v)'));
