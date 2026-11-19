@@ -59,3 +59,23 @@ Die bestehende separate Sprachmodell-Oberfläche liegt unter
 ## Daten-Verträglichkeit
 
 Unverändert: `meinLernBot.v1`, alte Sicherungs-Schlüssel, `neryx.learning.*`, `window.LernBotBridge` und die bisherigen Fachbefehle. Die neue Zentrale legt keinen neuen dauerhaften Speicher an; der lokale Sprachmodelladapter verwaltet seinen Ladezustand nur in der aktuellen Browsersitzung.
+
+## Nachtrag: Geprüfte Rechenoperationen mit lokaler KI verbinden (19.11.2026)
+
+Der iPhone-Test bestätigte, dass WebLLM tatsächlich lädt. Eine reale
+Textaufgabe zur Wandfläche beantwortete Qwen 2.5 0,5B jedoch falsch
+(5 m² statt 150 m²) und erfand einen unpassenden Rechenweg.
+
+Als gezielte Integrationskorrektur wurde `modules/math-verifier.js`
+eingebaut und über `index.html` vor der lokalen Modell-Bridge geladen.
+Er erkennt einen **eng abgegrenzten Fall**: Anzahl Räume × Wände pro
+Raum × Breite und Höhe je Wand, in Metern. Dabei muss klar sein, dass
+alle Wände dieselben Maße haben. Fenster, Türen oder verschiedene
+Wandmaße lösen eine Rückfrage statt einer erfundenen Berechnung aus.
+Das Ergebnis hat Vorrang vor dem Sprachmodell – ausdrücklich auch bei
+`KI fragen: ...` und im normalen Hauptchat. `Fläche berechnen: ...`
+ist ein weiterer expliziter Einstieg.
+
+Wichtig: **Keine allgemeine Mathematikverifikation**. Bei unbekannten
+Textaufgabentypen kann das Sprachmodell weiterhin unzutreffende
+Antworten geben. Sie gelten nicht als verifiziert.
