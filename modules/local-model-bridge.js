@@ -4,6 +4,8 @@
 (() => {
 'use strict';
 let client=null,loaded=false,automatic=false,loading=null;
+const scriptURL=document.currentScript?.src||new URL('./modules/local-model-bridge.js',document.baseURI).href;
+const prototypeURL=new URL('../evolution/neryx/',scriptURL).href;
 const info=()=>({loaded,automatic,connecting:!!loading,webgpu:!!navigator.gpu});
 function status(){
  const x=info();
@@ -20,9 +22,9 @@ async function load(){
  if(loading)return 'Der Ladeversuch läuft bereits.';
  if(!navigator.gpu)return 'WebGPU wird in diesem Browser nicht erkannt. Öffne ggf. den separaten Prototyp in Safari: evolution/neryx/';
  loading=(async()=>{
-  const mod=await import('./evolution/neryx/client.js');
+  const mod=await import(new URL('client.js',prototypeURL).href);
   if(typeof mod.createNeryxClient!=='function')throw Error('Die WebLLM-Bridge ist nicht verfügbar.');
-  const target=new URL('./evolution/neryx/',document.baseURI).href;
+  const target=prototypeURL;
   const instance=mod.createNeryxClient({url:target,timeoutMs:240000});
   client=instance;
   try{
