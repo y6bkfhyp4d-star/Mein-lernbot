@@ -1199,3 +1199,20 @@ test('Modellwechsel 0,5B zu 1,5B ist explizit und lädt kein Modell automatisch'
  assert.match(read('evolution/neryx/app.js'),/SET_MODEL/);
  assert.match(app,/NERYXLocalModel\?\.selectModel\(v\)/);
 });
+
+test('Gesamt-KI: irrelevante gespeicherte Dokumententreffer dürfen Qwen nicht blockieren',async()=>{
+ const window={};let calls=0;
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Eine Hypothese ist eine prüfbare Annahme.';}};
+ const original='IN GESPEICHERTEN DOKUMENTEN:\n• Saturn: definition – Der Saturn ist der sechste Planet unseres Sonnensystems.\nQuelle: Lerninhalt: Saturn';
+ const question='Erkläre mir den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const answer=await window.NERYXOrchestrator.solve(question,{knowledge:async()=>original});
+ assert.equal(calls,1);
+ assert.match(answer,/LOKALES SPRACHMODELL \(unverifiziert\)/);
+ assert.doesNotMatch(answer,/Saturn/);
+ const noModel={info:()=>({loaded:false})};
+ window.NERYXLocalModel=noModel;
+ const fallback=await window.NERYXOrchestrator.solve(question,{knowledge:async()=>original});
+ assert.match(fallback,/Sprachmodell laden/);
+ assert.doesNotMatch(fallback,/Saturn/);
+});
