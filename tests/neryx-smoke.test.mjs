@@ -755,3 +755,28 @@ test('Lernzentrale: abweichende Angaben aus unterschiedlichen Modulen melden ohn
  assert.match(window.NERYXLearningHub.conflictReport(),/Themenlernen .*: B/);
  assert.equal(JSON.stringify([...db]),snapshot,'Keine Konfliktlösung ohne Nutzerauftrag');
 });
+
+test('Speicherabgleich unterscheidet fehlende Schlüssel, leere Daten und Sicherungen ohne zu schreiben',()=>{
+ const db=new Map([
+  ['meinLernBot.v1',JSON.stringify({version:6,facts:[]})],
+  ['neryx.learning.topics.v1',JSON.stringify({version:1,records:[{subject:'testmaterial a',type:'zweck',answer:'Test'}]})],
+  ['neryx.learning.wordfeatures.v1',JSON.stringify({version:1,examples:[{type:'geometrisch',phrase:'multipliziert'}]})],
+  ['neryx.learning.auto.v1',JSON.stringify({version:1,trained:1})],
+  ['meinLernBot.v1.sicherung.test.123','{}']
+ ]),localStorage={
+   getItem:k=>db.get(k)??null,
+   setItem(){throw Error('Diagnostic must not write')},
+   get length(){return db.size},
+   key:i=>[...db.keys()][i]
+ },window={};
+ runInNewContext(read('modules/learning-hub.js'),{window,localStorage,location:{origin:'https://example.test',pathname:'/NERYX/'}});
+ const x=window.NERYXLearningHub.diagnostic();
+ assert.match(x,/Hauptwissen: 0 Einträge/);
+ assert.match(x,/Themenlernen: 1 Einträge/);
+ assert.match(x,/Sprachlernen: 1 Einträge/);
+ assert.match(x,/Kontextlernen: KEIN SPEICHERSCHLÜSSEL/);
+ assert.match(x,/Automatisches Mathe-Lernen: 1 Einträge\/Schritte/);
+ assert.match(x,/Hauptwissen-Sicherungen in diesem Speicherbereich: 1/);
+ assert.match(x,/https:\/\/example\.test\/NERYX\//);
+ assert.ok(app.includes("n==='speicherabgleich'"));
+});
