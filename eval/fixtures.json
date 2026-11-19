@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "description": "Synthetische Fakten – keine echten Nutzer- oder Produktdaten",
+  "documents": [
+    {
+      "id": "fx-d10",
+      "title": "Terrafix-K Trocknung",
+      "content": "Das fiktive Produkt Terrafix-K benötigt bei 20 Grad genau 6 Stunden zum Durchtrocknen."
+    },
+    {
+      "id": "fx-d11",
+      "title": "Terrafix-K Untergrund",
+      "content": "Terrafix-K darf nur auf mineralischen Untergründen eingesetzt werden."
+    },
+    {
+      "id": "fx-d12",
+      "title": "Terrafix-K Lagerfähigkeit",
+      "content": "Die Lagerfähigkeit von Terrafix-K beträgt 12 Monate."
+    },
+    {
+      "id": "fx-d13",
+      "title": "Terrafix-K Lagerfähigkeit",
+      "content": "Die Lagerfähigkeit von Terrafix-K beträgt 24 Monate."
+    },
+    {
+      "id": "fx-d20",
+      "title": "Messprotokoll",
+      "content": "Ein Messprotokoll enthält Werte, Datum und das verwendete Messgerät."
+    },
+    {
+      "id": "fx-d21",
+      "title": "Hypothese",
+      "content": "Eine Hypothese ist eine überprüfbare Annahme."
+    },
+    {
+      "id": "fx-d90",
+      "title": "Saturn",
+      "content": "Der Saturn ist der sechste Planet unseres Sonnensystems."
+    }
+  ],
+  "notes": "Fiktives Testwissen. Diese Inhalte gehören nicht in den echten NERYX-Wissensspeicher."
+}
