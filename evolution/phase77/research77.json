@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Aerosol",
-    "ATP-Synthase",
-    "Vulkan"
+    "Abiotisch",
+    "Abklingbecken",
+    "Abwasser"
   ],
   "questions": [
     {
@@ -144,6 +144,64 @@
       "topic": "Abdus Salam"
     },
     {
+      "checked_at": "2026-11-19T09:39:01+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "werden kann. H2O2 und auch O2 werden durch abiotische, photochemische Prozesse mittels UV-Licht aus Wasser erzeugt. Ferner ist es möglich, dass Hopane",
+          "title": "Photosynthese",
+          "url": "https://de.wikipedia.org/?curid=3327081"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "über dem Meeresspiegel vor. Baum-Hasel wird in die Winterhärtezone 5b eingeordnet, ist also auch in Mittel- und Teilen Nordeuropas frosthart, anbaufähig",
+          "title": "Baum-Hasel",
+          "url": "https://de.wikipedia.org/?curid=437403"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "(subkontinental). Gegen abiotische Gefährdungen wie Lawinen, Erosion und Nassschnee ist die Zirbelkiefer äußerst widerstandsfähig. Sie ist einigermaßen resistent",
+          "title": "Zirbelkiefer",
+          "url": "https://de.wikipedia.org/?curid=4849714"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Abiotisch und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Abiotisch",
+      "status": "suchtreffer",
+      "topic": "Abiotisch"
+    },
+    {
+      "checked_at": "2026-11-19T09:39:01+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "aus dem Abklingbecken im Reaktorgebäude in das Zwischenlager auf dem Kraftwerksgelände gebracht. Die restlichen Brennelemente folgten 2019 und 2020, die",
+          "title": "Kernkraftwerk Grafenrheinfeld",
+          "url": "https://de.wikipedia.org/?curid=824844"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "drangen Greenpeace-Aktivisten in das Kraftwerksgelände ein und zündeten ein Feuerwerk am Abklingbecken. Die Organisation wollte damit darauf hinweisen, dass",
+          "title": "Kernkraftwerk Cattenom",
+          "url": "https://de.wikipedia.org/?curid=1810089"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "dass zusätzliche Sicherheitsvorkehrungen für die Lager- und Abklingbecken getroffen würden, da es Unsicherheiten gab, ob die im Falle eines Dammbruchs betroffenen",
+          "title": "Kernkraftwerk Fessenheim",
+          "url": "https://de.wikipedia.org/?curid=1677613"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Abklingbecken und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Abklingbecken",
+      "status": "suchtreffer",
+      "topic": "Abklingbecken"
+    },
+    {
       "checked_at": "2026-11-18T21:29:38+00:00",
       "hits": [
         {
@@ -159,6 +217,35 @@
       "source": "https://de.wikipedia.org/wiki/Abschirmung_%28Gravitation%29",
       "status": "suchtreffer",
       "topic": "Abschirmung (Gravitation)"
+    },
+    {
+      "checked_at": "2026-11-19T09:39:01+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Insel: neue Kläranlage Helgoland ist eröffnet. In: gwf-Wasser. Abgerufen am 5. Mai 2022. Klärwerke des AZV. Abwasser-Zweckverband Südholstein, archiviert",
+          "title": "Helgoland",
+          "url": "https://de.wikipedia.org/?curid=2161"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Abwasser Der Großteil des Warmwasser-Verbrauchs im Haushalt wird für die Körperpflege benötigt. Beim Duschen finden ein Fluss von warmem Abwasser und",
+          "title": "Wärmerückgewinnung",
+          "url": "https://de.wikipedia.org/?curid=301594"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "üblicherweise direkt mit dem Abwasser entsorgt wird. Ein häufig in der Lebensmittelindustrie und Pharmazie eingesetzter Kunststoff ist Polyvinylpyrrolidon (PVP)",
+          "title": "Mikroplastik",
+          "url": "https://de.wikipedia.org/?curid=7975653"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Abwasser und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Abwasser",
+      "status": "suchtreffer",
+      "topic": "Abwasser"
     },
     {
       "checked_at": "2026-11-18T15:32:24+00:00",
@@ -782,6 +869,14 @@
       "errors": 0,
       "no_results": 0,
       "open_gaps": 46,
+      "searched": 3,
+      "with_results": 3
+    },
+    {
+      "at": "2026-11-19T09:39:01+00:00",
+      "errors": 0,
+      "no_results": 0,
+      "open_gaps": 49,
       "searched": 3,
       "with_results": 3
     }
