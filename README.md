@@ -4,6 +4,13 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 **App:** https://y6bkfhyp4d-star.github.io/Mein-lernbot/
 
+## Qwen automatisch bei Bedarf laden (19.11.2026)
+
+NERYX lädt Qwen nun **nicht beim Öffnen der App**, sondern erstmals bei einer unbekannten Frage im Hauptchat, bei `NERYX lösen: ...` oder bei `KI fragen: ...`.
+Der vorhandene Faktenbestand und die deterministischen Fachwerkzeuge antworten ohne Sprachmodell-Start.
+Der erste Modellaufruf kann wegen der nötigen WebLLM-/Modellinitialisierung Zeit brauchen; innerhalb einer aktiven Sitzung wird ein bereits geladenes Modell wiederverwendet.
+Beim Schließen, Neuladen oder durch iOS-Speicherfreigabe kann die WebGPU-Sitzung verloren gehen; die nächste entsprechende Frage lädt erneut.
+Wenn WebGPU/Download fehlschlägt, zeigt NERYX den Fehler, die übrigen Funktionen bleiben nutzbar. Kein Modelltraining oder Speicherüberschreiben.
 ## Plan A, Stufe 2 – begrenzte Werkzeugsteuerung (19.11.2026)
 
 Die gemeinsame KI-Steuerung in `modules/orchestrator.js` ist jetzt auf **Version 2.0**.
