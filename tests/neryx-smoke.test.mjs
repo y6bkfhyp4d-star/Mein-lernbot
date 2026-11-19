@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -857,4 +857,48 @@ test('Lernkontrolle: keine persönlichen Trainingsdaten erfinden',()=>{
  const r=window.NERYXLearningAudit.retrospective();
  assert.equal(r.total,0);
  assert.match(r.warning,/kein Sprachlern-Speicher/);
+});
+
+test('Bestätigte Bedeutungsbrücke erweitert Sprachlernen ohne bestehende Beispiele zu ändern',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ for(const path of ['modules/learning-lab.js','modules/meaning-links.js','modules/word-learning.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const w=window.NERYXWordLearning,m=window.NERYXMeanings;
+ w.teach('Die Zahlen werden verdoppelt | 2,4,8,16,32');
+ w.teach('Wir verdoppeln jede Zahl | 3,6,12,24,48');
+ const old=db.get('neryx.learning.wordfeatures.v1');
+ assert.match(w.query('Mit zwei multiplizieren | 5,10,20,40'),/Keine ausreichend sichere Wortzuordnung/);
+ assert.match(m.propose('mit zwei multiplizieren = verdoppeln'),/Ja, Bedeutung speichern/);
+ assert.equal(db.get('neryx.learning.meanings.v1'),undefined,'Nur Vorschlag darf nichts schreiben');
+ assert.match(m.reply('Ja, Bedeutung speichern'),/gespeichert/);
+ assert.match(w.query('Mit zwei multiplizieren | 5,10,20,40'),/geometrisch → 80/);
+ assert.match(w.query('Nicht mit zwei multiplizieren | 5,10,20,40'),/Keine ausreichend sichere Wortzuordnung/);
+ assert.equal(db.get('neryx.learning.wordfeatures.v1'),old,'Alte Lernbeispiele dürfen nicht überschrieben werden');
+ assert.ok(html.includes('src="modules/meaning-links.js"'));
+ assert.ok(app.includes("command(s,'Bedeutung lernen')"));
+});
+test('Bedeutungsbrücke: Bestätigung erforderlich und widersprüchliche Verknüpfungen werden abgewehrt',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/meaning-links.js'),{window,localStorage});
+ const m=window.NERYXMeanings;
+ m.propose('mit zwei multiplizieren = verdoppeln');
+ assert.match(m.reply('Bedeutung abbrechen'),/abgebrochen/);
+ assert.equal(db.size,0);
+ m.propose('mit zwei multiplizieren = verdoppeln');
+ m.reply('Ja, Bedeutung speichern');
+ const before=db.get('neryx.learning.meanings.v1');
+ assert.match(m.propose('mit zwei multiplizieren = addieren'),/andere Zuordnung/);
+ assert.equal(db.get('neryx.learning.meanings.v1'),before);
+});
+test('Bedeutungstest nutzt feste getrennte Beispiele und prüft auch Nicht-Erkennen',()=>{
+ const db=new Map(),localStorage={getItem(){throw Error('Benchmark darf keinen Speicher lesen')},setItem(){throw Error('Benchmark darf nicht speichern')}},window={};
+ runInNewContext(read('modules/meaning-benchmark.js'),{window,localStorage});
+ const x=window.NERYXMeaningBenchmark.run();
+ assert.equal(x.training,8);
+ assert.equal(x.holdout,24);
+ assert.equal(x.before.correct,16);
+ assert.equal(x.after.correct,19);
+ assert.ok(x.after.answered<=24);
+ assert.match(window.NERYXMeaningBenchmark.report(),/festgelegte Prüfphrasen: 24/);
+ assert.ok(html.includes('src="modules/meaning-benchmark.js"'));
 });
