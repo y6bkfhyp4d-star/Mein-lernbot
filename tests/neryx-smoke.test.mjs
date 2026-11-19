@@ -596,3 +596,39 @@ test('Sprachlernstand listet echten Speicher statt Demonstrationsdaten', () => {
  assert.match(current,/Sprachlernprüfung verwendet eigene Demonstrationsdaten/);
  assert.equal(db.has('meinLernBot.v1'),false);
 });
+
+test('Sprachlernen: unbekannte Formulierung aus zwei geprüften Korrekturen übernehmen',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+ runInNewContext(read('modules/word-learning.js'),{window,localStorage});
+ const m=window.NERYXWordLearning;
+ m.teach('Die Zahlen werden verdoppelt | 2,4,8,16,32');
+ m.teach('Wir verdoppeln jede Zahl | 3,6,12,24,48');
+ assert.match(m.query('Jede Zahl wird mit zwei multipliziert | 7,14,28,56'),/Beispielkorrektur: ZAHL/);
+ assert.match(m.feedback('999'),/keiner geprüften Strategie/);
+ assert.match(m.status(),/Trainingsbeispiele: 2/);
+ assert.match(m.feedback('112'),/Beispiel gespeichert/);
+ assert.match(m.query('Jede Zahl wird mit zwei multipliziert | 9,18,36,72'),/Beispielkorrektur: ZAHL/);
+ assert.match(m.feedback('144'),/Beispiel gespeichert/);
+ assert.match(m.query('Mit zwei multipliziert man jede Zahl | 11,22,44,88'),/geometrisch → 176/);
+ assert.match(m.status(),/Trainingsbeispiele: 4/);
+ assert.equal(db.has('meinLernBot.v1'),false);
+ assert.ok(app.includes("command(s,'Beispielkorrektur')"));
+ assert.ok(app.indexOf("command(s,'Beispielkorrektur')")<app.indexOf("if(context.awaiting)"));
+});
+test('Sprachlernen: Duplikate und abgebrochene Rückmeldungen verändern keine Datensätze',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+ runInNewContext(read('modules/word-learning.js'),{window,localStorage});
+ const m=window.NERYXWordLearning;
+ assert.match(m.feedback('112'),/Zuerst/);
+ m.query('Jede Zahl wird mit zwei multipliziert | 7,14,28,56');
+ assert.match(m.feedback('abbrechen'),/abgebrochen/);
+ assert.equal(db.size,0);
+ m.query('Jede Zahl wird mit zwei multipliziert | 7,14,28,56');
+ m.feedback('112');
+ const snapshot=db.get('neryx.learning.wordfeatures.v1');
+ m.query('Jede Zahl wird mit zwei multipliziert | 7,14,28,56');
+ assert.match(m.feedback('112'),/Bereits gespeichert/);
+ assert.equal(db.get('neryx.learning.wordfeatures.v1'),snapshot);
+});
