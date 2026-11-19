@@ -4,15 +4,17 @@
 (() => {
 'use strict';
 let client=null,loaded=false,automatic=false,loading=null;
+let selectedModel='Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
 const scriptURL=document.currentScript?.src||new URL('./modules/local-model-bridge.js',document.baseURI).href;
 const prototypeURL=new URL('../evolution/neryx/',scriptURL).href;
-const info=()=>({loaded,automatic,connecting:!!loading,webgpu:!!navigator.gpu});
+const info=()=>({loaded,automatic,connecting:!!loading,webgpu:!!navigator.gpu,model:selectedModel});
 function status(){
  const x=info();
  return ['NERYX · SPRACHMODELL','Lokales WebLLM: '+(x.loaded?'geladen':x.connecting?'lädt':'nicht geladen'),
   'Automatische Ergänzung unbekannter Fragen: '+(x.automatic?'eingeschaltet':'ausgeschaltet'),
   'WebGPU im Browser sichtbar: '+(x.webgpu?'ja':'nein / nicht verfügbar'),
-  'Modell: Qwen 2.5 0,5B (experimenteller Prototyp)',
+  'Modell: '+(selectedModel.includes('1.5B')?'Qwen 2.5 1,5B':'Qwen 2.5 0,5B')+' (experimenteller Prototyp)',
+  'Modell wählen: Sprachmodell wählen: 0,5B oder Sprachmodell wählen: 1,5B (vor Laden)',
   'Sprachmodell laden | KI fragen: TEXT | KI-Modus an | KI-Modus aus',
   'Laden benötigt WebGPU und Downloads von externen Modellquellen. Erfolg auf dem iPhone ist nicht garantiert.',
   'Modelltexte sind nicht unabhängig geprüft. Kein automatisches Lernen von Modellgewichten.'].join('\n');
@@ -30,6 +32,7 @@ async function load(){
   try{
    const ok=await instance.ping();
    if(!ok)throw Error('Der eingebettete Prototyp antwortet nicht.');
+   await instance.selectModel(selectedModel);
    const result=await instance.load();
    if(result?.mode!=='local')throw Error('Modell ist nicht im lokalen Modus.');
    loaded=true;
@@ -61,6 +64,16 @@ async function ask(question){
    '\n\nHinweis: KI-generierte Antwort. Fakten vor Übernahme prüfen.';
  }catch(e){return 'Lokale Modellantwort fehlgeschlagen: '+String(e?.message||e)}
 }
+function selectModel(name){
+ const n=String(name??'').trim().toLowerCase().replace(/s/g,'').replace(',','.');
+ const next=n==='1.5b'?'Qwen2.5-1.5B-Instruct-q4f16_1-MLC':
+  n==='0.5b'?'Qwen2.5-0.5B-Instruct-q4f16_1-MLC':null;
+ if(!next)return 'Nur 0,5B oder 1,5B verfügbar.';
+ if(loaded||loading)return 'Vor einem Modellwechsel: Sprachmodell trennen. Danach erneut wählen und laden.';
+ selectedModel=next;
+ return 'Modell gewählt: '+(n==='1.5b'?'Qwen 2.5 1,5B':'Qwen 2.5 0,5B')+
+  '. Noch nicht geladen. Das größere Modell benötigt mehr Speicher. Befehl: Sprachmodell laden';
+}
 function mode(on){
  if(on&&!loaded)return 'Erst das lokale Sprachmodell mit „Sprachmodell laden“ starten.';
  automatic=!!on;
@@ -77,5 +90,5 @@ function unload(){
  if(client){client.destroy();client=null}
  return 'Sprachmodell-Verbindung getrennt. NERYX-Lernspeicher unverändert.';
 }
-window.NERYXLocalModel=Object.freeze({version:'1.1',status,load,ask,askRaw,mode,shouldFallback,unload,info});
+window.NERYXLocalModel=Object.freeze({version:'1.1',status,load,ask,askRaw,selectModel,mode,shouldFallback,unload,info});
 })();
