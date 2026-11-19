@@ -34,6 +34,8 @@ function status(){
  'Rechenprüfer: '+(window.NERYXMathVerifier?.solve?'bereit':'fehlt'),
  'Problemlöser: '+(window.NERYXSystem?.solve?'bereit':'fehlt'),
  'Wissenskoordinator: '+(window.NERYXCoordinator?.decide?'bereit':'fehlt'),
+ 'Evidenzvertrag: '+(window.NERYXEvidence?.retrieve?'lesend bereit':'fehlt')+' (Alt-Wissen ist nicht automatisch verifiziert)',
+ 'Abfrage: Evidenz: THEMA oder Evidenz: THEMA: EIGENSCHAFT',
  'Sprachmodell: '+(model?.loaded?'lokal geladen':'bei Bedarf automatisch ladbar'),
  'Werkzeugwahl: Zahlenfolgen, Regeln, Rasterwege und Wandflächen',
  'Reihenfolge: Rechenkern → passendes lokales Wissen → geprüfte Werkzeugwahl/Qwen',
