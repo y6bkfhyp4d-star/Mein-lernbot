@@ -1,5 +1,23 @@
 # NERYX
 
+## L1-Evaluation – synthetische Baseline (19.11.2026)
+
+Claude schlug drei Testsuite-Bestände vor. Die **erste** isolierte Umsetzung liegt unter `eval/`:
+
+- `eval/fixtures.json`: sieben vollständig erfundene Dokumente ohne Nutzerdaten
+- `eval/suite.json`: 21 explizite `dev`-/`regression`-Fälle für Retrieval und vorhandene Antwort-Vollständigkeitskontrolle
+- `eval/run-l1.mjs`: Node-Runner, der die **tatsächlichen Browser-IIFEs** `modules/document-gate.js` und `modules/answer-review.js` mit `node:vm` in einer isolierten `window`-Umgebung ausführt; kein WebLLM, kein `localStorage`, keine Nutzerdateien
+
+```sh
+node eval/run-l1.mjs
+node eval/run-l1.mjs --strict
+```
+
+Die Standardausführung gibt eine JSON-Auswertung mit Fixture-/Suite-SHA256, Einzelresultaten und Kategorien aus, ohne bei inhaltlichen Baseline-Fehlern abzubrechen. `--strict` gibt Exitcode 1, wenn Tests fehlschlagen. **Die Bewertungsziele bleiben unverändert sichtbar; eine unzureichende Suche wird nicht nachträglich zu einem Erfolg erklärt.**
+
+Kontrollierte Simulation im Entwicklerwerkzeug: **14/21** Prüffälle bestanden, sieben fehlgeschlagen. Fehlende Treffer bei Trocknungszeit-Paraphrasen und der Hypothese/Messung-Zweiteilung zeigen derzeitige Recall-Probleme; `rev04` zeigt eine verpasste Schritt-Erkennung. Eine vollständige Ausführung des Node-Runners und aller NERYX-Smoke-Tests im Repository ist noch nicht nachgewiesen. Die L1-Ergebnisse messen **weder das Sprachmodell noch allgemeine Intelligenz**. Die späteren `frozen`- und `holdout`-Bestände fehlen absichtlich: Sie sollten getrennt und ohne Kenntnis der aktuellen Suchschwellen erstellt werden.
+
+
 ## Dokument-Relevanzfilter 1.0 (19.11.2026)
 
 Der tatsächlich vorhandene `docAnswer(q)` in `app.js` gab früher immer die besten vier Satztreffer mit **einem einzigen Token-Match** zurück. Dadurch konnte beispielsweise ein Saturn-Dokument eine Frage zu Hypothese und Messung kapern. Jetzt nutzt `docAnswer` das rein lesende Modul `modules/document-gate.js`: Aufgabenwörter werden aus der Anfrage entfernt, deutsche Wörter vereinfacht, nur Satztreffer mit wenigstens 60 % Themenwort-Abdeckung und direktem Bezug im Satz werden ausgegeben. **Kein Treffer ist ausdrücklich zulässig.** Kein Altbestand wird geändert.
