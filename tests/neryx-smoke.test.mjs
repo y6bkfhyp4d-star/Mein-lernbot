@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -901,4 +901,29 @@ test('Bedeutungstest nutzt feste getrennte Beispiele und prüft auch Nicht-Erken
  assert.ok(x.after.answered<=24);
  assert.match(window.NERYXMeaningBenchmark.report(),/festgelegte Prüfphrasen: 24/);
  assert.ok(html.includes('src="modules/meaning-benchmark.js"'));
+});
+
+test('Stapeltest: sichere Zeilen werden nacheinander ausgeführt und Bericht geordnet',async()=>{
+ const window={};
+ runInNewContext(read('modules/batch-test.js'),{window});
+ const input='Stapeltest:\nBedeutung lernen: mal zwei nehmen = verdoppeln\nJa, Bedeutung speichern\nBedeutungstest';
+ const log=[],result=await window.NERYXBatch.run(input,async line=>{log.push(line);return 'OK '+line});
+ assert.equal(log.join('|'),'Bedeutung lernen: mal zwei nehmen = verdoppeln|Ja, Bedeutung speichern|Bedeutungstest');
+ assert.match(result,/Befehle: 3/);
+ assert.match(result,/3\. Bedeutungstest/);
+ assert.ok(html.includes('src="modules/batch-test.js"'));
+ assert.ok(app.includes('NERYXBatch?.isBatch(s)'));
+});
+test('Stapeltest: ungültige Befehle und isolierte Bestätigungen führen nichts aus',async()=>{
+ const window={};
+ runInNewContext(read('modules/batch-test.js'),{window});
+ let calls=0;
+ const act=async()=>{calls++;return 'OK'};
+ const bad=await window.NERYXBatch.run('Stapeltest:\nBedeutungstest\nFakt löschen: Test: Zweck',act);
+ assert.match(bad,/ABGELEHNT/);
+ const confirm=await window.NERYXBatch.run('Stapeltest:\nJa, Bedeutung speichern\nBedeutungstest',act);
+ assert.match(confirm,/ohne vorangehenden/);
+ assert.equal(calls,0);
+ assert.equal(window.NERYXBatch.isBatch('Hallo!\nWie geht es dir?'),false);
+ assert.equal(window.NERYXBatch.isBatch('Lerne: A: B – C'),false);
 });
