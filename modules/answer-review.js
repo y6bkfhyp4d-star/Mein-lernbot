@@ -4,7 +4,7 @@
 'use strict';
 const norm=s=>String(s??'').toLocaleLowerCase('de').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss');
 const RE={
- example:/\b(?:beispiel|beispielsweise|z\.?\s*b\.?|beispielsatz|beispielhaft)\b/i,
+ example:/\b(?:beispiel(?:s|e|en)?|beispielsweise|z\.?\s*b\.?|beispielsatz|beispielhaft)\b/i,
  steps:/\b(?:schritt[\s-]*fur[\s-]*schritt|schritte|rechenweg|vorgehensweise)\b/i,
  comparison:/\b(?:unterschied|vergleiche|vergleich|gegenuberstellung)\b/i,
  painting:/\b(?:malerhandwerk|malerbetrieb|malerarbeiten|malerberuf)\b/i
