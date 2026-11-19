@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/personal-learning-test.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/personal-learning-test.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js','modules/local-model-bridge.js','modules/system-hub.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -1003,4 +1003,48 @@ test('Stapeltest: persönliche Vorher-Nachher-Prüfung mit zwei unterschiedliche
  assert.match(output,/Veränderung: \+2 richtige Zuordnungen/);
  assert.equal(db.has('neryx.learning.personaltest.v1'),false);
  assert.equal(JSON.parse(db.get('neryx.learning.wordfeatures.v1')).examples.length,2);
+});
+
+test('Systemzentrale: aktive Problemoperatoren lösen Regeln, Folgen und Raster',()=>{
+ const window={};
+ for(const file of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/capability-test.js','modules/system-hub.js'])
+  runInNewContext(read(file),{window});
+ const center=window.NERYXSystem;
+ assert.match(center.solve('2=5, 4=9; 7'),/y = 15/);
+ assert.match(center.solve('2, 4, 8, 16'),/32/);
+ assert.match(center.route('000;010;000'),/Schritte: 4/);
+ assert.match(center.route('010;111;010'),/Kein freier Weg/);
+ assert.match(center.solve('fremdes Problem'),/noch keinen überprüften Lösungsweg/);
+ assert.match(center.report(),/SYSTEMZENTRALE/);
+ assert.deepEqual(window.NERYXCapabilityTest.benchmark(123456).domains.rule,{correct:12,total:12});
+ assert.ok(html.includes('src="modules/system-hub.js"'));
+ assert.ok(app.includes('NERYXSystem?.report()'));
+ assert.ok(app.includes('NERYXSystem?.solve(v)'));
+ assert.ok(app.includes('NERYXSystem?.route(v)'));
+});
+test('Sprachmodell-Bridge: Opt-in, kein automatischer Download bei Start und kein ungeprüfter Auto-Modus',async()=>{
+ let reads=0,writes=0;
+ const window={},navigator={gpu:null},document={baseURI:'https://example.test/Mein-lernbot/',currentScript:{src:'https://example.test/Mein-lernbot/modules/local-model-bridge.js'}};
+ runInNewContext(read('modules/local-model-bridge.js'),{window,navigator,document,URL});
+ const model=window.NERYXLocalModel;
+ assert.equal(model.info().loaded,false);
+ assert.equal(model.info().automatic,false);
+ assert.match(model.status(),/nicht geladen/);
+ assert.match(model.mode(true),/Erst das lokale Sprachmodell/);
+ assert.equal(model.shouldFallback('Dazu habe ich keine Antwort'),false);
+ assert.match(await model.ask('Was ist ein Okapi?'),/noch nicht geladen/);
+ assert.match(await model.load(),/WebGPU/);
+ assert.match(model.unload(),/getrennt/);
+ assert.equal(reads+writes,0);
+ assert.ok(html.includes('src="modules/local-model-bridge.js"'));
+ assert.ok(app.includes('NERYXLocalModel?.load()'));
+ assert.ok(app.includes('NERYXLocalModel?.ask(v)'));
+});
+test('Sprachmodell lädt keine fremden Modellscripte ohne ausdrücklichen Befehl',()=>{
+ const source=read('modules/local-model-bridge.js');
+ assert.match(source,/async function load\(/);
+ assert.match(source,/import\(new URL\('client.js',prototypeURL\)\.href\)/);
+ assert.match(source,/document\.currentScript\?\.src/);
+ assert.doesNotMatch(source,/localStorage\.setItem/);
+ assert.match(app,/NERYXLocalModel\?\.shouldFallback\(original\)/);
 });
