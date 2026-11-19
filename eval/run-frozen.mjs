@@ -1,48 +1,51 @@
-/* NERYX Frozen-L1: ausschließlich externe synthetische Daten.
-   node eval/run-frozen.mjs /absoluter/pfad/frozen.json
-   Ausgabe nur Aggregate. Ohne aktiviertes Siegel wird NICHT geprüft. */
-import {readFileSync,realpathSync} from 'node:fs';
+/* NERYX Frozen-S3 – nur externe, versiegelte synthetische Daten.
+   node eval/run-frozen.mjs /ABSOLUT/frozen-fixture.json /ABSOLUT/frozen-suite.json
+   Ausgabe nur Aggregate; fehlende Auswerter gelten niemals als bestanden. */
+import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {resolve,dirname,relative,isAbsolute} from 'node:path';
-import {createHash} from 'node:crypto';
-import {scoreRetrieval} from './retrieval-score.mjs';
+import {resolve,dirname} from 'node:path';
 import {runInNewContext} from 'node:vm';
+import {scoreRetrieval} from './retrieval-score.mjs';
+import {loadFrozen} from './frozen-loader.mjs';
+
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const source=p=>readFileSync(resolve(root,p),'utf8');
 const seal=JSON.parse(source('eval/frozen.seal.json'));
-if(seal.schema!==1||seal.active!==true||!/^[0-9a-f]{64}$/.test(String(seal.sha256))||
- !Number.isSafeInteger(seal.itemCount)||seal.itemCount<1||!seal.version)
- throw Error('Frozen-Evaluation ist noch nicht freigegeben; Siegel fehlt.');
-const arg=process.argv[2];
-if(!arg||!isAbsolute(arg))throw Error('Ein absoluter Pfad außerhalb des Repos ist erforderlich.');
-const target=realpathSync(arg),rel=relative(root,target);
-if(rel===''||(!rel.startsWith('..'+(process.platform==='win32'?'\\':'/'))&&rel!=='..'&&!isAbsolute(rel)))
- throw Error('Frozen-Datei muss außerhalb des Repositories liegen.');
-const bytes=readFileSync(target),hash=createHash('sha256').update(bytes).digest('hex');
-if(hash!==seal.sha256)throw Error('Frozen-Siegel stimmt nicht überein.');
-const frozen=JSON.parse(bytes.toString('utf8'));
-if(frozen.schema!==1||!Array.isArray(frozen.items)||!Array.isArray(frozen.fixtures?.documents)||
- frozen.items.length!==seal.itemCount||frozen.items.some(x=>x.suite!=='frozen'))
- throw Error('Frozen-Dateiformat oder Anzahl stimmt nicht überein.');
+const frozen=loadFrozen(process.argv[2],process.argv[3],root,seal);
+if(process.argv.length!==4)throw Error('Genau zwei Frozen-Dateipfade erforderlich.');
 const window={};
-for(const path of ['modules/document-gate.js','modules/answer-review.js'])runInNewContext(source(path),{window});
-const summary={schema:1,version:seal.version,hash,runAt:new Date().toISOString(),
- total:frozen.items.length,passed:0,failed:0,byCategory:{}};
-const ids=new Set();
+runInNewContext(source('modules/document-gate.js'),{window});
+const summary={schema:2,version:frozen.version,hashes:frozen.hashes,
+ total:frozen.items.length,evaluatedItems:0,fullyEvaluatedItems:0,
+ passed:0,failed:0,notEvaluatedItems:0,byCategory:{},byCheck:{
+ retrieval:{evaluated:0,passed:0,failed:0},
+ mode:{evaluated:0,notEvaluated:0},concepts:{evaluated:0,notEvaluated:0},
+ exact:{evaluated:0,notEvaluated:0},labels:{evaluated:0,notEvaluated:0},
+ conflictSurfaced:{evaluated:0,notEvaluated:0},statusWording:{evaluated:0,notEvaluated:0}
+ }};
 for(const t of frozen.items){
- if(typeof t.id!=='string'||ids.has(t.id))throw Error('Frozen-Testformat ungültig.');
- ids.add(t.id);
- let pass=false;
- if(t.layers?.includes('retrieval')){
-  const out=[...new Set(window.NERYXDocumentGate.rank(t.input.question,frozen.fixtures.documents,10)
-   .map(x=>x.id).filter(Boolean))];
-  pass=scoreRetrieval(out,t.expect).pass;
- }else if(t.layers?.includes('review')){
-  pass=window.NERYXAnswerReview.inspect(t.input.question,t.input.draft).complete===t.expect.complete;
- }else throw Error('Unbekannte Frozen-Ebene.');
- const label=String(t.category||'unbekannt').slice(0,40);
- if(!summary.byCategory[label])summary.byCategory[label]={passed:0,total:0};
- summary.byCategory[label].total++;
- if(pass){summary.passed++;summary.byCategory[label].passed++}else summary.failed++;
+ const category=String(t.category||'unbekannt').slice(0,40);
+ const group=summary.byCategory[category]??={total:0,retrievalEvaluated:0,retrievalPassed:0,notFullyEvaluated:0};
+ group.total++;
+ const exp=t.expect??{};
+ const pending=[];
+ if(t.layers.includes('generation')||'mode' in exp)pending.push('mode');
+ if('concepts' in exp)pending.push('concepts');
+ if('exact' in exp)pending.push('exact');
+ if(t.layers.includes('verifier')||'labels' in exp)pending.push('labels');
+ if('conflictSurfaced' in exp)pending.push('conflictSurfaced');
+ if('statusWording' in exp)pending.push('statusWording');
+ for(const key of new Set(pending))summary.byCheck[key].notEvaluated++;
+ if(t.layers.includes('retrieval')){
+  const found=window.NERYXDocumentGate.rank(t.input.question,frozen.documents,10).map(x=>x.id);
+  const result=scoreRetrieval(found,exp);
+  summary.byCheck.retrieval.evaluated++;
+  group.retrievalEvaluated++;
+  summary.evaluatedItems++;
+  if(result.pass){summary.byCheck.retrieval.passed++;group.retrievalPassed++;summary.passed++;}
+  else {summary.byCheck.retrieval.failed++;summary.failed++;}
+ }else summary.notEvaluatedItems++;
+ if(pending.length||!t.layers.includes('retrieval'))group.notFullyEvaluated++;
+ else summary.fullyEvaluatedItems++;
 }
 console.log(JSON.stringify(summary,null,2));
