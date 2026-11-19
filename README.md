@@ -1,5 +1,12 @@
 # NERYX
 
+## Dokument-Relevanzfilter 1.0 (19.11.2026)
+
+Der tatsächlich vorhandene `docAnswer(q)` in `app.js` gab früher immer die besten vier Satztreffer mit **einem einzigen Token-Match** zurück. Dadurch konnte beispielsweise ein Saturn-Dokument eine Frage zu Hypothese und Messung kapern. Jetzt nutzt `docAnswer` das rein lesende Modul `modules/document-gate.js`: Aufgabenwörter werden aus der Anfrage entfernt, deutsche Wörter vereinfacht, nur Satztreffer mit wenigstens 60 % Themenwort-Abdeckung und direktem Bezug im Satz werden ausgegeben. **Kein Treffer ist ausdrücklich zulässig.** Kein Altbestand wird geändert.
+
+Dies ist eine konservative lexikalische Prüfung, **keine semantische Suche, keine Beleg- oder Wahrheitsprüfung**. Paraphrasen ohne passende Wörter werden ggf. übersehen. Dokumenttreffer werden vom zentralen `NERYX lösen` bislang bewusst nicht als verifizierte Fachbeweise akzeptiert. Nächster Schritt: ein unabhängiger Evaluation-Satz mit negativen Suchbeispielen; erst danach Schwellen ändern.
+
+
 ## Architektur-Basis: Evidenzvertrag 1.0 (19.11.2026)
 
 Nach Abgleich mit den Vorschlägen für eine evidenzbasierte KI-Pipeline wurde ein **ausschließlich lesendes** Modul `modules/evidence-contract.js` hinzugefügt. Es nutzt `NERYXLearningHub.collect()` und setzt bestehende lokale Fakten in strukturierte Einträge um: `id`, `text`, `subject`, `property`, `value`, `status`, `source`, `createdAt`, `version`, `conflict`, `alternatives`. `createdAt` bleibt `null`, falls die Altquelle keinen belastbaren Zeitstempel bereitstellt. Die IDs sind vorerst *Snapshot-IDs*, nicht unveränderliche Datenbank-IDs.
