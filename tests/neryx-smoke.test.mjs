@@ -1050,3 +1050,26 @@ test('Sprachmodell lädt keine fremden Modellscripte ohne ausdrücklichen Befehl
  assert.doesNotMatch(source,/localStorage\.setItem/);
  assert.match(app,/NERYXLocalModel\?\.shouldFallback\(original\)/);
 });
+
+test('Systemdiagnose im Stapel: alle Prüfungen ohne Sprachmodell-Download nacheinander ausführbar',async()=>{
+ const window={};
+ for(const file of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/capability-test.js','modules/system-hub.js','modules/batch-test.js'])
+  runInNewContext(read(file),{window});
+ const input=['Stapeltest:','Systemstatus','Problem lösen: 2=5, 4=9; 7',
+ 'Problem lösen: 2, 4, 8, 16','Weg planen: 000;010;000','Fähigkeitstest','Sprachmodell Status'].join('\n');
+ const parsed=window.NERYXBatch.parse(input);
+ assert.equal(parsed.lines.length,6);
+ const output=await window.NERYXBatch.run(input,async line=>{
+  if(line==='Systemstatus')return window.NERYXSystem.report();
+  if(line.startsWith('Problem lösen:'))return window.NERYXSystem.solve(line.slice('Problem lösen:'.length));
+  if(line.startsWith('Weg planen:'))return window.NERYXSystem.route(line.slice('Weg planen:'.length));
+  if(line==='Fähigkeitstest')return window.NERYXCapabilityTest.report();
+  return 'nicht geladen';
+ });
+ assert.match(output,/Befehle: 6/);
+ assert.match(output,/y = 15/);
+ assert.match(output,/Mögliche nächste Zahl: 32/);
+ assert.match(output,/Schritte: 4/);
+ assert.match(output,/FÄHIGKEITSTEST/);
+ assert.match(output,/Sprachmodell Status/);
+});
