@@ -6,6 +6,7 @@
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {createHash} from 'node:crypto';
+import {scoreRetrieval} from './retrieval-score.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const fixtureText=read('eval/fixtures.json'),suiteText=read('eval/suite.json');
 const fixtures=JSON.parse(fixtureText),suite=JSON.parse(suiteText);
@@ -30,10 +31,8 @@ for(const item of suite.items){
  if(item.layers?.includes('retrieval')){
   const hits=window.NERYXDocumentGate.rank(item.input.question,fixtures.documents,10);
   const found=[...new Set(hits.map(x=>x.id).filter(Boolean))];
-  const exp=item.expect.retrieval;
-  checks.include=(exp.mustInclude||[]).every(x=>found.includes(x));
-  checks.exclude=(exp.mustExclude||[]).every(x=>!found.includes(x));
-  checks.verdict=item.expect.verdict==='none'?found.length===0:found.length>0;
+  const result=scoreRetrieval(found,item.expect);
+  Object.assign(checks,result.checks);
   detail={found};
  }else if(item.layers?.includes('review')){
   const inspection=window.NERYXAnswerReview.inspect(item.input.question,item.input.draft);
