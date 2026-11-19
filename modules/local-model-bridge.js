@@ -15,6 +15,7 @@ function status(){
   'WebGPU im Browser sichtbar: '+(x.webgpu?'ja':'nein / nicht verfügbar'),
   'Modell: '+(selectedModel.includes('1.5B')?'Qwen 2.5 1,5B':'Qwen 2.5 0,5B')+' (experimenteller Prototyp)',
   'Modell wählen: Sprachmodell wählen: 0,5B oder Sprachmodell wählen: 1,5B (vor Laden)',
+  'Bei Fragen mit KI fragen: ... oder NERYX lösen: ... lädt Qwen bei Bedarf automatisch.',
   'Sprachmodell laden | KI fragen: TEXT | KI-Modus an | KI-Modus aus',
   'Laden benötigt WebGPU und Downloads von externen Modellquellen. Erfolg auf dem iPhone ist nicht garantiert.',
   'Modelltexte sind nicht unabhängig geprüft. Kein automatisches Lernen von Modellgewichten.'].join('\n');
@@ -57,7 +58,10 @@ async function ask(question){
  if(!s||s.length>3000)return 'Bitte eine konkrete Frage bis 3000 Zeichen eingeben.';
  const verified=window.NERYXMathVerifier?.solve(s);
  if(verified)return verified;
- if(!loaded||!client)return 'Das Sprachmodell ist noch nicht geladen. Befehl: Sprachmodell laden';
+ if(!loaded||!client){
+  const startup=await load();
+  if(!loaded||!client)return 'Das Sprachmodell konnte für diese Frage nicht automatisch geladen werden.\n'+startup;
+ }
  try{
   const answer=await askRaw(s);
   return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\n'+answer.trim()+
@@ -90,5 +94,5 @@ function unload(){
  if(client){client.destroy();client=null}
  return 'Sprachmodell-Verbindung getrennt. NERYX-Lernspeicher unverändert.';
 }
-window.NERYXLocalModel=Object.freeze({version:'1.1',status,load,ask,askRaw,selectModel,mode,shouldFallback,unload,info});
+window.NERYXLocalModel=Object.freeze({version:'1.2',status,load,ask,askRaw,selectModel,mode,shouldFallback,unload,info});
 })();
