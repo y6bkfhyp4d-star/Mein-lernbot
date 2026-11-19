@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -451,4 +451,34 @@ test('Auto-Lernen: kein Feedback aus ungeeigneten Nachrichten und unklaren Beisp
   assert.equal(db.size,0,'Keine Daten für nicht nachvollziehbares Muster');
   assert.match(agent.solve('Wie geht die Folge weiter: 3, 6, 12, 24, 48?'),/Mögliche nächste Zahl: 96/);
   assert.match(agent.status(),/Automatische Lernschritte: 1/);
+});
+
+test('Lernprüfung: getrennte Beispiele weisen Verbesserung und gleichzeitig Regression nach', () => {
+  const db=new Map(),localStorage={
+    getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))
+  },window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/learning-evaluation.js'),{window,localStorage});
+  for(const seed of [42,1234,20261119]){
+    const r=window.NERYXLearningEvaluation.run(seed);
+    assert.equal(r.trainedOn,12);
+    assert.equal(r.heldout,36);
+    assert.equal(r.trainingOverlap,0,'Keine doppelten Eingaben im getrennten Test');
+    assert.equal(r.cubic.before,0);
+    assert.equal(r.cubic.after,18);
+    assert.equal(r.geometric.before,18);
+    assert.equal(r.geometric.after,0);
+    assert.equal(r.improvement,0,'Keine falsche allgemeine Verbesserung behaupten');
+    assert.equal(r.verifiedGain,false);
+  }
+  const report=window.NERYXLearningEvaluation.report();
+  assert.match(report,/Vor dem Lernen: 18\/36/);
+  assert.match(report,/Nach dem Lernen: 18\/36/);
+  assert.match(report,/Verbesserung ohne Rückschritt nachgewiesen: Nein/);
+  assert.equal(db.has('meinLernBot.v1'),false,'Keine Änderungen am Wissensspeicher');
+  assert.equal(db.has('neryx.learning.auto.v1'),false,'Autolernstände bleiben unverändert');
+  assert.equal(db.has('neryx.learning.strategies.v1'),false,'Manuelle Lerngewichte bleiben unverändert');
+  assert.ok(db.has('neryx.learning.evaluation.v1'));
+  assert.ok(html.includes('src="modules/learning-evaluation.js"'));
+  assert.ok(app.includes("n==='lernprufung'"));
 });
