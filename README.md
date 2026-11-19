@@ -1,5 +1,14 @@
 # NERYX
 
+## Architektur-Basis: Evidenzvertrag 1.0 (19.11.2026)
+
+Nach Abgleich mit den Vorschlägen für eine evidenzbasierte KI-Pipeline wurde ein **ausschließlich lesendes** Modul `modules/evidence-contract.js` hinzugefügt. Es nutzt `NERYXLearningHub.collect()` und setzt bestehende lokale Fakten in strukturierte Einträge um: `id`, `text`, `subject`, `property`, `value`, `status`, `source`, `createdAt`, `version`, `conflict`, `alternatives`. `createdAt` bleibt `null`, falls die Altquelle keinen belastbaren Zeitstempel bereitstellt. Die IDs sind vorerst *Snapshot-IDs*, nicht unveränderliche Datenbank-IDs.
+
+**Sicherheitsentscheidung:** Alle importierten Altangaben werden vorerst `user_claim`, **niemals automatisch `verified`**. Lokale Bestätigung ist kein unabhängiger Quellenbeweis. Modellvermutungen werden nicht übernommen; `unknown` bedeutet lediglich, dass im aktuell gelesenen Teil der bestehenden Faktenspeicher kein **exakter** Treffer gefunden wurde – nicht, dass die Information generell unbekannt wäre.
+
+Neue lesende Chat-Abfrage: `Evidenz: Okapi` oder `Evidenz: Okapi: Fellfarbe`. Sie zeigt Herkunft, Status und etwaige Widersprüche. Dieser erste Schritt ändert **weder den normalen Chat-Antwortweg noch die Speicherung**. Es gibt noch keine Promotion aus Quarantäne, keine belegbasierte LLM-Generierung und keine umfassende RAG-Suche; das wären getrennte, überprüfbare Schritte. Bestehende Sicherheitskopien und Daten bleiben unverändert.
+
+
 ## Fachliche Begriffsabgrenzung (19.11.2026)
 
 Nach einem echten iPhone-Test antwortete Qwen auf die Frage nach Hypothese und Messung mit unsinnigen Temperaturbeispielen. Der alte Vollständigkeitscheck erkannte nur den fehlenden Malerbezug und zeigte dennoch den schlechten Modelltext.
