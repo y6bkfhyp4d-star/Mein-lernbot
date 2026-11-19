@@ -63,6 +63,7 @@ function parse(input){
  if(nums.length<4||nums.length>30||nums.some(x=>!finite(x)||Math.abs(x)>1e10)||!label)return null;
  return {nums,label};
 }
+let pendingQuestion=null;
 function solve(input,state=load()){
  const data=parse(input);
  if(!data)return 'Format: Muster prüfen: 2, 4, 8, 16 | Hinweis: verdoppeln';
@@ -82,14 +83,29 @@ function solve(input,state=load()){
  const best=selected(state,data.label);
  const chosen=options.find(x=>x.type===best);
  if(!chosen){
+  pendingQuestion={label:data.label,options:options.map(x=>x.type)};
   lines.push('Welche Regel ist gemeint? Beispielsweise '+options.map(x=>x.type).join(' oder ')+'.',
    'Kontext noch nicht hinreichend gelernt oder die gelernte Regel passt hier nicht.',
    'Trainiere eine Zuordnung mit: Kontext lernen: '+data.label+' = '+options[0].type);
  }else{
+  pendingQuestion=null;
   lines.push('Kontextbasierte Vermutung: '+chosen.type+' → '+round(chosen.next),
    'Die Entscheidung beruht auf gespeicherten Beispielen, nicht auf mathematischer Eindeutigkeit.');
  }
  return lines.join('\n');
+}
+function reply(input){
+ if(!pendingQuestion)return null;
+ const response=normalize(input).replace(/[.!?]+$/,'').trim();
+ const question=pendingQuestion;
+ pendingQuestion=null;
+ if(response==='abbrechen'||response==='nein')return 'Kontext-Rückfrage abgebrochen. Es wurde nichts gespeichert.';
+ if(!question.options.includes(response))return null;
+ const result=learn(question.label,response);
+ const chosen=selected(load(),question.label);
+ return result+'\n'+(chosen
+  ? 'Der Hinweis „'+question.label+'“ bevorzugt jetzt '+chosen+' bei neuen Aufgaben.'
+  : 'Noch keine eindeutige Kontextpräferenz. Verwende zum Üben ein weiteres, eigenständiges Beispiel.');
 }
 function status(){
  const state=load();
@@ -134,5 +150,5 @@ function experiment(){
   'Produktiver Kontextspeicher nicht verändert.',
   note].join('\n');
 }
-window.NERYXContextLearning=Object.freeze({version:'0.1',learn,solve,status,experiment,parse,selected});
+window.NERYXContextLearning=Object.freeze({version:'0.2',learn,solve,reply,status,experiment,parse,selected});
 })();
