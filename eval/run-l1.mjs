@@ -1,7 +1,7 @@
 /* NERYX L1-Evaluation: rein synthetisch, kein Modell, kein Nutzerspeicher.
    Node: node eval/run-l1.mjs [--strict]
-   --strict meldet bei inhaltlich fehlgeschlagenen Items Exitcode 1.
-   Ohne --strict: Baseline mit sichtbaren Schwächen und Exitcode 0.
+   --strict schlägt bei neuen Regressionen fehl. Bekannte Fehler bleiben sichtbar.
+   --all-strict schlägt bei jedem fehlgeschlagenen Fall fehl.
 */
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
@@ -9,6 +9,9 @@ import {createHash} from 'node:crypto';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const fixtureText=read('eval/fixtures.json'),suiteText=read('eval/suite.json');
 const fixtures=JSON.parse(fixtureText),suite=JSON.parse(suiteText);
+const triage=JSON.parse(read('eval/known-issues.json'));
+const known=new Map(triage.items.map(x=>[x.id,x]));
+if(triage.schema!==1||known.size!==triage.items.length)throw Error('Ungültige Fehlerklassifikation.');
 const sha=x=>createHash('sha256').update(x).digest('hex');
 const window={};
 for(const p of ['modules/document-gate.js','modules/answer-review.js'])
@@ -37,7 +40,10 @@ for(const item of suite.items){
   checks.complete=inspection.complete===item.expect.complete;
   detail={missing:inspection.missing};
  }else throw Error('Unbekannte L1-Ebene: '+item.id);
- results.push({id:item.id,suite:item.suite,category:item.category,pass:Object.values(checks).every(Boolean),checks,...detail});
+ const pass=Object.values(checks).every(Boolean),entry=known.get(item.id);
+ results.push({id:item.id,suite:item.suite,category:item.category,pass,
+  classification:entry?.classification||(pass?'passing':'unclassified_failure'),
+  outcome:entry?(pass?'unexpected_pass':'known_failure'):(pass?'pass':'regression'),checks,...detail});
 }
 const groups={};
 for(const r of results){
@@ -46,9 +52,15 @@ for(const r of results){
  groups[k].total++;if(r.pass)groups[k].passed++;
 }
 const passed=results.filter(x=>x.pass).length;
+const surprises=results.filter(x=>x.outcome==='unexpected_pass');
+const regressions=results.filter(x=>x.outcome==='regression');
+const knownFailures=results.filter(x=>x.outcome==='known_failure');
+if([...known.keys()].some(id=>!ids.has(id)))throw Error('Fehlerklassifikation verweist auf nicht vorhandene Test-ID.');
 const report={schema:1,layer:'L1',scope:'synthetische Gate-/Review-Tests, keine LLM-Leistung',
  fixtureHash:sha(fixtureText),suiteHash:sha(suiteText),
- summary:{passed,total:results.length,failed:results.length-passed},
+ summary:{passed,total:results.length,failed:results.length-passed,
+  knownFailures:knownFailures.length,newRegressions:regressions.length,unexpectedPasses:surprises.length},
  groups,results};
 console.log(JSON.stringify(report,null,2));
-if(process.argv.includes('--strict')&&passed!==results.length)process.exitCode=1;
+if(process.argv.includes('--all-strict')&&passed!==results.length)process.exitCode=1;
+if(process.argv.includes('--strict')&&regressions.length)process.exitCode=1;
