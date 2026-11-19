@@ -8,7 +8,7 @@ const KEYS=Object.freeze({
  manual:'neryx.learning.strategies.v1',auto:'neryx.learning.auto.v1'
 });
 const groups=['lebensraum','definition','zweck','verfahren','farbe','herkunft','bestandteile','dauer'];
-const mainProps={zugehoerigkeit:'familie',fellfarbe:'farbe'};
+const mainProps={};
 const fold=x=>String(x??'').toLocaleLowerCase('de').replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[.!?;,]+$/,'').replace(/\s+/g,' ').trim();
 const subject=x=>fold(x).replace(/^(?:der|die|das|ein|eine|einen|einem|einer)\s+/,'');
 const property=x=>mainProps[fold(x).replace(/_/g,' ')]||fold(x).replace(/ /g,'_');
@@ -47,7 +47,7 @@ function collect(){
   seen.get(id).push(claim);
  }
  for(const [id,items] of seen){
-  const values=[...new Set(items.flatMap(x=>[x.value,...x.alternatives.map(a=>text(a?.value)).filter(Boolean)]).map(fold))];
+  const values=[...new Set(items.flatMap(x=>[x.value,...(x.conflict?x.alternatives:[]).map(a=>text(a?.value)).filter(Boolean)]).map(fold))];
   if(values.length>1||items.some(x=>x.conflict))conflicts.push({id,items,values});
  }
  const wordExamples=Array.isArray(words?.examples)?words.examples.filter(x=>x&&typeof x==='object'):[];
@@ -80,7 +80,6 @@ function sources(q){
  if(!search||search.length<2)return 'Format: Lernquellen: Okapi';
  const rows=d.claims.filter(c=>c.subject.includes(search)||c.property.includes(search)).slice(0,30);
  const words=d.wordExamples.filter(x=>fold(x.phrase||'').includes(search)).slice(0,5);
- const contexts=d.contextCount?[]:[];
  return ['NERYX · QUELLENPRÜFUNG: '+text(q),
   rows.length?rows.map(x=>'• '+x.subject+' / '+x.property+': '+x.value+
    '\n  Speicher: '+x.origin+' | Herkunft: '+x.source+
