@@ -41,7 +41,7 @@ function status(){
  'Qwen darf weder Code ausführen noch gespeicherte Daten verändern.',
  'Modellstart: automatisch erst bei ungeklärten Fragen (kein Download beim App-Start)',
  'Befehl: NERYX lösen: FRAGE',
- 'Kurze oder aufforderungsartige Modellantworten werden einmal neu angefragt.',
+ 'Antwortkontrolle: fehlende angeforderte Beispiele/Schritte werden einmal nachgefordert.',
  'Frei formulierte Modellantworten bleiben unverifiziert.'].join('\n');
 }
 function modelSelection(raw,input){
@@ -95,11 +95,21 @@ async function modelFallback(input){
     'NERYX · WERKZEUGPRÜFUNG\nDas vorgeschlagene Fachmodul ist nicht verfügbar.';
   }
   if(/^WERKZEUG\s*:/i.test(raw))return 'NERYX · WERKZEUGPRÜFUNG\nUnbekannter Werkzeugaufruf abgelehnt.';
-  if(looksIncomplete(raw)){
-   raw=await model.askRaw('Antworte vollständig in 2 bis 4 deutschen Sätzen und gib ein Beispiel. Keine Gegenfrage, keine Anweisung an den Nutzer.\n'+input);
+  const review=window.NERYXAnswerReview;
+  let evaluation=review?.inspect(input,raw);
+  const short=looksIncomplete(raw);
+  if(short||evaluation&&!evaluation.complete){
+   const retryPrompt=evaluation&&!evaluation.complete&&review
+    ?review.improvementPrompt(input,raw,evaluation.missing)
+    :'Antworte vollständig in 2 bis 4 deutschen Sätzen und gib ein Beispiel. Keine Gegenfrage, keine Anweisung an den Nutzer.\n'+input;
+   raw=await model.askRaw(retryPrompt);
+   evaluation=review?.inspect(input,raw);
    if(looksIncomplete(raw))return 'NERYX · ANTWORTKONTROLLE\nDas lokale Sprachmodell hat keine ausreichende Erklärung geliefert. Ich gebe keine offensichtlich unvollständige Antwort als Lösung aus. Bitte präziser fragen oder ein leistungsfähigeres Modell auswählen.';
   }
-  return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\n'+raw.slice(0,2200)+
+  const caution=evaluation&&!evaluation.complete
+   ?'\n\nNERYX · VOLLSTÄNDIGKEITSHINWEIS\nMöglicherweise fehlen: '+evaluation.missing.join(', ')+'. Der Inhalt wurde nicht auf Richtigkeit geprüft.'
+   :'';
+  return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\n'+raw.slice(0,2200)+caution+
    '\n\nHinweis: KI-generierte Erklärung, nicht unabhängig überprüft.';
  }catch(e){return 'NERYX · KI-SYSTEM\nSprachmodell nicht erreichbar: '+String(e?.message||e)}
 }
@@ -115,5 +125,5 @@ async function solve(input,{knowledge}={}){
  }
  return await modelFallback(s);
 }
-window.NERYXOrchestrator=Object.freeze({version:'2.2',plan,execute,modelSelection,status,solve,isUnknown:unknown});
+window.NERYXOrchestrator=Object.freeze({version:'2.3',plan,execute,modelSelection,status,solve,isUnknown:unknown});
 })();
