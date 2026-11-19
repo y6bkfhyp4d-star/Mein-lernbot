@@ -578,3 +578,21 @@ test('Sprachmuster-Lernen: Doppeltraining und falsche Beispiele ablehnen',()=>{
  assert.match(m.status(),/Trainingsbeispiele: 1/);
  assert.equal(db.size,1,'Nur experimenteller Lernspeicher wird beschrieben');
 });
+
+test('Sprachlernstand listet echten Speicher statt Demonstrationsdaten', () => {
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+ runInNewContext(read('modules/word-learning.js'),{window,localStorage});
+ const m=window.NERYXWordLearning;
+ m.teach('Die Zahlen werden verdoppelt | 2, 4, 8, 16, 32');
+ m.teach('Wir verdoppeln jede Zahl | 3, 6, 12, 24, 48');
+ const duplicate=m.teach('Wir verdoppeln jede Zahl | 3, 6, 12, 24, 48');
+ assert.match(duplicate,/Bereits gespeichert: „Wir verdoppeln jede Zahl“/);
+ assert.match(duplicate,/Aktuell 2 unterschiedliche Trainingsbeispiele/);
+ const current=m.status();
+ assert.match(current,/Unterschiedliche Trainingsbeispiele: 2/);
+ assert.match(current,/1\. „Die Zahlen werden verdoppelt“/);
+ assert.match(current,/2\. „Wir verdoppeln jede Zahl“/);
+ assert.match(current,/Sprachlernprüfung verwendet eigene Demonstrationsdaten/);
+ assert.equal(db.has('meinLernBot.v1'),false);
+});
