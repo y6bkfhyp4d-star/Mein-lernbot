@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -545,4 +545,36 @@ test('Kontext-Rückfrage wird bei Abbruch verworfen und beeinflusst keine andere
   c.solve('2, 4, 8, 16 | Hinweis: anders');
   assert.equal(c.reply('Was ist ein Okapi?'),null);
   assert.equal(db.size,0);
+});
+
+test('Sprachmuster-Lernen: Labels aus Zahlen ableiten und Wortstämme übertragen', () => {
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+ runInNewContext(read('modules/word-learning.js'),{window,localStorage});
+ const m=window.NERYXWordLearning;
+ assert.match(m.experiment(),/Nachher richtig zugeordnet: 2\/3/);
+ assert.match(m.teach('Die Zahlen werden verdoppelt | 2, 4, 8, 16, 32'),/geometrisch/);
+ assert.match(m.teach('Wir verdoppeln jede Zahl | 3, 6, 12, 24, 48'),/geometrisch/);
+ assert.match(m.teach('Die Zahlen werden addiert | 1, 4, 7, 10, 13'),/arithmetisch/);
+ assert.match(m.teach('Wir addieren immer drei | 5, 8, 11, 14, 17'),/arithmetisch/);
+ assert.match(m.query('Zahlen schrittweise verdoppeln | 5, 10, 20, 40'),/geometrisch → 80/);
+ assert.match(m.query('Zahlen weiter addieren | 10, 13, 16, 19'),/arithmetisch → 22/);
+ assert.match(m.query('Jede Zahl mit zwei multiplizieren | 4, 8, 16, 32'),/Keine ausreichend sichere/);
+ assert.match(m.status(),/Trainingsbeispiele: 4/);
+ assert.equal(db.has('meinLernBot.v1'),false);
+ assert.equal(db.has('neryx.learning.context.v1'),false);
+ assert.ok(html.includes('src="modules/word-learning.js"'));
+ assert.ok(app.indexOf("command(s,'Beispiel prüfen')")<app.indexOf('if(context.awaiting)'));
+});
+test('Sprachmuster-Lernen: Doppeltraining und falsche Beispiele ablehnen',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+ runInNewContext(read('modules/word-learning.js'),{window,localStorage});
+ const m=window.NERYXWordLearning;
+ assert.match(m.teach('Verdoppeln | 2,4,8,16,32'),/gespeichert/);
+ assert.match(m.teach('Andere Worte | 2,4,8,16,32'),/bereits/);
+ assert.match(m.teach('Verdoppeln | 2,4,8,16,999'),/Nichts gespeichert/);
+ assert.match(m.teach('Verdoppeln | 1,2,3'),/Format/);
+ assert.match(m.status(),/Trainingsbeispiele: 1/);
+ assert.equal(db.size,1,'Nur experimenteller Lernspeicher wird beschrieben');
 });
