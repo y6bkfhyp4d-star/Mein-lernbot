@@ -12,6 +12,9 @@ const allow=[
  /^Ja,?\s*Bedeutung speichern$/i,
  /^Bedeutung abbrechen$/i,
  /^(?:Bedeutungstest|Bedeutungsstand|Sprachlernstand|Lernkontrolle|Lernzentrale|Lernkonflikte|Speicherabgleich)$/i,
+ /^(?:Systemstatus|Sprachmodell Status|Modellstatus|Fähigkeitstest)$/i,
+ /^Problem l(?:ö|oe)sen:\s*[^\n]{4,180}$/i,
+ /^Weg planen:\s*[01]{2,20}(?:\s*;\s*[01]{2,20}){1,19}$/i,
  /^Lernquellen:\s*[^\n]{2,90}$/i
 ];
 const trim=x=>String(x??'').trim();
