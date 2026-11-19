@@ -927,3 +927,17 @@ test('Stapeltest: ungültige Befehle und isolierte Bestätigungen führen nichts
  assert.equal(window.NERYXBatch.isBatch('Hallo!\nWie geht es dir?'),false);
  assert.equal(window.NERYXBatch.isBatch('Lerne: A: B – C'),false);
 });
+
+test('Mehrzeilige Stapeltests bleiben im echten Chat-Eingabefeld erhalten',()=>{
+ assert.match(html,/<textarea\s+id="input"[\s\S]*?<\/textarea>/);
+ assert.doesNotMatch(html,/<input\s+id="input"/);
+ assert.match(app,/bind\(UI\.input\(\),'keydown',e=>\{if\(e\.key==='Enter'&&!e\.shiftKey/);
+ assert.match(app,/const s=safe\(input\.value,100000\)/);
+ const window={};
+ runInNewContext(read('modules/batch-test.js'),{window});
+ const message=['Stapeltest:','Beispiel prüfen: Die Werte mal zwei nehmen | 5,10,20,40',
+  'Bedeutung lernen: mal zwei nehmen = verdoppeln','Ja, Bedeutung speichern',
+  'Beispiel prüfen: Die Werte mal zwei nehmen | 5,10,20,40','Bedeutungstest'].join('\n');
+ const result=window.NERYXBatch.parse(message);
+ assert.equal(result.lines.length,5);
+});
