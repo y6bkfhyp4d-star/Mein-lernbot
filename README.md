@@ -17,6 +17,37 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Persönlicher Lerntest 1.0 – echte lokale Vorher-Nachher-Messung
+
+Neues Modul `modules/personal-learning-test.js`. Anders als synthetische
+Lern-Demos prüft dieser Test die **aktuelle reale** Sprachklassifikation
+unter Verwendung deiner eigenen gespeicherten Trainingsbeispiele und
+Bedeutungsbrücken. Er verwendet zwölf vorher festgelegte, zurückgehaltene
+Formulierungen, die NERYX nicht als Trainingsdaten speichert.
+
+1. `Persönlichen Lerntest starten`: Ausgangsstand und Zuordnungen
+   einfrieren; Testphrasen zunächst nicht anzeigen
+2. Mit **eigenen** `Beispiel lernen: ... | ...`-Aufgaben oder bestätigten
+   `Bedeutung lernen: ... = ...`-Verknüpfungen trainieren
+3. `Persönlichen Lerntest auswerten`: Genau dieselben zurückgehaltenen
+   Aufgaben erneut durch das aktuelle Modell schicken und Vorher/Nachher
+   vergleichen
+4. `Persönlicher Lernstand` zeigt einen laufenden Versuch;
+   `Persönlichen Lerntest abbrechen` löscht nur die Prüfnotiz
+
+Das Einfrieren und Auswerten schreibt ausschließlich die Prüfnotiz
+`neryx.learning.personaltest.v1`; bestehende Lern-Datenbanken bleiben
+unverändert. Ohne eine tatsächlich geänderte Lernbasis verweigert
+die Auswertung eine Fortschrittsbehauptung. Falls eine konkrete
+Prüfphrase anschließend direkt als Trainingsbeispiel gespeichert
+wird, wird sie von beiden Messergebnissen ausgeschlossen.
+
+**Grenzen:** Kleine, vorab festgelegte Beispielmenge, keine verblindete
+externe Prüfung. Der Test beweist keine generelle KI-Fähigkeit.
+Mehr Einträge oder höhere Unterstützung bedeuten nicht automatisch
+bessere Antworten. Er misst nur korrekt zugeordnete mathematische
+Strategie-Kategorien anhand bekannter Testlabels.
+
 ## Stapeltest 1.0 – mehrere Prüfungen in einer Nachricht
 
 Neues Modul `modules/batch-test.js`. NERYX verarbeitet 2–12 erlaubte
