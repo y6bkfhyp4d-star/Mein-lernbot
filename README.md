@@ -17,6 +17,36 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Lernkontrolle 1.0 – Fortschritt statt nur Speicherstand
+
+Neues isoliertes Modul `modules/learning-audit.js`. Chatbefehl:
+`Lernkontrolle`.
+
+Der Bericht zeigt drei verschiedene Arten von Evidenz:
+
+1. **Synthetische Sprachmuster-Prüfung** mit vier vorher festgelegten
+   Trainingsphrasen und vier getrennten Testphrasen/-folgen.
+   0/4 ohne Trainingsbeispiele und 3/4 mit Trainingsbeispielen
+   im ersten Modul-Selbsttest. Eine bisher nicht abgedeckte Formulierung
+   (`mit zwei multiplizieren`) bleibt ausdrücklich ohne Vorhersage.
+2. **Retrospektive Prüfung der auf dem Gerät gespeicherten
+   Sprachbeispiele:** Jedes Beispiel wird der Reihe nach vollständig
+   aus der Trainingsmenge entfernt; NERYX prüft, ob die übrigen
+   Beispiele sein Label vorhersagen. Diese Beispiele sind **nicht
+   unabhängig neu**, da sie Teil der bisherigen Lernhistorie waren.
+   Kleine Bestände können deshalb wenig oder keine Treffer erlauben.
+3. **Vorher/Nachher-Vergleich vorhandener mathematischer
+   Strategien** über die frühere isolierte Lernprüfung mit
+   zurückgehaltenen Zahlenfolgen. Er kann auch null Verbesserung
+   oder Verluste zeigen.
+
+Die Vergleiche sind reproduzierbar, lokal, ohne zusätzliche APIs.
+Es werden keine vorhandenen Lernwerte, Fakten oder Nutzerdaten
+überschrieben; die neue Lernkontrolle führt keine Speicher-Schreibzugriffe
+durch. Sie ist **kein Beweis allgemeiner Denkfähigkeit oder
+domänenübergreifender Generalisierung** und bewertet keine externe
+Wahrheit von Sachfakten.
+
 ## Aktiver Lernkoordinator 1.0 – Fragen über bestehende Speicher abgleichen
 
 Neues Modul `modules/learning-coordinator.js`. Bei normalen, eindeutig
