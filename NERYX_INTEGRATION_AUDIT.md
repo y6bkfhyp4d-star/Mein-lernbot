@@ -146,3 +146,22 @@ NERYX lösen: Setze die Folge 2,4,8,16 fort
 ```
 
 Die Test-Suite wurde um isolierte Schutztests für erfundene Werkzeugargumente, Modellvorrang und Auswahl erweitert. Ein erfolgreicher iPhone-Start von Qwen 1,5B ist damit **nicht** nachgewiesen.
+
+## Plan A – Antwort-Vollständigkeitskontrolle 1.0 (19.11.2026)
+
+Neues Modul: `modules/answer-review.js`, **vor** `modules/orchestrator.js` geladen.
+Bei frei formulierten Antworten prüft NERYX erkennbare, ausdrücklich verlangte Bestandteile:
+ein Beispiel (auch „Beispiels“), nachvollziehbare Einzelschritte sowie ein ausdrücklich gewünschter
+Malerhandwerksbezug. Bei der Musterfrage zu Hypothese und Messung werden auch die beiden Begriffe geprüft.
+
+Fehlt ein Bestandteil, sendet NERYX **einmal** eine konkrete Ergänzungsaufforderung an das lokale Qwen.
+Danach zeigt es entweder die Antwort als **unverifiziert** oder kennzeichnet weiterhin
+fehlende Bestandteile mit `VOLLSTÄNDIGKEITSHINWEIS`. Offensichtlich sehr kurze
+Anweisungen können weiterhin ganz abgelehnt werden.
+
+Diese einfachen Heuristiken können fehlende Aspekte übersehen und korrekt formulierte
+Antworten fälschlich als unvollständig markieren. Sie **prüfen keine Wahrheit** und
+garantieren weder das Verständnis eines Beispiels noch fachliche Richtigkeit.
+Es werden dabei keine Lernspeicher verändert und keine zusätzlichen Downloads gestartet.
+
+Testfrage: `NERYX lösen: Erkläre mir den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.`
