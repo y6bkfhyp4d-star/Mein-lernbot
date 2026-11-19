@@ -17,6 +17,28 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Aktiver Lernkoordinator 1.0 – Fragen über bestehende Speicher abgleichen
+
+Neues Modul `modules/learning-coordinator.js`. Bei normalen, eindeutig
+zuordenbaren Fachfragen (z. B. `Wozu dient Testmaterial A?`,
+`Wo lebt ein Okapi?`) vergleicht NERYX **vor** der bisherigen
+Antwortlogik die zugehörigen Fakten aus Hauptwissen und Themenlernen.
+Wenn dieselbe normalisierte Aussage in einem oder beiden Speichern
+ohne erkennbaren Widerspruch vorhanden ist, nennt er die Antwort
+zusammen mit ihrer Herkunft. Wenn Werte abweichen oder ein gespeicherter
+Konfliktstatus besteht, gibt er ausdrücklich keine sichere Antwort,
+sondern nennt die konkurrierenden Aussagen und verweist auf
+`Lernquellen: THEMA`. Der explizite Befehl
+`Lernentscheidung: Wozu dient Testmaterial A?` zeigt auch bei
+unbekannten Fragen, ob eine Koordination möglich war.
+
+**Schutzgrenzen:** Kein automatisches Korrigieren, Überschreiben,
+Löschen, Synonym-Raten, Wahrheitsprüfen oder Trainings-Update.
+Unbekannte Fragen bleiben beim bisherigen Dialog-/Themenlernen.
+Verglichen werden nur klar zuordenbare Themen und Eigenschaften;
+nicht erkannte Widersprüche sind möglich.
+Die persönlichen Daten und alle lokalen Schlüssel bleiben unverändert.
+
 ## Lernzentrale 1.0 – Herkunft, Lernstände und Konflikte
 
 Neue Datei `modules/learning-hub.js`. Sie ist eine **rein lesende**
