@@ -1,5 +1,14 @@
 # NERYX
 
+## L1-Triage und unabhängiger Frozen-Prozess (19.11.2026)
+
+Die sieben Baseline-Fehlschläge wurden in `eval/known-issues.json` **einzeln klassifiziert**; keine Soll-Erwartung wurde verändert. Sechs betreffen derzeitige lexikalische Suchgrenzen (u. a. Wortfamilien und Mehrthemenfragen), einer die fehlende Erkennung von `in Schritten` im Review-Modul. In der isolierten Simulation blieb die **unveränderte Rohquote 14/21**. Die Klassifikation ist keine Anerkennung eines Fehlers als Bestehen.
+
+`node eval/run-l1.mjs` meldet nun zusätzlich `knownFailures`, `newRegressions` und `unexpectedPasses`. `--strict` schlägt bei **neuen** Regressionen fehl, `--all-strict` bei **jedem** Fehlschlag. Unerwartet grüne bekannte Fälle werden zur Überprüfung sichtbar und sollen nach bestätigter Korrektur aus der bekannten Fehlerliste genommen werden.
+
+Frozen-Vorbereitung: `eval/frozen.seal.json` enthält **absichtlich noch keinen Hash und ist inaktiv**. `eval/run-frozen.mjs` verlangt eine Datei mit **absolutem Pfad außerhalb des Repositories**, überprüft SHA-256 und Item-Anzahl und gibt **nur Aggregatwerte nach Kategorie** aus – keine einzelnen Fragen, IDs oder Modelltexte. Format: JSON `{schema:1,fixtures:{documents:[{id,title,content}]},items:[...]}` mit dem gleichen L1-Testfallschema und `suite:'frozen'`. **Noch nicht aktiviert oder real mit einem Frozen-Bestand ausgeführt**; die Testfragen sollen unabhängig erstellt und zuerst vom Nutzer geprüft werden. Der Frozen-Runner vergleicht nur Retrieval und vorhandene Antwortform-Prüfung, **nicht** LLM-Intelligenz, allgemeine Wahrheit oder L2/L3-Qualität. Es besteht keine automatische iPhone- oder GitHub-Pages-Ausführung des Node-Runners.
+
+
 ## L1-Evaluation – synthetische Baseline (19.11.2026)
 
 Claude schlug drei Testsuite-Bestände vor. Die **erste** isolierte Umsetzung liegt unter `eval/`:
