@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Abschirmung (Gravitation)",
-    "Akkumulator",
-    "Al-Bīrūnī",
+    "Aerosol",
+    "ATP-Synthase",
+    "Vulkan",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris"
   ],
   "records": [
     {
-      "checked_at": "2026-11-18T22:27:40+00:00",
+      "checked_at": "2026-11-19T04:37:12+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T22:27:40+00:00",
+      "checked_at": "2026-11-19T04:37:12+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T22:27:40+00:00",
+      "checked_at": "2026-11-19T04:37:12+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -159,6 +159,39 @@
       "verified_correction": false
     },
     {
+      "checked_at": "2026-11-19T04:37:12+00:00",
+      "claims": [
+        {
+          "id": "p711-b5c98ccce61546",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Ein Aerosol ist ein dynamisches System und unterliegt ständigen Änderungen durch Kondensation von Dämpfen an bereits vorhandenen Partikeln, Verdampfen flüssiger Bestandteile der Partikel, Koagulation kleiner Teilchen zu großen oder Abscheidung von Teilchen an umgebenden Gegenständen.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=36642",
+          "statement": "Ein Aerosol ist ein dynamisches System und unterliegt ständigen Änderungen durch Kondensation von Dämpfen an bereits vorhandenen Partikeln, Verdampfen flüssiger Bestandteile der Partikel, Koagulation kleiner Teilchen zu großen oder Abscheidung von Teilchen an umgebenden Gegenständen.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Aerosol",
+          "subject_form": "Aerosol"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 4,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Aerosol",
+      "question": "Was ist Aerosol und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=36642",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Aerosol",
+      "verified_correction": false
+    },
+    {
       "checked_at": "2026-11-18T22:27:40+00:00",
       "claims": [],
       "diagnostics": {
@@ -224,6 +257,23 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "Algorithmus",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T04:37:12+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 10
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "ATP-Synthase",
+      "question": "Was ist ATP-Synthase und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=480740",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "ATP-Synthase",
       "verified_correction": false
     },
     {
@@ -581,6 +631,39 @@
       "title_resolution": "direkter_titel",
       "topic": "Schall",
       "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T04:37:12+00:00",
+      "claims": [
+        {
+          "id": "p711-922a958e77d044",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Ein Vulkan ist eine geologische Struktur, die entsteht, wenn Magma (Gesteinsschmelze) bis an die Oberfläche eines Planeten (z. B. der Erde) aufsteigt.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=8504",
+          "statement": "Ein Vulkan ist eine geologische Struktur, die entsteht, wenn Magma (Gesteinsschmelze) bis an die Oberfläche eines Planeten (z. B. der Erde) aufsteigt.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Vulkan",
+          "subject_form": "Vulkan"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 7,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Vulkan",
+      "question": "Was ist Vulkan und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=8504",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Vulkan",
+      "verified_correction": false
     }
   ],
   "runs": [
@@ -684,6 +767,21 @@
         "Abschirmung (Gravitation)",
         "Akkumulator",
         "Al-Bīrūnī",
+        "(1) Ceres",
+        "(136108) Haumea"
+      ]
+    },
+    {
+      "at": "2026-11-19T04:37:12+00:00",
+      "claims": 3,
+      "errors": 0,
+      "new_extractor_same_pages": 3,
+      "old_extractor_same_pages": 3,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 3,
+      "unresolved_topics": [
+        "ATP-Synthase",
         "(1) Ceres",
         "(136108) Haumea"
       ]
