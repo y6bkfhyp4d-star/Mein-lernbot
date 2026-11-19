@@ -10,17 +10,20 @@ function rng(seed){
  let state=(seed>>>0)||1;
  return ()=>{state^=state<<13;state^=state>>>17;state^=state<<5;return(state>>>0)/4294967296};
 }
-function generator(seed,count,family){
- const random=rng(seed),cases=[];
- for(let i=0;i<count;i++){
-  // Vier geometrisch erscheinende Eingaben; zwei widersprechende Fortsetzungsannahmen.
-  const scale=1+Math.floor(random()*19),ratio=2+Math.floor(random()*3);
+function generator(seed,count,family,offset=0){
+ const random=rng(seed),pool=[];
+ for(let scale=1;scale<=19;scale++)for(let ratio=2;ratio<=4;ratio++)
+  pool.push({scale,ratio});
+ for(let i=pool.length-1;i>0;i--){
+  const j=Math.floor(random()*(i+1));
+  [pool[i],pool[j]]=[pool[j],pool[i]];
+ }
+ return pool.slice(offset,offset+count).map(({scale,ratio})=>{
   const xs=[0,1,2,3].map(n=>scale*ratio**n);
   const hypotheticalCubic=scale*(4*ratio**3-6*ratio**2+4*ratio-1);
   const hypotheticalGeometric=scale*ratio**4;
-  cases.push({xs,answer:family==='kubisch'?hypotheticalCubic:hypotheticalGeometric,family});
- }
- return cases;
+  return {xs,answer:family==='kubisch'?hypotheticalCubic:hypotheticalGeometric,family};
+ });
 }
 function choose(xs,scores,lab){
  const results=lab.candidates(xs);
@@ -49,9 +52,9 @@ function run(seed=20261119){
  seed=(Number.isFinite(seed)?seed:20261119)>>>0;
  const baseline=Object.fromEntries(MODELS.map(k=>[k,0]));
  // Nur kubisch interpretierte Beispiele im Training; andere Zahlen im Test.
- const training=generator(seed+1,12,'kubisch');
- const cubic=generator(seed+200,18,'kubisch');
- const geo=generator(seed+600,18,'geometrisch');
+ const training=generator(seed,12,'kubisch',0);
+ const cubic=generator(seed,18,'kubisch',12);
+ const geo=generator(seed,18,'geometrisch',30);
  const trained=train(training,baseline,lab);
  const bCubic=score(cubic,baseline,lab),aCubic=score(cubic,trained,lab);
  const bGeo=score(geo,baseline,lab),aGeo=score(geo,trained,lab);
