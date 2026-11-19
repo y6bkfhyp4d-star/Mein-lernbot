@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/personal-learning-test.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -940,4 +940,46 @@ test('Mehrzeilige Stapeltests bleiben im echten Chat-Eingabefeld erhalten',()=>{
   'Beispiel prüfen: Die Werte mal zwei nehmen | 5,10,20,40','Bedeutungstest'].join('\n');
  const result=window.NERYXBatch.parse(message);
  assert.equal(result.lines.length,5);
+});
+
+test('Persönlicher Lerntest: feste unbekannte Prüfphrasen und kein erfundener Fortschritt',()=>{
+ const db=new Map();
+ const localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),removeItem:k=>db.delete(k)},window={};
+ for(const path of ['modules/learning-lab.js','modules/meaning-links.js','modules/word-learning.js','modules/personal-learning-test.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const p=window.NERYXPersonalTest;
+ assert.match(p.start(),/Zurückgehaltene Prüfphrasen: 12/);
+ assert.match(p.start(),/läuft bereits/);
+ assert.match(p.finish(),/keine Änderungen/);
+ assert.ok(db.has('neryx.learning.personaltest.v1'));
+ assert.match(p.cancel(),/Keine Lernbeispiele/);
+ assert.equal(db.size,0);
+ assert.ok(html.includes('src="modules/personal-learning-test.js"'));
+ assert.ok(app.includes('NERYXPersonalTest?.finish()'));
+});
+test('Persönlicher Lerntest: echte Trainingsänderung auswerten, nur Prüfzustand entfernen',()=>{
+ const db=new Map();
+ const localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),removeItem:k=>db.delete(k)},window={};
+ for(const path of ['modules/learning-lab.js','modules/meaning-links.js','modules/word-learning.js','modules/personal-learning-test.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const p=window.NERYXPersonalTest;
+ p.start();
+ const train=window.NERYXWordLearning.teach('Wir lernen jede Zahl verdoppeln | 2,4,8,16,32');
+ assert.match(train,/Beispiel gespeichert/);
+ const out=p.finish();
+ assert.match(out,/PERSÖNLICHER LERNFORTSCHRITT/);
+ assert.match(out,/Sprachbeispiele: 0 → 1/);
+ assert.equal(db.has('neryx.learning.personaltest.v1'),false);
+ assert.equal(JSON.parse(db.get('neryx.learning.wordfeatures.v1')).examples.length,1);
+});
+test('Persönlicher Lerntest: direkt trainierte Prüfphrase nicht als neue Leistung zählen',()=>{
+ const db=new Map();
+ const localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),removeItem:k=>db.delete(k)},window={};
+ for(const path of ['modules/learning-lab.js','modules/meaning-links.js','modules/word-learning.js','modules/personal-learning-test.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const p=window.NERYXPersonalTest;
+ p.start();
+ window.NERYXWordLearning.teach('Die Folge wird jedes Mal verdoppelt | 2,4,8,16,32');
+ const out=p.finish();
+ assert.match(out,/Prüfphrasen: 11 \| wegen direktem Training ausgeschlossen: 1/);
 });
