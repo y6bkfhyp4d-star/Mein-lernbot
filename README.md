@@ -17,6 +17,39 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Themenlernen 0.1 – bestätigte Antworten über viele Wissensgebiete
+
+Neue Datei `modules/topic-learning.js`. NERYX nutzt sie ergänzend
+zum bestehenden Wissensspeicher und **nur wenn die bisherige Antwort
+keine passende Information enthält**. Das Modul erkennt einige
+beziehungsbasierte Frageformen unabhängig vom Fachgebiet, zum Beispiel
+`Wo lebt ein Okapi?`, `In welchem Lebensraum lebt das Okapi?`,
+`Was ist Grundierung?`, `Wozu dient Tiefgrund?`,
+`Wie verarbeitet man Raufaser?`, `Woraus besteht X?`,
+`Welche Farbe hat X?`, `Wie lange muss X trocknen?`.
+Andere Fragearten lassen sich vorsichtig als **exakte Frage/Antwort**-
+Zuordnung lernen; dabei wird nicht behauptet, andere Formulierungen
+hätten dieselbe Bedeutung.
+
+Wenn die Antwort fehlt, kann der Nutzer `Antwort: ...` geben.
+Anschließend ist `Ja, speichern` notwendig; `Abbrechen` verwirft
+den Lernversuch. Alternativ lässt sich eine konkrete Frage mit
+`Themenwissen: Wozu dient Tiefgrund? => Zum Festigen saugender Untergründe`
+zur Bestätigung vorschlagen. `Themenlernstand` zeigt die gespeicherten
+Einträge. Doppelte/abweichende Angaben werden nicht still überschrieben.
+
+**Wichtig:** NERYX prüft die Wahrheit der Antworten nicht selbst. Er
+bewahrt sie als **vom Nutzer bestätigte Angaben** auf und kennzeichnet
+sie beim Abruf entsprechend. Das Modul ist kein allwissendes System,
+keine freie Domänen-Generalisation, kein neues Sprachmodell und kein
+AGI-Nachweis. Unbekannte oder mehrdeutige freie Fragen können auch
+weiterhin nicht verstanden werden.
+
+Die Daten werden in `neryx.learning.topics.v1` gespeichert. Der
+bisherige Hauptspeicher `meinLernBot.v1` und die bestehenden
+Mathe-/Sprachlernspeicher bleiben unverändert. Offene Rückfragen
+bleiben nur während der aktuellen Seitensitzung bestehen.
+
 ## Natürlicher Mathe-Dialog 0.1 – Fragen ohne Spezialbefehle
 
 NERYX kann jetzt begrenzte **gewöhnliche deutsche Zahlenfolgen-Fragen**
