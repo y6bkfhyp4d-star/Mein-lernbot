@@ -41,7 +41,7 @@ function status(){
  'Qwen darf weder Code ausführen noch gespeicherte Daten verändern.',
  'Modellstart: automatisch erst bei ungeklärten Fragen (kein Download beim App-Start)',
  'Befehl: NERYX lösen: FRAGE',
- 'Antwortkontrolle: fehlende angeforderte Beispiele/Schritte werden einmal nachgefordert.',
+ 'Antwortkontrolle: fehlende Beispiele/Schritte nachfordern; ungenügende Begriffsabgrenzung zurückweisen.',
  'Frei formulierte Modellantworten bleiben unverifiziert.'].join('\n');
 }
 function modelSelection(raw,input){
@@ -106,6 +106,8 @@ async function modelFallback(input){
    evaluation=review?.inspect(input,raw);
    if(looksIncomplete(raw))return 'NERYX · ANTWORTKONTROLLE\nDas lokale Sprachmodell hat keine ausreichende Erklärung geliefert. Ich gebe keine offensichtlich unvollständige Antwort als Lösung aus. Bitte präziser fragen oder ein leistungsfähigeres Modell auswählen.';
   }
+  if(evaluation?.missing?.some(x=>/^(?:prüfbare Annahme|ermittelte Messwerte|Unterscheidung zwischen Hypothese)/.test(x)))
+   return 'NERYX · FACHLICHE KONTROLLE\nDie Erklärung unterscheidet Hypothese und Messung nicht ausreichend. Ich gebe die Modellantwort deshalb nicht als Lösung aus.\nFehlende Merkmale: '+evaluation.missing.join(', ')+'.\nDas ist eine begrenzte Plausibilitätsprüfung, kein allgemeiner Wahrheitsbeweis.';
   const caution=evaluation&&!evaluation.complete
    ?'\n\nNERYX · VOLLSTÄNDIGKEITSHINWEIS\nMöglicherweise fehlen: '+evaluation.missing.join(', ')+'. Der Inhalt wurde nicht auf Richtigkeit geprüft.'
    :'';
@@ -125,5 +127,5 @@ async function solve(input,{knowledge}={}){
  }
  return await modelFallback(s);
 }
-window.NERYXOrchestrator=Object.freeze({version:'2.3',plan,execute,modelSelection,status,solve,isUnknown:unknown});
+window.NERYXOrchestrator=Object.freeze({version:'2.4',plan,execute,modelSelection,status,solve,isUnknown:unknown});
 })();
