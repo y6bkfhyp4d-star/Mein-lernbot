@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
+    "(136472) Makemake",
     "-genese",
-    "Abfallprodukt",
-    "Abgeschlossenes System"
+    "Abfallprodukt"
   ],
   "questions": [
     {
@@ -86,13 +86,42 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-19T15:35:08+00:00",
+      "checked_at": "2026-11-19T21:27:26+00:00",
       "hits": [],
+      "independent_confirmation": false,
+      "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%28136472%29_Makemake",
+      "status": "keine_treffer",
+      "topic": "(136472) Makemake"
+    },
+    {
+      "checked_at": "2026-11-19T21:27:26+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "eine Gruppe eingeordnet werden, ebenfalls auf die Bezeichnung Schiffstyp, was es heute oft schwieriger macht, auf Anhieb zu erkennen, was im Einzelfall",
+          "title": "Schiffstyp",
+          "url": "https://de.wikipedia.org/?curid=4821"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Abweichungen in Besetzung und Text. Das Werk wird als Oratorium eingeordnet, weil ihm ein erzählender Bibeltext zu Grunde liegt; dieser wird aber, abweichend von",
+          "title": "Oster-Oratorium (Bach)",
+          "url": "https://de.wikipedia.org/?curid=535598"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Typ des Nachschlagewerks abhängig ist, zeigt folgendes Beispiel: Das Wort „Mäuse“ wird unter dem Lemma Maus eingeordnet. Diese Vorgehensweise wählt ein",
+          "title": "Lemma (Lexikographie)",
+          "url": "https://de.wikipedia.org/?curid=801127"
+        }
+      ],
       "independent_confirmation": false,
       "question": "Was ist -genese und wie wird es eingeordnet?",
       "reason": "klassifikation_offen",
       "source": "https://de.wikipedia.org/wiki/-genese",
-      "status": "keine_treffer",
+      "status": "suchtreffer",
       "topic": "-genese"
     },
     {
@@ -154,13 +183,32 @@
       "topic": "Abdus Salam"
     },
     {
-      "checked_at": "2026-11-19T15:35:08+00:00",
-      "hits": [],
+      "checked_at": "2026-11-19T21:27:26+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Aluminiumschrotte und „Krätzen“ in Trommelöfen eingeschmolzen. „Krätze“ ist ein Abfallprodukt bei der Verarbeitung von Aluminium und bei der Herstellung",
+          "title": "Aluminium",
+          "url": "https://de.wikipedia.org/?curid=93"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "(Gecarcinucidae und Pseudothelphusidae) haben. Die Abwesenheit von Wasser ist mit Problemen bei der Ausscheidung von Abfallprodukten, der Osmoregulation und der Atmung",
+          "title": "Krabben",
+          "url": "https://de.wikipedia.org/?curid=13481784"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "zusammen: „Kurz vor Feierabend wird zwar noch eine Zeitung gedruckt, doch das ist eher ein Abfallprodukt dessen, was für welt.de sowieso geschrieben",
+          "title": "Die Welt",
+          "url": "https://de.wikipedia.org/?curid=1131"
+        }
+      ],
       "independent_confirmation": false,
       "question": "Was ist Abfallprodukt und wie wird es eingeordnet?",
       "reason": "klassifikation_offen",
       "source": "https://de.wikipedia.org/wiki/Abfallprodukt",
-      "status": "keine_treffer",
+      "status": "suchtreffer",
       "topic": "Abfallprodukt"
     },
     {
@@ -917,6 +965,14 @@
       "open_gaps": 52,
       "searched": 3,
       "with_results": 0
+    },
+    {
+      "at": "2026-11-19T21:27:26+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 54,
+      "searched": 3,
+      "with_results": 2
     }
   ],
   "schema": 77,
