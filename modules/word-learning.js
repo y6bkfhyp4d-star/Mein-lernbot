@@ -81,7 +81,24 @@ function classify(phrase,state=read()){
  if(best.support<2||best.score<0.6||best.score<=second.score+0.3)return null;
  return best;
 }
+let pending=null;
+function feedback(input){
+ if(!pending)return 'Zuerst eine unbekannte Formulierung mit „Beispiel prüfen: ...“ testen.';
+ const raw=String(input??'').trim();
+ if(raw.toLocaleLowerCase('de')==='abbrechen'){pending=null;return 'Korrektur abgebrochen. Nichts gelernt.';}
+ if(!/^-?\d+(?:\.\d+)?$/.test(raw))return 'Format: Beispielkorrektur: 112';
+ const answer=Number(raw),item=pending;
+ if(!Number.isFinite(answer)||Math.abs(answer)>1e12)return 'Ungültige Zahl. Nichts gespeichert.';
+ const lab=window.NERYXLearning;
+ const matching=lab?.candidates(item.vals).filter(x=>near(x.next,answer))||[];
+ if(!matching.length)return 'Diese Zahl passt zu keiner geprüften Strategie. Bitte korrigieren oder „Beispielkorrektur: abbrechen“ senden.';
+ pending=null;
+ const result=teach(item.phrase+' | '+[...item.vals,answer].join(', '));
+ return 'Korrektur '+answer+' überprüft. '+result+
+  '\nErst mehrere unterschiedliche Beispiele mit gleichen Wortmerkmalen erlauben eine sichere Zuordnung.';
+}
 function query(input){
+ pending=null;
  const row=parse(input,false);
  if(!row)return 'Format: Beispiel prüfen: Wir wollen Zahlen verdoppeln | 3, 6, 12, 24';
  const lab=window.NERYXLearning;
@@ -94,8 +111,12 @@ function query(input){
   'Bekannte Strategien: '+proposals.map(x=>x.type+' → '+Number(x.next.toPrecision(12))).join(', ')];
  if(match)lines.push('Gelernte Vermutung: '+match.type+' → '+Number(match.next.toPrecision(12)),
   'Begründung: Wortmerkmale aus '+best.support+' Beispielen; keine garantierte Bedeutungsanalyse.');
- else lines.push('Keine ausreichend sichere Wortzuordnung. Welche Regel ist gemeint?',
-  'Ein neues Beispiel mit bekannter nächster Zahl kann die Zuordnung verbessern.');
+ else{
+  pending={phrase:row.phrase,vals:row.vals.slice()};
+  lines.push('Keine ausreichend sichere Wortzuordnung. Welche Regel ist gemeint?',
+   'Wenn du die nächste Zahl kennst, antworte: Beispielkorrektur: ZAHL',
+   'Die Korrektur wird mit vorhandenen Rechenregeln abgeglichen. Für die Zuordnung sind zwei verschiedene Trainingsfolgen erforderlich.');
+ }
  return lines.join('\n');
 }
 function status(){
@@ -141,5 +162,5 @@ function experiment(){
   'Unbekannte Synonyme ohne Wortähnlichkeit bleiben möglicherweise unerkannt.',
   'Deine gespeicherten Lernwerte wurden nicht verändert.'].join('\n');
 }
-window.NERYXWordLearning=Object.freeze({version:'0.2',teach,query,status,experiment,classify,derive});
+window.NERYXWordLearning=Object.freeze({version:'0.3',teach,query,feedback,status,experiment,classify,derive});
 })();
