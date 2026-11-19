@@ -1106,7 +1106,7 @@ test('Gemeinsame NERYX-KI priorisiert Rechenkern, lokales Wissen, danach optiona
  let modelCalls=0, knowledgeCalls=0;
  window.NERYXLocalModel={
   info:()=>({loaded:true}),
-  ask:async()=>{modelCalls++;return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\\nModellantwort';}
+  ask:async()=>{modelCalls++;return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\nModellantwort';}
  };
  const system=window.NERYXOrchestrator;
  const question='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch. Wie viel Wandfläche ist zu streichen?';
@@ -1117,11 +1117,11 @@ test('Gemeinsame NERYX-KI priorisiert Rechenkern, lokales Wissen, danach optiona
  assert.equal(knowledgeCalls,0);
  assert.equal(await system.solve('Was ist ein Okapi?',{knowledge:async()=>{knowledgeCalls++;return 'Das Okapi ist ein Säugetier.';}}),'Das Okapi ist ein Säugetier.');
  assert.equal(modelCalls,0);
- assert.match(await system.solve('Was bedeutet die fremde Formulierung?',{knowledge:async()=> 'VERWANDTES WISSEN\\nMars: Planet'}),/LOKALES SPRACHMODELL/);
+ assert.match(await system.solve('Was bedeutet die fremde Formulierung?',{knowledge:async()=> 'VERWANDTES WISSEN\nMars: Planet'}),/LOKALES SPRACHMODELL/);
  assert.equal(modelCalls,1);
  assert.match(system.status(),/GEMEINSAMES KI-SYSTEM/);
- assert.match(app,/NERYXOrchestrator\\?\\.solve\\(v,\\{knowledge:intelligentAnswer\\}\\)/);
- assert.match(html,/src="modules\\/orchestrator\\.js"/);
+ assert.match(app,/NERYXOrchestrator\?\.solve\(v,\{knowledge:intelligentAnswer\}\)/);
+ assert.match(html,/src="modules\/orchestrator\.js"/);
 });
 test('Gemeinsame NERYX-KI verlangt lokales Modell bei unbekannten Fragen und verändert keine Speicher',async()=>{
  const window={},localStorage={getItem(){throw Error('Nicht lesen!')},setItem(){throw Error('Nicht schreiben!')}};
@@ -1132,7 +1132,7 @@ test('Gemeinsame NERYX-KI verlangt lokales Modell bei unbekannten Fragen und ver
 test('Stapeltest erlaubt Gesamt-KI-Diagnose und definierte Problembefehle',()=>{
  const window={};
  runInNewContext(read('modules/batch-test.js'),{window});
- const input=['Stapeltest:','KI-Systemstatus','NERYX lösen: 2=5, 4=9; 7','NERYX lösen: 2,4,8,16'].join('\\n');
+ const input=['Stapeltest:','KI-Systemstatus','NERYX lösen: 2=5, 4=9; 7','NERYX lösen: 2,4,8,16'].join('\n');
  assert.equal(window.NERYXBatch.parse(input).lines.length,3);
- assert.equal(window.NERYXBatch.parse('Stapeltest:\\nKI-Systemstatus\\nFakt löschen: Mars: Größe').error.includes('kein erlaubter'),true);
+ assert.equal(window.NERYXBatch.parse('Stapeltest:\nKI-Systemstatus\nFakt löschen: Mars: Größe').error.includes('kein erlaubter'),true);
 });
