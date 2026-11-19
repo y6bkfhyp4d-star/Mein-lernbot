@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js', 'modules/orchestrator.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js', 'modules/answer-review.js', 'modules/orchestrator.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/personal-learning-test.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js','modules/local-model-bridge.js','modules/system-hub.js','modules/orchestrator.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/meaning-benchmark.js','modules/batch-test.js','modules/context-learning.js','modules/word-learning.js','modules/meaning-links.js','modules/personal-learning-test.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js','modules/local-model-bridge.js','modules/system-hub.js','modules/orchestrator.js,'modules/answer-review.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -1281,4 +1281,46 @@ test('Antwortkontrolle: zweimal schlechte Antwort wird nicht als Erklärung ausg
  assert.equal(calls,2);
  assert.match(answer,/keine ausreichende Erklärung/);
  assert.doesNotMatch(answer,/LOKALES SPRACHMODELL \(unverifiziert\)/);
+});
+
+test('Antwortkontrolle erkennt angefragte Beispiele, Malerbezug und Schrittabfolge ohne Speicherschreiben',()=>{
+ const window={},localStorage={getItem(){throw Error('Keine Speicherzugriffe!')},setItem(){throw Error('Keine Speicherzugriffe!')}};
+ runInNewContext(read('modules/answer-review.js'),{window,localStorage});
+ const review=window.NERYXAnswerReview;
+ const q='Erkläre den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const raw='Eine Hypothese ist eine überprüfbare Vermutung. Eine Messung liefert Zahlen und Daten.';
+ assert.deepEqual([...review.inspect(q,raw).missing].sort(),['Bezug zum Malerhandwerk','konkret gekennzeichnetes Beispiel'].sort());
+ const valid='Hypothese: Die Grundierung senkt die Wasseraufnahme einer Wand. Messung: Wir messen das Wasser an der Wand. Beispiel: Mit und ohne Tiefgrund vergleichen.';
+ assert.equal(review.inspect(q,valid).complete,true);
+ assert.equal(review.inspect('Schreibe eine Erklärung.',raw).complete,true);
+ assert.match(review.improvementPrompt(q,raw,['Bezug zum Malerhandwerk']),/Malerhandwerk/);
+ assert.match(html,/src="modules\/answer-review.js"/);
+});
+test('Antwortkontrolle fordert ein fehlendes Malerbeispiel einmal nach',async()=>{
+ const window={};let prompts=[];
+ runInNewContext(read('modules/answer-review.js'),{window});
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async prompt=>{
+  prompts.push(prompt);
+  return prompts.length===1
+   ?'Eine Hypothese ist eine überprüfbare Vermutung. Eine Messung liefert konkrete Werte.'
+   :'Eine Hypothese ist eine überprüfbare Vermutung. Eine Messung liefert Werte. Beispiel: Wir messen die Wasseraufnahme einer Wand vor und nach der Grundierung.';
+ }};
+ const q='Erkläre den Unterschied zwischen Hypothese und Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const answer=await window.NERYXOrchestrator.solve(q,{knowledge:async()=>null});
+ assert.equal(prompts.length,2);
+ assert.match(prompts[1],/konkret gekennzeichnetes Beispiel/);
+ assert.match(answer,/Wasseraufnahme einer Wand/);
+ assert.doesNotMatch(answer,/VOLLSTÄNDIGKEITSHINWEIS/);
+});
+test('Antwortkontrolle kennzeichnet die weiterhin fehlende Anforderung statt Erfolg vorzutäuschen',async()=>{
+ const window={};let calls=0;
+ runInNewContext(read('modules/answer-review.js'),{window});
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Eine Hypothese ist eine überprüfbare Annahme und eine Messung stellt fest, wie groß etwas wirklich ist.';}};
+ const answer=await window.NERYXOrchestrator.solve('Erkläre Hypothese und Messung mit einem Beispiel aus dem Malerhandwerk.',{knowledge:async()=>null});
+ assert.equal(calls,2);
+ assert.match(answer,/VOLLSTÄNDIGKEITSHINWEIS/);
+ assert.match(answer,/Bezug zum Malerhandwerk/);
+ assert.match(answer,/unverifiziert/);
 });
