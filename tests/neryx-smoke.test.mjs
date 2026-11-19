@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/learning-audit.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/learning-coordinator.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -814,4 +814,47 @@ test('Aktiver Lernkoordinator: widersprüchliche Aussagen aus zwei Quellen nicht
  assert.doesNotMatch(reply,/KOORDINIERTE ANTWORT/);
  assert.match(c.pendingReply('Abbrechen'),/abgebrochen/);
  assert.equal(JSON.stringify([...db]),snapshot);
+});
+
+test('Lernkontrolle: getrennte synthetische Prüfbeispiele und transparentes Ergebnis',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem(){throw Error('Nur-lesende Lernkontrolle')}},window={};
+ for(const path of ['modules/learning-lab.js','modules/learning-evaluation.js','modules/learning-audit.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const result=window.NERYXLearningAudit.synthetic();
+ assert.equal(result.before.total,4);
+ assert.equal(result.after.total,4);
+ assert.equal(result.overlap,0);
+ assert.equal(result.before.correct,0);
+ assert.equal(result.after.correct,3);
+ assert.equal(result.gain,3);
+ assert.equal(result.after.answered,3);
+ const missing=result.after.results.find(x=>x.phrase.includes('multiplizieren'));
+ assert.equal(missing.predicted,null,'Nicht gelerntes Synonym darf nicht erraten werden');
+ assert.match(window.NERYXLearningAudit.status(),/18\/36/);
+ assert.equal(db.size,0,'Audit darf keine Daten in localStorage speichern');
+ assert.ok(html.includes('src="modules/learning-audit.js"'));
+ assert.ok(app.includes('NERYXLearningAudit?.status()'));
+});
+test('Lernkontrolle: retrospektive Prüfungen lassen ein Beispiel jeweils vollständig weg',()=>{
+ const examples=[
+  {phrase:'Zahlen werden verdoppelt',type:'geometrisch',tokens:['verdo'],fingerprint:'2,4,8,16,32'},
+  {phrase:'Wir verdoppeln Zahlen',type:'geometrisch',tokens:['verdo'],fingerprint:'3,6,12,24,48'},
+  {phrase:'Wir verdoppeln die Folge',type:'geometrisch',tokens:['verdo'],fingerprint:'5,10,20,40,80'}
+ ];
+ const db=new Map([['neryx.learning.wordfeatures.v1',JSON.stringify({version:1,examples})]]);
+ const snapshot=JSON.stringify([...db]);
+ const localStorage={getItem:k=>db.get(k)??null,setItem(){throw Error('Nur lesen')}},window={};
+ runInNewContext(read('modules/learning-audit.js'),{window,localStorage});
+ const outcome=window.NERYXLearningAudit.retrospective();
+ assert.equal(outcome.total,3);
+ assert.equal(outcome.correct,3);
+ assert.equal(outcome.answered,3);
+ assert.equal(JSON.stringify([...db]),snapshot,'Lernbeispiele dürfen nicht verändert werden');
+});
+test('Lernkontrolle: keine persönlichen Trainingsdaten erfinden',()=>{
+ const localStorage={getItem:()=>null,setItem(){throw Error('Nur lesen')}},window={};
+ runInNewContext(read('modules/learning-audit.js'),{window,localStorage});
+ const r=window.NERYXLearningAudit.retrospective();
+ assert.equal(r.total,0);
+ assert.match(r.warning,/kein Sprachlern-Speicher/);
 });
