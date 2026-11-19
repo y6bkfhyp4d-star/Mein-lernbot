@@ -41,6 +41,7 @@ function status(){
  'Qwen darf weder Code ausführen noch gespeicherte Daten verändern.',
  'Modellstart: automatisch erst bei ungeklärten Fragen (kein Download beim App-Start)',
  'Befehl: NERYX lösen: FRAGE',
+ 'Kurze oder aufforderungsartige Modellantworten werden einmal neu angefragt.',
  'Frei formulierte Modellantworten bleiben unverifiziert.'].join('\n');
 }
 function modelSelection(raw,input){
@@ -58,6 +59,13 @@ function modelSelection(raw,input){
  if(type==='folge')return numberList.test(arg)&&input.includes(arg)?{type:'sequence',source:'Zahlenfolge (Modellvorschlag geprüft)',query:arg}:{rejected:true};
  if(type==='regel')return pairs.test(arg)&&input.includes(arg)?{type:'pairs',source:'Zahlenregel (Modellvorschlag geprüft)',query:arg}:{rejected:true};
  return {rejected:true};
+}
+function looksIncomplete(reply){
+ const s=String(reply??'').trim();
+ return !s||s.length<35||/^(?:wähle|waehle|stelle|nenne|schreibe|erkläre|erklaere)\b/i.test(s)&&s.length<110;
+}
+function narrativePrompt(input){
+ return 'Beantworte die folgende Frage auf Deutsch. Gib eine klare Erklärung mit konkretem Beispiel. Antworte direkt, ohne die Frage als Aufgabe an den Nutzer zurückzugeben. Maximal 120 Wörter.\nFrage: '+input;
 }
 async function modelFallback(input){
  const model=window.NERYXLocalModel;
@@ -77,7 +85,9 @@ async function modelFallback(input){
  'NUTZERFRAGE: '+input
  ].join('\n');
  try{
-  const raw=await model.askRaw(prompt),choice=modelSelection(raw,input);
+  const mayNeedTool=/(?:\d\s*[,;=]\s*\d|\b(?:raster|wegplanung|zahlenfolge|zahlenregel|wandfläche)\b)/i.test(input);
+  let raw=await model.askRaw(mayNeedTool?prompt:narrativePrompt(input));
+  const choice=mayNeedTool?modelSelection(raw,input):null;
   if(choice?.rejected)return 'NERYX · WERKZEUGPRÜFUNG\nQwen hat einen unzulässigen Werkzeugaufruf vorgeschlagen. Nichts wurde ausgeführt oder gespeichert.';
   if(choice){
    const output=execute(choice,input);
@@ -85,6 +95,10 @@ async function modelFallback(input){
     'NERYX · WERKZEUGPRÜFUNG\nDas vorgeschlagene Fachmodul ist nicht verfügbar.';
   }
   if(/^WERKZEUG\s*:/i.test(raw))return 'NERYX · WERKZEUGPRÜFUNG\nUnbekannter Werkzeugaufruf abgelehnt.';
+  if(looksIncomplete(raw)){
+   raw=await model.askRaw('Antworte vollständig in 2 bis 4 deutschen Sätzen und gib ein Beispiel. Keine Gegenfrage, keine Anweisung an den Nutzer.\n'+input);
+   if(looksIncomplete(raw))return 'NERYX · ANTWORTKONTROLLE\nDas lokale Sprachmodell hat keine ausreichende Erklärung geliefert. Ich gebe keine offensichtlich unvollständige Antwort als Lösung aus. Bitte präziser fragen oder ein leistungsfähigeres Modell auswählen.';
+  }
   return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\n'+raw.slice(0,2200)+
    '\n\nHinweis: KI-generierte Erklärung, nicht unabhängig überprüft.';
  }catch(e){return 'NERYX · KI-SYSTEM\nSprachmodell nicht erreichbar: '+String(e?.message||e)}
@@ -101,5 +115,5 @@ async function solve(input,{knowledge}={}){
  }
  return await modelFallback(s);
 }
-window.NERYXOrchestrator=Object.freeze({version:'2.1',plan,execute,modelSelection,status,solve,isUnknown:unknown});
+window.NERYXOrchestrator=Object.freeze({version:'2.2',plan,execute,modelSelection,status,solve,isUnknown:unknown});
 })();
