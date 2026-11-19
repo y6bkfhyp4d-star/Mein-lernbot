@@ -6,6 +6,9 @@ const MAX=12, MAX_CHARS=2400;
 const allow=[
  /^Beispiel prüfen:\s*[^|\n]{4,140}\s*\|\s*-?\d+(?:\.\d+)?(?:\s*[,;]\s*-?\d+(?:\.\d+)?){3,29}\s*$/i,
  /^Bedeutung lernen:\s*[^\n=]{4,70}\s*=\s*[^\n=]{4,70}\s*$/i,
+ /^Beispiel lernen:\s*[^|\n]{4,140}\s*\|\s*-?\d+(?:\.\d+)?(?:\s*[,;]\s*-?\d+(?:\.\d+)?){4,29}\s*$/i,
+ /^(?:Persönlichen|Persoenlichen) Lerntest (?:starten|auswerten|abbrechen)$/i,
+ /^(?:Persönlicher|Persoenlicher) Lernstand$/i,
  /^Ja,?\s*Bedeutung speichern$/i,
  /^Bedeutung abbrechen$/i,
  /^(?:Bedeutungstest|Bedeutungsstand|Sprachlernstand|Lernkontrolle|Lernzentrale|Lernkonflikte|Speicherabgleich)$/i,
