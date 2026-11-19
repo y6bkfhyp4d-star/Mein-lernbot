@@ -1,0 +1,67 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NERYX – private Frozen-Prüfung</title>
+<style>body{font:16px system-ui;background:#11111a;color:#f5f3ff;max-width:720px;margin:30px auto;padding:16px}section{background:#20202e;border-radius:16px;padding:18px;margin:16px 0}label{display:block;margin:12px 0}input{width:100%;margin-top:6px}button{background:#8b5cf6;border:0;border-radius:9px;color:white;font:inherit;padding:12px 20px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#171722;padding:16px;border-radius:12px}small{color:#bbb}h1{font-size:24px}</style>
+<h1>NERYX · Frozen-Dateiprüfung</h1>
+<section><p>Wähle zwei private JSON-Dateien. Die Verarbeitung findet ausschließlich auf diesem Gerät statt; die Dateien werden nicht hochgeladen, gesichert oder an NERYX übergeben.</p>
+<label>Fixture-Datei<input id="fixture" type="file" accept=".json,application/json"></label>
+<label>Suite-Datei<input id="suite" type="file" accept=".json,application/json"></label>
+<button id="check">Lokal prüfen</button></section>
+<section><strong>Ergebnis</strong><pre id="result">Noch keine Dateien geprüft.</pre><small>Die Prüfung testet nur Struktur und Verweise, nicht die fachliche Richtigkeit. Kein Siegel wird automatisch aktiviert.</small></section>
+<script>
+(()=>{
+ const $=x=>document.getElementById(x),err=(a,b)=>{if(!a)throw Error(b)};
+ const hex=x=>[...new Uint8Array(x)].map(v=>v.toString(16).padStart(2,'0')).join('');
+ $('check').addEventListener('click',async()=>{
+  const out=$('result');out.textContent='Prüfung läuft lokal …';
+  try{
+   err($('fixture').files.length===1&&$('suite').files.length===1,'Bitte beide Dateien auswählen.');
+   const fbuf=await $('fixture').files[0].arrayBuffer(),sbuf=await $('suite').files[0].arrayBuffer();
+   const fixture=JSON.parse(new TextDecoder().decode(fbuf)),suite=JSON.parse(new TextDecoder().decode(sbuf));
+   const claims=fixture.claims,items=Array.isArray(suite)?suite:suite?.items;
+   err(fixture.schema===1&&fixture.fixtureId==='fx-frozen-v1','Fixture-Kopf ungültig.');
+   err(Array.isArray(claims)&&claims.length>=60&&claims.length<=90,'60–90 Claims erforderlich.');
+   err(Array.isArray(items)&&items.length===50,'Genau 50 Testfälle erforderlich.');
+   const errors=[],fail=(ok,msg)=>{if(!ok)errors.push(msg)},map=new Map(),counters={},diff={},groups={};
+   claims.forEach((c,i)=>{
+    const id='fz-c'+String(i+1).padStart(3,'0');
+    fail(c.id===id,'Claim-ID Position '+(i+1));
+    fail(!map.has(c.id),'Claim-ID doppelt: '+c.id);
+    map.set(c.id,c);
+    fail(['curated','user'].includes(c.origin),'Claim-Herkunft: '+id);
+    fail(Array.isArray(c.topics)&&c.topics.length>=2&&c.topics.length<=4,'Claim-Themen: '+id);
+   });
+   let conflicts=0;
+   claims.forEach(c=>(c.conflicts||[]).forEach(id=>{
+    fail(map.has(id),'Unbekannter Claim-Konflikt');
+    if(map.has(id))fail((map.get(id).conflicts||[]).includes(c.id),'Nicht gegenseitiger Konflikt');
+    if(c.id<id)conflicts++;
+   }));
+   fail(conflicts>=2,'Weniger als zwei Konfliktpaare.');
+   fail(claims.filter(c=>c.origin==='user').length>=3,'Weniger als drei User-Claims.');
+   fail(new Set(claims.map(c=>c.domain)).size>=5,'Weniger als fünf Domänen.');
+   const expected={retrieval_hit:12,retrieval_distractor:6,abstain_correct:8,should_answer_hard:6,solver:6,grounding:6,contradiction:4,status:2};
+   items.forEach((t,i)=>{
+    const id='fz-'+String(i+1).padStart(3,'0');
+    fail(t.id===id,'Item-ID Position '+(i+1));
+    fail(t.schema===1&&t.suite==='frozen'&&t.origin==='synthetic','Item-Kopf: '+id);
+    fail(Object.hasOwn(expected,t.category),'Kategorie: '+id);
+    counters[t.category]=(counters[t.category]||0)+1;diff[t.difficulty]=(diff[t.difficulty]||0)+1;
+    fail([1,2,3].includes(t.difficulty),'Schwierigkeit: '+id);
+    fail(typeof t.input?.question==='string','Frage: '+id);
+    fail(t.category==='solver'?t.fixture===null:t.fixture==='fx-frozen-v1','Fixture-Verweis: '+id);
+    if(t.category==='solver')fail(Number.isFinite(t.expect?.exact?.value),'Solver-Wert: '+id);
+    if(t.category==='retrieval_hit')groups[t.group]=(groups[t.group]||0)+1;
+    for(const ref of [...(t.expect?.retrieval?.mustInclude||[]),...(t.expect?.retrieval?.mustExclude||[]),...(t.input?.evidence||[])])
+     fail(map.has(ref),'Claim-Verweis: '+id);
+    if(t.category==='grounding')fail(Array.isArray(t.expect?.labels)&&t.expect.labels.length>0,'Grounding-Labels: '+id);
+   });
+   for(const [k,v] of Object.entries(expected))fail(counters[k]===v,'Kategorie '+k+': '+(counters[k]||0)+' statt '+v);
+   fail(Object.keys(groups).length===4&&Object.values(groups).every(x=>x===3),'Paraphrasengruppen: vier mal drei erwartet.');
+   const [fh,sh]=await Promise.all([crypto.subtle.digest('SHA-256',fbuf),crypto.subtle.digest('SHA-256',sbuf)]);
+   out.textContent=JSON.stringify({struktur:errors.length?'NICHT BESTANDEN':'BESTANDEN',fehler:errors,
+    claims:claims.length,testfaelle:items.length,kategorien:counters,schwierigkeit:diff,konfliktpaare:conflicts,
+    sha256_fixture:hex(fh),sha256_suite:hex(sh),
+    hinweis:'Hash noch NICHT versiegeln, bis ein Mensch die Inhalte geprüft hat.'},null,2);
+  }catch(e){out.textContent='Prüfung nicht möglich: '+String(e?.message||e)}
+ });
+})();
+</script></html>
