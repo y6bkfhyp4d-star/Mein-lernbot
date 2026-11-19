@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -631,4 +631,41 @@ test('Sprachlernen: Duplikate und abgebrochene Rückmeldungen verändern keine D
  m.query('Jede Zahl wird mit zwei multipliziert | 7,14,28,56');
  assert.match(m.feedback('112'),/Bereits gespeichert/);
  assert.equal(db.get('neryx.learning.wordfeatures.v1'),snapshot);
+});
+
+test('Freier Dialog: Frage, Zahlenfolge und erlernte Sprachmuster',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ for(const path of ['modules/learning-lab.js','modules/word-learning.js','modules/conversation-math.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const w=window.NERYXWordLearning,c=window.NERYXConversationMath;
+ for(const example of ['Die Zahlen werden verdoppelt | 2,4,8,16,32',
+  'Wir verdoppeln jede Zahl | 3,6,12,24,48',
+  'Jede Zahl wird mit zwei multipliziert | 7,14,28,56,112',
+  'Jede Zahl wird mit zwei multipliziert | 9,18,36,72,144'])w.teach(example);
+ assert.match(c.respond('Was passiert, wenn ich jede Zahl mit zwei multipliziere?'),/brauche dazu eine konkrete Zahlenfolge/);
+ assert.match(c.respond('11, 22, 44, 88'),/geometrisch → 176/);
+ assert.match(c.respond('Wie geht die Folge weiter: 7, 14, 28, 56, wenn ich jede Zahl verdopple?'),/geometrisch → 112/);
+ assert.equal(c.respond('Was ist ein Okapi?'),null);
+ assert.equal(c.respond('Hallo'),null);
+ assert.equal(c.respond('Was kommt als Nächstes: 2, 4, 8, 16?'),null);
+ assert.ok(html.includes('src="modules/conversation-math.js"'));
+ assert.ok(app.includes('NERYXConversationMath?.respond(s)'));
+ assert.ok(app.indexOf('NERYXConversationMath?.respond(s)')<app.indexOf('if(context.awaiting)'));
+ assert.equal(db.has('meinLernBot.v1'),false);
+});
+test('Freier Dialog: unbekannte Sprache durch geprüfte Zahlenantwort lernen',()=>{
+ const db=new Map(),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ for(const path of ['modules/learning-lab.js','modules/word-learning.js','modules/conversation-math.js'])
+  runInNewContext(read(path),{window,localStorage});
+ const c=window.NERYXConversationMath,w=window.NERYXWordLearning;
+ assert.match(c.respond('Wie geht die Folge weiter: 7, 14, 28, 56, wenn ich die Zahlen multipliziere?'),/nicht ausreichend sichere/);
+ assert.match(c.respond('Die richtige Zahl ist 112'),/Beispiel gespeichert/);
+ assert.match(c.respond('Wie geht die Folge weiter: 9, 18, 36, 72, wenn ich die Zahlen multipliziere?'),/nicht ausreichend sichere/);
+ assert.match(c.respond('144'),/Beispiel gespeichert/);
+ assert.match(c.respond('Wie geht die Folge weiter: 11, 22, 44, 88, wenn ich die Zahlen multipliziere?'),/geometrisch → 176/);
+ const snapshot=db.get('neryx.learning.wordfeatures.v1');
+ assert.equal(c.respond('Hallo'),null);
+ assert.equal(db.get('neryx.learning.wordfeatures.v1'),snapshot);
+ assert.equal(db.has('meinLernBot.v1'),false);
+ assert.match(w.status(),/Trainingsbeispiele: 2/);
 });
