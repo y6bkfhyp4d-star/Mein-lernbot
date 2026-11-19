@@ -63,7 +63,7 @@ function teach(input){
   '. Jetzt '+state.examples.length+' unterschiedliche Trainingsbeispiele.';
 }
 function classify(phrase,state=read()){
- const features=tokens(phrase),total=state.examples.length;
+ const features=window.NERYXMeanings?.expandTokens(phrase,tokens(phrase))||tokens(phrase),total=state.examples.length;
  if(!features.length||total<2)return null;
  const examples=state.examples;
  const scores=Object.fromEntries(TYPES.map(k=>[k,0]));
