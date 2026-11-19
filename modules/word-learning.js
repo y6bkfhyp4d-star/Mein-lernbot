@@ -5,7 +5,7 @@
 'use strict';
 const KEY='neryx.learning.wordfeatures.v1';
 const TYPES=['arithmetisch','geometrisch','quadratisch','wechselnd','kubisch','fibonacci'];
-const stop=new Set('die der das den dem ein eine einer eines im in am an mit ohne und oder von bei auf fuer fur nach bis dann zu zum zur jede jeder jedes zahlen zahl folge werte wert soll sollen bitte hier weiter geht kommen kommt jeweils jedesmal jeden mal'.split(' '));
+const stop=new Set('die der das den dem ein eine einer eines im in am an mit ohne und oder von bei auf fuer fur nach bis dann zu zum zur jede jeder jedes zahlen zahl folge werte wert soll sollen bitte hier weiter geht kommen kommt jeweils jedesmal jeden mal wir werden wird sind ist sich immer schrittweise weiter'.split(' '));
 const norm=x=>String(x??'').toLocaleLowerCase('de').replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const number=x=>/^-?\d+(?:\.\d+)?$/.test(x.trim())?Number(x.trim()):NaN;
 const near=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=1e-8*Math.max(1,Math.abs(a),Math.abs(b));
@@ -40,16 +40,15 @@ function derive(vals){
  const head=vals.slice(0,-1),tail=vals.at(-1);
  const hypotheses=lab.candidates(head);
  const matched=hypotheses.filter(x=>near(x.next,tail));
- const distinct=[...new Set(matched.map(x=>x.next.toPrecision(12)))];
- // Ambiguous correct predictions cannot certify a unique rule.
- return matched.length===1&&distinct.length===1&&hypotheses.some(x=>!near(x.next,tail))
-   ?matched[0].type:null;
+ // Mehrere Modelle können dieselbe bekannte Zahl vorhersagen.
+ // Wir nutzen vorsichtig das einfachste passende Modell (kein Eindeutigkeitsbeweis).
+ return matched.length?matched[0].type:null;
 }
 function teach(input){
  const row=parse(input,true);
  if(!row)return 'Format: Beispiel lernen: Die Zahlen verdoppeln sich | 2, 4, 8, 16, 32';
  const type=derive(row.vals);
- if(!type)return 'Keine eindeutig unterscheidbare Strategie aus diesen Zahlen ableitbar. Nichts gespeichert.';
+ if(!type)return 'Keine unterstützte Strategie sagt die bekannte nächste Zahl voraus. Nichts gespeichert.';
  const state=read(),fingerprint=row.vals.join(',');
  if(state.examples.some(x=>x.fingerprint===fingerprint))
    return 'Diese Zahlen wurden bereits zum Lernen benutzt; kein weiterer Lernschritt.';
@@ -57,7 +56,7 @@ function teach(input){
  const features=tokens(row.phrase);
  state.examples.push({phrase:row.phrase,tokens:features,type,fingerprint});
  if(!save(state))return 'Beispiel erkannt, aber lokaler Speicher konnte nicht beschrieben werden.';
- return 'Beispiel gespeichert: '+row.phrase+' → '+type+
+ return 'Beispiel gespeichert (einfachste passende Strategie): '+row.phrase+' → '+type+
   '. Merkmale: '+features.join(', ')+
   '. Jetzt '+state.examples.length+' unterschiedliche Trainingsbeispiele.';
 }
