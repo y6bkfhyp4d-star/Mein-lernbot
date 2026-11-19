@@ -17,6 +17,35 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Stapeltest 1.0 – mehrere Prüfungen in einer Nachricht
+
+Neues Modul `modules/batch-test.js`. NERYX verarbeitet 2–12 erlaubte
+Testbefehle nacheinander und gibt die einzelnen Antworten als einen
+zusammenhängenden Bericht zurück. Ein Stapel kann mit
+`Stapeltest:` eingeleitet oder als mehrzeilige Nachricht mit
+ausschließlich erlaubten Prüf-Befehlen gesendet werden.
+
+Beispiel:
+
+```text
+Stapeltest:
+Beispiel prüfen: Die Werte mal zwei nehmen | 5,10,20,40
+Bedeutung lernen: mal zwei nehmen = verdoppeln
+Ja, Bedeutung speichern
+Beispiel prüfen: Die Werte mal zwei nehmen | 5,10,20,40
+Bedeutungstest
+```
+
+Unterstützt werden die aufgeführten Sprach-/Bedeutungsprüfungen und
+lesende Lern-Diagnosen. Andere Befehle (etwa Löschen, Datenimport,
+Programmanpassungen) werden nicht als Stapel zugelassen. Der komplette
+Stapel wird vor Ausführung geprüft. Die explizite Bestätigungszeile
+bleibt erforderlich und wird nicht von NERYX erfunden.
+
+Der Stapel selbst speichert nichts zusätzlich; nur ausdrücklich
+bestätigte Einzelbefehle können ihre gewohnten Datenänderungen vornehmen.
+Normale Chatnachrichten bleiben unberührt.
+
 ## Bedeutungsbrücke 1.1 und größerer Sprachtest
 
 Neue Module `modules/meaning-links.js` und
