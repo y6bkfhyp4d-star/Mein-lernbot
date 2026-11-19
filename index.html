@@ -51,7 +51,7 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    button, input {
+    button, input, textarea {
       font: inherit;
     }
 
@@ -60,7 +60,8 @@
     }
 
     button:focus-visible,
-    input:focus-visible {
+    input:focus-visible,
+    textarea:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 3px;
     }
@@ -358,6 +359,12 @@
       background: transparent;
       color: var(--text);
       font-size: 15px;
+      line-height: 1.45;
+      resize: none;
+      overflow-y: auto;
+      max-height: 140px;
+      min-height: 43px;
+      white-space: pre-wrap;
     }
 
     #input::placeholder {
@@ -656,13 +663,13 @@
     <div class="input-area">
 
       <form id="bar">
-        <input
+        <textarea
           id="input"
-          type="text"
-          placeholder="Schreib an NERYX ..."
+          rows="1"
+          placeholder="Schreib an NERYX ... (mehrere Zeilen möglich)"
           autocomplete="off"
           enterkeyhint="send"
-        >
+        ></textarea>
 
         <button id="send" type="button">
           Senden ↑
