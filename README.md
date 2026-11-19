@@ -17,6 +17,30 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Lernprüfung 0.1 – Vorher/Nachher mit getrennten Testaufgaben
+
+Im Chat mit `Lernprüfung` oder `Lerntest` starten. Der Test erzeugt
+12 Trainingsbeispiele sowie 36 andere Prüfbeispiele, deren Eingaben sich
+nicht mit den Trainingsbeispielen überschneiden. Geprüft werden zwei
+bewusst widersprüchliche Fortsetzungen derselben vier Anfangswerte:
+geometrisch oder kubische Interpolation. Die bevorzugte Strategie
+wird anhand der Trainingsbeispiele angepasst. Die Prüfergebnisse
+werden **vorher und nachher** ausgewertet und in beiden Teilbereichen
+getrennt dargestellt.
+
+Das Experiment macht sichtbar, dass eine Präferenzänderung die
+Trefferquote in einem Teilbereich verbessern und gleichzeitig in
+einem anderen verschlechtern kann. Ein gestiegener Teilwert ist
+**kein allgemeiner Lernerfolg**, wenn andere Bereiche darunter leiden.
+Der Test ist klein, synthetisch und kennt nur zwei vorgegebene
+Fortsetzungsannahmen; er ist kein Nachweis von AGI oder
+Fähigkeitsübertragung auf unbekannte Domänen.
+
+Das Experiment verändert keine produktiven Strategiegewichte. Unter
+`neryx.learning.evaluation.v1` wird nur der letzte Ergebnisbericht
+lokal gespeichert. Die vorhandenen Speicherbereiche für Fakten,
+Auto-Lernen und manuelles Lernfeedback bleiben unangetastet.
+
 ## Auto-Lernen 0.1 – im normalen Chat (experimentell)
 
 Bei einer klar formulierten Zahlenfolgen-Frage mit mindestens fünf Werten,
