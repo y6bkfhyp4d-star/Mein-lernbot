@@ -1,5 +1,15 @@
 # NERYX
 
+## Fachliche Begriffsabgrenzung (19.11.2026)
+
+Nach einem echten iPhone-Test antwortete Qwen auf die Frage nach Hypothese und Messung mit unsinnigen Temperaturbeispielen. Der alte Vollständigkeitscheck erkannte nur den fehlenden Malerbezug und zeigte dennoch den schlechten Modelltext.
+
+Deshalb prüft `modules/answer-review.js` **speziell bei dieser ausdrücklich erfragten Begriffsabgrenzung** nun auch Minimalmerkmale: eine prüfbare Vermutung/Annahme oder klar testbare Wirkungsbehauptung, ermittelte Messwerte beziehungsweise eine messbare Größe und ein konkretes Malerbeispiel (Wand/Beschichtung + messbarer Aspekt).
+
+Wenn nach genau einem Ergänzungsversuch die zentralen Begriffe nicht nachvollziehbar getrennt sind, verwirft `modules/orchestrator.js` die Modellantwort und zeigt `NERYX · FACHLICHE KONTROLLE` mit den fehlenden Merkmalen. Bei weniger grundlegenden Lücken bleibt der `VOLLSTÄNDIGKEITSHINWEIS` erhalten. Frühere Lernspeicher und das Sprachmodell selbst werden nicht umgeschrieben.
+
+**Grenze:** Diese begrenzten Regeln sind keine zuverlässige allgemeine semantische Qualitäts- oder Wahrheitsprüfung. Ein auswendig gelerntes Fachbeispiel beweist weder Verständnis noch AGI. Für unbekannte Themen bleiben Antworten des kleinen Sprachmodells ungeprüft.
+
 ## Plan A – Antwort-Vollständigkeitskontrolle 1.0 (19.11.2026)
 
 Neues Modul: `modules/answer-review.js`, **vor** `modules/orchestrator.js` geladen.
