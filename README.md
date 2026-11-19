@@ -17,6 +17,35 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Sprachmuster-Lernen 0.1 – Wortmerkmale aus Zahlenbeispielen
+
+NERYX kann über `Beispiel lernen: Die Zahlen werden verdoppelt | 2, 4, 8, 16, 32`
+aus einer vollständigen bekannten Zahlenfolge eine passende der **vorhandenen**
+Strategien bestimmen und Wörter aus der Beschreibung als Merkmale speichern.
+Mit `Beispiel prüfen: Zahlen schrittweise verdoppeln | 5, 10, 20, 40`
+versucht er, die Strategie für neue Zahlen anhand gemeinsamer Wortstämme
+aus den gelernten Beispielen zu bestimmen.
+
+`Sprachlernstand` zeigt die Anzahl gespeicherter Beispiele;
+`Sprachlerntest` demonstriert eine getrennte Prüfung (2/3 im
+Basistest nach vier Übungsbeispielen). Unbekannte Synonyme wie
+„multiplizieren“ gegenüber „verdoppeln“ können ohne passende
+Übungsbeispiele **nicht** automatisch gleichgesetzt werden.
+Unsichere Entscheidungen werden ausdrücklich nicht getroffen.
+
+Der Algorithmus vergleicht vereinfachte Wortmerkmale, keine echten
+semantischen Repräsentationen. Wenn mehrere mathematische Modelle
+denselben bekannten Folgewert erklären, bevorzugt er das erste
+passende einfache Modell. Das ist eine **Modellannahme**, kein Beweis
+der beabsichtigten Regel. Trainingsbeispiele werden nur bei
+passendem Vorhersageergebnis gespeichert und identische Zahlenfolgen
+nicht mehrfach gezählt.
+
+Die Trainingsmerkmale werden unter `neryx.learning.wordfeatures.v1`
+getrennt gespeichert; `meinLernBot.v1` und alle anderen
+Lern-/Faktenspeicher bleiben unverändert. Weder echte neue
+Lösungsalgorithmen noch allgemeine Sprachintelligenz entstehen dadurch.
+
 ## Kontextlernen 0.1 – Mehrdeutigkeit und Hinweise
 
 NERYX fragt bei `Muster prüfen: 2, 4, 8, 16 | Hinweis: vervielfachen`
