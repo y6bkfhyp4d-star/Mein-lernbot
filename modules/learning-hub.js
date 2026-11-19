@@ -60,6 +60,53 @@ function collect(){
   topicCount:claims.filter(x=>x.key==='topics').length,
   contextCount:Object.keys(contextRules).length};
 }
+function diagnostic(){
+ const lines=['NERYX · SPEICHERABGLEICH (NUR LESEN)'];
+ try{
+  const address=typeof location!=='undefined'?location.origin+location.pathname:'unbekannt';
+  lines.push('Geöffnete App-Adresse: '+address);
+  lines.push('Hinweis: Safari, Home-Bildschirm-App und andere Domains können getrennte lokale Datenspeicher verwenden.');
+ }catch{lines.push('App-Adresse konnte nicht ermittelt werden.')}
+ const datasets=[
+  [KEYS.main,'Hauptwissen','facts',null],
+  [KEYS.topics,'Themenlernen','records',1],
+  [KEYS.words,'Sprachlernen','examples',1],
+  [KEYS.context,'Kontextlernen','rules',1],
+  [KEYS.manual,'Manuelles Mathe-Lernen','scores',null],
+  [KEYS.auto,'Automatisches Mathe-Lernen','trained',1]
+ ];
+ let missing=0,failed=0;
+ for(const [key,label,field,version] of datasets){
+  let raw;
+  try{raw=localStorage.getItem(key)}
+  catch{lines.push(label+': Zugriff auf localStorage fehlgeschlagen');failed++;continue}
+  if(raw===null){lines.push(label+': KEIN SPEICHERSCHLÜSSEL vorhanden');missing++;continue}
+  try{
+   const data=JSON.parse(raw);
+   if(!data||typeof data!=='object'||Array.isArray(data))throw Error('kein Objekt');
+   const item=data[field];
+   let count=Array.isArray(item)?item.length:item&&typeof item==='object'?Object.keys(item).length:
+     Number.isInteger(item)?item:null;
+   const value=count===null?'Feld '+field+' FEHLT/UNGÜLTIG':String(count)+' Einträge/Schritte';
+   const invalidVersion=version!==null&&data.version!==version;
+   lines.push(label+': '+value+(invalidVersion?' | UNERWARTETE VERSION '+String(data.version):'')+
+    ' | Größe ca. '+raw.length+' Zeichen');
+   if(count===null||invalidVersion)failed++;
+  }catch{lines.push(label+': Inhalt nicht lesbar; nicht verändert');failed++}
+ }
+ let backups=0;
+ try{
+  for(let i=0;i<localStorage.length;i++){
+   const key=localStorage.key(i);
+   if(key&&key.startsWith('meinLernBot.v1.sicherung.'))backups++;
+  }
+  lines.push('Hauptwissen-Sicherungen in diesem Speicherbereich: '+backups);
+ }catch{lines.push('Sicherungsübersicht nicht lesbar')}
+ lines.push('Fehlende Schlüssel: '+missing+' | Lesefehler/Formatprobleme: '+failed);
+ lines.push('WICHTIG: Kein Speicher wurde verändert. Kein Löschen, Zurücksetzen oder Neuinstallieren durchführen.');
+ lines.push('Falls ein Schlüssel fehlt, zunächst dieselbe Installationsart und Adresse wie beim ursprünglichen Lernen öffnen.');
+ return lines.join('\n');
+}
 function report(){
  const d=collect();
  return ['NERYX · GEMEINSAME LERNZENTRALE',
@@ -102,5 +149,5 @@ function conflictReport(){
   'Unterschiedliche Formulierungen können auf dieselbe Aussage hinauslaufen; fehlende Treffer sind kein Wahrheitsbeweis.',
   ...d.warnings].join('\n');
 }
-window.NERYXLearningHub=Object.freeze({version:'1.0',collect,report,sources,conflictReport});
+window.NERYXLearningHub=Object.freeze({version:'1.1',collect,report,sources,conflictReport,diagnostic});
 })();
