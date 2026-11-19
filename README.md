@@ -17,6 +17,29 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Auto-Lernen 0.1 – im normalen Chat (experimentell)
+
+Bei einer klar formulierten Zahlenfolgen-Frage mit mindestens fünf Werten,
+z. B. `Was kommt als Nächstes: 2, 4, 8, 16, 32?`, nutzt NERYX
+die letzte angegebene Zahl als **zurückgehaltenes Prüfbeispiel**. Er ermittelt
+aus den vorherigen Zahlen Vorhersagen mehrerer vorhandener Strategien,
+vergleicht sie mit der zurückgehaltenen Zahl und passt nur bei
+unterscheidbaren Vorhersagen seine Strategiegewichte an. Anschließend
+versucht er, den nächsten Wert vorherzusagen. `Autolernstand`
+zeigt die Anzahl und Gewichtungen der automatischen Lernschritte.
+
+Das geschieht ausschließlich für ausdrücklich erkennbare Folgen-Fragen
+und nicht für beliebige Nachrichten. Derselbe Zahlenverlauf darf
+innerhalb eines begrenzten Verlaufs nicht mehrfach als Trainingsbeispiel
+dienen. Bei unpassenden Mustern erfolgt keine Änderung.
+
+Der getrennte Speicher-Schlüssel heißt `neryx.learning.auto.v1`;
+bisherige Daten unter `meinLernBot.v1` und die Gewichte des manuellen
+Lernlabors bleiben unverändert. Die zurückgehaltene Zahl stammt aus
+der **Eingabe des Nutzers**, nicht aus einer unabhängig überprüften
+externen Quelle. Dies ist eine begrenzte Form von Lernen aus Beispielen,
+kein allgemeines autonomes Lernen und kein AGI-Nachweis.
+
 ## Lernlabor 0.1 – Lernen aus Rückmeldungen (experimentell)
 
 Mit `Lernversuch: 2, 4, 8, 16` zeigt NERYX mehrere passende
