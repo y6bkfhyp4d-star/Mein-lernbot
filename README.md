@@ -1,5 +1,24 @@
 # NERYX
 
+## Plan A – Antwort-Vollständigkeitskontrolle 1.0 (19.11.2026)
+
+Neues Modul: `modules/answer-review.js`, **vor** `modules/orchestrator.js` geladen.
+Bei frei formulierten Antworten prüft NERYX erkennbare, ausdrücklich verlangte Bestandteile:
+ein Beispiel (auch „Beispiels“), nachvollziehbare Einzelschritte sowie ein ausdrücklich gewünschter
+Malerhandwerksbezug. Bei der Musterfrage zu Hypothese und Messung werden auch die beiden Begriffe geprüft.
+
+Fehlt ein Bestandteil, sendet NERYX **einmal** eine konkrete Ergänzungsaufforderung an das lokale Qwen.
+Danach zeigt es entweder die Antwort als **unverifiziert** oder kennzeichnet weiterhin
+fehlende Bestandteile mit `VOLLSTÄNDIGKEITSHINWEIS`. Offensichtlich sehr kurze
+Anweisungen können weiterhin ganz abgelehnt werden.
+
+Diese einfachen Heuristiken können fehlende Aspekte übersehen und korrekt formulierte
+Antworten fälschlich als unvollständig markieren. Sie **prüfen keine Wahrheit** und
+garantieren weder das Verständnis eines Beispiels noch fachliche Richtigkeit.
+Es werden dabei keine Lernspeicher verändert und keine zusätzlichen Downloads gestartet.
+
+Testfrage: `NERYX lösen: Erkläre mir den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.`
+
 NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-App (PWA) für das iPhone mit lokalem Wissensspeicher, regelbasiertem Lernkern und optionalen Forschungs-/Sprachmodell-Experimenten.
 
 **App:** https://y6bkfhyp4d-star.github.io/Mein-lernbot/
