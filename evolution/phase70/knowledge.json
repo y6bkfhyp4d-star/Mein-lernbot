@@ -2,8 +2,6 @@
   "discovered_queue": [
     "Althochdeutsch",
     "-gen",
-    "Absorption (Physik)",
-    "(136472) Makemake",
     "(2) Pallas",
     "AGB-Stern",
     "Absolute Helligkeit",
@@ -82,7 +80,11 @@
     "Adiabatisch",
     "Arbeit (Physik)",
     "Abfallentsorgung",
-    "Achsteile"
+    "Achsteile",
+    "Absorberkammer",
+    "Absorption (Chemie)",
+    "Adrastea (Mond)",
+    "Aegaeon (Mond)"
   ],
   "entries": [
     {
@@ -604,6 +606,26 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Abfallprodukt"
+    },
+    {
+      "collected_at": "2026-11-19T21:07:37+00:00",
+      "excerpt": "Absorption (lateinisch absorptio ‚Aufsaugung‘) bezeichnet in der Physik allgemein die Schwächung von elektromagnetischer oder Teilchenstrahlung beim Eindringen in ein Medium. Hierbei werden die Teilchen des Mediums durch Strahlungsanregung oder Stöße in energetisch angeregte Zustände überführt. Die eindringende Strahlung kann ihre Energie dabei ganz oder teilweise auf das Medium, in das diese eindringt, übertragen. Absorption umfasst neben Eindringen von elektromagnetischen Wellen, Schallwellen sowie Partikelstrahlen auch das Eindringen einzelner Teilchen in ein Medium. In manchen Arbeitsgebieten wird „Absorption“ je nach dem betrachteten Effekt in etwas verschiedener Bedeutung gebraucht, etwa bei Röntgen- und Gammastrahlung und bei freien Neutronen. Absorption verringert die Transmission einer Welle oder Strahlung durch einen Stoff oder",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absorption_%28Physik%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absorption (Physik)"
+    },
+    {
+      "collected_at": "2026-11-19T21:07:37+00:00",
+      "excerpt": "(136472) Makemake (IPA: [ˈmakeˈmake] ; frühere provisorische Bezeichnung 2005 FY9) ist ein Zwergplanet der Unterklasse der Plutoiden und zählt zu den größten bisher bekannten Objekten im Kuipergürtel. Er ist nach Makemake, der Schöpfergottheit in der Mythologie der Osterinsel, benannt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28136472%29_Makemake",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(136472) Makemake"
     }
   ],
   "failed_titles": [
@@ -780,6 +802,17 @@
         "Abfallprodukt"
       ],
       "time": "2026-11-19T15:15:27+00:00"
+    },
+    {
+      "added": 2,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Absorption (Physik)",
+        "(136472) Makemake"
+      ],
+      "time": "2026-11-19T21:07:37+00:00"
     }
   ],
   "schema": 1
