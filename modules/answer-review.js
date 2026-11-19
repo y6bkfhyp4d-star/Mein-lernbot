@@ -29,8 +29,22 @@ function inspect(question,answer){
  }
  if(needs.includes('Malerhandwerk')&&!/\b(?:wand|wande|anstrich|farbe|lack|grundier|tiefgrund|putz|tapete|rolle|pinsel|untergrund|beschichtung|feuchte|wasseraufnahme)\w*/i.test(a))
   missing.push('Bezug zum Malerhandwerk');
- if(needs.includes('Hypothese und Messung')&&(!/\bhypothes\w*/.test(a)||!/\bmess\w*/.test(a)))
-  missing.push('Unterscheidung zwischen Hypothese und Messung');
+ if(needs.includes('Hypothese und Messung')){
+  const h=/\bhypothes\w*/.test(a),m=/\bmess\w*/.test(a);
+  if(!h||!m)missing.push('Unterscheidung zwischen Hypothese und Messung');
+  // Fachliche Minimalmerkmale dieser EINEN Begriffsabgrenzung.
+  // Das ist keine allgemeine semantische Wahrheitsprüfung.
+  const testable=/\b(?:vermut\w*|annahm\w*|vermutung|prufbar|uberpruf\w*|testbar|erwart\w*|vorhersag\w*)/.test(a);
+  const observed=/\b(?:mess\w*|ermittel\w*|erfass\w*|beobacht\w*)/.test(a)&&
+   /\b(?:wert\w*|zahl\w*|daten|grosse\w*|menge\w*|wasseraufnahme|temperatur|feuchtigkeit)/.test(a);
+  if(!testable)missing.push('prüfbare Annahme oder Vermutung');
+  if(!observed)missing.push('ermittelte Messwerte oder messbare Größe');
+  if(needs.includes('Malerhandwerk')){
+   const example=/\b(?:wand|wande|untergrund|anstrich|grundier\w*|tiefgrund|lack\w*|putz|beschichtung)/.test(a);
+   const measurable=/\b(?:wasseraufnahme|feuchtigkeit|deckkraft|trocknungszeit|temperatur|schichtdicke|verbrauch|saugfahig\w*)/.test(a);
+   if(!example||!measurable)missing.push('konkretes überprüfbares Malerbeispiel');
+  }
+ }
  return {complete:missing.length===0,missing,needs};
 }
 function improvementPrompt(question,answer,missing){
@@ -43,5 +57,5 @@ function improvementPrompt(question,answer,missing){
  'Vorherige Antwort: '+String(answer).slice(0,750)
  ].join('\n');
 }
-window.NERYXAnswerReview=Object.freeze({version:'1.0',requirements,inspect,improvementPrompt});
+window.NERYXAnswerReview=Object.freeze({version:'1.1',requirements,inspect,improvementPrompt});
 })();
