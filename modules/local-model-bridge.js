@@ -44,6 +44,8 @@ async function load(){
 async function ask(question){
  const s=String(question??'').trim();
  if(!s||s.length>3000)return 'Bitte eine konkrete Frage bis 3000 Zeichen eingeben.';
+ const verified=window.NERYXMathVerifier?.solve(s);
+ if(verified)return verified;
  if(!loaded||!client)return 'Das Sprachmodell ist noch nicht geladen. Befehl: Sprachmodell laden';
  try{
   const answer=await client.ask(s);
