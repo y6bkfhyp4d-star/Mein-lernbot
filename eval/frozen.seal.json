@@ -1,8 +1,14 @@
 {
-  "schema": 1,
+  "schema": 2,
   "active": false,
   "version": null,
-  "sha256": null,
+  "adapterVersion": 1,
+  "claimCount": null,
   "itemCount": null,
-  "description": "Absichtlich noch kein Frozen-Bestand. Nur Hash und Anzahl eintragen, nachdem ein unabhängiger Ersteller die Datei außerhalb des öffentlichen Repos erzeugt hat."
+  "files": {
+    "fixture": {"sha256": null},
+    "suite": {"sha256": null}
+  },
+  "exposure": "developer_known_regression_not_holdout",
+  "description": "Noch keine Frozen-Freigabe. Zwei getrennte externe Dateien; Hashes und Zählungen erst nach finaler Prüfung eintragen."
 }
