@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -1072,4 +1072,29 @@ test('Systemdiagnose im Stapel: alle Prüfungen ohne Sprachmodell-Download nache
  assert.match(output,/Schritte: 4/);
  assert.match(output,/FÄHIGKEITSTEST/);
  assert.match(output,/Sprachmodell Status/);
+});
+
+test('Rechenprüfer erkennt die Malerfrage und verlangt klare Maße',()=>{
+ const window={};
+ runInNewContext(read('modules/math-verifier.js'),{window});
+ const verifier=window.NERYXMathVerifier;
+ const q='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch. Wie viele Quadratmeter Wandfläche muss er insgesamt streichen?';
+ const exact=verifier.wallArea(q);
+ assert.equal(exact.rooms,3);
+ assert.equal(exact.walls,4);
+ assert.equal(exact.total,150);
+ assert.match(verifier.solve(q),/Ergebnis: 150 m²/);
+ assert.match(verifier.solve(q.replace('3 Räume','2 Räume')),/Ergebnis: 100 m²/);
+ assert.match(verifier.solve(q.replace('Jede Wand','Die Wand')),/nicht eindeutig/);
+ assert.match(verifier.solve(q+' Fenster abziehen.'),/fehlen hier überprüfbare Angaben/);
+ assert.equal(verifier.solve('Was ist ein Okapi?'),null);
+});
+test('Verifizierte Wandfläche kommt im Hauptchat und KI-Brücke vor ungeprüfter Generierung',()=>{
+ assert.match(app,/const arithmetic=window\.NERYXMathVerifier\?\.solve\(s\);if\(arithmetic\)return arithmetic/);
+ assert.match(app,/NERYXMathVerifier\?\.solve\(v\)/);
+ const bridge=read('modules/local-model-bridge.js');
+ assert.match(bridge,/const verified=window\.NERYXMathVerifier\?\.solve\(s\)/);
+ assert.ok(bridge.indexOf('const verified=')<bridge.indexOf('const answer=await client.ask(s)'));
+ assert.match(html, /src="modules\/math-verifier\.js"/);
+ assert.match(read('modules/system-hub.js'),/NERYXMathVerifier/);
 });
