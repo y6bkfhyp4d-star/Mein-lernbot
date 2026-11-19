@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "description": "Triage der sieben L1-Baseline-Fehlschläge; Erwartungen bleiben unverändert. Erfolgreiche Fälle werden zur Prüfung als unerwartet grün markiert.",
+  "items": [
+    {
+      "id": "ret01",
+      "classification": "known_limit",
+      "reason": "Wort Trocknungszeit stimmt mit durchzutrocknen nicht lexikalisch überein; der 60%-Filter liefert keinen Satz.",
+      "next": "Synonym- und Wortfamilien-Matching erst nach DEV-Messung beurteilen."
+    },
+    {
+      "id": "ret02",
+      "classification": "known_limit",
+      "reason": "trocknet / Durchtrocknen und Füllwort lange werden als verschiedene Themenwörter behandelt; zu geringe Abdeckung.",
+      "next": "Aufgabenwort-Stopliste und Flexionsnormalisierung ausschließlich am DEV-Satz prüfen."
+    },
+    {
+      "id": "dis01",
+      "classification": "known_limit",
+      "reason": "Abfrage fragt nach zwei Themen; die Fixture hält Hypothese und Messung in getrennten Dokumenten. Satzbezogenes Gate verlangt unpassend gemeinsame Abdeckung.",
+      "next": "Mehrthemen-Retrieval als getrennte Teilfragen prüfen; Saturn weiter ausschließen."
+    },
+    {
+      "id": "dis02",
+      "classification": "known_limit",
+      "reason": "Zwei getrennte Begriffe werden wie eine einzige Satzsuche behandelt; beide Lexeme stehen nicht im selben Dokument.",
+      "next": "Teilfragen-Retrieval evaluieren."
+    },
+    {
+      "id": "hard01",
+      "classification": "known_limit",
+      "reason": "Durchtrocknen und mehrere Füll-/Hilfswörter senken die Abdeckung, obwohl die Fixture die Antwort enthält.",
+      "next": "Paraphrasenabdeckung gezielt messen, nicht die Soll-ID löschen."
+    },
+    {
+      "id": "hard02",
+      "classification": "known_limit",
+      "reason": "für, gedacht und Untergründe erzeugen zusätzliche nicht passende Tokens; Wortflexion ist unvollständig.",
+      "next": "Tokenfilter/Flexion nach DEV-Daten verbessern."
+    },
+    {
+      "id": "rev04",
+      "classification": "system_defect",
+      "reason": "Die Formulierung in Schritten wird von der Anforderungserkennung nicht erkannt; ein Ein-Satz-Entwurf erscheint vollständig.",
+      "next": "Flexion Schritten im Antwortprüfer erkennen, anschließend Regression prüfen."
+    }
+  ]
+}
