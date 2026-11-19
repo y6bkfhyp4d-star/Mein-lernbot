@@ -1,0 +1,473 @@
+{
+  "schema": 1,
+  "description": "Öffentliche DEV- und Regressionstests, kein Frozen/Holdout",
+  "items": [
+    {
+      "schema": 1,
+      "id": "ret01",
+      "suite": "dev",
+      "category": "retrieval_hit",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Was ist die Trocknungszeit von Terrafix-K?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d10"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "ret02",
+      "suite": "dev",
+      "category": "retrieval_hit",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Wie lange trocknet Terrafix-K?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d10"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "ret03",
+      "suite": "dev",
+      "category": "retrieval_hit",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Terrafix-K: Untergrund mineralisch"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d11"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "ret04",
+      "suite": "dev",
+      "category": "retrieval_hit",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Welche Angaben enthält ein Messprotokoll?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d20"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "ret05",
+      "suite": "dev",
+      "category": "retrieval_hit",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Was ist eine Hypothese?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d21"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "ret06",
+      "suite": "dev",
+      "category": "retrieval_hit",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Was ist Saturn?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d90"
+          ],
+          "mustExclude": [
+            "fx-d21"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "dis01",
+      "suite": "regression",
+      "category": "retrieval_distractor",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Erkläre den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk."
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d21"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "dis02",
+      "suite": "regression",
+      "category": "retrieval_distractor",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Hypothese und Messung?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d21"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "dis03",
+      "suite": "dev",
+      "category": "retrieval_distractor",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Wie viel kostet Terrafix-K?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "none"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "abs01",
+      "suite": "dev",
+      "category": "abstain_correct",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Welche Haarfarbe hat ein Okapi?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "none"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "abs02",
+      "suite": "dev",
+      "category": "abstain_correct",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Welche Farbe hat Terrafix-K im Eimer?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "none"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "abs03",
+      "suite": "dev",
+      "category": "abstain_correct",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Wie lautet das Wetter in Bielefeld?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "none"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "abs04",
+      "suite": "dev",
+      "category": "abstain_correct",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Wie schnell fährt ein Maulwurfauto?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "none"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "hard01",
+      "suite": "dev",
+      "category": "should_answer_hard",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Wie lange braucht Terrafix-K zum Durchtrocknen?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d10"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "hard02",
+      "suite": "dev",
+      "category": "should_answer_hard",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Ist Terrafix-K für mineralische Untergründe gedacht?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d11"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "con01",
+      "suite": "dev",
+      "category": "contradiction",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Wie lange ist die Lagerfähigkeit von Terrafix-K?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d12",
+            "fx-d13"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "sta01",
+      "suite": "dev",
+      "category": "status",
+      "layers": [
+        "retrieval"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Welche Angaben enthält ein Messprotokoll?"
+      },
+      "expect": {
+        "retrieval": {
+          "mustInclude": [
+            "fx-d20"
+          ],
+          "mustExclude": [
+            "fx-d90"
+          ]
+        },
+        "verdict": "hit"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "rev01",
+      "suite": "regression",
+      "category": "review",
+      "layers": [
+        "review"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Erkläre Hypothese und Messung anhand eines Beispiels aus dem Malerhandwerk.",
+        "draft": "Hypothesche Beispiele: 1. Erkennt dass es warm ist. Messung: Man erkennt, dass es warm ist."
+      },
+      "expect": {
+        "complete": false
+      }
+    },
+    {
+      "schema": 1,
+      "id": "rev02",
+      "suite": "dev",
+      "category": "review",
+      "layers": [
+        "review"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Erkläre Hypothese und Messung anhand eines Beispiels aus dem Malerhandwerk.",
+        "draft": "Hypothese: Die Grundierung senkt die Wasseraufnahme einer Wand. Messung: Wir messen die Wasseraufnahme an einer Wand. Beispiel: Die grundierte Fläche vergleichen wir mit einer unbehandelten Wand."
+      },
+      "expect": {
+        "complete": true
+      }
+    },
+    {
+      "schema": 1,
+      "id": "rev03",
+      "suite": "dev",
+      "category": "review",
+      "layers": [
+        "review"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Erkläre in Schritten wie du einen Untergrund vorbereitest.",
+        "draft": "Zuerst reinigen. Danach lose Teile entfernen."
+      },
+      "expect": {
+        "complete": true
+      }
+    },
+    {
+      "schema": 1,
+      "id": "rev04",
+      "suite": "dev",
+      "category": "review",
+      "layers": [
+        "review"
+      ],
+      "fixture": "synthetic-v1",
+      "input": {
+        "question": "Erkläre in Schritten wie du einen Untergrund vorbereitest.",
+        "draft": "Der Untergrund sollte sauber sein."
+      },
+      "expect": {
+        "complete": false
+      }
+    }
+  ]
+}
