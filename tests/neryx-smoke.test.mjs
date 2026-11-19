@@ -1126,7 +1126,7 @@ test('Gemeinsame NERYX-KI priorisiert Rechenkern, lokales Wissen, danach optiona
 test('Gemeinsame NERYX-KI verlangt lokales Modell bei unbekannten Fragen und verändert keine Speicher',async()=>{
  const window={},localStorage={getItem(){throw Error('Nicht lesen!')},setItem(){throw Error('Nicht schreiben!')}};
  runInNewContext(read('modules/orchestrator.js'),{window,localStorage});
- assert.match(await window.NERYXOrchestrator.solve('Kannst du ein neues Problem lösen?'),/Sprachmodell laden/);
+ assert.match(await window.NERYXOrchestrator.solve('Kannst du ein neues Problem lösen?'),/Kein Sprachmodell verfügbar/);
  assert.equal(window.NERYXOrchestrator.plan('').type,'invalid');
 });
 test('Stapeltest erlaubt Gesamt-KI-Diagnose und definierte Problembefehle',()=>{
@@ -1213,6 +1213,44 @@ test('Gesamt-KI: irrelevante gespeicherte Dokumententreffer dürfen Qwen nicht b
  const noModel={info:()=>({loaded:false})};
  window.NERYXLocalModel=noModel;
  const fallback=await window.NERYXOrchestrator.solve(question,{knowledge:async()=>original});
- assert.match(fallback,/Sprachmodell laden/);
+ assert.match(fallback,/Kein Sprachmodell verfügbar/);
  assert.doesNotMatch(fallback,/Saturn/);
+});
+
+test('Lazy Loading: Wissens- und Rechenantworten starten Qwen nicht',async()=>{
+ const window={};let loads=0,calls=0;
+ for(const path of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/math-verifier.js','modules/system-hub.js','modules/orchestrator.js'])runInNewContext(read(path),{window});
+ window.NERYXLocalModel={
+  info:()=>({loaded:false}),load:async()=>{loads++;return 'geladen'},
+  askRaw:async()=>{calls++;return 'Modellantwort'}
+ };
+ assert.match(await window.NERYXOrchestrator.solve('2,4,8,16'),/32/);
+ assert.match(await window.NERYXOrchestrator.solve('Was ist ein Okapi?',{knowledge:async()=> 'Das Okapi ist ein Säugetier.'}),/Säugetier/);
+ assert.equal(loads,0);
+ assert.equal(calls,0);
+});
+test('Lazy Loading: unbekannte Frage startet Qwen erst bei Anfrage und ruft es danach auf',async()=>{
+ const window={};let loaded=false,loads=0,calls=0;
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={
+  info:()=>({loaded}),load:async()=>{loads++;loaded=true;return 'geladen'},
+  askRaw:async()=>{calls++;return 'Die Messung liefert einen beobachteten Wert.'}
+ };
+ const solve=window.NERYXOrchestrator.solve;
+ const q='Was ist der Unterschied zwischen einer Hypothese und einer Messung?';
+ assert.equal(loads,0);
+ const r=await solve(q,{knowledge:async()=> 'IN GESPEICHERTEN DOKUMENTEN:\n• Saturn'});
+ assert.match(r,/LOKALES SPRACHMODELL \(unverifiziert\)/);
+ assert.equal(loads,1);
+ assert.equal(calls,1);
+ await solve('Erkläre das noch genauer.',{knowledge:async()=>null});
+ assert.equal(loads,1);
+ assert.equal(calls,2);
+});
+test('Lazy Loading: beim Fehlschlag bleibt die lokale KI nutzbar',async()=>{
+ const window={};let loads=0;
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={info:()=>({loaded:false}),load:async()=>{loads++;return 'WebGPU nicht verfügbar'}};
+ assert.match(await window.NERYXOrchestrator.solve('Erkläre mir Physik.',{knowledge:async()=>null}),/Automatischer Modellstart fehlgeschlagen/);
+ assert.equal(loads,1);
 });
