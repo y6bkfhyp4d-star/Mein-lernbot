@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -415,4 +415,40 @@ test('Lernlabor: unbelegtes Feedback nicht übernehmen und Nachteile messbar', (
   assert.ok(html.includes('src="modules/learning-lab.js"'));
   assert.ok(app.indexOf("command(s,'Lernversuch')")<app.indexOf("if(context.awaiting)"));
   assert.ok(app.includes("command(s,'Lernfeedback')"));
+});
+
+test('Auto-Lernen: gewöhnliche Folge-Frage trainiert nur einen separaten Strategiezähler', () => {
+  const db=new Map(), localStorage={
+    getItem:k=>db.get(k)??null,
+    setItem:(k,v)=>db.set(k,String(v))
+  },window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/auto-learning.js'),{window,localStorage});
+  const agent=window.NERYXAutoLearn;
+  const question='Was kommt als Nächstes: 2, 4, 8, 16, 32?';
+  assert.match(agent.solve(question),/Mögliche nächste Zahl: 64/);
+  assert.match(agent.status(),/Automatische Lernschritte: 1/);
+  const snapshot=db.get('neryx.learning.auto.v1');
+  assert.match(agent.solve(question),/bereits/);
+  assert.equal(db.get('neryx.learning.auto.v1'),snapshot,'Wiederholung darf keine Belohnung geben');
+  assert.equal(db.has('meinLernBot.v1'),false,'Persönliche Fakten nicht verändert');
+  assert.equal(db.has('neryx.learning.strategies.v1'),false,'Manuelles Lernlabor unverändert');
+  assert.ok(html.includes('src="modules/auto-learning.js"'));
+  assert.ok(app.indexOf('NERYXAutoLearn?.solve(s)')<app.indexOf('if(context.awaiting)'));
+});
+
+test('Auto-Lernen: kein Feedback aus ungeeigneten Nachrichten und unklaren Beispielen', () => {
+  const db=new Map(),localStorage={
+    getItem:k=>db.get(k)??null,
+    setItem:(k,v)=>db.set(k,String(v))
+  },window={};
+  runInNewContext(read('modules/learning-lab.js'),{window,localStorage});
+  runInNewContext(read('modules/auto-learning.js'),{window,localStorage});
+  const agent=window.NERYXAutoLearn;
+  assert.equal(agent.solve('Ich kaufte 2, 4, 8, 16, 32 Äpfel.'),null);
+  assert.equal(agent.solve('Was kommt als Nächstes: 2, 4, 8?'),null);
+  assert.match(agent.solve('Was kommt als Nächstes: 2, 4, 8, 16, 999?'),/nichts gelernt/);
+  assert.equal(db.size,0,'Keine Daten für nicht nachvollziehbares Muster');
+  assert.match(agent.solve('Wie geht die Folge weiter: 3, 6, 12, 24, 48?'),/Mögliche nächste Zahl: 96/);
+  assert.match(agent.status(),/Automatische Lernschritte: 1/);
 });
