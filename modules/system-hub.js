@@ -14,6 +14,7 @@ const modules=[
  ['Auto-Lernen','NERYXAutoLearn'],
  ['Kontextlernen','NERYXContextLearning'],
  ['Problemlöser','NERYXReasoner'],
+ ['Rechenprüfer','NERYXMathVerifier'],
  ['Mustererkennung','NERYXPatterns'],
  ['Fähigkeitstest','NERYXCapabilityTest'],
  ['Persönlicher Lerntest','NERYXPersonalTest'],
