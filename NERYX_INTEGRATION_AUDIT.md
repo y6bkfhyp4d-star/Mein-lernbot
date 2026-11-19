@@ -123,3 +123,26 @@ Werkzeugaufrufe durch das Sprachmodell oder autonomes Handeln.
 Anstatt eine neue Parallel-KI zu erstellen, erweitert Plan A die
 überprüfbare Verbindung der bestehenden Komponenten schrittweise.
 
+
+## Plan A, Stufe 2 – begrenzte Werkzeugsteuerung (19.11.2026)
+
+Die gemeinsame KI-Steuerung in `modules/orchestrator.js` ist jetzt auf **Version 2.0**.
+
+- Zuerst überprüfbare Rechen-/Planungsmodule, dann passende lokale Wissensantworten.
+- Bei unbekannten Fragen kann das explizit geladene Qwen ein Werkzeug vorschlagen.
+- Whitelist: Zahlenfolgen, Zahlenregeln, Rasterwege und Wandflächen.
+- Die Werkzeugargumente müssen wörtlich in der Nutzerfrage vorkommen. Ein Modell darf keine Zahlen hinzufügen, Daten verändern oder Code ausführen.
+- Rechenergebnisse stammen vom jeweiligen Fachmodul, Modellformulierungen bleiben als unverifiziert gekennzeichnet.
+- Vor dem Modellstart kann `Sprachmodell wählen: 1,5B` oder `Sprachmodell wählen: 0,5B` ausgeführt werden. Die Auswahl geht über eine geprüfte `SET_MODEL`-Bridge an den vorhandenen WebLLM-Prototyp. Kein Modell lädt automatisch.
+- 1,5B kann auf iPhones wegen GPU-Speicher scheitern. In dem Fall auf 0,5B zurückwechseln.
+
+**Integrationstest:**
+
+```text
+Stapeltest:
+KI-Systemstatus
+NERYX lösen: 2=5, 4=9; 7
+NERYX lösen: Setze die Folge 2,4,8,16 fort
+```
+
+Die Test-Suite wurde um isolierte Schutztests für erfundene Werkzeugargumente, Modellvorrang und Auswahl erweitert. Ein erfolgreicher iPhone-Start von Qwen 1,5B ist damit **nicht** nachgewiesen.
