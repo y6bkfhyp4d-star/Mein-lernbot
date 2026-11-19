@@ -17,6 +17,33 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Sprachmuster-Lernen 0.3 – Lernen durch überprüfte Korrektur
+
+Wenn NERYX bei `Beispiel prüfen: Jede Zahl wird mit zwei multipliziert | 7, 14, 28, 56`
+unsicher ist, kann man in **derselben geöffneten Sitzung**
+`Beispielkorrektur: 112` eingeben. NERYX kontrolliert,
+ob seine vorhandenen mathematischen Strategien diese nächste Zahl
+vorhersagen können. Nur dann speichert er die beschreibenden
+Wortmerkmale und die vollständige bestätigte Zahlenfolge.
+
+Bei einer zweiten anderen Aufgabenfolge (z. B. `9, 18, 36, 72`)
+und der Korrektur `144` erhält die Formulierung genug unabhängige
+Zahlenbeispiele für die Strategie-Auswahl. Der anschließende Test
+`Beispiel prüfen: Mit zwei multipliziert man jede Zahl | 11, 22, 44, 88`
+kann dann `176` mit geometrischer Strategie liefern.
+
+Ohne vorherige offene Rückfrage oder bei einer Zahl, die zu keiner
+unterstützten Strategie passt, wird nicht gelernt. `Beispielkorrektur:
+abbrechen` verwirft die Rückfrage. Die wartende Rückfrage liegt nur im
+Arbeitsspeicher und geht nach Neuladen verloren; bereits akzeptierte
+Trainingsbeispiele bleiben lokal erhalten.
+
+**Grenze:** Das ist kein genereller Synonym-Erkenner.
+Die Verbindung entsteht aus wiederholten Wortmerkmalen und
+unterschiedlichen bestätigten Zahlenfolgen. Eine falsche Korrektur,
+die zufällig zu einer vorhandenen Strategie passt, ist nicht
+unabhängig als wahr bewiesen. Es wird kein neuer Algorithmus erzeugt.
+
 ## Sprachmuster-Lernen 0.1 – Wortmerkmale aus Zahlenbeispielen
 
 NERYX kann über `Beispiel lernen: Die Zahlen werden verdoppelt | 2, 4, 8, 16, 32`
