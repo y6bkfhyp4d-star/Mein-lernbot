@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Aerosol",
-    "ATP-Synthase",
-    "Vulkan",
+    "Abiotisch",
+    "Abklingbecken",
+    "Abwasser",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris"
   ],
   "records": [
     {
-      "checked_at": "2026-11-19T04:24:55+00:00",
+      "checked_at": "2026-11-19T10:27:44+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -28,7 +28,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T04:24:55+00:00",
+      "checked_at": "2026-11-19T10:27:44+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -46,7 +46,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T04:24:55+00:00",
+      "checked_at": "2026-11-19T10:27:44+00:00",
       "claims": [
         {
           "id": "p79-8db9ea00710e2a",
@@ -126,6 +126,42 @@
       "verified_correction": false
     },
     {
+      "checked_at": "2026-11-19T10:27:44+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Abiotisch",
+      "question": "Was ist Abiotisch und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=276085",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Abiotisch",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T10:27:44+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Abklingbecken",
+      "question": "Was ist Abklingbecken und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=181410",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "Abklingbecken",
+      "verified_correction": false
+    },
+    {
       "checked_at": "2026-11-18T22:14:04+00:00",
       "claims": [],
       "had_exact_search_hit": false,
@@ -141,6 +177,37 @@
       "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "Abschirmung (Gravitation)",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T10:27:44+00:00",
+      "claims": [
+        {
+          "id": "p79-9e4ad3fa8a463f",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Abwasser ist ein Oberbegriff für aus verschiedenen Quellen stammendes Wasser, das über bauliche Anlagen fortgeleitet wird: Niederschlagswasser – von bebauten oder befestigten Flächen gesammelt abfließendes Wasser von Niederschlägen.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=18972",
+          "statement": "Abwasser ist ein Oberbegriff für aus verschiedenen Quellen stammendes Wasser, das über bauliche Anlagen fortgeleitet wird: Niederschlagswasser – von bebauten oder befestigten Flächen gesammelt abfließendes Wasser von Niederschlägen.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Abwasser"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 3,
+      "page_title": "Abwasser",
+      "question": "Was ist Abwasser und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=18972",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Abwasser",
       "verified_correction": false
     },
     {
@@ -692,6 +759,19 @@
       "resolved_without_exact_hit": 6,
       "titles_resolved": 6,
       "topics_with_claims": 3,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-19T10:27:44+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "previously_without_exact_hit": 6,
+      "processed": 6,
+      "resolved_without_exact_hit": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
       "unresolved": 0
     }
   ],
