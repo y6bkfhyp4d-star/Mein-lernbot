@@ -23,7 +23,7 @@ function rank(query,docs,limit=4){
    if(coverage<0.6)continue;
    // Titel allein ist kein Beleg, mindestens ein Themenwort muss im Satz stehen.
    if(!matched.some(t=>body.has(t)))continue;
-   out.push({title,sentence:sentence.trim(),score:matched.length+matched.filter(t=>heading.has(t)).length*0.25,coverage});
+   out.push({id:String(doc?.id??''),title,sentence:sentence.trim(),score:matched.length+matched.filter(t=>heading.has(t)).length*0.25,coverage});
   }
  }
  return out.sort((a,b)=>b.score-a.score||b.coverage-a.coverage).slice(0,Math.max(1,Math.min(10,limit)));
