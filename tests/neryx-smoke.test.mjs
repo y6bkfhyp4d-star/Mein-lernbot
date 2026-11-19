@@ -1254,3 +1254,31 @@ test('Lazy Loading: beim Fehlschlag bleibt die lokale KI nutzbar',async()=>{
  assert.match(await window.NERYXOrchestrator.solve('Erkläre mir Physik.',{knowledge:async()=>null}),/Automatischer Modellstart fehlgeschlagen/);
  assert.equal(loads,1);
 });
+
+test('Antwortkontrolle: freie Frage verwendet keinen verwirrenden Werkzeug-Prompt und korrigiert eine unvollständige Qwen-Antwort',async()=>{
+ const window={},prompts=[];let calls=0;
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={
+  info:()=>({loaded:true}),
+  askRaw:async q=>{
+   prompts.push(q);calls++;
+   return calls===1?'Wähle eine Messung anhand eines Beispiels!':
+    'Eine Hypothese ist eine überprüfbare Vermutung. Eine Messung liefert überprüfbare Werte. Als Beispiel kann man die Wasseraufnahme einer Wand messen.';
+  }
+ };
+ const q='Erkläre mir den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
+ const result=await window.NERYXOrchestrator.solve(q,{knowledge:async()=>null});
+ assert.equal(calls,2);
+ assert.doesNotMatch(prompts[0],/WERKZEUG:/);
+ assert.match(result,/Hypothese ist eine überprüfbare Vermutung/);
+ assert.match(result,/unverifiziert/);
+});
+test('Antwortkontrolle: zweimal schlechte Antwort wird nicht als Erklärung ausgegeben',async()=>{
+ const window={};let calls=0;
+ runInNewContext(read('modules/orchestrator.js'),{window});
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Wähle eine Messung anhand eines Beispiels!';}};
+ const answer=await window.NERYXOrchestrator.solve('Erkläre eine Hypothese.',{knowledge:async()=>null});
+ assert.equal(calls,2);
+ assert.match(answer,/keine ausreichende Erklärung/);
+ assert.doesNotMatch(answer,/LOKALES SPRACHMODELL \(unverifiziert\)/);
+});
