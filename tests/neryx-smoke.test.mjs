@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/learning-audit.js', 'modules/meaning-benchmark.js', 'modules/batch-test.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/meaning-links.js', 'modules/personal-learning-test.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/learning-coordinator.js', 'modules/capability-test.js', 'modules/local-model-bridge.js', 'modules/system-hub.js', 'modules/math-verifier.js', 'modules/orchestrator.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -1097,4 +1097,42 @@ test('Verifizierte Wandfläche kommt im Hauptchat und KI-Brücke vor ungeprüfte
  assert.ok(bridge.indexOf('const verified=')<bridge.indexOf('const answer=await client.ask(s)'));
  assert.match(html, /src="modules\/math-verifier\.js"/);
  assert.match(read('modules/system-hub.js'),/NERYXMathVerifier/);
+});
+
+test('Gemeinsame NERYX-KI priorisiert Rechenkern, lokales Wissen, danach optional Qwen', async () => {
+ const window={};
+ for(const name of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/math-verifier.js','modules/system-hub.js','modules/orchestrator.js'])
+  runInNewContext(read(name),{window});
+ let modelCalls=0, knowledgeCalls=0;
+ window.NERYXLocalModel={
+  info:()=>({loaded:true}),
+  ask:async()=>{modelCalls++;return 'NERYX · LOKALES SPRACHMODELL (unverifiziert)\\nModellantwort';}
+ };
+ const system=window.NERYXOrchestrator;
+ const question='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch. Wie viel Wandfläche ist zu streichen?';
+ assert.match(await system.solve(question,{knowledge:async()=>{knowledgeCalls++;return 'falsch';}}),/Ergebnis: 150 m²/);
+ assert.match(await system.solve('2=5, 4=9; 7'),/y = 15/);
+ assert.match(await system.solve('2,4,8,16'),/32/);
+ assert.equal(modelCalls,0);
+ assert.equal(knowledgeCalls,0);
+ assert.equal(await system.solve('Was ist ein Okapi?',{knowledge:async()=>{knowledgeCalls++;return 'Das Okapi ist ein Säugetier.';}}),'Das Okapi ist ein Säugetier.');
+ assert.equal(modelCalls,0);
+ assert.match(await system.solve('Was bedeutet die fremde Formulierung?',{knowledge:async()=> 'VERWANDTES WISSEN\\nMars: Planet'}),/LOKALES SPRACHMODELL/);
+ assert.equal(modelCalls,1);
+ assert.match(system.status(),/GEMEINSAMES KI-SYSTEM/);
+ assert.match(app,/NERYXOrchestrator\\?\\.solve\\(v,\\{knowledge:intelligentAnswer\\}\\)/);
+ assert.match(html,/src="modules\\/orchestrator\\.js"/);
+});
+test('Gemeinsame NERYX-KI verlangt lokales Modell bei unbekannten Fragen und verändert keine Speicher',async()=>{
+ const window={},localStorage={getItem(){throw Error('Nicht lesen!')},setItem(){throw Error('Nicht schreiben!')}};
+ runInNewContext(read('modules/orchestrator.js'),{window,localStorage});
+ assert.match(await window.NERYXOrchestrator.solve('Kannst du ein neues Problem lösen?'),/Sprachmodell laden/);
+ assert.equal(window.NERYXOrchestrator.plan('').type,'invalid');
+});
+test('Stapeltest erlaubt Gesamt-KI-Diagnose und definierte Problembefehle',()=>{
+ const window={};
+ runInNewContext(read('modules/batch-test.js'),{window});
+ const input=['Stapeltest:','KI-Systemstatus','NERYX lösen: 2=5, 4=9; 7','NERYX lösen: 2,4,8,16'].join('\\n');
+ assert.equal(window.NERYXBatch.parse(input).lines.length,3);
+ assert.equal(window.NERYXBatch.parse('Stapeltest:\\nKI-Systemstatus\\nFakt löschen: Mars: Größe').error.includes('kein erlaubter'),true);
 });
