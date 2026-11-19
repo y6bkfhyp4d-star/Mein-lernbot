@@ -17,6 +17,37 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 `evolution/` enthält **historische Entwicklungs- und Forschungsphasen**. Insbesondere `evolution/neryx/` ist ein WebLLM-Prototyp, der **noch nicht in die Haupt-App integriert** ist. Mehr Phasen bedeuten nicht automatisch mehr Funktionen in der Haupt-App.
 
+## Bedeutungsbrücke 1.1 und größerer Sprachtest
+
+Neue Module `modules/meaning-links.js` und
+`modules/meaning-benchmark.js`. Die Bedeutungsbrücke erweitert die
+bestehende `modules/word-learning.js` um ausdrücklich bestätigte
+Wort-/Ausdrucksverknüpfungen, ohne alte Trainingsbeispiele zu ändern.
+
+Chat-Beispiel:
+
+1. `Bedeutung lernen: mit zwei multiplizieren = verdoppeln`
+2. `Ja, Bedeutung speichern` (oder `Bedeutung abbrechen`)
+3. `Beispiel prüfen: Mit zwei multiplizieren | 5,10,20,40`
+4. `Bedeutungsstand` für den gespeicherten Stand
+5. `Bedeutungstest` für die isolierte größere Prüfung
+
+Die Brücke fügt beim Klassifizieren Merkmale des bestätigten Ausdrucks
+hinzu. Sie wendet nur genau erkennbare Wortfolgen an, keine beliebigen
+Synonyme, und ignoriert Verneinungen direkt vor dem Ausdruck. Bereits
+widersprüchlich zugeordnete Formulierungen werden nicht still
+überschrieben. Die Brücken werden unter `neryx.learning.meanings.v1`
+gespeichert, mit expliziter Nutzerbestätigung.
+
+Der **Bedeutungstest** prüft acht synthetische Trainingsformulierungen
+gegen 24 vorher festgelegte andere Formulierungen, darunter unbekannte
+und verneinte Ausdrücke. Er simuliert zwei explizit vorgegebene
+Bedeutungsbrücken und vergleicht Vorher/Nachher, inklusive
+Fehlzuordnungen und unbeantworteten Aufgaben. Dieser Test ist ein
+**reproduzierbarer Funktionstest mit bekanntem Aufgabenbestand**,
+kein blinder unabhängiger Test oder Beleg allgemeinen Sprachverstehens.
+Er liest und überschreibt keine privaten Lernspeicher.
+
 ## Lernkontrolle 1.0 – Fortschritt statt nur Speicherstand
 
 Neues isoliertes Modul `modules/learning-audit.js`. Chatbefehl:
