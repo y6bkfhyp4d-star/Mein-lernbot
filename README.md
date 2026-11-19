@@ -35,6 +35,22 @@ Formulierungen, die NERYX nicht als Trainingsdaten speichert.
 4. `Persönlicher Lernstand` zeigt einen laufenden Versuch;
    `Persönlichen Lerntest abbrechen` löscht nur die Prüfnotiz
 
+Der komplette Ablauf ist auch in **einer Stapel-Nachricht** erlaubt:
+
+```text
+Stapeltest:
+Persönlichen Lerntest starten
+Beispiel lernen: Wir erhöhen die Zahl um fünf | 2,7,12,17,22
+Beispiel lernen: Die Zahl wird jeweils um fünf erhöht | 4,9,14,19,24
+Persönlichen Lerntest auswerten
+```
+
+Die zwei Trainingseinträge sind dauerhaft gespeichert und werden nicht
+als Prüfaufgaben verwendet. Wenn die Zahlenfolgen bereits gespeichert
+sind, kann NERYX sie als Duplikate abweisen; neue, unterschiedliche
+Trainingsfolgen benutzen. Eine echte persönliche Messung hängt immer
+vom bisherigen lokalen Lernstand ab.
+
 Das Einfrieren und Auswerten schreibt ausschließlich die Prüfnotiz
 `neryx.learning.personaltest.v1`; bestehende Lern-Datenbanken bleiben
 unverändert. Ohne eine tatsächlich geänderte Lernbasis verweigert
