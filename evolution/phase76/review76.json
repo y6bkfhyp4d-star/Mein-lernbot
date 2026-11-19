@@ -1,9 +1,9 @@
 {
   "changes": [],
-  "cursor": 45,
+  "cursor": 1,
   "entities": [
     {
-      "checked_at": "2026-11-17T11:58:12+00:00",
+      "checked_at": "2026-11-19T09:30:11+00:00",
       "classes": [
         "Planetensystem"
       ],
@@ -513,6 +513,46 @@
       "title": "Aerosol",
       "wikidata_id": "Q104541",
       "wikidata_url": "https://www.wikidata.org/wiki/Q104541"
+    },
+    {
+      "checked_at": "2026-11-19T09:30:11+00:00",
+      "classes": [
+        "zelluläre Komponente",
+        "group or class of transmembrane transport proteins",
+        "family of protein complexes"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "ATP-Synthase",
+      "wikidata_id": "Q22327117",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q22327117"
+    },
+    {
+      "checked_at": "2026-11-19T09:30:11+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abiotisch",
+      "wikidata_id": "Q321407",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q321407"
+    },
+    {
+      "checked_at": "2026-11-19T09:30:11+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abklingbecken",
+      "wikidata_id": "Q321832",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q321832"
+    },
+    {
+      "checked_at": "2026-11-19T09:30:11+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abwasser",
+      "wikidata_id": "Q336191",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q336191"
     }
   ],
   "runs": [
@@ -578,6 +618,13 @@
       "error_count": 1,
       "known_sources": 46,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-19T09:30:11+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 49,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -591,7 +638,10 @@
     "ATP-Citrat-Lyase": "8538b68b42bd9ef9584e",
     "ATP-Synthase": "5932b4b2f2907a6f1f41",
     "Abdus Salam": "1736b2e53bd698bce3c5",
+    "Abiotisch": "4f6407d66d1ccb850359",
+    "Abklingbecken": "f84838054d1e05b2e2dc",
     "Abschirmung (Gravitation)": "a7513d7c79d0b8a57abc",
+    "Abwasser": "14b2d45bca416c3adb07",
     "Achämenidenreich": "b95fd585994902a62a11",
     "Aerologie": "06b3f4b36704b4bc63c0",
     "Aerosol": "8b6a119ae687cb359c79",
