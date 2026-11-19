@@ -4,6 +4,38 @@ NERYX ist die Weiterentwicklung von **Mein LernBot**: eine installierbare Web-Ap
 
 **App:** https://y6bkfhyp4d-star.github.io/Mein-lernbot/
 
+## Aktuelle Integrationsprüfung (19.11.2026)
+
+Der Bestand und die Grenzen der Zusammenführung stehen in
+[`NERYX_INTEGRATION_AUDIT.md`](NERYX_INTEGRATION_AUDIT.md).
+
+**Neu eingebunden in den normalen Hauptchat:** ein gemeinsamer
+Systemstatus, ein enger Problemlöse-Router für die bereits existierenden
+Rechen- und Planungsoperatoren sowie eine **freiwillig zu startende**
+Verbindung zum bestehenden WebLLM-Prototyp über `client.js`.
+
+```text
+Stapeltest:
+Systemstatus
+Problem lösen: 2=5, 4=9; 7
+Problem lösen: 2, 4, 8, 16
+Weg planen: 000;010;000
+Fähigkeitstest
+Sprachmodell Status
+```
+
+Der Testblock ist lesend und lädt **kein** externes Modell.
+Zum gesonderten Test des Sprachmodells: `Sprachmodell laden`,
+`KI fragen: ...`, optional `KI-Modus an`, später
+`KI-Modus aus` und `Sprachmodell trennen`.
+Die Bibliothek/Modellgewichte müssen zunächst heruntergeladen werden;
+WebGPU-/iPhone-Kompatibilität ist nicht bestätigt.
+
+**Nicht behauptet:** dass alle historischen Evolutionsphasen oder
+sämtliche vorhandenen Interceptor-Skripte bereits in eine einzelne
+universelle Laufzeit umgebaut wurden. Bestehende Speicher und
+`window.LernBotBridge` bleiben unverändert.
+
 ## Aktuelle Haupt-App
 
 | Datei | Zweck |
