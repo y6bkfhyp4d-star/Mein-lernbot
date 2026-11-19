@@ -10,7 +10,7 @@ const app = read('app.js');
 
 test('Aktive JavaScript-Dateien haben gültige Syntax', () => {
   const files = [
-    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/capability-test.js',
+    'app.js', 'sw.js', 'modules/code-diagnose.js', 'modules/genesis-gegenprobe.js', 'modules/genesis-2.js', 'modules/genesis-3.js', 'modules/neryx-reasoner.js', 'modules/rule-patterns.js', 'modules/learning-lab.js', 'modules/auto-learning.js', 'modules/learning-evaluation.js', 'modules/context-learning.js', 'modules/word-learning.js', 'modules/conversation-math.js', 'modules/topic-learning.js', 'modules/learning-hub.js', 'modules/capability-test.js',
     'konflikt-ki.js', 'gedaechtnis-ki.js', 'agenten-ki.js',
     'aufgaben-ki.js', 'wissens-ki.js', 'feedback-ki.js',
     'wissensnetz-ki.js', 'zentrale-ki.js', 'diagnose-ki.js',
@@ -33,7 +33,7 @@ test('Element-IDs und Skripteinbindungen bleiben erhalten', () => {
   }
   for (const file of ['app.js','konflikt-ki.js','gedaechtnis-ki.js','agenten-ki.js',
     'aufgaben-ki.js','wissens-ki.js','feedback-ki.js','wissensnetz-ki.js',
-    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/capability-test.js']) {
+    'zentrale-ki.js','diagnose-ki.js','antwort-ki.js','modules/code-diagnose.js','modules/genesis-gegenprobe.js','modules/genesis-2.js','modules/genesis-3.js','modules/neryx-reasoner.js','modules/rule-patterns.js','modules/learning-lab.js','modules/auto-learning.js','modules/learning-evaluation.js','modules/context-learning.js','modules/word-learning.js','modules/conversation-math.js','modules/topic-learning.js','modules/learning-hub.js','modules/capability-test.js']) {
     assert.ok(html.includes('src="' + file + '"'), 'Modul fehlt: ' + file);
   }
 });
@@ -717,4 +717,41 @@ test('Themenlernen: Konflikte nicht überschreiben, kritische Eingaben nicht spe
  assert.equal(db.get('neryx.learning.topics.v1'),snap,'Kein stilles Überschreiben');
  assert.match(l.beginTeaching('Heute ist Donnerstag => Hi'),/noch nicht sicher/);
  assert.equal(db.get('neryx.learning.topics.v1'),snap);
+});
+
+test('Lernzentrale: vorhandene Lernspeicher read-only zusammenfassen',()=>{
+ const db=new Map([
+  ['meinLernBot.v1',JSON.stringify({version:6,facts:[{subject:'Okapi',property:'lebensraum',value:'Wald',source:'user'}]})],
+  ['neryx.learning.topics.v1',JSON.stringify({version:1,records:[{type:'lebensraum',subject:'okapi',answer:'Wald'}]})],
+  ['neryx.learning.wordfeatures.v1',JSON.stringify({version:1,examples:[{phrase:'verdoppeln',type:'geometrisch'}]})],
+  ['neryx.learning.context.v1',JSON.stringify({version:1,rules:{verdoppeln:{geometrisch:2}}})],
+  ['neryx.learning.strategies.v1',JSON.stringify({version:1,feedback:3})],
+  ['neryx.learning.auto.v1',JSON.stringify({version:1,trained:5})]
+ ]),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ const snapshot=JSON.stringify([...db]);
+ runInNewContext(read('modules/learning-hub.js'),{window,localStorage});
+ const hub=window.NERYXLearningHub;
+ assert.match(hub.report(),/Hauptwissen: 1 Fakten/);
+ assert.match(hub.report(),/Themenlernen: 1 bestätigte Antworten/);
+ assert.match(hub.report(),/Sprachlernen: 1 unterschiedliche Zahlenbeispiele/);
+ assert.match(hub.report(),/Kontextlernen: 1 Hinweise/);
+ assert.match(hub.report(),/Erkannte Wissenskonflikte: 0/);
+ assert.match(hub.sources('Okapi'),/Herkunft: user/);
+ assert.match(hub.sources('Okapi'),/Nutzer bestätigt, nicht extern geprüft/);
+ assert.equal(JSON.stringify([...db]),snapshot,'Lernzentrale darf keine Daten verändern');
+ assert.ok(html.includes('src="modules/learning-hub.js"'));
+ assert.ok(app.includes("n==='lernzentrale'"));
+ assert.ok(app.includes("n==='lernkonflikte'"));
+});
+test('Lernzentrale: abweichende Angaben aus unterschiedlichen Modulen melden ohne sie zu ändern',()=>{
+ const db=new Map([
+  ['meinLernBot.v1',JSON.stringify({facts:[{subject:'Testmaterial A',property:'zweck',value:'A',source:'user'}]})],
+  ['neryx.learning.topics.v1',JSON.stringify({records:[{subject:'testmaterial a',type:'zweck',answer:'B'}]})]
+ ]),localStorage={getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v))},window={};
+ const snapshot=JSON.stringify([...db]);
+ runInNewContext(read('modules/learning-hub.js'),{window,localStorage});
+ assert.match(window.NERYXLearningHub.conflictReport(),/testmaterial a \/ zweck/);
+ assert.match(window.NERYXLearningHub.conflictReport(),/Hauptwissen \(user\): A/);
+ assert.match(window.NERYXLearningHub.conflictReport(),/Themenlernen .*: B/);
+ assert.equal(JSON.stringify([...db]),snapshot,'Keine Konfliktlösung ohne Nutzerauftrag');
 });
