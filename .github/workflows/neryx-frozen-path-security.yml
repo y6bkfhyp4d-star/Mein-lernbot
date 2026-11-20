@@ -5,10 +5,32 @@ on:
       - neryx/s2-retrieval-scoring
     paths:
       - 'eval/frozen-path-policy.mjs'
+      - 'eval/frozen.seal.json'
+      - 'eval/check-frozen-seal.mjs'
+      - 'eval/tests/check-frozen-seal.test.mjs'
+      - 'eval/run-frozen.mjs'
+      - 'eval/frozen-runner-core.mjs'
+      - 'eval/integration-score.mjs'
+      - 'eval/check-contract.mjs'
       - 'eval/frozen-loader.mjs'
       - 'eval/validate-frozen.mjs'
       - 'eval/tests/frozen-path-policy.test.mjs'
       - 'eval/tests/frozen-validator.test.mjs'
+      - '.github/workflows/neryx-frozen-path-security.yml'
+  pull_request:
+    branches:
+      - neryx/s2-retrieval-scoring
+      - main
+    paths:
+      - 'eval/frozen.seal.json'
+      - 'eval/check-frozen-seal.mjs'
+      - 'eval/tests/check-frozen-seal.test.mjs'
+      - 'eval/run-frozen.mjs'
+      - 'eval/frozen-runner-core.mjs'
+      - 'eval/frozen-loader.mjs'
+      - 'eval/frozen-path-policy.mjs'
+      - 'eval/integration-score.mjs'
+      - 'eval/check-contract.mjs'
       - '.github/workflows/neryx-frozen-path-security.yml'
   workflow_dispatch:
 permissions:
@@ -22,6 +44,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Assert repository Frozen seal remains inactive
+        run: node eval/check-frozen-seal.mjs
+      - name: Test seal metadata guard with dummy variants
+        run: node --test eval/tests/check-frozen-seal.test.mjs
       - name: Check private path, seal and CI security with dummy files
         run: node --test eval/tests/frozen-path-policy.test.mjs
       - name: Confirm original Frozen validator dummy tests still work
