@@ -24,3 +24,17 @@ for(const [answer,exp,want] of testcases)test('Dummy-Auswertung '+JSON.stringify
  assert.equal(scoreSolver(answer,'Beginn 09:35 Uhr',exp).status,want);
 });
 test('ungültige Erwartung wird abgelehnt',()=>assert.throws(()=>scoreSolver('6 kg','',{value:6,tol:-1,unit:'kg'})));
+
+// Regressionen aus unabhängiger Prüfung: keine falschen Bestehenswerte bei Bereichen/Tausendernotation.
+test("Regression 1.200 Stück",()=>assert.equal(scoreSolver("1.200 Stück",'',{value:1200,tol:0,unit:"stueck"}).status,"review"));
+test("Regression 1.200 Stück",()=>assert.equal(scoreSolver("1.200 Stück",'',{value:1.2,tol:0,unit:"stueck"}).status,"review"));
+test("Regression 1,200 Stück",()=>assert.equal(scoreSolver("1,200 Stück",'',{value:1200,tol:0,unit:"stueck"}).status,"review"));
+test("Regression 10-12 m2",()=>assert.equal(scoreSolver("10-12 m2",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Regression 10–12 m²",()=>assert.equal(scoreSolver("10–12 m²",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Regression 10 — 12 m²",()=>assert.equal(scoreSolver("10 — 12 m²",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Regression 12 m2 und 3 Anstriche",()=>assert.equal(scoreSolver("12 m2 und 3 Anstriche",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Regression 12 m2 und 3 Stück",()=>assert.equal(scoreSolver("12 m2 und 3 Stück",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Regression Ergebnis: 12.5 m2",()=>assert.equal(scoreSolver("Ergebnis: 12.5 m2",'',{value:12.5,tol:0,unit:"m2"}).status,"pass"));
+test("Regression Ergebnis: 12,5 m²",()=>assert.equal(scoreSolver("Ergebnis: 12,5 m²",'',{value:12.5,tol:0,unit:"m2"}).status,"pass"));
+test("Regression -5 kg",()=>assert.equal(scoreSolver("-5 kg",'',{value:-5,tol:0,unit:"kg"}).status,"pass"));
+test("Regression 12 m2",()=>assert.equal(scoreSolver("12 m2",'',{value:12,tol:0,unit:"m2"}).status,"pass"));
