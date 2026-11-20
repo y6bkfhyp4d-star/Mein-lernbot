@@ -1,10 +1,6 @@
 {
   "discovered_queue": [
-    "Althochdeutsch",
-    "-gen",
     "Adalbert W. A. Pauldrach",
-    "Adult",
-    "1,2-Propandiol",
     "2,6-Diaminopurin",
     "(2+2)-Cycloaddition",
     "1,3-Dipole",
@@ -89,7 +85,11 @@
     "20. Jahrhundert",
     "A Greek-English Lexicon",
     "Aeonium",
-    "Afrikanische Große Seen"
+    "Afrikanische Große Seen",
+    "ADULT.",
+    "Erwachsener",
+    "1,3-Propandiol",
+    "Abkalben"
   ],
   "entries": [
     {
@@ -681,6 +681,26 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Adaptive Radiation"
+    },
+    {
+      "collected_at": "2026-11-20T21:07:04+00:00",
+      "excerpt": "Das Adjektiv adult (vom lateinisch adultus für „erwachsen“) ist ein Synonym für erwachsen und bezeichnet insbesondere die Lebensphase nach Eintritt der Geschlechtsreife eines Organismus. Übergangsstadien werden auch als subadult oder präadult („halbwüchsig“) oder immatur („unreif“) bezeichnet. Verwendet wird der Begriff häufig bei der Beschreibung von wirbellosen Tieren, die sich über ein oder mehrere Larvenstadien entwickeln, sowie bei der Beschreibung von Vögeln. Ein Adultus (Mehrzahl: Adulti) ist dementsprechend ein Tier, das die juvenile (kindliche, jugendliche, heranwachsende) Phase abgeschlossen hat. In aller Regel handelt es sich dabei um das letzte Stadium der Individualentwicklung, da Tiere nur selten ein vergleichbar hohes Lebensalter erreichen, in dem ein Mensch als „Greis“ bezeichnet werden könnte. Bei Insekten wird das Tier,",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adult",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adult"
+    },
+    {
+      "collected_at": "2026-11-20T21:07:04+00:00",
+      "excerpt": "1,2-Propandiol (1,2-Propylenglycol), auch bekannt als Propylenglykol, ist eine klare, farblose, nahezu geruchlose und stark hygroskopische Flüssigkeit. 1,2-Propandiol gehört zu den mehrwertigen Alkanolen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/1%2C2-Propandiol",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "1,2-Propandiol"
     }
   ],
   "failed_titles": [
@@ -903,6 +923,17 @@
         "Adaptive Radiation"
       ],
       "time": "2026-11-20T15:14:16+00:00"
+    },
+    {
+      "added": 2,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Adult",
+        "1,2-Propandiol"
+      ],
+      "time": "2026-11-20T21:07:04+00:00"
     }
   ],
   "schema": 1
