@@ -4,7 +4,7 @@
 const normalize=s=>String(s??'').toLocaleLowerCase('de').normalize('NFKC')
   .replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
 const words=s=>normalize(s).replace(/[^\p{L}\p{N}]+/gu,' ').split(' ').filter(x=>x.length>3);
-const abstain=/(?:\b(?:ich (?:weiß|weiss|kenne)|mir (?:liegen|fehlen)|keine (?:angaben|informationen|daten|belege)|nicht (?:bekannt|belegt|dokumentiert|angegeben|ermittelbar)|kann (?:ich )?(?:nicht|keine).*?(?:sagen|beantworten|bestimmen))\b)/iu;
+const abstain=/(?:\b(?:(?:weiß|weiss) ich nicht|ich (?:weiß|weiss|kenne)|mir (?:liegen|fehlen)|keine (?:angaben|informationen|daten|belege)|nicht (?:bekannt|belegt|dokumentiert|angegeben|ermittelbar)|kann (?:ich )?(?:nicht|keine).*?(?:sagen|beantworten|bestimmen))\b)/iu;
 const relevantStop=new Set(['welche','welcher','welches','wieviel','warum','steht','dazu','davon','dieser','diese','einem','einer','einen','sind','wird','wurde','kann','bitte','heißt','heisst','genau','angaben','informationen']);
 function topicMatch(question,answer){
  const q=new Set(words(question).filter(x=>!relevantStop.has(x)));
