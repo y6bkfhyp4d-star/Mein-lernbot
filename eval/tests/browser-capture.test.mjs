@@ -36,6 +36,15 @@ test('Export verweigert zusätzliche unbekannte Skriptmetadaten',async()=>{
  c.scripts['app.js']=captureHash('dummy');
  assert.throws(()=>verifyOfflineCapture(c,[dummyItem],hashes,captureHash(dummySuiteBytes)));
 });
+test('Skriptmanifest des Capture wird unabhängig vom Referenzmanifest kopiert',async()=>{
+ const o=orchestrator(),answer=await o.solve(dummyQuestion);
+ const copy={...hashes};
+ const c=await makeDummyCapture({answer,durationMs:1,scripts:copy});
+ assert.notStrictEqual(c.scripts,copy);
+ c.scripts['app.js']=captureHash('nicht vertrauenswürdig');
+ assert.equal(Object.hasOwn(copy,'app.js'),false);
+ assert.throws(()=>verifyOfflineCapture(c,[dummyItem],copy,captureHash(dummySuiteBytes)));
+});
 test('Orchestrator ohne Rechenkern darf nicht als vollständiger Test gelten',()=>{
  const window={};runInNewContext(source('modules/orchestrator.js').toString('utf8'),{window});
  assert.notEqual(window.NERYXOrchestrator.plan(dummyQuestion).type,'area');
