@@ -6,6 +6,8 @@ on:
     paths:
       - 'sw.js'
       - 'eval/tests/service-worker-recovery.test.mjs'
+      - 'modules/topic-learning.js'
+      - 'eval/tests/knowledge-homeland.test.mjs'
       - 'modules/orchestrator.js'
       - 'eval/tests/orchestrator-offline.test.mjs'
       - 'modules/math-verifier.js'
@@ -44,6 +46,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify knowledge-first homeland questions with synthetic data
+        run: node --test eval/tests/knowledge-homeland.test.mjs
       - name: Verify offline chat routing and local greetings
         run: node --test eval/tests/orchestrator-offline.test.mjs
       - name: Prevent service-worker fallback cache poisoning using dummy pages
