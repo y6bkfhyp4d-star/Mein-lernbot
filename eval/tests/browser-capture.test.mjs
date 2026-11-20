@@ -18,21 +18,24 @@ async function fixture(){
  const answers=await Promise.all(dummyItems.map(it=>o.solve(it.input.question)));
  return makeDummyCapture({answers,durationsMs:[2,3],scripts:hashes});
 }
-test('Echte NERYX-Module wählen Wandfläche und Zahlenfolge',async()=>{
+test('Echte NERYX-Module wählen Wandfläche, Zahlenfolge und Rasterweg',async()=>{
  const o=orchestrator().NERYXOrchestrator;
  assert.equal(o.plan(dummyItems[0].input.question).type,'area');
  assert.equal(o.plan(dummyItems[1].input.question).type,'sequence');
+ assert.equal(o.plan(dummyItems[2].input.question).type,'grid');
  assert.match(await o.solve(dummyItems[0].input.question),/Ergebnis: 150 m²/);
  assert.match(await o.solve(dummyItems[1].input.question),/Erkanntes Muster: geometrisch\nMögliche nächste Zahl: 32/);
+ assert.match(await o.solve(dummyItems[2].input.question),/NERYX · WEGPLANUNG\nSchritte: 4\n/);
 });
-test('Zwei Dummy-Datensätze erfüllen den bestehenden Offline-Capture-Vertrag',async()=>{
+test('Drei Dummy-Datensätze erfüllen den bestehenden Offline-Capture-Vertrag',async()=>{
  const c=await fixture(),v=verifyOfflineCapture(c,dummyItems,hashes,captureHash(dummySuiteBytes));
- assert.equal(v.recordCount,2);
- assert.equal(v.finalDigest,c.records[1].recordSha256);
+ assert.equal(v.recordCount,3);
+ assert.equal(v.finalDigest,c.records[2].recordSha256);
  assert.equal(c.records[0].prevRecordSha256,'0'.repeat(64));
  assert.equal(c.records[1].prevRecordSha256,c.records[0].recordSha256);
+ assert.equal(c.records[2].prevRecordSha256,c.records[1].recordSha256);
 });
-test('Reihenfolge der zwei Datensätze kann nicht vertauscht werden',async()=>{
+test('Reihenfolge der drei Datensätze kann nicht vertauscht werden',async()=>{
  const c=await fixture();c.records.reverse();
  assert.throws(()=>verifyOfflineCapture(c,dummyItems,hashes,captureHash(dummySuiteBytes)));
 });
@@ -44,6 +47,11 @@ test('Fehlendes Zahlenmuster-Modul liefert keine gültige Musterantwort',async()
  const {NERYXOrchestrator:o}=orchestrator(['modules/rule-patterns.js']);
  assert.equal(o.plan(dummyItems[1].input.question).type,'sequence');
  assert.doesNotMatch(await o.solve(dummyItems[1].input.question),/Mögliche nächste Zahl: 32/);
+});
+test('Fehlendes Wegplanungsmodul liefert keinen überprüften Rasterweg',async()=>{
+ const {NERYXOrchestrator:o}=orchestrator(['modules/neryx-reasoner.js']);
+ assert.equal(o.plan(dummyItems[2].input.question).type,'grid');
+ assert.doesNotMatch(await o.solve(dummyItems[2].input.question),/Schritte: 4/);
 });
 test('Zusätzliches untrusted Skript wird abgewiesen',async()=>{
  const c=await fixture();c.scripts['app.js']=captureHash('dummy');
