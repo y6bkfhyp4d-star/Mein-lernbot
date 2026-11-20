@@ -1,95 +1,67 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(2) Pallas",
-    "Abgeschlossenes System",
+    "Absolute Helligkeit",
+    "Absorption (Physik)",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
-    "-genese"
+    "(2) Pallas"
   ],
   "records": [
     {
-      "checked_at": "2026-11-20T04:35:49+00:00",
+      "checked_at": "2026-11-20T10:33:45+00:00",
       "claims": [],
-      "diagnostics": {
-        "subjekt_nicht_erkannt": 6
-      },
+      "diagnostics": {},
+      "error": "HTTPError",
       "independent_verified": false,
       "new_claims_same_page": 0,
       "old_claims_same_page": 0,
-      "page_title": "(1) Ceres",
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
-      "source": "https://de.wikipedia.org/?curid=30371",
-      "status": "subjekt_nicht_erkannt",
-      "title_resolution": "direkter_titel",
+      "status": "abruf_fehler",
+      "title_resolution": null,
       "topic": "(1) Ceres",
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T04:35:49+00:00",
+      "checked_at": "2026-11-20T10:33:45+00:00",
       "claims": [],
-      "diagnostics": {
-        "subjekt_nicht_erkannt": 4
-      },
+      "diagnostics": {},
+      "error": "HTTPError",
       "independent_verified": false,
       "new_claims_same_page": 0,
       "old_claims_same_page": 0,
-      "page_title": "(136108) Haumea",
       "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
-      "source": "https://de.wikipedia.org/?curid=833508",
-      "status": "subjekt_nicht_erkannt",
-      "title_resolution": "direkter_titel",
+      "status": "abruf_fehler",
+      "title_resolution": null,
       "topic": "(136108) Haumea",
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T04:35:49+00:00",
-      "claims": [
-        {
-          "id": "p711-37f44a903c564d",
-          "independent_verified": false,
-          "pattern": "direkt",
-          "quality": "vollstaendiger_quellensatz",
-          "quote": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
-          "relation": "quellenbeschreibung",
-          "rule": "ist",
-          "source": "https://de.wikipedia.org/?curid=832658",
-          "statement": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems.",
-          "status": "unbestaetigte_quellenbehauptung",
-          "subject": "(136199) Eris",
-          "subject_form": "(136199) Eris"
-        }
-      ],
-      "diagnostics": {
-        "subjekt_nicht_erkannt": 5
-      },
+      "checked_at": "2026-11-20T10:33:45+00:00",
+      "claims": [],
+      "diagnostics": {},
+      "error": "HTTPError",
       "independent_verified": false,
-      "new_claims_same_page": 1,
-      "old_claims_same_page": 1,
-      "page_title": "(136199) Eris",
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
       "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
-      "source": "https://de.wikipedia.org/?curid=832658",
-      "status": "aussagen_gefunden",
-      "title_resolution": "direkter_titel",
+      "status": "abruf_fehler",
+      "title_resolution": null,
       "topic": "(136199) Eris",
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T04:35:49+00:00",
+      "checked_at": "2026-11-20T10:33:45+00:00",
       "claims": [],
-      "diagnostics": {
-        "keine_klare_klassifikation": 1,
-        "subjekt_nicht_erkannt": 1
-      },
+      "diagnostics": {},
+      "error": "HTTPError",
       "independent_verified": false,
       "new_claims_same_page": 0,
       "old_claims_same_page": 0,
-      "page_title": "(2) Pallas",
       "question": "Was ist (2) Pallas und wie wird es eingeordnet?",
-      "source": "https://de.wikipedia.org/?curid=121993",
-      "status": "keine_klare_klassifikation",
-      "title_resolution": "direkter_titel",
+      "status": "abruf_fehler",
+      "title_resolution": null,
       "topic": "(2) Pallas",
       "verified_correction": false
     },
@@ -246,6 +218,34 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Abschirmung (Gravitation)",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T10:33:45+00:00",
+      "claims": [],
+      "diagnostics": {},
+      "error": "HTTPError",
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "question": "Was ist Absolute Helligkeit und wie wird es eingeordnet?",
+      "status": "abruf_fehler",
+      "title_resolution": null,
+      "topic": "Absolute Helligkeit",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T10:33:45+00:00",
+      "claims": [],
+      "diagnostics": {},
+      "error": "HTTPError",
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "question": "Was ist Absorption (Physik) und wie wird es eingeordnet?",
+      "status": "abruf_fehler",
+      "title_resolution": null,
+      "topic": "Absorption (Physik)",
       "verified_correction": false
     },
     {
@@ -989,6 +989,24 @@
         "(1) Ceres",
         "(136108) Haumea",
         "-genese"
+      ]
+    },
+    {
+      "at": "2026-11-20T10:33:45+00:00",
+      "claims": 0,
+      "errors": 6,
+      "new_extractor_same_pages": 0,
+      "old_extractor_same_pages": 0,
+      "processed": 6,
+      "titles_resolved": 0,
+      "topics_with_claims": 0,
+      "unresolved_topics": [
+        "Absolute Helligkeit",
+        "Absorption (Physik)",
+        "(1) Ceres",
+        "(136108) Haumea",
+        "(136199) Eris",
+        "(2) Pallas"
       ]
     }
   ],
