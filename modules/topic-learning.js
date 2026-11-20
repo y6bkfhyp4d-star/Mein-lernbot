@@ -11,7 +11,10 @@ const types=[
  ['lebensraum',[
   /^wo (?:lebt|leben|wohnt|wohnen) (.+)$/,
   /^in welchem lebensraum (?:lebt|leben) (.+)$/,
-  /^wo (?:kommt|kommen) (.+) vor$/]],
+  /^wo (?:kommt|kommen) (.+) vor$/,
+  /^in welchem land ist (.+) heimisch$/,
+  /^in welchem land (?:lebt|leben) (.+)$/,
+  /^in welcher region ist (.+) heimisch$/]],
  ['definition',[
   /^was ist (.+)$/, /^was sind (.+)$/,
   /^was bedeutet (.+)$/, /^was versteht man unter (.+)$/,
