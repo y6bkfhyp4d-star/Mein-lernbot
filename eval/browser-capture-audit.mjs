@@ -55,3 +55,18 @@ export function verifyPinnedScripts(found){
  if(!found||Object.keys(found).length!==Object.keys(PINNED_SCRIPTS).length)return false;
  return Object.entries(PINNED_SCRIPTS).every(([name,value])=>found[name]===value);
 }
+
+/* Verknüpfung: kein Authentizitätsbeweis, aber fail-closed Zuordnung von zwei Exports. */
+export function verifyCaptureAuditPair(capture,audit){
+ if(!capture||!audit||capture.schema!==1||audit.schema!==1||
+  audit.kind!=='neryx-dummy-browser-audit'||audit.result!=='capture_accepted'||
+  typeof capture.runId!=='string'||!/^dummy-browser-[0-9a-f-]{36}$/.test(capture.runId)||
+  capture.runId!==audit.runId||capture.startedAt!==audit.startedAt||
+  !Array.isArray(capture.records)||capture.records.length!==1||
+  capture.records[0].recordSha256!==audit.captureRecordSha256||
+  audit.scriptHashesMatch!==true||!verifyPinnedScripts(capture.scripts)||
+  !verifyPinnedScripts(audit.measuredScripts)||!verifyPinnedScripts(audit.expectedScripts)||
+  audit.comparison?.essentialUnchanged!==true||audit.comparison?.status==='changed')
+  return false;
+ return true;
+}
