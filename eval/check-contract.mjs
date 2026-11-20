@@ -21,3 +21,10 @@ export function checkAggregateResult(result,allowed){
   throw Error('Widersprüchlicher Gesamtstatus.');
  return true;
 }
+
+/* L1 Review: fehlende Soll-/Istwerte dürfen niemals durch undefined===undefined bestehen. */
+export function scoreReviewComplete(inspection,expected){
+ if(typeof expected!=='boolean'||!inspection||typeof inspection.complete!=='boolean')
+  throw Error('Review-Vollständigkeit: boolescher Soll- und Istwert erforderlich.');
+ return inspection.complete===expected;
+}
