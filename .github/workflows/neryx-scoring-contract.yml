@@ -7,6 +7,11 @@ on:
       - 'eval/check-contract.mjs'
       - 'eval/capture-contract.mjs'
       - 'eval/browser-capture.html'
+      - 'eval/browser-negative.html'
+      - 'eval/browser-negative-frame.html'
+      - 'eval/browser-negative.js'
+      - 'eval/browser-negative-core.mjs'
+      - 'eval/tests/browser-negative.test.mjs'
       - 'eval/browser-capture.js'
       - 'eval/browser-capture-core.mjs'
       - 'eval/browser-capture-audit.mjs'
@@ -30,6 +35,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify isolated negative dummy cases using real NERYX modules
+        run: node --test eval/tests/browser-negative.test.mjs
       - name: Verify pinned source bytes and browser storage audit with dummy data
         run: node --test eval/tests/browser-capture-audit.test.mjs
       - name: Check actual deterministic NERYX path and browser-to-Node dummy format
