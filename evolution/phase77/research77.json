@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "(2) Pallas",
-    "Abgeschlossenes System"
+    "Absolute Helligkeit",
+    "Absorption (Physik)"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-20T03:27:41+00:00",
+      "checked_at": "2026-11-20T09:35:35+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -343,6 +343,64 @@
       "source": "https://de.wikipedia.org/wiki/Abschirmung_%28Gravitation%29",
       "status": "suchtreffer",
       "topic": "Abschirmung (Gravitation)"
+    },
+    {
+      "checked_at": "2026-11-20T09:35:35+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Wolken ausfransen und sich immer wieder neu bilden und verformen lassen, kann man viele Dinge „sehen“. Die Helligkeit einer Wolke wird durch das von ihren",
+          "title": "Wolke",
+          "url": "https://de.wikipedia.org/?curid=10026"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "scheinbare Helligkeiten um 21,3m im B-Band auf, entsprechend einer absoluten Helligkeit von −9,8M. Dies ist ziemlich genau die absolute Helligkeit von Mayall",
+          "title": "Messier 87",
+          "url": "https://de.wikipedia.org/?curid=352456"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "wird in die Kategorie „S-Typ“ (S für „Silikat“) eingeordnet. Diese Asteroiden bestehen hauptsächlich aus silikathaltigem Gestein sowie aus Nickel und",
+          "title": "(99942) Apophis",
+          "url": "https://de.wikipedia.org/?curid=492170"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Absolute Helligkeit und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Absolute_Helligkeit",
+      "status": "suchtreffer",
+      "topic": "Absolute Helligkeit"
+    },
+    {
+      "checked_at": "2026-11-20T09:35:35+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "US-amerikanischer Physiker. 1956 wurde ihm der Nobelpreis für Physik zuerkannt. Seine späteren Werke zur Genetik werden als rassistisch eingeordnet. William Shockley",
+          "title": "William Bradford Shockley",
+          "url": "https://de.wikipedia.org/?curid=37481"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Höhe und begünstigt damit diesen Effekt. Durch die zusätzliche Streuung an den Wolkentröpfchen nehmen auch die Photonenwege zu, was die Absorption durch",
+          "title": "Wolke",
+          "url": "https://de.wikipedia.org/?curid=10026"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "erstmals erschienene Handbuch der Physik verfolgte das Ziel, den Stand der gesamten experimentellen und theoretischen Physik darzustellen. Eine erste, auf",
+          "title": "Handbuch der Physik",
+          "url": "https://de.wikipedia.org/?curid=8200832"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Absorption (Physik) und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Absorption_%28Physik%29",
+      "status": "suchtreffer",
+      "topic": "Absorption (Physik)"
     },
     {
       "checked_at": "2026-11-19T09:39:01+00:00",
@@ -1027,6 +1085,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 56,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-20T09:35:35+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 57,
       "searched": 3,
       "with_results": 2
     }
