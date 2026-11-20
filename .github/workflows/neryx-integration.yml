@@ -1,0 +1,29 @@
+name: NERYX - Integration Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/integration-score.mjs'
+      - 'eval/tests/integration-score.test.mjs'
+      - '.github/workflows/neryx-integration.yml'
+      - 'eval/retrieval-score.mjs'
+      - 'eval/solver-score.mjs'
+      - 'eval/answer-mode-score.mjs'
+      - 'eval/grounding-score.mjs'
+      - 'eval/contradiction-score.mjs'
+      - 'eval/source-status-score.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run integration dummy tests
+        run: node --test eval/tests/integration-score.test.mjs
