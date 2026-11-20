@@ -1,8 +1,8 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Adaptive Radiation",
-    "Adler (Sternbild)",
+    "1,2-Propandiol",
+    "Adult",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
@@ -10,7 +10,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-20T16:32:38+00:00",
+      "checked_at": "2026-11-20T22:24:51+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T16:32:38+00:00",
+      "checked_at": "2026-11-20T22:24:51+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,8 +44,7 @@
       "verified_correction": false
     },
     {
-      "change_notice": "Extraktion geändert; keine bestätigte Sachkorrektur",
-      "checked_at": "2026-11-20T16:32:38+00:00",
+      "checked_at": "2026-11-20T22:24:51+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -77,7 +76,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T16:32:38+00:00",
+      "checked_at": "2026-11-20T22:24:51+00:00",
       "claims": [],
       "diagnostics": {
         "keine_klare_klassifikation": 1,
@@ -110,6 +109,23 @@
       "status": "keine_klare_klassifikation",
       "title_resolution": "direkter_titel",
       "topic": "-genese",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T22:24:51+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 2
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "1,2-Propandiol",
+      "question": "Was ist 1,2-Propandiol und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=681733",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "1,2-Propandiol",
       "verified_correction": false
     },
     {
@@ -360,6 +376,24 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Adler (Sternbild)",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T22:24:51+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 7,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Adult",
+      "question": "Was ist Adult und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=1051451",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Adult",
       "verified_correction": false
     },
     {
@@ -1085,6 +1119,23 @@
       "unresolved_topics": [
         "Adaptive Radiation",
         "Adler (Sternbild)",
+        "(1) Ceres",
+        "(136108) Haumea",
+        "(2) Pallas"
+      ]
+    },
+    {
+      "at": "2026-11-20T22:24:51+00:00",
+      "claims": 1,
+      "errors": 0,
+      "new_extractor_same_pages": 1,
+      "old_extractor_same_pages": 1,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 1,
+      "unresolved_topics": [
+        "1,2-Propandiol",
+        "Adult",
         "(1) Ceres",
         "(136108) Haumea",
         "(2) Pallas"
