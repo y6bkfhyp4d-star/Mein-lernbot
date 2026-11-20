@@ -101,3 +101,16 @@ test('App navigation online remains network-first; offline returns pinned index'
  w.setFetcher(async()=>{throw Error('offline')});
  assert.equal((await w.request('./')).response.body,html);
 });
+
+test('Echte NERYX-Startseite nennt nur lokal verfügbare Script-Dateien',()=>{
+ const {existsSync}=requireDummy();
+ function requireDummy(){return {existsSync:(url)=>{try{readFileSync(url);return true}catch{return false}}};}
+ const actual=readFileSync(new URL('../../index.html',import.meta.url),'utf8');
+ const refs=[...actual.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]);
+ assert.equal(refs.length,39);
+ assert.equal(new Set(refs).size,refs.length);
+ for(const path of refs){
+  assert.match(path,/^(?:modules\/)?[\w-]+\.js$/);
+  assert.equal(existsSync(new URL('../../'+path,import.meta.url)),true,path);
+ }
+});
