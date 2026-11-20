@@ -1,12 +1,14 @@
-/* NERYX Dummy Browser-Capture: Wandfläche und Zahlenmuster, keine Frozen-Daten. */
+/* NERYX Dummy Browser-Capture: Fläche, Zahlenmuster und Rasterweg; keine Frozen-Daten. */
 export const dummyQuestion='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch.';
 export const dummyItem={id:'capture-dummy-wall-001',input:{question:dummyQuestion}};
 export const sequenceQuestion='2, 4, 8, 16';
 export const sequenceItem={id:'capture-dummy-sequence-001',input:{question:sequenceQuestion}};
-export const dummyItems=[dummyItem,sequenceItem];
+export const routeQuestion='Weg planen: 000;010;000';
+export const routeItem={id:'capture-dummy-route-001',input:{question:routeQuestion}};
+export const dummyItems=[dummyItem,sequenceItem,routeItem];
 export const dummySuiteBytes=JSON.stringify(dummyItems);
 export const REQUIRED_SCRIPTS=[
- 'modules/math-verifier.js','modules/rule-patterns.js','modules/system-hub.js','modules/orchestrator.js'
+ 'modules/math-verifier.js','modules/rule-patterns.js','modules/neryx-reasoner.js','modules/system-hub.js','modules/orchestrator.js'
 ];
 const fields=['itemId','inputSha256','answer','answerSha256','path','durationMs','prevRecordSha256'];
 export async function sha256(value){
@@ -20,7 +22,7 @@ export async function makeDummyCapture({answers,durationsMs,scripts,startedAt=ne
   !REQUIRED_SCRIPTS.every(k=>/^[a-f0-9]{64}$/.test(scripts[k])))
   throw Error('Skriptmanifest ungültig.');
  if(!Array.isArray(answers)||!Array.isArray(durationsMs)||answers.length!==dummyItems.length||
-  durationsMs.length!==dummyItems.length)throw Error('Zwei Dummy-Antworten sind erforderlich.');
+  durationsMs.length!==dummyItems.length)throw Error('Drei Dummy-Antworten sind erforderlich.');
  let previous='0'.repeat(64);
  const records=[];
  for(let i=0;i<dummyItems.length;i++){
