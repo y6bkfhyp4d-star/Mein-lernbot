@@ -1,6 +1,9 @@
+import {checkBooleanResult} from './check-contract.mjs';
+
 /* NERYX S2 – gemeinsame, deterministische Retrieval-Bewertung.
    Keine Generierung, keine Änderung an Originaldaten. */
 export function scoreRetrieval(ids, expectation) {
+  if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'||!id))throw Error('Ungültige Trefferliste.');
   const e=expectation?.retrieval;
   if(!e||typeof e!=='object')throw Error('Retrieval-Erwartung fehlt.');
   const verdict=e.verdict??expectation.verdict;
@@ -25,6 +28,6 @@ export function scoreRetrieval(ids, expectation) {
   if(allowOnly)checks.allowOnly=found.every(x=>allowOnly.includes(x));
   // Rauschbudget nur für echte Positiv-Treffer; keine Änderung an alten Testfällen.
   if(verdict==='sufficient')checks.noise=found.length<=include.length+3;
-  return {pass:Object.values(checks).every(Boolean),checks,found,
+  return {pass:checkBooleanResult(checks,['include','exclude','verdict']),checks,found,
     kind:verdict==='any'?'noise_guard':'retrieval'};
 }
