@@ -7,7 +7,7 @@ function clockValues(s){
  const patterns=[
   /\b([01]?\d|2[0-3]):([0-5]\d)\b/g,
   /\b([01]?\d|2[0-3])\.([0-5]\d)\s*uhr\b/g,
-  /\b([01]?\d|2[0-3])\s*uhr\s*([0-5]?\d)?\b/g
+  /(?<![\d:.])\b([01]?\d|2[0-3])\s*uhr\s*([0-5]?\d)?\b/g
  ];
  for(const re of patterns){let m;while((m=re.exec(t))){
   hits.push({time:+m[1]*60+(m[2]?+m[2]:0),start:m.index,end:re.lastIndex});
