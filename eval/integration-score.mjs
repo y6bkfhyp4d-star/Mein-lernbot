@@ -4,7 +4,6 @@
 import {scoreRetrieval} from './retrieval-score.mjs';
 import {scoreSolver} from './solver-score.mjs';
 import {scoreAnswerMode} from './answer-mode-score.mjs';
-import {scoreGrounding} from './grounding-score.mjs';
 import {scoreConflict} from './contradiction-score.mjs';
 import {scoreSourceStatus} from './source-status-score.mjs';
 
@@ -76,12 +75,19 @@ export function evaluateItem(item,context={}){
    insert(key,answer===null?notReady('solver_answer_missing'):
     scoreSolver(answer,question,expected.exact));
   }else if(key==='labels'){
-   const evidence=evidenceFor(item,claimMap);
-   if(!evidence){insert(key,notReady('evidence_claims_missing'));continue;}
-   if(typeof item.input.draft!=='string'||!Array.isArray(expected.labels)){
-    insert(key,notReady('draft_or_labels_missing'));continue;
+   // Hier darf KEIN Gold-Draft durch unseren eigenen Grounding-Auswerter laufen:
+   // Die Labels müssen zuvor vom tatsächlichen NERYX-Verifier erzeugt worden sein.
+   if(context.verifierSource!=='neryx'||!Array.isArray(context.verifierLabels)){
+    insert(key,notReady('neryx_verifier_output_missing'));continue;
    }
-   insert(key,scoreGrounding(item.input.draft,evidence,expected.labels));
+   const allowed=['supported','unsupported','contradicted','unverified'];
+   if(!context.verifierLabels.every(x=>allowed.includes(x)))
+    throw Error('Ungültige NERYX-Verifier-Labels.');
+   if(!Array.isArray(expected.labels)||!expected.labels.every(x=>allowed.includes(x)))
+    throw Error('Ungültige Gold-Verifier-Labels.');
+   const same=context.verifierLabels.length===expected.labels.length&&
+    context.verifierLabels.every((x,i)=>x===expected.labels[i]);
+   insert(key,{status:same?'pass':'fail',reason:'neryx_labels_compared'});
   }else if(key==='conflictSurfaced'){
    const sources=conflictSources(context.conflictIds,claimMap);
    insert(key,answer===null||!sources?notReady('answer_or_conflict_sources_missing'):
