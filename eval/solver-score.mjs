@@ -2,6 +2,7 @@
    Konservativ: Mehrdeutigkeit wird REVIEW, nie automatisch PASS. */
 const normalized=s=>String(s??'').toLowerCase().replace(/\u00a0/g,' ').replace(/²/g,'2').replace(/³/g,'3');
 const number=x=>Number(x.replace(',','.'));
+const ambiguousNumber=x=>/^[-+]?\d{1,3}[.,]\d{3}$/.test(x); // Format 1.200 / 1,200 ist ohne Kontext mehrdeutig
 function clockValues(s){
  const t=normalized(s),hits=[];
  const patterns=[
@@ -17,7 +18,7 @@ function clockValues(s){
 }
 function resultText(answer){
  const s=String(answer??'');
- const marked=[...s.matchAll(/(?:^|\n|[.!?]\s+)(?:ergebnis|antwort|endzeit|insgesamt|somit|daher|ergibt)\s*[:=]?\s*([^\n.!?]+)/gi)];
+ const marked=[...s.matchAll(/(?:^|\n|[!?]\s+)(?:ergebnis|antwort|endzeit|insgesamt|somit|daher|ergibt)\s*[:=]?\s*([^\n!?]+)/gi)];
  return marked.length?marked.at(-1)[1]:s;
 }
 const units={
@@ -34,20 +35,26 @@ const units={
 const aliases={'m²':'m2','m³':'m3','liter':'l','kilogramm':'kg','gramm':'g','stunden':'stunden','minuten':'minuten','stück':'stueck','teile':'stueck','pakete':'verpackungen','verpackung':'verpackungen'};
 function canonical(s){return aliases[String(s).toLowerCase()]??String(s).toLowerCase()}
 function quantities(answer,expectedUnit){
- const s=normalized(resultText(answer));const out=[];
+ const s=normalized(resultText(answer)),out=[];
  const re=/(?<![\w.,])(-?\d+(?:[,.]\d+)?)(?![\w.,])\s*(m2|m3|kg|g|l|h|min|quadratmeter|kubikmeter|liter|kilogramm|gramm|stunden?|minuten?|stück|stueck|teile?|einheiten?|verpackungen?|pakete?|kartons?)\b/gi;
- let m;
- const u=canonical(expectedUnit);
+ let m;const u=canonical(expectedUnit);
  while((m=re.exec(s))){
   const raw=m[2].toLowerCase();
   const actual=Object.entries(units).find(([,spec])=>spec.re.test(raw));
   if(!actual)continue;
-  const [key,spec]=actual,expect=units[u];
+  const [,spec]=actual,expect=units[u];
   if(!expect)continue;
-  // Konvertiere ausschließlich ausdrücklich unterstützte Dimensionen.
+  const prefix=s.slice(Math.max(0,m.index-8),m.index);
+  const rangeBefore=/\d\s*[-–—]\s*$/.test(prefix);
+  const rangeAfter=/^\s*[-–—]\s*\d/.test(s.slice(re.lastIndex));
+  if(rangeBefore||rangeAfter||ambiguousNumber(m[1])){out.push({ambiguous:true});continue;}
   if(spec.kind!==expect.kind){out.push({wrongUnit:true});continue;}
-  out.push({value:number(m[1])*spec.factor/expect.factor,wrongUnit:false});
+  out.push({value:number(m[1])*spec.factor/expect.factor});
  }
+ // Nicht interpretierte weitere Zahlenangaben verhindern einen automatischen Pass.
+ const leftover=s.replace(re,' ');
+ if(/(?<![\p{L}\p{N}])[-+]?\d+(?:[,.]\d+)?(?![\p{L}\p{N}])/u.test(leftover))
+  out.push({ambiguous:true});
  return out;
 }
 export function scoreSolver(answer,question,exact){
@@ -69,6 +76,7 @@ export function scoreSolver(answer,question,exact){
  if(!units[unit])return {status:'not_evaluated',reason:'unsupported_unit'};
  const q=quantities(answer,unit);
  if(!q.length)return {status:'review',reason:'missing_or_unknown_unit'};
+ if(q.some(x=>x.ambiguous))return {status:'review',reason:'ambiguous_number_or_additional_quantity'};
  if(q.some(x=>x.wrongUnit))return {status:'review',reason:'incompatible_units'};
  const unique=[...new Set(q.map(x=>x.value))];
  if(unique.length!==1)return {status:'review',reason:'multiple_quantities'};
