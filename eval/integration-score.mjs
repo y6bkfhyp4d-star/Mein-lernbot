@@ -2,6 +2,7 @@
    Nutzt nur ausdrücklich gelieferte Antworten und Belege.
    Kein Frozen-Lauf, keine Datenpersistenz, keine semantische Vollprüfung. */
 import {scoreRetrieval} from './retrieval-score.mjs';
+import {checkAggregateResult} from './check-contract.mjs';
 import {scoreSolver} from './solver-score.mjs';
 import {scoreAnswerMode} from './answer-mode-score.mjs';
 import {scoreConflict} from './contradiction-score.mjs';
@@ -107,19 +108,17 @@ export function evaluateItem(item,context={}){
   statuses.includes('fail')?'fail':
   statuses.includes('not_evaluated')?'not_evaluated':
   statuses.includes('review')?'review':'pass';
- return {outcome,fullyEvaluated,checks};
+ const result={outcome,fullyEvaluated,checks};
+ checkAggregateResult(result,validStatuses);
+ return result;
 }
 export function aggregateEvaluation(results){
  if(!Array.isArray(results))throw Error('Ergebnisliste muss Array sein.');
  const summary={total:results.length,fullyEvaluated:0,
   outcomes:{pass:0,fail:0,review:0,not_evaluated:0},dimensions:{}};
  for(const result of results){
-  if(!result||!validStatuses.has(result.outcome)||typeof result.fullyEvaluated!=='boolean'||
-   !result.checks||typeof result.checks!=='object')throw Error('Ungültiges Evaluationsresultat.');
-  const statuses=Object.values(result.checks).map(x=>x.status);
-  if(!statuses.every(s=>validStatuses.has(s)))throw Error('Unbekannter Dimensionsstatus.');
-  const full=statuses.length>0&&!statuses.includes('not_evaluated');
-  if(full!==result.fullyEvaluated)throw Error('Widersprüchlicher Evaluationsstatus.');
+  checkAggregateResult(result,validStatuses);
+  const full=result.fullyEvaluated;
   summary.outcomes[result.outcome]++;
   if(full)summary.fullyEvaluated++;
   for(const [key,check] of Object.entries(result.checks)){
