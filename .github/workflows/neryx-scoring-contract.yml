@@ -7,6 +7,10 @@ on:
       - 'eval/check-contract.mjs'
       - 'eval/capture-contract.mjs'
       - 'eval/browser-capture.html'
+      - 'eval/browser-boundary.html'
+      - 'eval/browser-boundary.js'
+      - 'eval/browser-boundary-core.mjs'
+      - 'eval/tests/browser-boundary.test.mjs'
       - 'eval/browser-negative.html'
       - 'eval/browser-negative-frame.html'
       - 'eval/browser-negative.js'
@@ -35,6 +39,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate dummy boundary inputs and known findings
+        run: node --test eval/tests/browser-boundary.test.mjs
       - name: Verify isolated negative dummy cases using real NERYX modules
         run: node --test eval/tests/browser-negative.test.mjs
       - name: Verify pinned source bytes and browser storage audit with dummy data
