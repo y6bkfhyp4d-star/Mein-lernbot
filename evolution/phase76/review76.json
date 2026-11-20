@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 26,
+  "cursor": 31,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -288,7 +288,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q8366"
     },
     {
-      "checked_at": "2026-11-18T09:28:10+00:00",
+      "checked_at": "2026-11-20T21:14:13+00:00",
       "classes": [
         "IP network",
         "Rechnernetz",
@@ -302,7 +302,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q75"
     },
     {
-      "checked_at": "2026-11-18T09:28:10+00:00",
+      "checked_at": "2026-11-20T21:14:13+00:00",
       "classes": [
         "Art von Technologie",
         "Teilgebiet der Informatik",
@@ -315,7 +315,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q11660"
     },
     {
-      "checked_at": "2026-11-18T09:28:10+00:00",
+      "checked_at": "2026-11-20T21:14:13+00:00",
       "classes": [
         "Einzelwissenschaft",
         "Zertifizierung",
@@ -332,7 +332,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q2539"
     },
     {
-      "checked_at": "2026-11-18T09:28:10+00:00",
+      "checked_at": "2026-11-20T21:14:13+00:00",
       "classes": [
         "Zwergplanet",
         "Asteroid",
@@ -345,7 +345,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q596"
     },
     {
-      "checked_at": "2026-11-18T15:21:00+00:00",
+      "checked_at": "2026-11-20T21:14:13+00:00",
       "classes": [
         "Asteroid"
       ],
@@ -660,6 +660,13 @@
       "error_count": 1,
       "known_sources": 59,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-20T21:14:13+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 61,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -671,6 +678,7 @@
     "(136472) Makemake": "72e50ba196bcfe8839c1",
     "(2) Pallas": "8f71b0dd701c9170fc69",
     "-genese": "c2d8453aacac20d43ac6",
+    "1,2-Propandiol": "c5f3e389010b220964cd",
     "18. Oktober": "f86e5368d33bf440e3cc",
     "3-Hydroxypropionatzyklus": "d3b69fab85022eae2ed0",
     "AGB-Stern": "76bbf1201c9afff4553e",
@@ -688,6 +696,7 @@
     "Achämenidenreich": "b95fd585994902a62a11",
     "Adaptive Radiation": "5fe056616718c4951303",
     "Adler (Sternbild)": "5d1dbb73ede3cc4d1543",
+    "Adult": "d0661e2811e32e2eaa94",
     "Aerologie": "06b3f4b36704b4bc63c0",
     "Aerosol": "8b6a119ae687cb359c79",
     "Akkumulator": "e0e64a933525e075dbe3",
