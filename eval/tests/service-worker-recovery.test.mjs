@@ -1,125 +1,103 @@
-/* Isolierter Service-Worker-Test: keine echten Browser-/Frozen-Daten. */
+/* SW v4: only synthetic requests; no Frozen, user data or real storage. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-
-const code=readFileSync(new URL('../../sw.js',import.meta.url),'utf8');
+const src=readFileSync(new URL('../../sw.js',import.meta.url),'utf8');
 const base='https://dummy.invalid/Mein-lernbot/';
-const makeResponse=(body,url,options={})=>({
- body,url,ok:options.ok??true,redirected:options.redirected??false,
- clone(){return makeResponse(body,url,options);}
-});
+const html='<!doctype html><script src="app.js"></script><script defer src="modules/math-verifier.js"></script>';
+const response=(body,url,ok=true,redirected=false)=>({body,url,ok,redirected,
+ clone(){return response(body,url,ok,redirected)},async text(){return body}});
 function worker(){
- const handlers={},stores=new Map(),deletions=[],requests=[];
- const cacheFor=name=>{
+ const handlers={},stores=new Map(),deleted=[],requests=[];
+ const cache=name=>{
   if(!stores.has(name))stores.set(name,new Map());
-  const entries=stores.get(name);
-  return {
-   async put(key,response){entries.set(String(key),response);},
-   async match(key){return entries.get(String(key));}
-  };
+  const store=stores.get(name);
+  return {put:async(k,v)=>{store.set(String(k),v)},match:async k=>store.get(String(k))};
  };
- const caches={
-  async open(name){return cacheFor(name);},
-  async keys(){return [...stores.keys()];},
-  async delete(name){deletions.push(name);return stores.delete(name);}
+ const caches={open:async name=>cache(name),keys:async()=>[...stores.keys()],
+  delete:async name=>{deleted.push(name);return stores.delete(name)}};
+ let fetcher=async req=>{
+  const url=typeof req==='string'?req:req.url;
+  const contents=url===base+'index.html'?html:url.includes('.js')?'// compiled':'<h1>test page</h1>';
+  return response(contents,url);
  };
- let network=async req=>makeResponse('network:'+req.url,req.url);
- const self={
-  location:{origin:'https://dummy.invalid'},
-  registration:{scope:base},
-  clients:{async claim(){}},
-  async skipWaiting(){},
-  addEventListener(name,fn){handlers[name]=fn;}
- };
+ const self={registration:{scope:base},location:{origin:new URL(base).origin},
+  skipWaiting:async()=>{},clients:{claim:async()=>{}},
+  addEventListener:(type,cb)=>{handlers[type]=cb}};
  const Response={error:()=>({error:true})};
- runInNewContext(code,{self,caches,Response,URL,
-  fetch:async(req,options)=>{requests.push({url:req.url,options});return network(req);}
+ runInNewContext(src,{self,caches,Response,URL,
+  fetch:async(req,opt)=>{const url=typeof req==='string'?req:req.url;requests.push(url);return fetcher(req,opt)}
  },{filename:'sw.js'});
- const trigger=async name=>{
-  let p;handlers[name]({waitUntil(v){p=v;}});if(p)await p;
+ const lifecycle=async type=>{let p;handlers[type]({waitUntil:x=>p=x});if(p)await p};
+ const request=async(path,mode='navigate')=>{
+  const url=new URL(path,base).href;let result=null,handled=false;
+  handlers.fetch({request:{url,mode,method:'GET'},respondWith:x=>{handled=true;result=Promise.resolve(x)}});
+  return {handled,response:result?await result:null};
  };
- const navigate=async(path,mode='navigate')=>{
-  let promise,called=false;
-  handlers.fetch({
-   request:{url:new URL(path,base).href,method:'GET',mode},
-   respondWith(v){called=true;promise=Promise.resolve(v);}
-  });
-  return {called,response:called?await promise:null};
- };
- return {caches,stores,deletions,requests,trigger,navigate,setNetwork(fn){network=fn;}};
+ return {lifecycle,request,stores,deleted,caches,requests,setFetcher:fn=>fetcher=fn};
 }
-
-test('Testseite darf Online-Fallback nicht mit eigenem HTML überschreiben',async()=>{
+test('Installation caches index.html and every declared local startup script',async()=>{
+ const w=worker();await w.lifecycle('install');
+ const s=w.stores.get('neryx-offline-v4');
+ assert.deepEqual([...s.keys()],[base+'index.html',base+'app.js',base+'modules/math-verifier.js']);
+});
+test('Offline app still loads its JavaScript for interactive controls',async()=>{
+ const w=worker();await w.lifecycle('install');
+ w.setFetcher(async()=>{throw Error('offline')});
+ assert.equal((await w.request('index.html')).response.body,html);
+ assert.equal((await w.request('app.js','same-origin')).response.body,'// compiled');
+ assert.equal((await w.request('modules/math-verifier.js','same-origin')).response.body,'// compiled');
+});
+test('Dummy pages never overwrite the offline app shell and fail closed offline',async()=>{
+ const w=worker();await w.lifecycle('install');
+ await w.request('eval/browser-capture.html');
+ await w.request('eval/browser-negative.html');
+ assert.equal(w.stores.get('neryx-offline-v4').size,3);
+ w.setFetcher(async()=>{throw Error('offline')});
+ assert.equal((await w.request('eval/browser-boundary.html')).response.error,true);
+ assert.equal((await w.request('index.html')).response.body,html);
+});
+test('Old poisoned recovery caches removed at activation',async()=>{
  const w=worker();
- await w.trigger('activate');
- await w.navigate('index.html');
- const cache=await w.caches.open('neryx-recovery-v3');
- const saved=(await cache.match(base+'index.html')).body;
- await w.navigate('eval/browser-boundary.html');
- await w.navigate('eval/browser-capture.html');
- await w.navigate('eval/browser-negative.html');
- assert.equal((await cache.match(base+'index.html')).body,saved);
- assert.equal(w.stores.get('neryx-recovery-v3').size,1);
+ await (await w.caches.open('neryx-recovery-v3')).put(base+'index.html',response('poison',base));
+ await w.lifecycle('install');await w.lifecycle('activate');
+ assert.deepEqual(w.deleted,['neryx-recovery-v3']);
+ assert.equal(w.stores.has('neryx-recovery-v3'),false);
+ assert.equal(w.stores.has('neryx-offline-v4'),true);
 });
-
-test('Root und index.html können die echte App-Shell erneuern',async()=>{
- const w=worker();await w.navigate('./');
- let c=await w.caches.open('neryx-recovery-v3');
- assert.equal((await c.match(base+'index.html')).body,'network:'+base);
- w.setNetwork(async req=>makeResponse('fresh-index',req.url));
- await w.navigate('index.html');
- assert.equal((await c.match(base+'index.html')).body,'fresh-index');
-});
-
-test('Offline: App erhält gespeicherten Fallback, Testseiten nicht',async()=>{
- const w=worker();await w.navigate('index.html');
- w.setNetwork(async()=>{throw Error('offline');});
- assert.equal((await w.navigate('./')).response.body,'network:'+base+'index.html');
- assert.equal((await w.navigate('eval/browser-boundary.html')).response.error,true);
- assert.equal((await w.navigate('eval/browser-capture.html')).response.error,true);
-});
-
-test('Alte potenziell vergiftete Cache-Version wird beim Aktivieren gelöscht',async()=>{
+test('Missing startup script aborts install; no silently incomplete offline app',async()=>{
  const w=worker();
- await (await w.caches.open('neryx-recovery-v2')).put(base+'index.html',makeResponse('poison',base+'eval/browser-negative.html'));
- await (await w.caches.open('neryx-recovery-v3')).put(base+'index.html',makeResponse('safe',base+'index.html'));
- await w.trigger('activate');
- assert.deepEqual(w.deletions,['neryx-recovery-v2']);
- assert.equal((await (await w.caches.open('neryx-recovery-v3')).match(base+'index.html')).body,'safe');
+ w.setFetcher(async req=>{
+  const url=typeof req==='string'?req:req.url;
+  if(url.endsWith('app.js'))throw Error('network failure');
+  return response(url===base+'index.html'?html:'// compiled',url);
+ });
+ await assert.rejects(w.lifecycle('install'),/network failure/);
 });
-
-test('Weiterleitungen und fehlgeschlagene HTML-Antworten vergiften Cache nicht',async()=>{
- const w=worker();await w.navigate('index.html');
- const c=await w.caches.open('neryx-recovery-v3');
- const old=(await c.match(base+'index.html')).body;
- w.setNetwork(async()=>makeResponse('redirected',base+'eval/browser-boundary.html',{redirected:true}));
- await w.navigate('./');
- w.setNetwork(async req=>makeResponse('server-error',req.url,{ok:false}));
- await w.navigate('index.html');
- assert.equal((await c.match(base+'index.html')).body,old);
-});
-
-test('Query-Navigation und Nicht-HTML-Requests erneuern Cache nicht',async()=>{
- const w=worker();await w.navigate('index.html');
- const c=await w.caches.open('neryx-recovery-v3'),old=(await c.match(base+'index.html')).body;
- w.setNetwork(async req=>makeResponse('should-not-be-cached',req.url));
- await w.navigate('index.html?preview=1');
- await w.navigate('modules/math-verifier.js','same-origin');
- assert.equal((await c.match(base+'index.html')).body,old);
-});
-
-test('Caching-Fehler blockieren erfolgreiche App-Navigation nicht',async()=>{
+test('Redirected startup script aborts install',async()=>{
  const w=worker();
- const oldOpen=w.caches.open.bind(w.caches);
- w.caches.open=async()=>({put:async()=>{throw Error('storage denied');},match:async()=>null});
- const result=await w.navigate('index.html');
- assert.equal(result.response.ok,true);
- w.caches.open=oldOpen;
+ w.setFetcher(async req=>{
+  const url=typeof req==='string'?req:req.url;
+  return response(url===base+'index.html'?html:'// compiled',url,true,url.endsWith('app.js'));
+ });
+ await assert.rejects(w.lifecycle('install'),/nicht ladbar/);
 });
-
-test('Offline ohne Cache liefert kontrollierten Fehler statt falscher Seite',async()=>{
- const w=worker();w.setNetwork(async()=>{throw Error('offline');});
- assert.equal((await w.navigate('index.html')).response.error,true);
+test('No caching of unrelated JS, query URLs or model resources',async()=>{
+ const w=worker();await w.lifecycle('install');
+ w.setFetcher(async()=>{throw Error('offline')});
+ assert.equal((await w.request('eval/browser-negative.js','same-origin')).response.error,true);
+ assert.equal((await w.request('app.js?version=1','same-origin')).response.error,true);
+ assert.equal((await w.request('evolution/neryx/client.js','same-origin')).response.error,true);
+});
+test('First installation without network fails instead of claiming offline readiness',async()=>{
+ const w=worker();w.setFetcher(async()=>{throw Error('offline')});
+ await assert.rejects(w.lifecycle('install'),/offline/);
+});
+test('App navigation online remains network-first; offline returns pinned index',async()=>{
+ const w=worker();await w.lifecycle('install');
+ w.setFetcher(async req=>response('online-new',typeof req==='string'?req:req.url));
+ assert.equal((await w.request('./')).response.body,'online-new');
+ w.setFetcher(async()=>{throw Error('offline')});
+ assert.equal((await w.request('./')).response.body,html);
 });
