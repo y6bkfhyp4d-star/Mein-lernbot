@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 16,
+  "cursor": 21,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -184,7 +184,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q1063"
     },
     {
-      "checked_at": "2026-11-17T21:15:51+00:00",
+      "checked_at": "2026-11-20T09:27:00+00:00",
       "classes": [
         "Strukturklasse von chemischen Verbindungen"
       ],
@@ -195,7 +195,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q7430"
     },
     {
-      "checked_at": "2026-11-17T21:15:51+00:00",
+      "checked_at": "2026-11-20T09:27:00+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -204,7 +204,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q36534"
     },
     {
-      "checked_at": "2026-11-17T21:15:51+00:00",
+      "checked_at": "2026-11-20T09:27:00+00:00",
       "classes": [
         "production environment factor"
       ],
@@ -215,7 +215,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q9128"
     },
     {
-      "checked_at": "2026-11-17T21:15:51+00:00",
+      "checked_at": "2026-11-20T09:27:00+00:00",
       "classes": [
         "Zustandsgröße"
       ],
@@ -226,7 +226,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q11466"
     },
     {
-      "checked_at": "2026-11-18T03:15:14+00:00",
+      "checked_at": "2026-11-20T09:27:00+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -646,6 +646,13 @@
       "error_count": 1,
       "known_sources": 56,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-20T09:27:00+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 57,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -668,6 +675,7 @@
     "Abiotisch": "4f6407d66d1ccb850359",
     "Abklingbecken": "f84838054d1e05b2e2dc",
     "Abschirmung (Gravitation)": "a7513d7c79d0b8a57abc",
+    "Absolute Helligkeit": "55b72b14fc20ad2c608c",
     "Absorption (Physik)": "7ca5ff83537ea243ebe2",
     "Abwasser": "14b2d45bca416c3adb07",
     "Achämenidenreich": "b95fd585994902a62a11",
