@@ -9,13 +9,15 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.5 ui-monospace,monos
 button{font:inherit;padding:13px 18px;border-radius:13px;background:#9870ff;color:#170f29;border:0;font-weight:700;margin-right:8px;margin-top:8px}
 button:disabled{opacity:.45}.secondary{background:#343047;color:#eee}.hint{font-size:.85rem;color:#b5aac9}
 </style></head><body>
-<h1>NERYX · Browser-Capture (Dummy)</h1>
-<p>Isolierter Rechentest. Nur eine künstliche Wandflächenfrage. Kein Qwen, kein Chat, keine echten Frozen-Daten, kein Schreiben in den Lernspeicher.</p>
+<h1>NERYX · Browser-Capture (2 Dummy-Tests)</h1>
+<p>Zwei isolierte Dummy-Tests: Wandfläche und Zahlenmuster. Kein Qwen, kein Chat, keine echten Frozen-Daten, kein Schreiben in den Lernspeicher.</p>
 <div class="panel"><strong>Testfrage</strong><p id="question">Wird geladen …</p></div>
 <button id="run" disabled>Dummy-Test starten</button><button id="export" class="secondary" disabled>Capture-JSON exportieren</button><button id="audit-export" class="secondary" disabled>Prüfbericht exportieren</button>
 <div class="panel"><strong>Status</strong><p id="status" role="status">Prüfe Module …</p><p class="hint" id="run-id"></p><pre id="answer"></pre><pre id="storage"></pre><p class="hint" id="digest"></p></div>
 <p class="hint">Die Hashes sind eine Integritätskontrolle, kein kryptografischer Beweis für den ausführenden Browser. Die Seite greift nicht auf andere NERYX-Daten zu.</p>
 <script src="../modules/math-verifier.js" integrity="sha256-AxPnHcC9pA1L5J/Zxi1TaiVkIfHW5Tk6QxhE0MXZUp4="></script>
+<script src="../modules/rule-patterns.js" integrity="sha256-JlGsxHXlH+611qE+tqwnMxAlMlr2v3wApMHk8KAWvIw="></script>
+<script src="../modules/system-hub.js" integrity="sha256-oSgSHbq64uFRABjCehG7pD2v6D1s/uBPIpNybyBpclU="></script>
 <script src="../modules/orchestrator.js" integrity="sha256-X92sAkUS0XtdZGQBC1KbKR+dA4UBVCUq34rUZcHDMgE="></script>
 <script type="module" src="./browser-capture.js"></script>
 </body></html>
