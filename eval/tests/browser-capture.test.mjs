@@ -16,7 +16,7 @@ function orchestrator(omit=[]){
 async function fixture(){
  const {NERYXOrchestrator:o}=orchestrator();
  const answers=await Promise.all(dummyItems.map(it=>o.solve(it.input.question)));
- return makeDummyCapture({answers,durationsMs:[2,3],scripts:hashes});
+ return makeDummyCapture({answers,durationsMs:[2,3,4],scripts:hashes});
 }
 test('Echte NERYX-Module wählen Wandfläche, Zahlenfolge und Rasterweg',async()=>{
  const o=orchestrator().NERYXOrchestrator;
