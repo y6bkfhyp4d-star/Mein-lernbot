@@ -4,6 +4,8 @@ on:
     branches:
       - neryx/s2-retrieval-scoring
     paths:
+      - 'sw.js'
+      - 'eval/tests/service-worker-recovery.test.mjs'
       - 'modules/math-verifier.js'
       - 'eval/check-contract.mjs'
       - 'eval/capture-contract.mjs'
@@ -40,6 +42,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Prevent service-worker fallback cache poisoning using dummy pages
+        run: node --test eval/tests/service-worker-recovery.test.mjs
       - name: Validate fixed negative dimensions and all dummy boundary inputs
         run: node --test eval/tests/browser-boundary.test.mjs
       - name: Verify isolated negative dummy cases using real NERYX modules
