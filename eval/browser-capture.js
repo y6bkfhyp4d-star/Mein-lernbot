@@ -7,12 +7,14 @@ function status(s){$('status').textContent=s;}
 function preflight(){
  if(typeof window.NERYXMathVerifier?.solve!=='function'||window.NERYXMathVerifier.version!=='1.0'||
     typeof window.NERYXPatterns?.solveSequence!=='function'||window.NERYXPatterns.version!=='0.2'||
+    typeof window.NERYXReasoner?.shortestPath!=='function'||window.NERYXReasoner.version!=='0.1'||
     typeof window.NERYXSystem?.solve!=='function'||window.NERYXSystem.version!=='1.0'||
+    typeof window.NERYXSystem.route!=='function'||
     typeof window.NERYXOrchestrator?.solve!=='function'||window.NERYXOrchestrator.version!=='2.4')
   throw Error('Benötigtes Fachmodul fehlt oder hat eine falsche Version.');
  const plans=dummyItems.map(x=>window.NERYXOrchestrator.plan(x.input.question));
- if(plans[0].type!=='area'||plans[1].type!=='sequence')
-  throw Error('Falscher Antwortpfad: Erwartet Wandfläche und Zahlenmuster.');
+ if(plans[0].type!=='area'||plans[1].type!=='sequence'||plans[2].type!=='grid')
+  throw Error('Falscher Antwortpfad: Erwartet Wandfläche, Zahlenmuster und Rasterweg.');
 }
 async function scriptHashes(){
  const out={};
@@ -54,6 +56,9 @@ $('run').addEventListener('click',async()=>{
   if(typeof answers[1]!=='string'||!answers[1].includes('Erkanntes Muster: geometrisch')||
      !answers[1].includes('Mögliche nächste Zahl: 32'))
    throw Error('Zahlenmusterberechnung nicht bestätigt.');
+  if(typeof answers[2]!=='string'||!answers[2].startsWith('NERYX · WEGPLANUNG\nSchritte: 4\n')||
+     !answers[2].includes('(1,1)')||!answers[2].includes('(3,3)'))
+   throw Error('Raster-Wegplanung nicht bestätigt.');
  }catch(e){error=e?.message||String(e);}
  finally{
   if(before)try{after=await snapshotBrowserStorage();}
@@ -83,8 +88,8 @@ $('run').addEventListener('click',async()=>{
   }
  }
  status(error?'Abgebrochen: '+error: audit?.comparison.status==='all_checked_unchanged'?
-  'Beide Tests erfolgreich – alle beobachteten Speicherbereiche unverändert.':
-  'Beide Tests erfolgreich – Basis-Speicher unverändert; Zusatzbereiche teilweise prüfbar.');
+  'Alle drei Tests erfolgreich – alle beobachteten Speicherbereiche unverändert.':
+  'Alle drei Tests erfolgreich – Basis-Speicher unverändert; Zusatzbereiche teilweise prüfbar.');
  running=false;$('run').disabled=false;
 });
 $('export').addEventListener('click',()=>{if(capture)download(capture,'neryx-dummy-capture-'+capture.runId+'.json');});
