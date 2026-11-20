@@ -1,12 +1,12 @@
 {
   "schema": 713,
-  "generated_at": "2026-11-19T05:15:49+00:00",
+  "generated_at": "2026-11-20T05:11:10+00:00",
   "phase7_closure": "technisch_abgeschlossen_mit_offenen_wahrheitsfragen",
   "status_explanation": "Phase-7-Pipeline vorhanden und automatisierte Strukturtests dokumentiert. Keine unabhängige Sachverifikation.",
   "source_schema": 711,
-  "source_records": 25,
+  "source_records": 32,
   "audit": {
-    "checked": 15,
+    "checked": 16,
     "rows": [
       {
         "topic": "(136199) Eris",
@@ -21,6 +21,15 @@
         "topic": "18. Oktober",
         "statement": "Der 18. Oktober ist der 291. Tag des gregorianischen Kalenders (der 292. in Schaltjahren), somit verbleiben 74 Tage bis zum Jahresende.",
         "source": "https://de.wikipedia.org/?curid=6299",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Abwasser",
+        "statement": "Abwasser ist ein Oberbegriff für aus verschiedenen Quellen stammendes Wasser, das über bauliche Anlagen fortgeleitet wird: Niederschlagswasser – von bebauten oder befestigten Flächen gesammelt abfließendes Wasser von Niederschlägen.",
+        "source": "https://de.wikipedia.org/?curid=18972",
         "flags": [],
         "risk": "keine_strukturhinweise",
         "independent_verified": false,

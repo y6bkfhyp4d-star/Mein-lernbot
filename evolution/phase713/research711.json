@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Aerosol",
-    "ATP-Synthase",
-    "Vulkan",
+    "(2) Pallas",
+    "Abgeschlossenes System",
     "(1) Ceres",
     "(136108) Haumea",
-    "(136199) Eris"
+    "(136199) Eris",
+    "-genese"
   ],
   "records": [
     {
-      "checked_at": "2026-11-19T04:37:12+00:00",
+      "checked_at": "2026-11-20T04:35:49+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T04:37:12+00:00",
+      "checked_at": "2026-11-20T04:35:49+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T04:37:12+00:00",
+      "checked_at": "2026-11-20T04:35:49+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -76,7 +76,43 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T16:38:56+00:00",
+      "checked_at": "2026-11-20T04:35:49+00:00",
+      "claims": [],
+      "diagnostics": {
+        "keine_klare_klassifikation": 1,
+        "subjekt_nicht_erkannt": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "(2) Pallas",
+      "question": "Was ist (2) Pallas und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=121993",
+      "status": "keine_klare_klassifikation",
+      "title_resolution": "direkter_titel",
+      "topic": "(2) Pallas",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T04:35:49+00:00",
+      "claims": [],
+      "diagnostics": {
+        "keine_klare_klassifikation": 1,
+        "subjekt_nicht_erkannt": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "-genese",
+      "question": "Was ist -genese und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=279722",
+      "status": "keine_klare_klassifikation",
+      "title_resolution": "direkter_titel",
+      "topic": "-genese",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T22:25:57+00:00",
       "claims": [
         {
           "id": "p711-b0412689b701e4",
@@ -106,7 +142,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-18T16:38:56+00:00",
+      "checked_at": "2026-11-19T16:39:04+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 7
@@ -120,6 +156,78 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Abdus Salam",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T22:25:57+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 2,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abfallprodukt",
+      "question": "Was ist Abfallprodukt und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=6770970",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Abfallprodukt",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T04:35:49+00:00",
+      "claims": [],
+      "diagnostics": {
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abgeschlossenes System",
+      "question": "Was ist Abgeschlossenes System und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=42137",
+      "status": "unsicher_oder_negiert",
+      "title_resolution": "direkter_titel",
+      "topic": "Abgeschlossenes System",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T16:39:04+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 2,
+        "unsicher_oder_negiert": 2
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abiotisch",
+      "question": "Was ist Abiotisch und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=276085",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Abiotisch",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T10:31:57+00:00",
+      "claims": [],
+      "diagnostics": {
+        "keine_klare_klassifikation": 1,
+        "subjekt_nicht_erkannt": 3,
+        "zu_kurz": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abklingbecken",
+      "question": "Was ist Abklingbecken und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=181410",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Abklingbecken",
       "verified_correction": false
     },
     {
@@ -138,6 +246,38 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Abschirmung (Gravitation)",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-19T10:31:57+00:00",
+      "claims": [
+        {
+          "id": "p711-25d57b5f86c700",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Abwasser ist ein Oberbegriff für aus verschiedenen Quellen stammendes Wasser, das über bauliche Anlagen fortgeleitet wird: Niederschlagswasser – von bebauten oder befestigten Flächen gesammelt abfließendes Wasser von Niederschlägen.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=18972",
+          "statement": "Abwasser ist ein Oberbegriff für aus verschiedenen Quellen stammendes Wasser, das über bauliche Anlagen fortgeleitet wird: Niederschlagswasser – von bebauten oder befestigten Flächen gesammelt abfließendes Wasser von Niederschlägen.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Abwasser",
+          "subject_form": "Abwasser"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 4
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Abwasser",
+      "question": "Was ist Abwasser und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=18972",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Abwasser",
       "verified_correction": false
     },
     {
@@ -784,6 +924,71 @@
         "ATP-Synthase",
         "(1) Ceres",
         "(136108) Haumea"
+      ]
+    },
+    {
+      "at": "2026-11-19T10:31:57+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "Abiotisch",
+        "Abklingbecken",
+        "(1) Ceres",
+        "(136108) Haumea"
+      ]
+    },
+    {
+      "at": "2026-11-19T16:39:04+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "(1) Ceres",
+        "(136108) Haumea",
+        "Abdus Salam",
+        "Abiotisch"
+      ]
+    },
+    {
+      "at": "2026-11-19T22:25:57+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "-genese",
+        "Abfallprodukt",
+        "(1) Ceres",
+        "(136108) Haumea"
+      ]
+    },
+    {
+      "at": "2026-11-20T04:35:49+00:00",
+      "claims": 1,
+      "errors": 0,
+      "new_extractor_same_pages": 1,
+      "old_extractor_same_pages": 1,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 1,
+      "unresolved_topics": [
+        "(2) Pallas",
+        "Abgeschlossenes System",
+        "(1) Ceres",
+        "(136108) Haumea",
+        "-genese"
       ]
     }
   ],
