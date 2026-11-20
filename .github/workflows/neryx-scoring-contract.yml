@@ -9,6 +9,8 @@ on:
       - 'eval/browser-capture.html'
       - 'eval/browser-capture.js'
       - 'eval/browser-capture-core.mjs'
+      - 'eval/browser-capture-audit.mjs'
+      - 'eval/tests/browser-capture-audit.test.mjs'
       - 'eval/tests/browser-capture.test.mjs'
       - 'eval/tests/capture-contract.test.mjs'
       - 'eval/tests/check-contract.test.mjs'
@@ -28,6 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify pinned source bytes and browser storage audit with dummy data
+        run: node --test eval/tests/browser-capture-audit.test.mjs
       - name: Check actual deterministic NERYX path and browser-to-Node dummy format
         run: node --test eval/tests/browser-capture.test.mjs
       - name: Check offline capture contract using synthetic data only
