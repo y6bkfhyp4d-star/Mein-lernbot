@@ -7,7 +7,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {createHash} from 'node:crypto';
 import {scoreRetrieval} from './retrieval-score.mjs';
-import {checkBooleanResult} from './check-contract.mjs';
+import {checkBooleanResult,scoreReviewComplete} from './check-contract.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const fixtureText=read('eval/fixtures.json'),suiteText=read('eval/suite.json');
 const fixtures=JSON.parse(fixtureText),suite=JSON.parse(suiteText);
@@ -37,7 +37,7 @@ for(const item of suite.items){
   detail={found};
  }else if(item.layers?.includes('review')){
   const inspection=window.NERYXAnswerReview.inspect(item.input.question,item.input.draft);
-  checks.complete=inspection.complete===item.expect.complete;
+  checks.complete=scoreReviewComplete(inspection,item.expect?.complete);
   detail={missing:inspection.missing};
  }else throw Error('Unbekannte L1-Ebene: '+item.id);
  const required=item.layers.includes('retrieval')?['include','exclude','verdict']:['complete'];
