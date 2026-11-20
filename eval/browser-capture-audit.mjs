@@ -3,6 +3,7 @@ import {sha256} from './browser-capture-core.mjs';
 export const PINNED_SCRIPTS=Object.freeze({
  'modules/math-verifier.js':'0313e71dc0bda40d4be49fd9c62d536a256421f1d6e5393a431844d0c5d9529e',
  'modules/rule-patterns.js':'2651acc475e51feeb5d6a13eb6ac27331025325af6bf7c00a4c1e4f0a016bc8c',
+ 'modules/neryx-reasoner.js':'f4463ce916521e8d2701cfacdc49b41f54013145b4f8f93c1399dae2c5350e81',
  'modules/system-hub.js':'a128121dbabae2e1510018c27a11bba43dafe83d6cfee04f2293726f20697255',
  'modules/orchestrator.js':'5fddac024512d17b5d6464010b529b291f9d03850154252adf8ad465c1c33201'
 });
@@ -64,8 +65,8 @@ export function verifyCaptureAuditPair(capture,audit){
   audit.kind!=='neryx-dummy-browser-audit'||audit.result!=='capture_accepted'||
   typeof capture.runId!=='string'||!/^dummy-browser-[0-9a-f-]{36}$/.test(capture.runId)||
   capture.runId!==audit.runId||capture.startedAt!==audit.startedAt||
-  !Array.isArray(capture.records)||capture.records.length!==2||
-  capture.records[1].recordSha256!==audit.captureRecordSha256||
+  !Array.isArray(capture.records)||capture.records.length!==3||
+  capture.records[2].recordSha256!==audit.captureRecordSha256||
   audit.scriptHashesMatch!==true||!verifyPinnedScripts(capture.scripts)||
   !verifyPinnedScripts(audit.measuredScripts)||!verifyPinnedScripts(audit.expectedScripts)||
   audit.comparison?.essentialUnchanged!==true||audit.comparison?.status==='changed')
