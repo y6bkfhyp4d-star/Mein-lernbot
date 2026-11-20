@@ -1,13 +1,13 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "-genese",
-    "Abfallprodukt",
+    "(2) Pallas",
+    "Abgeschlossenes System",
     "(1) Ceres"
   ],
   "records": [
     {
-      "checked_at": "2026-11-19T21:37:16+00:00",
+      "checked_at": "2026-11-20T03:38:50+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
@@ -31,6 +31,15 @@
       "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
       "status": "nur_suchtreffer",
       "topic": "(136199) Eris",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T03:38:50+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist (2) Pallas und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "(2) Pallas",
       "verified_correction": false
     },
     {
@@ -67,6 +76,15 @@
       "question": "Was ist Abfallprodukt und wie wird es eingeordnet?",
       "status": "nur_suchtreffer",
       "topic": "Abfallprodukt",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T03:38:50+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist Abgeschlossenes System und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "Abgeschlossenes System",
       "verified_correction": false
     },
     {
@@ -365,6 +383,13 @@
     },
     {
       "at": "2026-11-19T21:37:16+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
+    },
+    {
+      "at": "2026-11-20T03:38:50+00:00",
       "candidates": 0,
       "errors": 0,
       "processed": 3,
