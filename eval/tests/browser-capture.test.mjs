@@ -3,49 +3,58 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {createHash} from 'node:crypto';
-import {dummyQuestion,dummyItem,dummySuiteBytes,makeDummyCapture,sha256} from '../browser-capture-core.mjs';
+import {dummyItems,dummySuiteBytes,REQUIRED_SCRIPTS,makeDummyCapture,sha256} from '../browser-capture-core.mjs';
 import {verifyOfflineCapture,captureHash} from '../capture-contract.mjs';
 const root=new URL('../../',import.meta.url);
-const files=['modules/math-verifier.js','modules/orchestrator.js'];
 const source=name=>readFileSync(new URL(name,root));
-const hashes=Object.fromEntries(files.map(p=>[p,createHash('sha256').update(source(p)).digest('hex')]));
-function orchestrator(){
- const window={};for(const p of files)runInNewContext(source(p).toString('utf8'),{window});
- return window.NERYXOrchestrator;
+const hashes=Object.fromEntries(REQUIRED_SCRIPTS.map(p=>[p,createHash('sha256').update(source(p)).digest('hex')]));
+function orchestrator(omit=[]){
+ const window={};
+ for(const p of REQUIRED_SCRIPTS)if(!omit.includes(p))runInNewContext(source(p).toString('utf8'),{window});
+ return window;
 }
-test('Tatsächlicher NERYX-Orchestrator wählt nur den Wandflächen-Rechenkern',()=>{
- const o=orchestrator();
- assert.equal(o.plan(dummyQuestion).type,'area');
- assert.equal(o.plan(dummyQuestion).source,'Rechenprüfer');
+async function fixture(){
+ const {NERYXOrchestrator:o}=orchestrator();
+ const answers=await Promise.all(dummyItems.map(it=>o.solve(it.input.question)));
+ return makeDummyCapture({answers,durationsMs:[2,3],scripts:hashes});
+}
+test('Echte NERYX-Module wählen Wandfläche und Zahlenfolge',async()=>{
+ const o=orchestrator().NERYXOrchestrator;
+ assert.equal(o.plan(dummyItems[0].input.question).type,'area');
+ assert.equal(o.plan(dummyItems[1].input.question).type,'sequence');
+ assert.match(await o.solve(dummyItems[0].input.question),/Ergebnis: 150 m²/);
+ assert.match(await o.solve(dummyItems[1].input.question),/Erkanntes Muster: geometrisch\nMögliche nächste Zahl: 32/);
 });
-test('Browser-Core erzeugt Capture im vorhandenen Node-Vertragsformat',async()=>{
- const o=orchestrator(),answer=await o.solve(dummyQuestion);
- assert.match(answer,/Ergebnis: 150 m²/);
- const c=await makeDummyCapture({answer,durationMs:5,scripts:hashes});
- const v=verifyOfflineCapture(c,[dummyItem],hashes,captureHash(dummySuiteBytes));
- assert.equal(v.recordCount,1);
- assert.equal(v.contexts[0].answer,answer);
- assert.equal(v.finalDigest,c.records[0].recordSha256);
+test('Zwei Dummy-Datensätze erfüllen den bestehenden Offline-Capture-Vertrag',async()=>{
+ const c=await fixture(),v=verifyOfflineCapture(c,dummyItems,hashes,captureHash(dummySuiteBytes));
+ assert.equal(v.recordCount,2);
+ assert.equal(v.finalDigest,c.records[1].recordSha256);
+ assert.equal(c.records[0].prevRecordSha256,'0'.repeat(64));
+ assert.equal(c.records[1].prevRecordSha256,c.records[0].recordSha256);
 });
-test('Browser- und Node-Hash aus UTF-8 sind gleich (Umlaute)',async()=>{
- assert.equal(await sha256('Wände: 150 m²'),captureHash('Wände: 150 m²'));
+test('Reihenfolge der zwei Datensätze kann nicht vertauscht werden',async()=>{
+ const c=await fixture();c.records.reverse();
+ assert.throws(()=>verifyOfflineCapture(c,dummyItems,hashes,captureHash(dummySuiteBytes)));
 });
-test('Export verweigert zusätzliche unbekannte Skriptmetadaten',async()=>{
- const answer=await orchestrator().solve(dummyQuestion);
- const c=await makeDummyCapture({answer,durationMs:5,scripts:hashes});
- c.scripts['app.js']=captureHash('dummy');
- assert.throws(()=>verifyOfflineCapture(c,[dummyItem],hashes,captureHash(dummySuiteBytes)));
+test('Fehlender Rechenkern erzeugt keine gültige Wandflächenroute',()=>{
+ const o=orchestrator(['modules/math-verifier.js']).NERYXOrchestrator;
+ assert.notEqual(o.plan(dummyItems[0].input.question).type,'area');
 });
-test('Skriptmanifest des Capture wird unabhängig vom Referenzmanifest kopiert',async()=>{
- const o=orchestrator(),answer=await o.solve(dummyQuestion);
- const copy={...hashes};
- const c=await makeDummyCapture({answer,durationMs:1,scripts:copy});
- assert.notStrictEqual(c.scripts,copy);
- c.scripts['app.js']=captureHash('nicht vertrauenswürdig');
- assert.equal(Object.hasOwn(copy,'app.js'),false);
- assert.throws(()=>verifyOfflineCapture(c,[dummyItem],copy,captureHash(dummySuiteBytes)));
+test('Fehlendes Zahlenmuster-Modul liefert keine gültige Musterantwort',async()=>{
+ const {NERYXOrchestrator:o}=orchestrator(['modules/rule-patterns.js']);
+ assert.equal(o.plan(dummyItems[1].input.question).type,'sequence');
+ assert.doesNotMatch(await o.solve(dummyItems[1].input.question),/Mögliche nächste Zahl: 32/);
 });
-test('Orchestrator ohne Rechenkern darf nicht als vollständiger Test gelten',()=>{
- const window={};runInNewContext(source('modules/orchestrator.js').toString('utf8'),{window});
- assert.notEqual(window.NERYXOrchestrator.plan(dummyQuestion).type,'area');
+test('Zusätzliches untrusted Skript wird abgewiesen',async()=>{
+ const c=await fixture();c.scripts['app.js']=captureHash('dummy');
+ assert.throws(()=>verifyOfflineCapture(c,dummyItems,hashes,captureHash(dummySuiteBytes)));
+});
+test('Capture hält Skriptmanifest unabhängig von den Vergleichsdaten',async()=>{
+ const c=await fixture();
+ assert.notStrictEqual(c.scripts,hashes);
+ c.scripts['app.js']=captureHash('malicious');
+ assert.equal(Object.hasOwn(hashes,'app.js'),false);
+});
+test('UTF-8 Browser- und Node-SHA stimmen überein',async()=>{
+ assert.equal(await sha256('Wände, Zahlenfolge: 2, 4, 8, 16'),captureHash('Wände, Zahlenfolge: 2, 4, 8, 16'));
 });
