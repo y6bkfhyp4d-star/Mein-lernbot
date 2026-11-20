@@ -1,16 +1,16 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "-genese",
-    "Abfallprodukt",
+    "(2) Pallas",
+    "Abgeschlossenes System",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
-    "18. Oktober"
+    "-genese"
   ],
   "records": [
     {
-      "checked_at": "2026-11-19T22:12:36+00:00",
+      "checked_at": "2026-11-20T04:20:51+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -28,7 +28,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T22:12:36+00:00",
+      "checked_at": "2026-11-20T04:20:51+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -46,7 +46,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T22:12:36+00:00",
+      "checked_at": "2026-11-20T04:20:51+00:00",
       "claims": [
         {
           "id": "p79-8db9ea00710e2a",
@@ -77,7 +77,25 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-19T22:12:36+00:00",
+      "checked_at": "2026-11-20T04:20:51+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "(2) Pallas",
+      "question": "Was ist (2) Pallas und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=121993",
+      "source_method": "direkte_titelabfrage",
+      "status": "keine_klare_klassifikation",
+      "title_resolution": "direkter_titel",
+      "topic": "(2) Pallas",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T04:20:51+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -159,6 +177,24 @@
       "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "Abfallprodukt",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-20T04:20:51+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "Abgeschlossenes System",
+      "question": "Was ist Abgeschlossenes System und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=42137",
+      "source_method": "direkte_titelabfrage",
+      "status": "unsicher_oder_negiert",
+      "title_resolution": "direkter_titel",
+      "topic": "Abgeschlossenes System",
       "verified_correction": false
     },
     {
@@ -834,6 +870,19 @@
       "resolved_without_exact_hit": 6,
       "titles_resolved": 6,
       "topics_with_claims": 2,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-20T04:20:51+00:00",
+      "claims": 1,
+      "errors": 0,
+      "new_extractor_same_pages": 1,
+      "old_extractor_same_pages": 1,
+      "previously_without_exact_hit": 6,
+      "processed": 6,
+      "resolved_without_exact_hit": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 1,
       "unresolved": 0
     }
   ],
