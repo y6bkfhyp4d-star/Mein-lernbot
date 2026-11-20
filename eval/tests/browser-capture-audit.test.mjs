@@ -78,7 +78,7 @@ test('Prüfbericht führt die Grenzen der Inventarprüfung offen auf',async()=>{
 test('Capture und Audit gehören nur bei gleicher Lauf-ID, Startzeit und Datensatz-Hash zusammen',()=>{
  const id='dummy-browser-12345678-1234-1234-1234-123456789abc';
  const capture={schema:1,runId:id,startedAt:'2026-11-20T00:00:00Z',scripts:{...PINNED_SCRIPTS},
-  records:[{recordSha256:'z'.repeat(64)},{recordSha256:'a'.repeat(64)}]};
+  records:[{recordSha256:'z'.repeat(64)},{recordSha256:'y'.repeat(64)},{recordSha256:'a'.repeat(64)}]};
  const audit={schema:1,kind:'neryx-dummy-browser-audit',runId:id,
   startedAt:capture.startedAt,result:'capture_accepted',captureRecordSha256:'a'.repeat(64),
   expectedScripts:{...PINNED_SCRIPTS},measuredScripts:{...PINNED_SCRIPTS},
@@ -90,14 +90,14 @@ test('Capture und Audit gehören nur bei gleicher Lauf-ID, Startzeit und Datensa
  assert.equal(verifyCaptureAuditPair(capture,{...audit,result:'rejected'}),false);
 });
 
-test('Prüfbericht verweist auf den letzten von zwei Hashketten-Datensätzen',()=>{
+test('Prüfbericht verweist auf den letzten von drei Hashketten-Datensätzen',()=>{
  const runId='dummy-browser-12345678-1234-1234-1234-123456789abc';
  const c={schema:1,runId,startedAt:'2026-11-20T00:00:00Z',scripts:{...PINNED_SCRIPTS},
-  records:[{recordSha256:'a'.repeat(64)},{recordSha256:'b'.repeat(64)}]};
+  records:[{recordSha256:'a'.repeat(64)},{recordSha256:'b'.repeat(64)},{recordSha256:'c'.repeat(64)}]};
  const a={schema:1,kind:'neryx-dummy-browser-audit',runId,
-  startedAt:c.startedAt,result:'capture_accepted',captureRecordSha256:'b'.repeat(64),
+  startedAt:c.startedAt,result:'capture_accepted',captureRecordSha256:'c'.repeat(64),
   measuredScripts:{...PINNED_SCRIPTS},expectedScripts:{...PINNED_SCRIPTS},
   scriptHashesMatch:true,comparison:{essentialUnchanged:true,status:'all_checked_unchanged'}};
  assert.equal(verifyCaptureAuditPair(c,a),true);
- assert.equal(verifyCaptureAuditPair(c,{...a,captureRecordSha256:'a'.repeat(64)}),false);
+ assert.equal(verifyCaptureAuditPair(c,{...a,captureRecordSha256:'b'.repeat(64)}),false);
 });
