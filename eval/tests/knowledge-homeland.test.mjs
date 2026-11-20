@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 function harness(claims){
- const window={NERYXLearningHub:{collect:()=>({claims})}},localStorage:{getItem:()=>null,setItem:()=>{throw Error('no writes')}};
+ const window={NERYXLearningHub:{collect:()=>({claims})}};
+ const localStorage={getItem:()=>null,setItem:()=>{throw Error('no writes')}};
  const run=path=>runInNewContext(readFileSync(new URL('../../'+path,import.meta.url),'utf8'),{window,localStorage});
  run('modules/topic-learning.js');
  window.NERYXTopicLearning=window.NERYXTopicLearning;
