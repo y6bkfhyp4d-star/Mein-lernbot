@@ -8,7 +8,8 @@ export async function sha256(value){
  const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
  return [...bytes].map(x=>x.toString(16).padStart(2,'0')).join('');
 }
-export async function makeDummyCapture({answer,durationMs,scripts,startedAt=new Date().toISOString()}){
+export async function makeDummyCapture({answer,durationMs,scripts,startedAt=new Date().toISOString(),runId='dummy-browser-'+crypto.randomUUID()}){
+ if(typeof runId!=='string'||!/^dummy-browser-[0-9a-f-]{36}$/.test(runId))throw Error('Lauf-ID ungültig.');
  if(typeof answer!=='string'||!answer.trim()||!Number.isFinite(durationMs)||durationMs<0)
   throw Error('Antwort oder Laufzeit ungültig.');
  if(!scripts||Object.keys(scripts).length!==2||
@@ -18,7 +19,7 @@ export async function makeDummyCapture({answer,durationMs,scripts,startedAt=new 
   answerSha256:await sha256(answer),path:'deterministic',durationMs,
   prevRecordSha256:'0'.repeat(64)};
  record.recordSha256=await sha256(JSON.stringify(fields.map(k=>record[k])));
- return {schema:1,runId:'dummy-browser-'+crypto.randomUUID(),
+ return {schema:1,runId,
   suiteSha256:await sha256(dummySuiteBytes),modelId:'none-deterministic',
   startedAt,scripts:{...scripts},records:[record]};
 }
