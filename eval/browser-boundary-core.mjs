@@ -1,5 +1,11 @@
 export const boundaryCases=[
 {id:'negative-width',label:'Negative Wandbreite',method:'math',input:'Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist -5 Meter breit und 2,5 Meter hoch.',expect:'reject'},
+{id:'negative-height',label:'Negative Wandhöhe',method:'math',input:'Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und -2,5 Meter hoch.',expect:'reject'},
+{id:'negative-room-count',label:'Negative Raumanzahl',method:'math',input:'Ein Maler hat -3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch.',expect:'reject'},
+{id:'negative-wall-count',label:'Negative Wandanzahl',method:'math',input:'Ein Maler hat 3 Räume mit jeweils -4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch.',expect:'reject'},
+{id:'unicode-minus-width',label:'Unicode-Minus vor Breite',method:'math',input:'Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist −5 Meter breit und 2,5 Meter hoch.',expect:'reject'},
+{id:'spaced-minus-width',label:'Minus mit Leerzeichen vor Breite',method:'math',input:'Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist - 5 Meter breit und 2,5 Meter hoch.',expect:'reject'},
+{id:'positive-reference',label:'Gültige Referenzberechnung',method:'math',input:'Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch.',expect:'Ergebnis: 150 m²'},
 {id:'ragged-grid',label:'Ungleich lange Rasterzeilen',method:'route',input:'000;01;000',expect:'Format: Weg planen:'},
 {id:'invalid-grid',label:'Ungültiges Rasterzeichen',method:'route',input:'000;0X0;000',expect:'Format: Weg planen:'},
 {id:'huge-area',label:'Überdimensionierte Wandfläche',method:'math',input:'Ein Maler hat 999 Räume mit jeweils 999 Wänden. Jede Wand ist 1000 Meter breit und 1000 Meter hoch.',expect:'Zahlen außerhalb des geprüften Rechenbereichs.'},
