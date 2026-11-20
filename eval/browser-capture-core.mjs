@@ -20,5 +20,5 @@ export async function makeDummyCapture({answer,durationMs,scripts,startedAt=new 
  record.recordSha256=await sha256(JSON.stringify(fields.map(k=>record[k])));
  return {schema:1,runId:'dummy-browser-'+crypto.randomUUID(),
   suiteSha256:await sha256(dummySuiteBytes),modelId:'none-deterministic',
-  startedAt,scripts,records:[record]};
+  startedAt,scripts:{...scripts},records:[record]};
 }
