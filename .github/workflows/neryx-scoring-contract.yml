@@ -6,6 +6,10 @@ on:
     paths:
       - 'eval/check-contract.mjs'
       - 'eval/capture-contract.mjs'
+      - 'eval/browser-capture.html'
+      - 'eval/browser-capture.js'
+      - 'eval/browser-capture-core.mjs'
+      - 'eval/tests/browser-capture.test.mjs'
       - 'eval/tests/capture-contract.test.mjs'
       - 'eval/tests/check-contract.test.mjs'
       - 'eval/retrieval-score.mjs'
@@ -24,6 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check actual deterministic NERYX path and browser-to-Node dummy format
+        run: node --test eval/tests/browser-capture.test.mjs
       - name: Check offline capture contract using synthetic data only
         run: node --test eval/tests/capture-contract.test.mjs
       - name: Check fail-closed scoring rules
