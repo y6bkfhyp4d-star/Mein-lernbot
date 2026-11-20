@@ -2,7 +2,6 @@
   "discovered_queue": [
     "Althochdeutsch",
     "-gen",
-    "Absolute Helligkeit",
     "Adalbert W. A. Pauldrach",
     "Adler (Sternbild)",
     "Adaptive Radiation",
@@ -86,7 +85,9 @@
     "(4) Vesta",
     "Aphel",
     "Affinität (Chemie)",
-    "ArXiv"
+    "ArXiv",
+    "(433) Eros",
+    "(90377) Sedna"
   ],
   "entries": [
     {
@@ -648,10 +649,21 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "AGB-Stern"
+    },
+    {
+      "collected_at": "2026-11-20T09:20:40+00:00",
+      "excerpt": "Die absolute Helligkeit ist eine Hilfsgröße in der Astronomie und Astrophysik, um die tatsächliche Helligkeit (somit bei selbstleuchtenden Objekten die Leuchtkraft) von Himmelsobjekten im sichtbaren Licht vergleichen zu können.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absolute_Helligkeit",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absolute Helligkeit"
     }
   ],
   "failed_titles": [
-    "Neurales Netz"
+    "Neurales Netz",
+    "Adalbert W. A. Pauldrach"
   ],
   "runs": [
     {
@@ -846,6 +858,18 @@
         "AGB-Stern"
       ],
       "time": "2026-11-20T03:02:11+00:00"
+    },
+    {
+      "added": 1,
+      "attempted": 5,
+      "error_samples": [
+        "Adalbert W. A. Pauldrach: kein geeigneter Artikel"
+      ],
+      "errors": 1,
+      "new_titles": [
+        "Absolute Helligkeit"
+      ],
+      "time": "2026-11-20T09:20:40+00:00"
     }
   ],
   "schema": 1
