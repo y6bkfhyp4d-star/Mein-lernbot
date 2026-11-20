@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "Absolute Helligkeit",
-    "Absorption (Physik)"
+    "Adaptive Radiation",
+    "Adler (Sternbild)"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-20T09:35:35+00:00",
+      "checked_at": "2026-11-20T15:33:52+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -459,6 +459,64 @@
       "source": "https://de.wikipedia.org/wiki/Ach%C3%A4menidenreich",
       "status": "suchtreffer",
       "topic": "Achämenidenreich"
+    },
+    {
+      "checked_at": "2026-11-20T15:33:52+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "2009. Deciphering and dating the red panda’s ancestry and early adaptive radiation of Musteloidea. Molecular Phylogenetics and Evolution 53:907-922,",
+          "title": "Kleine Pandas",
+          "url": "https://de.wikipedia.org/?curid=76581"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "eine breit angelegte evolutionäre Entwicklung und Anpassung an die jeweiligen Lebensräume (Adaptive Radiation). Vertreter der Nashörner besetzten nahezu",
+          "title": "Nashörner",
+          "url": "https://de.wikipedia.org/?curid=127006"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Auffächerung in zahlreiche Gattungen und Arten sowie Anpassung an unterschiedliche ökologische Nischen (adaptive Radiation). Generelle Trends in der Evolution",
+          "title": "Rüsseltiere",
+          "url": "https://de.wikipedia.org/?curid=4405"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Adaptive Radiation und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Adaptive_Radiation",
+      "status": "suchtreffer",
+      "topic": "Adaptive Radiation"
+    },
+    {
+      "checked_at": "2026-11-20T15:33:52+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "von Soloi und Germanicus rekonstruieren. Die Katasterismen behandelten – ebenso wie schon das Originalwerk – Mythen über 44 Sternbilder und Himmelskörper",
+          "title": "Eratosthenes",
+          "url": "https://de.wikipedia.org/?curid=16498"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "rechte Stele ist als Löwenhoroskop bekannt. Die Reihe wird wie die Großstatuen von je einem Löwen und einem Adler flankiert. Von den Stelen und Figuren sind",
+          "title": "Nemrut Dağı (Adıyaman)",
+          "url": "https://de.wikipedia.org/?curid=661153"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "(verzerrten) Sternbildern Steinbock (Capricornus) und Adler (Aquila), in etwa auf einer Linie Dabih (β Cap) – Atair (α Aql). Zu beachten ist ferner, dass",
+          "title": "Ross 619",
+          "url": "https://de.wikipedia.org/?curid=13819201"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Adler (Sternbild) und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Adler_%28Sternbild%29",
+      "status": "suchtreffer",
+      "topic": "Adler (Sternbild)"
     },
     {
       "checked_at": "2026-11-19T03:31:08+00:00",
@@ -1093,6 +1151,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 57,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-20T15:33:52+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 59,
       "searched": 3,
       "with_results": 2
     }
