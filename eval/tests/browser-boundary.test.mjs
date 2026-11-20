@@ -9,8 +9,8 @@ for(const file of Object.keys(PINNED_SCRIPTS))
  runInNewContext(readFileSync(new URL(file,root),'utf8'),{window},{filename:file});
 const modules={math:window.NERYXMathVerifier,system:window.NERYXSystem,orchestrator:window.NERYXOrchestrator};
 const results=boundaryCases.map(x=>runBoundaryCase(modules,x));
-test('Alle sechs Grenzwertfälle werden gegen echte Module ausgeführt',()=>{
- assert.equal(results.length,6);
+test('Alle zwölf Grenzwertfälle werden gegen echte Module ausgeführt',()=>{
+ assert.equal(results.length,12);
  assert.deepEqual(results.map(x=>x.id),boundaryCases.map(x=>x.id));
 });
 test('Ungültige Raster werden ohne Pfad abgelehnt',()=>{
@@ -28,9 +28,16 @@ test('Leere Eingabe bleibt invalid und aktiviert kein Sprachmodell',()=>{
  assert.equal(window.NERYXLocalModel,undefined);
 });
 test('Nullbreite wird abgelehnt',()=>assert.equal(results.find(x=>x.id==='zero-width').passed,true));
-test('Negative Breite ist als bekannter Befund sichtbar, nicht als Erfolg etikettiert',()=>{
- const r=results.find(x=>x.id==='negative-width');
- assert.equal(r.passed,false);
+test('Negative Maße und Mengen werden ausnahmslos abgelehnt',()=>{
+ for(const id of ['negative-width','negative-height','negative-room-count','negative-wall-count','unicode-minus-width','spaced-minus-width']){
+  const r=results.find(x=>x.id===id);
+  assert.equal(r.passed,true,id);
+  assert.equal(r.answer,null,id);
+ }
+});
+test('Gültige Wandflächenreferenz bleibt 150 m²',()=>{
+ const r=results.find(x=>x.id==='positive-reference');
+ assert.equal(r.passed,true);
  assert.match(r.answer,/Ergebnis: 150 m²/);
 });
 test('Keine Änderung an app.js und keine eingebundene Modellbrücke',()=>{
