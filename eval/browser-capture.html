@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>NERYX · Dummy Browser Capture</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#10101a;color:#f5f3ff}
+body{margin:0;padding:clamp(16px,5vw,42px);max-width:760px;margin-inline:auto}
+h1{font-size:1.7rem}p{line-height:1.55;color:#c5c1d2}.panel{border:1px solid #3b3450;background:#1d1b2b;border-radius:18px;padding:20px;margin:18px 0}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.5 ui-monospace,monospace}
+button{font:inherit;padding:13px 18px;border-radius:13px;background:#9870ff;color:#170f29;border:0;font-weight:700;margin-right:8px;margin-top:8px}
+button:disabled{opacity:.45}.secondary{background:#343047;color:#eee}.hint{font-size:.85rem;color:#b5aac9}
+</style></head><body>
+<h1>NERYX · Browser-Capture (Dummy)</h1>
+<p>Isolierter Rechentest. Nur eine künstliche Wandflächenfrage. Kein Qwen, kein Chat, keine echten Frozen-Daten, kein Schreiben in den Lernspeicher.</p>
+<div class="panel"><strong>Testfrage</strong><p id="question">Wird geladen …</p></div>
+<button id="run" disabled>Dummy-Test starten</button><button id="export" class="secondary" disabled>JSON exportieren</button>
+<div class="panel"><strong>Status</strong><p id="status" role="status">Prüfe Module …</p><pre id="answer"></pre><p class="hint" id="digest"></p></div>
+<p class="hint">Die Hashes sind eine Integritätskontrolle, kein kryptografischer Beweis für den ausführenden Browser. Die Seite greift nicht auf andere NERYX-Daten zu.</p>
+<script src="../modules/math-verifier.js"></script>
+<script src="../modules/orchestrator.js"></script>
+<script type="module" src="./browser-capture.js"></script>
+</body></html>
