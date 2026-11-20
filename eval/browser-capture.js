@@ -1,7 +1,8 @@
 import {dummyQuestion,makeDummyCapture,sha256} from './browser-capture-core.mjs';
+import {snapshotBrowserStorage,compareBrowserStorage,verifyPinnedScripts,PINNED_SCRIPTS} from './browser-capture-audit.mjs';
 const $=id=>document.getElementById(id);
-const files=['modules/math-verifier.js','modules/orchestrator.js'];
-let capture=null,running=false;
+const files=Object.keys(PINNED_SCRIPTS);
+let capture=null,audit=null,running=false;
 $('question').textContent=dummyQuestion;
 function status(s){$('status').textContent=s;}
 function preflight(){
@@ -10,58 +11,79 @@ function preflight(){
     window.NERYXMathVerifier.version!=='1.0'||
     typeof window.NERYXOrchestrator?.solve!=='function'||
     typeof window.NERYXOrchestrator?.plan!=='function'||
-    window.NERYXOrchestrator.version!=='2.4')throw Error('Benötigte NERYX-Module fehlen oder haben falsche Versionen.');
+    window.NERYXOrchestrator.version!=='2.4')
+  throw Error('NERYX-Modul fehlt oder hat eine falsche Version.');
  const plan=window.NERYXOrchestrator.plan(dummyQuestion);
- if(plan.type!=='area'||plan.source!=='Rechenprüfer')throw Error('Falscher Antwortpfad; Abbruch ohne Modell-Fallback.');
-}
-async function snapshotStorage(){
- // Read-only Beobachtung: KEINE Ersetzung der Storage-APIs.
- const dump=store=>{
-  const x=[];for(let i=0;i<store.length;i++){const key=store.key(i);x.push([key,store.getItem(key)]);}
-  x.sort((a,b)=>a[0].localeCompare(b[0]));return JSON.stringify(x);
- };
- return {local:await sha256(dump(localStorage)),session:await sha256(dump(sessionStorage))};
+ if(plan.type!=='area'||plan.source!=='Rechenprüfer')
+  throw Error('Falscher Antwortpfad; Abbruch ohne Modell-Fallback.');
 }
 async function scriptHashes(){
  const out={};
  for(const name of files){
-  const url=new URL('../'+name,import.meta.url);
-  const res=await fetch(url,{cache:'no-store'});
+  const url=new URL('../'+name,import.meta.url),res=await fetch(url,{cache:'no-store'});
   if(!res.ok)throw Error('Skriptprüfung fehlgeschlagen: '+name);
   out[name]=await sha256(new Uint8Array(await res.arrayBuffer()));
  }
  return out;
 }
-try{preflight();status('Bereit – ausschließlich deterministischer Rechenpfad.');$('run').disabled=false;}
+function download(obj,name){
+ const blob=new Blob([JSON.stringify(obj,null,2)+'\n'],{type:'application/json'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+try{preflight();status('Bereit – nur der deterministische Rechenpfad.');$('run').disabled=false;}
 catch(e){status('Preflight gescheitert: '+e.message);}
 $('run').addEventListener('click',async()=>{
  if(running)return;
- running=true;capture=null;$('export').disabled=true;$('run').disabled=true;
- $('answer').textContent='';$('digest').textContent='';
+ running=true;capture=null;audit=null;
+ $('export').disabled=true;$('audit-export').disabled=true;$('run').disabled=true;
+ $('answer').textContent='';$('digest').textContent='';$('storage').textContent='';
+ let before=null,after=null,scripts=null,error=null,answer=null,durationMs=null;
+ const startedAt=new Date().toISOString();
  try{
   preflight();
-  const before=await snapshotStorage();
-  const scripts=await scriptHashes();
-  const start=performance.now(),answer=await window.NERYXOrchestrator.solve(dummyQuestion);
-  const durationMs=Math.round(performance.now()-start);
-  const after=await snapshotStorage();
-  if(before.local!==after.local||before.session!==after.session)
-   throw Error('Browser-Speicher wurde verändert; Export abgelehnt.');
+  before=await snapshotBrowserStorage();
+  scripts=await scriptHashes();
+  if(!verifyPinnedScripts(scripts))throw Error('Skript-Hash stimmt nicht mit festgelegtem GitHub-Commit überein.');
+  const start=performance.now();
+  answer=await window.NERYXOrchestrator.solve(dummyQuestion);
+  durationMs=Math.round(performance.now()-start);
   if(typeof answer!=='string'||!answer.includes('NERYX · GEPRÜFTE WANDFLÄCHE')||
      !answer.includes('Ergebnis: 150 m²'))
-   throw Error('Unerwartete Antwort; der deterministische Pfad ist nicht bestätigt.');
-  capture=await makeDummyCapture({answer,durationMs,scripts});
-  $('answer').textContent=answer;
-  $('digest').textContent='Letzter Datensatz-Hash: '+capture.records[0].recordSha256;
-  status('Dummy-Capture erstellt. Browser-Speicher unverändert (local/session).');
-  $('export').disabled=false;
- }catch(e){status('Test abgebrochen: '+e.message)}
- finally{running=false;$('run').disabled=false}
+   throw Error('Unerwartete Antwort; Berechnung nicht bestätigt.');
+ }catch(e){error=e?.message||String(e);}
+ finally{
+  if(before)try{after=await snapshotBrowserStorage();}
+   catch(e){error=error||'Speicherprüfung fehlgeschlagen: '+String(e?.message||e);}
+ }
+ if(before&&after){
+  const comparison=compareBrowserStorage(before,after);
+  audit={schema:1,kind:'neryx-dummy-browser-audit',startedAt,
+   checkedScriptNames:files,expectedScripts:{...PINNED_SCRIPTS},
+   measuredScripts:scripts,scriptHashesMatch:verifyPinnedScripts(scripts),
+   storageBefore:before,storageAfter:after,comparison,
+   captureRecordSha256:null,result:'rejected'};
+  $('storage').textContent=Object.entries(comparison.areas).map(([k,v])=>k+': '+v).join('\n')+
+   '\nIndexedDB/CacheStorage werden nur auf Verzeichnis-/Schlüssel-Ebene geprüft.';
+  $('audit-export').disabled=false;
+  if(!comparison.essentialUnchanged||comparison.status==='changed')
+   error=error||'Browser-Speicher wurde verändert oder Basis-Speicher nicht vollständig geprüft.';
+  if(error===null){
+   try{
+    capture=await makeDummyCapture({answer,durationMs,scripts,startedAt});
+    audit.captureRecordSha256=capture.records[0].recordSha256;
+    audit.result='capture_accepted';
+    $('answer').textContent=answer;
+    $('digest').textContent='Datensatz-Hash: '+capture.records[0].recordSha256;
+    $('export').disabled=false;
+   }catch(e){error=e?.message||String(e);}
+  }
+ }
+ status(error?'Abgebrochen: '+error: audit?.comparison.status==='all_checked_unchanged'?
+  'Capture bereit – alle beobachteten Speicherbereiche unverändert.':
+  'Capture bereit – lokale/session-Speicher unverändert; Zusatzspeicher nur teilweise prüfbar.');
+ running=false;$('run').disabled=false;
 });
-$('export').addEventListener('click',()=>{
- if(!capture)return;
- const blob=new Blob([JSON.stringify(capture,null,2)+'\n'],{type:'application/json'});
- const link=document.createElement('a'),url=URL.createObjectURL(blob);
- link.href=url;link.download='neryx-dummy-capture.json';document.body.appendChild(link);link.click();link.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
-});
+$('export').addEventListener('click',()=>{if(capture)download(capture,'neryx-dummy-capture.json');});
+$('audit-export').addEventListener('click',()=>{if(audit)download(audit,'neryx-dummy-audit.json');});
