@@ -2,17 +2,16 @@
    node eval/validate-frozen.mjs /ABSOLUT/frozen-fixture.json /ABSOLUT/frozen-suite.json
    Keine Inhalte in der Ausgabe; beide Dateien bleiben außerhalb des Repos.
 */
-import { readFileSync, realpathSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
+import {externalFrozenPath} from './frozen-path-policy.mjs';
 import { fileURLToPath } from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const args=process.argv.slice(2);
 if(args.length!==2||args.some(p=>!isAbsolute(p)))throw Error('Zwei absolute Dateipfade angeben: Fixture und Suite.');
 function load(p){
- const path=realpathSync(p),rel=relative(root,path);
- if(rel===''||rel==='..'||(!rel.startsWith('..'+sep)&&!isAbsolute(rel)))
-  throw Error('Vertrauliche Tests dürfen nicht im öffentlichen Repository liegen.');
+ const path=externalFrozenPath(p,root);
  const buf=readFileSync(path),data=JSON.parse(buf.toString('utf8'));
  return {data,hash:createHash('sha256').update(buf).digest('hex')};
 }
