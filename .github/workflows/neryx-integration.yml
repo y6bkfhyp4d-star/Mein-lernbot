@@ -5,6 +5,8 @@ on:
       - neryx/s2-retrieval-scoring
     paths:
       - 'eval/integration-score.mjs'
+      - 'eval/verifier-capture-contract.mjs'
+      - 'eval/tests/verifier-capture-contract.test.mjs'
       - 'eval/tests/integration-score.test.mjs'
       - '.github/workflows/neryx-integration.yml'
       - 'eval/retrieval-score.mjs'
@@ -26,4 +28,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run integration dummy tests
-        run: node --test eval/tests/integration-score.test.mjs
+        run: node --test eval/tests/integration-score.test.mjs eval/tests/verifier-capture-contract.test.mjs
