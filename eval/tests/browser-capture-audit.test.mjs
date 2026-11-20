@@ -1,0 +1,76 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {snapshotBrowserStorage,compareBrowserStorage,verifyPinnedScripts,PINNED_SCRIPTS} from '../browser-capture-audit.mjs';
+const root=new URL('../../',import.meta.url);
+const digest=path=>createHash('sha256').update(readFileSync(new URL(path,root))).digest('hex');
+function store(entries){
+ const m=new Map(entries);
+ return {get length(){return m.size},key(i){return [...m.keys()][i]??null},getItem(k){return m.has(k)?m.get(k):null}};
+}
+function env(values=[['canary','unchanged']]){
+ const cache={keys:async()=>[{url:'https://dummy.invalid/x',method:'GET'}]};
+ return {
+  localStorage:store(values),sessionStorage:store([['session','1']]),
+  indexedDB:{databases:async()=>[{name:'dummy-db',version:1}]},
+  caches:{keys:async()=>['dummy-cache'],open:async()=>cache}
+ };
+}
+test('Beide festgelegten Skripthashes passen exakt zu den Quellen',()=>{
+ const actual=Object.fromEntries(Object.keys(PINNED_SCRIPTS).map(p=>[p,digest(p)]));
+ assert.equal(verifyPinnedScripts(actual),true);
+});
+test('Veränderter Skript-Hash wird abgelehnt',()=>{
+ assert.equal(verifyPinnedScripts({...PINNED_SCRIPTS,'modules/orchestrator.js':'0'.repeat(64)}),false);
+});
+test('Zusätzliches Skript wird abgelehnt',()=>{
+ assert.equal(verifyPinnedScripts({...PINNED_SCRIPTS,'app.js':'0'.repeat(64)}),false);
+});
+test('Identische Dummy-Speicher ergeben all_checked_unchanged',async()=>{
+ const before=await snapshotBrowserStorage(env()),after=await snapshotBrowserStorage(env());
+ const result=compareBrowserStorage(before,after);
+ assert.equal(result.status,'all_checked_unchanged');
+ assert.equal(result.essentialUnchanged,true);
+});
+test('Veränderter localStorage-Wert wird erkannt',async()=>{
+ const before=await snapshotBrowserStorage(env());
+ const after=await snapshotBrowserStorage(env([['canary','changed']]));
+ const result=compareBrowserStorage(before,after);
+ assert.equal(result.areas.localStorage,'changed');
+ assert.equal(result.status,'changed');
+});
+test('Neue IndexedDB-Datenbank wird entdeckt',async()=>{
+ const before=await snapshotBrowserStorage(env()),modified=env();
+ modified.indexedDB.databases=async()=>[{name:'dummy-db',version:1},{name:'other-db',version:2}];
+ const result=compareBrowserStorage(before,await snapshotBrowserStorage(modified));
+ assert.equal(result.areas.indexedDBInventory,'changed');
+ assert.equal(result.status,'changed');
+});
+test('Anderer Cache-Schlüssel wird entdeckt',async()=>{
+ const before=await snapshotBrowserStorage(env()),modified=env();
+ modified.caches.open=async()=>({keys:async()=>[{url:'https://dummy.invalid/changed',method:'GET'}]});
+ assert.equal(compareBrowserStorage(before,await snapshotBrowserStorage(modified)).areas.cacheStorageInventory,'changed');
+});
+test('Nicht verfügbare indexedDB.databases wird eindeutig als Teilprüfung ausgewiesen',async()=>{
+ const before=await snapshotBrowserStorage(env()),modified=env();
+ delete modified.indexedDB.databases;
+ const after=await snapshotBrowserStorage(modified);
+ const result=compareBrowserStorage(before,after);
+ assert.equal(result.status,'partial');
+ assert.equal(result.areas.indexedDBInventory,'not_measured');
+ assert.equal(result.allInventoriesUnchanged,false);
+});
+test('Fehlendes localStorage ist kein erfolgreicher Basis-Speichervergleich',async()=>{
+ const modified=env();delete modified.localStorage;
+ const before=await snapshotBrowserStorage(modified);
+ const after=await snapshotBrowserStorage(modified);
+ assert.equal(compareBrowserStorage(before,after).essentialUnchanged,false);
+ assert.equal(compareBrowserStorage(before,after).status,'incomplete');
+});
+test('Prüfbericht führt die Grenzen der Inventarprüfung offen auf',async()=>{
+ const before=await snapshotBrowserStorage(env()),after=await snapshotBrowserStorage(env());
+ const r=compareBrowserStorage(before,after);
+ assert.match(r.limitations.join(' '),/nicht gespeicherte Datensätze/);
+ assert.match(r.limitations.join(' '),/nicht Response-Inhalte/);
+});
