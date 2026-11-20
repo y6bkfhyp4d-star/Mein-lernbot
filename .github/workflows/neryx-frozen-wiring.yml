@@ -1,0 +1,38 @@
+name: NERYX - Frozen Runner Wiring Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/run-frozen.mjs'
+      - 'eval/frozen-runner-core.mjs'
+      - 'eval/integration-score.mjs'
+      - 'eval/tests/frozen-runner-core.test.mjs'
+      - '.github/workflows/neryx-frozen-wiring.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wiring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated Frozen runner with dummy fixtures
+        run: node --test eval/tests/frozen-runner-core.test.mjs
+      - name: Confirm inactive seal blocks actual Frozen run
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node eval/run-frozen.mjs /tmp/nonexistent-fixture.json /tmp/nonexistent-suite.json > /tmp/neryx-run.out 2>&1; then
+            echo "ERROR: Frozen unexpectedly executed" >&2
+            exit 1
+          fi
+          if ! grep -q 'nicht freigegeben' /tmp/neryx-run.out; then
+            echo "ERROR: expected inactive seal refusal not detected" >&2
+            exit 1
+          fi
+          echo "Inactive seal correctly blocks Frozen execution."
