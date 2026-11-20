@@ -1,0 +1,23 @@
+name: NERYX - Frozen Validator Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/validate-frozen.mjs'
+      - 'eval/tests/frozen-validator.test.mjs'
+      - '.github/workflows/neryx-frozen-validator.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dummy-validator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate only generated synthetic dummy data
+        run: node --test eval/tests/frozen-validator.test.mjs
