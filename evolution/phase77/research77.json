@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "-genese",
-    "Abfallprodukt"
+    "(2) Pallas",
+    "Abgeschlossenes System"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-19T21:27:26+00:00",
+      "checked_at": "2026-11-20T03:27:41+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -94,6 +94,35 @@
       "source": "https://de.wikipedia.org/wiki/%28136472%29_Makemake",
       "status": "keine_treffer",
       "topic": "(136472) Makemake"
+    },
+    {
+      "checked_at": "2026-11-20T03:27:41+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Zur Familie gehören etwa 20 Arten, die in drei Unterfamilien und sechs Gattungen eingeordnet werden. Dabei enthält sie die Eigentlichen Meerschweinchen",
+          "title": "Meerschweinchen",
+          "url": "https://de.wikipedia.org/?curid=16913"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Paraphylie zu vermeiden, wird dieser als Zitronenzeisig (Carduelis citrinella) in derselben Gattung eingeordnet. Weiterhin ist der Stieglitz nahe mit dem",
+          "title": "Stieglitz",
+          "url": "https://de.wikipedia.org/?curid=180019"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Naturforscher Peter Simon Pallas wissenschaftlich beschrieben und in die von Carl von Linné eingerichtete Gattung Lepus eingeordnet. Pallas gab keine Typuslokalität",
+          "title": "Feldhase",
+          "url": "https://de.wikipedia.org/?curid=40940"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist (2) Pallas und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%282%29_Pallas",
+      "status": "suchtreffer",
+      "topic": "(2) Pallas"
     },
     {
       "checked_at": "2026-11-19T21:27:26+00:00",
@@ -212,13 +241,32 @@
       "topic": "Abfallprodukt"
     },
     {
-      "checked_at": "2026-11-19T15:35:08+00:00",
-      "hits": [],
+      "checked_at": "2026-11-20T03:27:41+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "wird jedoch nach dem 36Krypton erneut unterbrochen. Mit dem 36Krypton ist die 4p-Unterschale abgeschlossen, und es sind noch die Unterschalen 4d und 4f",
+          "title": "Periodensystem",
+          "url": "https://de.wikipedia.org/?curid=3840"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Mission in der Regel nur wenige Minuten Zeit, was verglichen mit Ego-Shootern relativ kurz ist. Zusätzlich wird dadurch die in einigen Ego-Shootern vorkommende",
+          "title": "Grand Theft Auto",
+          "url": "https://de.wikipedia.org/?curid=860842"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "im Sonnensystem, wie zum Beispiel Pluto, werden gemäß Definition der IAU entweder als Zwergplanet oder als Kleinkörper eingeordnet. Objekte, welche einen",
+          "title": "Planet",
+          "url": "https://de.wikipedia.org/?curid=3895"
+        }
+      ],
       "independent_confirmation": false,
       "question": "Was ist Abgeschlossenes System und wie wird es eingeordnet?",
       "reason": "klassifikation_offen",
       "source": "https://de.wikipedia.org/wiki/Abgeschlossenes_System",
-      "status": "keine_treffer",
+      "status": "suchtreffer",
       "topic": "Abgeschlossenes System"
     },
     {
@@ -971,6 +1019,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 54,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-20T03:27:41+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 56,
       "searched": 3,
       "with_results": 2
     }
