@@ -38,9 +38,9 @@ $('run').addEventListener('click',async()=>{
  if(running)return;
  running=true;capture=null;audit=null;
  $('export').disabled=true;$('audit-export').disabled=true;$('run').disabled=true;
- $('answer').textContent='';$('digest').textContent='';$('storage').textContent='';
+ $('answer').textContent='';$('digest').textContent='';$('storage').textContent='';$('run-id').textContent='';
  let before=null,after=null,scripts=null,error=null,answer=null,durationMs=null;
- const startedAt=new Date().toISOString();
+ const startedAt=new Date().toISOString(),runId='dummy-browser-'+crypto.randomUUID();
  try{
   preflight();
   before=await snapshotBrowserStorage();
@@ -59,7 +59,7 @@ $('run').addEventListener('click',async()=>{
  }
  if(before&&after){
   const comparison=compareBrowserStorage(before,after);
-  audit={schema:1,kind:'neryx-dummy-browser-audit',startedAt,
+  audit={schema:1,kind:'neryx-dummy-browser-audit',runId,startedAt,
    checkedScriptNames:files,expectedScripts:{...PINNED_SCRIPTS},
    measuredScripts:scripts,scriptHashesMatch:verifyPinnedScripts(scripts),
    storageBefore:before,storageAfter:after,comparison,
@@ -67,15 +67,16 @@ $('run').addEventListener('click',async()=>{
   $('storage').textContent=Object.entries(comparison.areas).map(([k,v])=>k+': '+v).join('\n')+
    '\nIndexedDB/CacheStorage werden nur auf Verzeichnis-/Schlüssel-Ebene geprüft.';
   $('audit-export').disabled=false;
+  $('run-id').textContent='Lauf-ID: '+runId;
   if(!comparison.essentialUnchanged||comparison.status==='changed')
    error=error||'Browser-Speicher wurde verändert oder Basis-Speicher nicht vollständig geprüft.';
   if(error===null){
    try{
-    capture=await makeDummyCapture({answer,durationMs,scripts,startedAt});
+    capture=await makeDummyCapture({answer,durationMs,scripts,startedAt,runId});
     audit.captureRecordSha256=capture.records[0].recordSha256;
     audit.result='capture_accepted';
     $('answer').textContent=answer;
-    $('digest').textContent='Datensatz-Hash: '+capture.records[0].recordSha256;
+    $('digest').textContent='Gemeinsame Lauf-ID: '+runId+'\nDatensatz-Hash: '+capture.records[0].recordSha256;
     $('export').disabled=false;
    }catch(e){error=e?.message||String(e);}
   }
@@ -85,5 +86,5 @@ $('run').addEventListener('click',async()=>{
   'Capture bereit – lokale/session-Speicher unverändert; Zusatzspeicher nur teilweise prüfbar.');
  running=false;$('run').disabled=false;
 });
-$('export').addEventListener('click',()=>{if(capture)download(capture,'neryx-dummy-capture.json');});
-$('audit-export').addEventListener('click',()=>{if(audit)download(audit,'neryx-dummy-audit.json');});
+$('export').addEventListener('click',()=>{if(capture)download(capture,'neryx-dummy-capture-'+capture.runId+'.json');});
+$('audit-export').addEventListener('click',()=>{if(audit)download(audit,'neryx-dummy-audit-'+audit.runId+'.json');});
