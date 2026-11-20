@@ -3,6 +3,7 @@
    Kein Frozen-Lauf, keine Datenpersistenz, keine semantische Vollprüfung. */
 import {scoreRetrieval} from './retrieval-score.mjs';
 import {checkAggregateResult} from './check-contract.mjs';
+import {checkVerifierCaptureBinding} from './verifier-capture-contract.mjs';
 import {scoreSolver} from './solver-score.mjs';
 import {scoreAnswerMode} from './answer-mode-score.mjs';
 import {scoreConflict} from './contradiction-score.mjs';
@@ -76,19 +77,11 @@ export function evaluateItem(item,context={}){
    insert(key,answer===null?notReady('solver_answer_missing'):
     scoreSolver(answer,question,expected.exact));
   }else if(key==='labels'){
-   // Hier darf KEIN Gold-Draft durch unseren eigenen Grounding-Auswerter laufen:
-   // Die Labels müssen zuvor vom tatsächlichen NERYX-Verifier erzeugt worden sein.
-   if(context.verifierSource!=='neryx'||!Array.isArray(context.verifierLabels)){
-    insert(key,notReady('neryx_verifier_output_missing'));continue;
-   }
-   const allowed=['supported','unsupported','contradicted','unverified'];
-   if(!context.verifierLabels.every(x=>allowed.includes(x)))
-    throw Error('Ungültige NERYX-Verifier-Labels.');
-   if(!Array.isArray(expected.labels)||!expected.labels.every(x=>allowed.includes(x)))
-    throw Error('Ungültige Gold-Verifier-Labels.');
-   const same=context.verifierLabels.length===expected.labels.length&&
-    context.verifierLabels.every((x,i)=>x===expected.labels[i]);
-   insert(key,{status:same?'pass':'fail',reason:'neryx_labels_compared'});
+   // Der frühere verifierSource-String ist KEIN Herkunftsnachweis.
+   // Gold-Labels dürfen erst mit einem vertrauenswürdigen Capture verglichen werden.
+   const binding=checkVerifierCaptureBinding(item,context.verifierCapture);
+   if(!binding.ok){insert(key,notReady(binding.reason));continue;}
+   insert(key,notReady('trusted_neryx_capture_not_integrated'));
   }else if(key==='conflictSurfaced'){
    const sources=conflictSources(context.conflictIds,claimMap);
    insert(key,answer===null||!sources?notReady('answer_or_conflict_sources_missing'):
