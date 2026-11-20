@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "Adaptive Radiation",
-    "Adler (Sternbild)"
+    "1,2-Propandiol",
+    "Adult"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-20T15:33:52+00:00",
+      "checked_at": "2026-11-20T21:26:28+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -152,6 +152,29 @@
       "source": "https://de.wikipedia.org/wiki/-genese",
       "status": "suchtreffer",
       "topic": "-genese"
+    },
+    {
+      "checked_at": "2026-11-20T21:26:28+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "langsame, bei hohen Temperaturen von 200–220 °C rasche Hydrolyse zu 1,2-Propandiol (Propylenglycol). Propylenoxid bildet leicht entzündliche Dampf-Luft-Gemische",
+          "title": "Propylenoxid",
+          "url": "https://de.wikipedia.org/?curid=1250986"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "gewonnen: Aceton die Propandiole: 1,2-Propandiol und 1,3-Propandiol Carbonsäuren wie Essigsäure (Acetat), Bernsteinsäure (Succinat) und Milchsäure (Lactat)",
+          "title": "Biokonversion",
+          "url": "https://de.wikipedia.org/?curid=4923879"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist 1,2-Propandiol und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/1%2C2-Propandiol",
+      "status": "suchtreffer",
+      "topic": "1,2-Propandiol"
     },
     {
       "checked_at": "2026-11-18T15:32:24+00:00",
@@ -517,6 +540,35 @@
       "source": "https://de.wikipedia.org/wiki/Adler_%28Sternbild%29",
       "status": "suchtreffer",
       "topic": "Adler (Sternbild)"
+    },
+    {
+      "checked_at": "2026-11-20T21:26:28+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "auch für Erwachsene (als Elvanse Adult) zugelassen. Diese Substanzen gelten als ähnlich sicher und verträglich wie Methylphenidat. Amphetamin wirkt im",
+          "title": "Aufmerksamkeitsdefizit-/Hyperaktivitätsstörung",
+          "url": "https://de.wikipedia.org/?curid=3717397"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Stachelratten (Echimyidae) eingeordnet. Nach neueren molekularen Analysen (aufgrund homologer DNA-Sequenzen, mitochondrialer und nuklearer Gene) gehört die",
+          "title": "Nutria",
+          "url": "https://de.wikipedia.org/?curid=223745"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Kontrolle der United States Adult Soccer Association. Im Liga-System ist sie derzeit auf vierthöchster Ebene eingeordnet. Von 1995 bis 2015 existierte",
+          "title": "USL W League (2022)",
+          "url": "https://de.wikipedia.org/?curid=12265748"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Adult und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Adult",
+      "status": "suchtreffer",
+      "topic": "Adult"
     },
     {
       "checked_at": "2026-11-19T03:31:08+00:00",
@@ -1159,6 +1211,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 59,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-20T21:26:28+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 61,
       "searched": 3,
       "with_results": 2
     }
