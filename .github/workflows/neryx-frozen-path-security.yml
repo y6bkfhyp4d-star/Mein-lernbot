@@ -1,0 +1,41 @@
+name: NERYX - Frozen Path and Seal Security CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/frozen-path-policy.mjs'
+      - 'eval/frozen-loader.mjs'
+      - 'eval/validate-frozen.mjs'
+      - 'eval/tests/frozen-path-policy.test.mjs'
+      - 'eval/tests/frozen-validator.test.mjs'
+      - '.github/workflows/neryx-frozen-path-security.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check private path, seal and CI security with dummy files
+        run: node --test eval/tests/frozen-path-policy.test.mjs
+      - name: Confirm original Frozen validator dummy tests still work
+        run: node --test eval/tests/frozen-validator.test.mjs
+      - name: Confirm frozen execution remains sealed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node eval/run-frozen.mjs /tmp/unavailable-a /tmp/unavailable-b > "$RUNNER_TEMP/frozen-denied.log" 2>&1; then
+            echo "ERROR: Frozen runner unexpectedly succeeded" >&2
+            exit 1
+          fi
+          if ! grep -Eq 'CI/GitHub Actions gesperrt|nicht freigegeben' "$RUNNER_TEMP/frozen-denied.log"; then
+            echo "ERROR: expected Frozen protection absent" >&2
+            exit 1
+          fi
+          echo "Frozen runner denied as expected."
