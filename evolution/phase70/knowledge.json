@@ -2,8 +2,6 @@
   "discovered_queue": [
     "Althochdeutsch",
     "-gen",
-    "(2) Pallas",
-    "AGB-Stern",
     "Absolute Helligkeit",
     "Adalbert W. A. Pauldrach",
     "Adler (Sternbild)",
@@ -84,7 +82,11 @@
     "Absorberkammer",
     "Absorption (Chemie)",
     "Adrastea (Mond)",
-    "Aegaeon (Mond)"
+    "Aegaeon (Mond)",
+    "(4) Vesta",
+    "Aphel",
+    "Affinität (Chemie)",
+    "ArXiv"
   ],
   "entries": [
     {
@@ -626,6 +628,26 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "(136472) Makemake"
+    },
+    {
+      "collected_at": "2026-11-20T03:02:11+00:00",
+      "excerpt": "(2) Pallas ist mit einem mittleren Durchmesser von 513 km nach Vesta der zweitgrößte Asteroid und nach Ceres und Vesta der drittgrößte Körper im Asteroidengürtel. Sie hat annähernd Kugelgestalt, ist durch Kollisionen jedoch etwas deformiert.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%282%29_Pallas",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(2) Pallas"
+    },
+    {
+      "collected_at": "2026-11-20T03:02:11+00:00",
+      "excerpt": "Ein AGB-Stern ist ein entwickelter Stern mit circa 0,6 bis 10 Sonnenmassen in einer späten Entwicklungsphase. Die innere Struktur der Sterne auf dem asymptotischen Riesenast (englisch asymptotic giant branch) ist gekennzeichnet durch das Heliumbrennen und Wasserstoffbrennen in Schalen um einen Kern aus Kohlenstoff und Sauerstoff, die beim Drei-Alpha-Prozess des Heliumbrennens entstanden sind. Der Stern erscheint als ein Roter Riese mit starkem Massenverlust durch Sternwind bei veränderlicher Helligkeit.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/AGB-Stern",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "AGB-Stern"
     }
   ],
   "failed_titles": [
@@ -813,6 +835,17 @@
         "(136472) Makemake"
       ],
       "time": "2026-11-19T21:07:37+00:00"
+    },
+    {
+      "added": 2,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "(2) Pallas",
+        "AGB-Stern"
+      ],
+      "time": "2026-11-20T03:02:11+00:00"
     }
   ],
   "schema": 1
