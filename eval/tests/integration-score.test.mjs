@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {evaluateItem as evalItem,aggregateEvaluation as aggregate} from '../integration-score.mjs';
+import {draftHash} from '../verifier-capture-contract.mjs';
 const claim=(id,text,origin='curated',conflicts=[])=>({id,text,origin,conflicts});
 const retrieval={input:{question:'Wie lange dauert das?'},layers:['retrieval'],
  expect:{retrieval:{verdict:'sufficient',mustInclude:['a'],mustExclude:['z']}}};
@@ -40,16 +41,24 @@ test('Gold-Draft allein darf nie als NERYX-Verifier-Pass zählen',()=>{
  assert.equal(r.outcome,'not_evaluated');
  assert.equal(r.checks.labels.status,'not_evaluated');
 });
-test('Nur ausdrückliche NERYX-Label-Ausgabe wird bewertet',()=>{
- const item={input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
+test('Selbstdeklarierte Herkunft darf niemals PASS erzeugen',()=>{
+ const item={id:'dummy-v1',input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
   layers:['verifier'],expect:{labels:['unverified']}};
- assert.equal(get(item,{verifierLabels:['unverified']}).outcome,'not_evaluated');
- assert.equal(get(item,{verifierSource:'neryx',verifierLabels:['unverified']}).outcome,'pass');
- assert.equal(get(item,{verifierSource:'neryx',verifierLabels:['supported']}).outcome,'fail');
+ assert.equal(get(item,{verifierSource:'neryx',verifierLabels:['unverified']}).outcome,'not_evaluated');
+ assert.equal(get(item,{verifierSource:'neryx',verifierLabels:[]}).outcome,'not_evaluated');
 });
-test('Unbekannte NERYX-Labels brechen ab',()=>{
- const item={input:{question:'Prüfe Text.'},layers:['verifier'],expect:{labels:['supported']}};
- assert.throws(()=>get(item,{verifierSource:'neryx',verifierLabels:['true']}));
+test('Verifier-Capture ohne vertrauenswürdige Herkunft darf noch nicht bestehen',()=>{
+ const item={id:'dummy-v1',input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
+  layers:['verifier'],expect:{labels:['unverified']}};
+ const capture={itemId:item.id,draftSha256:draftHash(item.input.draft),labels:['unverified']};
+ const result=get(item,{verifierCapture:capture,verifierSource:'neryx'});
+ assert.equal(result.checks.labels.status,'not_evaluated');
+ assert.equal(result.checks.labels.reason,'trusted_neryx_capture_not_integrated');
+});
+test('Leere Goldlabels dürfen nie PASS geben',()=>{
+ const item={id:'dummy-v1',input:{question:'Prüfe Text.',draft:'Eine Aussage.'},
+  layers:['verifier'],expect:{labels:[]}};
+ assert.throws(()=>get(item,{verifierSource:'neryx',verifierLabels:[]}));
 });
 test('Fehlende Evidenz niemals automatisch pass',()=>{
  const item={input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
