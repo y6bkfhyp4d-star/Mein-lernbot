@@ -4,7 +4,9 @@ import {PINNED_SCRIPTS,verifyPinnedScripts,snapshotBrowserStorage,compareBrowser
 const $=id=>document.getElementById(id);
 const iframe=$('without-reasoner');
 let report=null,running=false,frameLoaded=false;
-iframe.addEventListener('load',()=>{frameLoaded=true;$('run').disabled=false;$('status').textContent='Bereit – drei isolierte Negativfälle.';});
+function frameReady(){frameLoaded=true;$('run').disabled=false;$('status').textContent='Bereit – drei isolierte Negativfälle.';}
+iframe.addEventListener('load',frameReady);
+if(iframe.contentDocument?.readyState==='complete')frameReady();
 iframe.addEventListener('error',()=>{$('status').textContent='Fehler: Test-Iframe konnte nicht geladen werden.';});
 function assertModules(){
  const w=window,f=iframe.contentWindow;
@@ -55,7 +57,8 @@ $('run').addEventListener('click',async()=>{
  finally{if(before)try{after=await snapshotBrowserStorage();}catch(e){error=error||String(e?.message||e);}}
  if(before&&after){
   const comparison=compareBrowserStorage(before,after);
-  const checked=checkNegativeResponses(answers);
+  const checked=answers.length===negativeCases.length?checkNegativeResponses(answers):
+   negativeCases.map(x=>({id:x.id,passed:false}));
   const records=[];
   for(let i=0;i<answers.length;i++)records.push({
    itemId:negativeCases[i].id,
