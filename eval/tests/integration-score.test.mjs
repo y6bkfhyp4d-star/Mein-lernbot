@@ -33,11 +33,23 @@ test('Solver-Zeit nur bei übergebener Antwort',()=>{
  assert.equal(r.checks.exact.status,'pass');assert.equal(r.outcome,'not_evaluated');
  assert.equal(r.checks.mode.status,'not_evaluated');
 });
-test('Evidenz aus Metadaten trägt unverified',()=>{
+test('Gold-Draft allein darf nie als NERYX-Verifier-Pass zählen',()=>{
  const item={input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
   layers:['verifier'],expect:{labels:['unverified']}};
  const r=get(item,{claims:[claim('u','Die Klemme ist blau.','user')]});
- assert.equal(r.outcome,'pass');
+ assert.equal(r.outcome,'not_evaluated');
+ assert.equal(r.checks.labels.status,'not_evaluated');
+});
+test('Nur ausdrückliche NERYX-Label-Ausgabe wird bewertet',()=>{
+ const item={input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
+  layers:['verifier'],expect:{labels:['unverified']}};
+ assert.equal(get(item,{verifierLabels:['unverified']}).outcome,'not_evaluated');
+ assert.equal(get(item,{verifierSource:'neryx',verifierLabels:['unverified']}).outcome,'pass');
+ assert.equal(get(item,{verifierSource:'neryx',verifierLabels:['supported']}).outcome,'fail');
+});
+test('Unbekannte NERYX-Labels brechen ab',()=>{
+ const item={input:{question:'Prüfe Text.'},layers:['verifier'],expect:{labels:['supported']}};
+ assert.throws(()=>get(item,{verifierSource:'neryx',verifierLabels:['true']}));
 });
 test('Fehlende Evidenz niemals automatisch pass',()=>{
  const item={input:{question:'Prüfe die Aussage.',draft:'Die Klemme ist blau.',evidence:['u']},
