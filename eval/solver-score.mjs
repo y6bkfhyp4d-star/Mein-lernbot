@@ -3,6 +3,10 @@
 const normalized=s=>String(s??'').toLowerCase().replace(/\u00a0/g,' ').replace(/²/g,'2').replace(/³/g,'3');
 const number=x=>Number(x.replace(',','.'));
 const ambiguousNumber=x=>/^[-+]?\d{1,3}[.,]\d{3}$/.test(x); // Format 1.200 / 1,200 ist ohne Kontext mehrdeutig
+// Negationen, Näherungen und Mengenbereiche sind keine exakten Ergebnisse.
+// Konservativ prüfen: Lieber manuelle Prüfung als ein unberechtigtes PASS.
+const uncertainAnswer=s=>/\b(?:nicht|kein(?:e|en|em|er|es)?|falsch|mindestens|hoechstens|höchstens|etwa|ungefähr|ungefaehr|circa|ca\.?|rund|ungewiss|vermutlich|vielleicht|wahrscheinlich|glaube|vermute|zwischen|bis|oder|mehr\s+als|weniger\s+als|ueber|über|unter)\b/iu.test(normalized(s));
+
 function clockValues(s){
  const t=normalized(s),hits=[];
  const patterns=[
@@ -64,6 +68,8 @@ export function scoreSolver(answer,question,exact){
  if(typeof answer!=='string'||!answer.trim())return {status:'fail',reason:'no_answer'};
  const unit=canonical(exact.unit);
  if(unit==='minuten_seit_mitternacht'){
+  if(/\b(?:nicht|kein(?:e|en|em|er|es)?|falsch|mindestens|höchstens|hoechstens|etwa|ungefähr|ungefaehr|circa|vielleicht|vermutlich|glaube|wahrscheinlich)\b/iu.test(normalized(resultText(answer))))
+   return {status:'review',reason:'uncertain_clock_answer'};
   let times=clockValues(resultText(answer));
   const questionTimes=new Set(clockValues(question).map(x=>x.time));
   // Eine wiederholte Startzeit ohne Endzeit ist keine Antwort.
@@ -73,6 +79,7 @@ export function scoreSolver(answer,question,exact){
   if(unique.length!==1)return {status:'review',reason:'multiple_clock_results'};
   return {status:Math.abs(unique[0]-exact.value)<=exact.tol?'pass':'fail',reason:'clock_checked'};
  }
+ if(uncertainAnswer(resultText(answer)))return {status:'review',reason:'negated_approximate_or_range_answer'};
  if(!units[unit])return {status:'not_evaluated',reason:'unsupported_unit'};
  const q=quantities(answer,unit);
  if(!q.length)return {status:'review',reason:'missing_or_unknown_unit'};
