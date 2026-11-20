@@ -1,18 +1,12 @@
 /* NERYX S3: Zwei externe Frozen-Dateien mit getrennten SHA-256-Siegeln.
    Kein Testwissen im Repository; keine Verarbeitung bei inaktivem Siegel. */
-import {readFileSync,realpathSync} from 'node:fs';
-import {resolve,relative,isAbsolute,sep} from 'node:path';
+import {readFileSync} from 'node:fs';
+import {externalFrozenPath,assertFrozenNotCI} from './frozen-path-policy.mjs';
 import {createHash} from 'node:crypto';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const hex=x=>typeof x==='string'&&/^[0-9a-f]{64}$/.test(x);
-function external(path,root){
- if(!isAbsolute(path))throw Error('Frozen-Pfade müssen absolut sein.');
- const actual=realpathSync(path),rel=relative(root,actual);
- if(rel===''||rel==='..'||(!rel.startsWith('..'+sep)&&!isAbsolute(rel)))
-  throw Error('Frozen-Testdaten dürfen nicht im Repository liegen.');
- return actual;
-}
+
 export function claimsToDocuments(claims){
  if(!Array.isArray(claims)||!claims.length||claims.length>200)throw Error('Ungültige Claim-Anzahl.');
  const ids=new Set();
@@ -25,13 +19,14 @@ export function claimsToDocuments(claims){
  });
 }
 export function loadFrozen(fixturePath,suitePath,root,seal){
+ assertFrozenNotCI();
  if(seal?.schema!==2||seal.active!==true||typeof seal.version!=='string'||!seal.version||
   seal.adapterVersion!==1||!hex(seal.files?.fixture?.sha256)||!hex(seal.files?.suite?.sha256)||
   !Number.isSafeInteger(seal.claimCount)||seal.claimCount<1||
   !Number.isSafeInteger(seal.itemCount)||seal.itemCount<1)
   throw Error('Frozen-Evaluation ist nicht freigegeben: Schema-2-Siegel fehlt.');
  if(!fixturePath||!suitePath)throw Error('Fixture und Suite als absolute Pfade angeben.');
- const fp=external(fixturePath,root),sp=external(suitePath,root);
+ const fp=externalFrozenPath(fixturePath,root),sp=externalFrozenPath(suitePath,root);
  if(fp===sp)throw Error('Fixture und Suite müssen getrennte Dateien sein.');
  const fb=readFileSync(fp),sb=readFileSync(sp);
  const hashes={fixture:sha(fb),suite:sha(sb)};
