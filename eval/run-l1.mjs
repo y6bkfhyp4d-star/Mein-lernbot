@@ -7,6 +7,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {createHash} from 'node:crypto';
 import {scoreRetrieval} from './retrieval-score.mjs';
+import {checkBooleanResult} from './check-contract.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const fixtureText=read('eval/fixtures.json'),suiteText=read('eval/suite.json');
 const fixtures=JSON.parse(fixtureText),suite=JSON.parse(suiteText);
@@ -39,7 +40,8 @@ for(const item of suite.items){
   checks.complete=inspection.complete===item.expect.complete;
   detail={missing:inspection.missing};
  }else throw Error('Unbekannte L1-Ebene: '+item.id);
- const pass=Object.values(checks).every(Boolean),entry=known.get(item.id);
+ const required=item.layers.includes('retrieval')?['include','exclude','verdict']:['complete'];
+ const pass=checkBooleanResult(checks,required),entry=known.get(item.id);
  results.push({id:item.id,suite:item.suite,category:item.category,pass,
   classification:entry?.classification||(pass?'passing':'unclassified_failure'),
   outcome:entry?(pass?'unexpected_pass':'known_failure'):(pass?'pass':'regression'),checks,...detail});
