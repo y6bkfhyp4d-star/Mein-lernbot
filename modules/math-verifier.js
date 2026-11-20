@@ -10,6 +10,8 @@ const round=x=>Number(x.toPrecision(12));
 function wallArea(input){
  const s=clean(input);
  if(s.length<25||s.length>1200||!/\b(?:wand|wände|waende|wandfläche|wandflaeche)\b/.test(s)||!/\b(?:raum|räume|raeume|zimmer)\b/.test(s))return null;
+ // Vor dem positiven Zahlenparser negative Maße/Mengen ablehnen, sonst ginge das Minus verloren.
+ if(/(?:^|[^\w])[-−–]\s*\d+(?:[,.]\d+)?\s*(?:meter|metern|m)\s*(?:breit|hoch)\b|(?:^|[^\w])[-−–]\s*\d+\s*(?:räume|raeume|räumen|raeumen|zimmer|wände|waende|wänden|waenden)\b/.test(s))return null;
  const rooms=capture(s,/\b(\d{1,3})\s*(?:räume|raeume|zimmer|räumen|raeumen)\b/);
  const walls=capture(s,/\b(?:jeweils\s+|je\s+|pro\s+(?:raum|zimmer)\s+)?(\d{1,3})\s*wänd(?:e|en)\b|\b(?:jeweils\s+|je\s+)(\d{1,3})\s*wänden\b/);
  // Nur eindeutige Mengen; unterschiedliche Wandhöhen/-breiten werden nicht geschätzt.
