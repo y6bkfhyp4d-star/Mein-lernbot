@@ -1,0 +1,44 @@
+name: NERYX - Scoring Contract Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/check-contract.mjs'
+      - 'eval/tests/check-contract.test.mjs'
+      - 'eval/retrieval-score.mjs'
+      - 'eval/run-l1.mjs'
+      - 'eval/integration-score.mjs'
+      - '.github/workflows/neryx-scoring-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check fail-closed scoring rules
+        run: node --test eval/tests/check-contract.test.mjs
+      - name: Check integration regression tests
+        run: node --test eval/tests/integration-score.test.mjs
+      - name: Reproduce L1 baseline without changing known failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          node eval/run-l1.mjs --strict > "$RUNNER_TEMP/neryx-l1-contract.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/neryx-l1-contract.json","utf8"));
+            const known=["ret01","ret02","dis01","dis02","hard01","hard02","rev04"];
+            const bad=r.results.filter(x=>!x.pass).map(x=>x.id);
+            if(r.summary.passed!==14||r.summary.total!==21||
+               r.summary.newRegressions!==0||r.summary.unexpectedPasses!==0||
+               JSON.stringify(bad)!==JSON.stringify(known))
+               throw Error("L1-Baseline verändert.");
+            console.log("L1 baseline verified: 14/21.");
+          '
