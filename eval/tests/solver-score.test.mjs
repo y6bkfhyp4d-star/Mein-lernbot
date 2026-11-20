@@ -38,3 +38,18 @@ test("Regression Ergebnis: 12.5 m2",()=>assert.equal(scoreSolver("Ergebnis: 12.5
 test("Regression Ergebnis: 12,5 m²",()=>assert.equal(scoreSolver("Ergebnis: 12,5 m²",'',{value:12.5,tol:0,unit:"m2"}).status,"pass"));
 test("Regression -5 kg",()=>assert.equal(scoreSolver("-5 kg",'',{value:-5,tol:0,unit:"kg"}).status,"pass"));
 test("Regression 12 m2",()=>assert.equal(scoreSolver("12 m2",'',{value:12,tol:0,unit:"m2"}).status,"pass"));
+
+// Abnahme: Negierte, ungefähre und Bereichsantworten sind nie exakt bestanden.
+test("Qualifier 1 Das Ergebnis ist nicht 12 m2",()=>assert.equal(scoreSolver("Das Ergebnis ist nicht 12 m2",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 2 Es sind nicht 12 m2",()=>assert.equal(scoreSolver("Es sind nicht 12 m2",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 3 mindestens 12 m2",()=>assert.equal(scoreSolver("mindestens 12 m2",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 4 höchstens 12 m²",()=>assert.equal(scoreSolver("höchstens 12 m²",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 5 etwa 12 m2",()=>assert.equal(scoreSolver("etwa 12 m2",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 6 Ich glaube nicht, dass es 12 m2 sind",()=>assert.equal(scoreSolver("Ich glaube nicht, dass es 12 m2 sind",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 7 12 m2 falsch, richtig sind 12 m2",()=>assert.equal(scoreSolver("12 m2 falsch, richtig sind 12 m2",'',{value:12,tol:0,unit:"m2"}).status,"review"));
+test("Qualifier 8 3 bis 4 Liter",()=>assert.equal(scoreSolver("3 bis 4 Liter",'',{value:4,tol:0,unit:"l"}).status,"review"));
+test("Qualifier 9 zwischen 3 und 4 Liter",()=>assert.equal(scoreSolver("zwischen 3 und 4 Liter",'',{value:4,tol:0,unit:"l"}).status,"review"));
+test("Qualifier 10 12 m2",()=>assert.equal(scoreSolver("12 m2",'',{value:12,tol:0,unit:"m2"}).status,"pass"));
+test("Qualifier 11 Das Ergebnis beträgt genau 12 m²",()=>assert.equal(scoreSolver("Das Ergebnis beträgt genau 12 m²",'',{value:12,tol:0,unit:"m2"}).status,"pass"));
+test('Negierte Uhrzeit wird nicht bestanden',()=>assert.equal(scoreSolver('Nicht 12:20 Uhr','',clock).status,'review'));
+test('Ungefähre Uhrzeit wird nicht bestanden',()=>assert.equal(scoreSolver('Etwa 12:20 Uhr','',clock).status,'review'));
