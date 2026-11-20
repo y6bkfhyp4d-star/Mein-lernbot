@@ -1,0 +1,23 @@
+name: NERYX - Source Status Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/source-status-score.mjs'
+      - 'eval/tests/source-status-score.test.mjs'
+      - '.github/workflows/neryx-source-status.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test source attribution only with dummy claims
+        run: node --test eval/tests/source-status-score.test.mjs
