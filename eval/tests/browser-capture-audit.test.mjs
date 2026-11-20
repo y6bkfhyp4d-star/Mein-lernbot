@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {snapshotBrowserStorage,compareBrowserStorage,verifyPinnedScripts,PINNED_SCRIPTS} from '../browser-capture-audit.mjs';
+import {snapshotBrowserStorage,compareBrowserStorage,verifyPinnedScripts,PINNED_SCRIPTS,verifyCaptureAuditPair} from '../browser-capture-audit.mjs';
 const root=new URL('../../',import.meta.url);
 const digest=path=>createHash('sha256').update(readFileSync(new URL(path,root))).digest('hex');
 function store(entries){
@@ -73,4 +73,19 @@ test('Prüfbericht führt die Grenzen der Inventarprüfung offen auf',async()=>{
  const r=compareBrowserStorage(before,after);
  assert.match(r.limitations.join(' '),/nicht gespeicherte Datensätze/);
  assert.match(r.limitations.join(' '),/nicht Response-Inhalte/);
+});
+
+test('Capture und Audit gehören nur bei gleicher Lauf-ID, Startzeit und Datensatz-Hash zusammen',()=>{
+ const id='dummy-browser-12345678-1234-1234-1234-123456789abc';
+ const capture={schema:1,runId:id,startedAt:'2026-11-20T00:00:00Z',scripts:{...PINNED_SCRIPTS},
+  records:[{recordSha256:'a'.repeat(64)}]};
+ const audit={schema:1,kind:'neryx-dummy-browser-audit',runId:id,
+  startedAt:capture.startedAt,result:'capture_accepted',captureRecordSha256:'a'.repeat(64),
+  expectedScripts:{...PINNED_SCRIPTS},measuredScripts:{...PINNED_SCRIPTS},
+  scriptHashesMatch:true,comparison:{essentialUnchanged:true,status:'all_checked_unchanged'}};
+ assert.equal(verifyCaptureAuditPair(capture,audit),true);
+ assert.equal(verifyCaptureAuditPair(capture,{...audit,runId:'dummy-browser-00000000-0000-0000-0000-000000000000'}),false);
+ assert.equal(verifyCaptureAuditPair(capture,{...audit,startedAt:'different'}),false);
+ assert.equal(verifyCaptureAuditPair(capture,{...audit,captureRecordSha256:'b'.repeat(64)}),false);
+ assert.equal(verifyCaptureAuditPair(capture,{...audit,result:'rejected'}),false);
 });
