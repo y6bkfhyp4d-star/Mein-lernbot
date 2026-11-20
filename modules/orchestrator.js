@@ -70,6 +70,8 @@ function narrativePrompt(input){
  return 'Beantworte die folgende Frage auf Deutsch. Gib eine klare Erklärung mit konkretem Beispiel. Antworte direkt, ohne die Frage als Aufgabe an den Nutzer zurückzugeben. Maximal 120 Wörter.\nFrage: '+input;
 }
 async function modelFallback(input){
+ if(typeof navigator!=='undefined'&&navigator.onLine===false)
+  return 'NERYX · OFFLINE\nFür diese Frage habe ich noch keine überprüfte lokale Antwort. Der Lernkern bleibt nutzbar. Das Sprachmodell benötigt zuerst einen erfolgreichen Download mit Internet.';
  const model=window.NERYXLocalModel;
  if(!model?.info?.().loaded){
   if(typeof model?.load!=='function')return 'NERYX · KI-SYSTEM\nKein Sprachmodell verfügbar. Vorhandene NERYX-Funktionen bleiben nutzbar.';
@@ -120,6 +122,8 @@ async function modelFallback(input){
 async function solve(input,{knowledge}={}){
  const s=String(input??'').trim(),selected=plan(s);
  if(selected.type==='invalid')return 'NERYX · KI-SYSTEM\nBitte eine einzelne Frage bis 3000 Zeichen eingeben.';
+ if(/^(?:moin|hallo|hi|hey|guten morgen|guten tag|guten abend)[!. ]*$/i.test(s))
+  return 'Moin! Ich bin NERYX. Du kannst mich nach gespeicherten Fakten fragen oder Hilfe eingeben – auch offline.';
  if(selected.type!=='knowledge')return execute(selected,s)||'NERYX · KI-SYSTEM\nDas Fachwerkzeug ist nicht verfügbar.';
  const coordinated=window.NERYXCoordinator?.decide(s);
  if(coordinated)return coordinated;
