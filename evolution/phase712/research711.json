@@ -1,8 +1,8 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "1,2-Propandiol",
-    "Adult",
+    "(2+2)-Cycloaddition",
+    "2,6-Diaminopurin",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
@@ -10,7 +10,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-20T22:24:51+00:00",
+      "checked_at": "2026-11-21T04:32:16+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T22:24:51+00:00",
+      "checked_at": "2026-11-21T04:32:16+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T22:24:51+00:00",
+      "checked_at": "2026-11-21T04:32:16+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -76,7 +76,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T22:24:51+00:00",
+      "checked_at": "2026-11-21T04:32:16+00:00",
       "claims": [],
       "diagnostics": {
         "keine_klare_klassifikation": 1,
@@ -91,6 +91,23 @@
       "status": "keine_klare_klassifikation",
       "title_resolution": "direkter_titel",
       "topic": "(2) Pallas",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T04:32:16+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 5
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "(2+2)-Cycloaddition",
+      "question": "Was ist (2+2)-Cycloaddition und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=4410072",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "(2+2)-Cycloaddition",
       "verified_correction": false
     },
     {
@@ -156,6 +173,39 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "18. Oktober",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T04:32:16+00:00",
+      "claims": [
+        {
+          "id": "p711-636883becdf0a7",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=7946097",
+          "statement": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "2,6-Diaminopurin",
+          "subject_form": "2,6-Diaminopurin"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 6,
+        "unsicher_oder_negiert": 1
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "2,6-Diaminopurin",
+      "question": "Was ist 2,6-Diaminopurin und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=7946097",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "2,6-Diaminopurin",
       "verified_correction": false
     },
     {
@@ -1136,6 +1186,22 @@
       "unresolved_topics": [
         "1,2-Propandiol",
         "Adult",
+        "(1) Ceres",
+        "(136108) Haumea",
+        "(2) Pallas"
+      ]
+    },
+    {
+      "at": "2026-11-21T04:32:16+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "(2+2)-Cycloaddition",
         "(1) Ceres",
         "(136108) Haumea",
         "(2) Pallas"
