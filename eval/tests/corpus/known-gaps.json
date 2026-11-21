@@ -30,7 +30,7 @@
     ],
     "question": "Und was ist mit seinem Lebensraum?",
     "target": "Keine veralteten Wolf-Angaben auf das Okapi übertragen; unklare Referenzen gezielt klären.",
-    "evidence": "app.js: neryxLastSubject wird bei eindeutig erkanntem neuen, unbekannten Thema zurückgesetzt; andere Folgeformulierungen sind nicht durch den bisherigen Korpustest gedeckt.",
-    "status": "open-unverified"
+    "evidence": "app.js: erkennt eng begrenzte 'was ist mit seinem Lebensraum'-Folgefrage, klärt bei leerem neryxLastSubject; eval/tests/corpus/topic-switch-clarification.test.mjs: unbekannter Themenwechsel, kein Kontext, gültiger Bezug, Konflikt. GitHub Actions erfolgreich.",
+    "status": "resolved-tested"
   }
 ]
