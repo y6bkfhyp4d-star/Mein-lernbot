@@ -55,6 +55,19 @@ function parse(q){
   return {type:'allgemein',subject:s,key:'allgemein|'+s,question:trim(q)};
  return null;
 }
+// Ja/Nein-Ortsfragen nur als Prüfung erfassen, niemals als erlernbare Ja/Nein-Fakten.
+function parseLocationCheck(question){
+ const s=fold(question);
+ if(!s||s.length>220||s.includes('\n'))return null;
+ const m=s.match(/^(?:lebt|leben|wohnt|wohnen) (.+?) (nicht )?in (.+)$/)||
+  s.match(/^ist (.+?) (nicht )?in (.+) heimisch$/);
+ if(!m)return null;
+ const subject=normalizeSubject(m[1]),place=m[3].trim();
+ if(subject.length<2||subject.length>90||place.length<2||place.length>90||
+  /^(?:ich|du|wir|sie|es|er|das)$/.test(subject)||
+  /\b(?:nicht|kein|ohne|oder|sondern|und|als|bevor)\b/.test(place))return null;
+ return {type:'lebensraum',subject,place,negated:!!m[2],question:trim(question)};
+}
 function initial(){return {version:1,records:[]}}
 function load(){
  try{
@@ -144,5 +157,5 @@ function status(){
   ...records.slice(-12).map((r,i)=>(i+1)+'. '+r.subject+' ('+r.type+'): '+r.answer),
   'Alle Angaben stammen von dir und sind nicht unabhängig geprüft.'].join('\n');
 }
-window.NERYXTopicLearning=Object.freeze({version:'0.1',parse,match,ask,pendingReply,beginTeaching,status});
+window.NERYXTopicLearning=Object.freeze({version:'0.1',parse,parseLocationCheck,match,ask,pendingReply,beginTeaching,status});
 })();
