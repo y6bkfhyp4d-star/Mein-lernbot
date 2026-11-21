@@ -1,0 +1,36 @@
+[
+  {
+    "id": "GAP-001",
+    "title": "Pronomen-Folgefrage zur Nahrung",
+    "setup": [
+      "Wo lebt der Wolf?"
+    ],
+    "question": "Und was frisst er?",
+    "target": "Nach eindeutigem Wolf-Bezug einen gespeicherten Nahrungsfakt verwenden, ohne ein anderes Thema zu übernehmen.",
+    "evidence": "app.js: eng begrenzter Nahrung-Folgefragenpfad; eval/tests/corpus/food-followup.test.mjs: positive Antwort, Rückfrage, Wissenslücke und Konflikt; GitHub Actions erfolgreich.",
+    "status": "resolved-tested"
+  },
+  {
+    "id": "GAP-002",
+    "title": "Indirekte Bezugnahme auf dasselbe Thema",
+    "setup": [
+      "Wo lebt der Wolf?"
+    ],
+    "question": "Und sein Lebensraum?",
+    "target": "Das Thema Wolf auch bei einer kurzen elliptischen Folgefrage sicher zuordnen oder gezielt rückfragen.",
+    "evidence": "app.js: enger Pronomen-/Ellipse-Folgefragenpfad für 'sein Lebensraum'; eval/tests/corpus/habitat-followup.test.mjs: bekannte Antwort, fehlender Kontext, Themenwechsel und Konflikt. GitHub Actions erfolgreich.",
+    "status": "resolved-tested"
+  },
+  {
+    "id": "GAP-003",
+    "title": "Unklare Folgefrage nach einem Themenwechsel",
+    "setup": [
+      "Wo lebt der Wolf?",
+      "Wo lebt das Okapi?"
+    ],
+    "question": "Und was ist mit seinem Lebensraum?",
+    "target": "Keine veralteten Wolf-Angaben auf das Okapi übertragen; unklare Referenzen gezielt klären.",
+    "evidence": "app.js: erkennt eng begrenzte 'was ist mit seinem Lebensraum'-Folgefrage, klärt bei leerem neryxLastSubject; eval/tests/corpus/topic-switch-clarification.test.mjs: unbekannter Themenwechsel, kein Kontext, gültiger Bezug, Konflikt. GitHub Actions erfolgreich.",
+    "status": "resolved-tested"
+  }
+]

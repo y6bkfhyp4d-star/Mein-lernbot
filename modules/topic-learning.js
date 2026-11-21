@@ -11,7 +11,14 @@ const types=[
  ['lebensraum',[
   /^wo (?:lebt|leben|wohnt|wohnen) (.+)$/,
   /^in welchem lebensraum (?:lebt|leben) (.+)$/,
-  /^wo (?:kommt|kommen) (.+) vor$/]],
+  /^wo (?:kommt|kommen) (.+) vor$/,
+  /^in welchem land ist (.+) heimisch$/,
+  /^in welchem land (?:lebt|leben) (.+)$/,
+  /^in welcher region ist (.+) heimisch$/,
+  /^in welchem land (?:kommt|kommen) (.+) vor$/,
+  /^in welcher region (?:lebt|leben) (.+)$/,
+  /^wo ist (.+) heimisch$/,
+  /^wo (?:findet man|gibt es) (.+)$/]],
  ['definition',[
   /^was ist (.+)$/, /^was sind (.+)$/,
   /^was bedeutet (.+)$/, /^was versteht man unter (.+)$/,
@@ -47,6 +54,19 @@ function parse(q){
  if(/^(?:warum|weshalb|wieso|wann|wer|welche|welcher|welches|wie|wo|was|wodurch|womit|worauf|wofuer|wozu)\s+/.test(s)&&s.length<=180)
   return {type:'allgemein',subject:s,key:'allgemein|'+s,question:trim(q)};
  return null;
+}
+// Ja/Nein-Ortsfragen nur als Prüfung erfassen, niemals als erlernbare Ja/Nein-Fakten.
+function parseLocationCheck(question){
+ const s=fold(question);
+ if(!s||s.length>220||s.includes('\n'))return null;
+ const m=s.match(/^(?:lebt|leben|wohnt|wohnen) (.+?) (nicht )?in (.+)$/)||
+  s.match(/^ist (.+?) (nicht )?in (.+) heimisch$/);
+ if(!m)return null;
+ const subject=normalizeSubject(m[1]),place=m[3].trim();
+ if(subject.length<2||subject.length>90||place.length<2||place.length>90||
+  /^(?:ich|du|wir|sie|es|er|das)$/.test(subject)||
+  /\b(?:nicht|kein|ohne|oder|sondern|und|als|bevor)\b/.test(place))return null;
+ return {type:'lebensraum',subject,place,negated:!!m[2],question:trim(question)};
 }
 function initial(){return {version:1,records:[]}}
 function load(){
@@ -137,5 +157,5 @@ function status(){
   ...records.slice(-12).map((r,i)=>(i+1)+'. '+r.subject+' ('+r.type+'): '+r.answer),
   'Alle Angaben stammen von dir und sind nicht unabhängig geprüft.'].join('\n');
 }
-window.NERYXTopicLearning=Object.freeze({version:'0.1',parse,match,ask,pendingReply,beginTeaching,status});
+window.NERYXTopicLearning=Object.freeze({version:'0.1',parse,parseLocationCheck,match,ask,pendingReply,beginTeaching,status});
 })();

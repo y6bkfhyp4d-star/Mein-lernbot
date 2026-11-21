@@ -1,43 +1,78 @@
-/* NERYX: konservativer Service Worker – Netzwerk bevorzugen, keine JS-Caches. */
-const CACHE = 'neryx-recovery-v2';
-const OLD_PREFIXES = ['neryx-app-', 'lernbot-v', 'neryx-recovery-'];
-
-self.addEventListener('install', event => {
-  event.waitUntil(self.skipWaiting());
+/* NERYX Offline-Basispaket v4: nur App und lokale Startskripte, keine Testseiten. */
+const CACHE='neryx-offline-v4';
+const OLD_PREFIXES=['neryx-app-','lernbot-v','neryx-recovery-','neryx-offline-'];
+const scope=new URL(self.registration.scope);
+const home=new URL('./',scope),index=new URL('./index.html',scope);
+let assets=null;
+const inScope=url=>url.origin===scope.origin&&url.pathname.startsWith(scope.pathname);
+const isHome=url=>inScope(url)&&!url.search&&!url.hash&&
+ (url.pathname===home.pathname||url.pathname===index.pathname);
+const isAsset=url=>inScope(url)&&!url.search&&!url.hash&&
+ ((url.pathname.endsWith('.js')&&url.pathname!==new URL('./sw.js',scope).pathname)||
+  url.href===new URL('./manifest.webmanifest',scope).href||
+  url.href===new URL('./icon-192.png',scope).href);
+const fetchFresh=async req=>fetch(req,{cache:'no-store'});
+async function cacheApp(){
+ const page=await fetchFresh(index.href);
+ if(!page.ok||page.redirected||!isHome(new URL(page.url||index.href)))throw Error('App-Shell nicht überprüfbar.');
+ const html=await page.clone().text();
+ // Kein fremdes HTML, keine Testseiten. Ausschließlich lokale Skripte aus index.html.
+ const refs=[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]);
+ const extras=[...html.matchAll(/<link\b[^>]*\bhref=["'](manifest\.webmanifest|icon-192\.png)["'][^>]*>/gi)].map(m=>m[1]);
+ const urls=[...new Set([...refs,...extras].map(ref=>new URL(ref,index.href)).filter(isAsset).map(u=>u.href))];
+ if(!urls.length||urls.length!==refs.length+extras.length)throw Error('Offline-Startdateien nicht vollständig lokal.');
+ const staged=await Promise.all(urls.map(async url=>{
+  const response=await fetchFresh(url);
+  if(!response.ok||response.redirected||response.url&&response.url!==url)
+   throw Error('Offline-Skript nicht ladbar: '+url);
+  // Antwortkörper vor dem späteren Cache-Schreiben vollständig laden;
+  // unbehandelte parallele Streams können die Installation blockieren.
+  await response.clone().text();
+  return [url,response];
+ }));
+ const cache=await caches.open(CACHE);
+ await cache.put(index.href,page);
+ for(const [url,response] of staged)await cache.put(url,response);
+ assets=new Set(urls);
+}
+self.addEventListener('install',event=>{
+ event.waitUntil((async()=>{await cacheApp();await self.skipWaiting();})());
 });
-
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(key =>
-      key !== CACHE && OLD_PREFIXES.some(prefix => key.startsWith(prefix))
-    ).map(key => caches.delete(key)));
-    await self.clients.claim();
-  })());
+self.addEventListener('activate',event=>{
+ event.waitUntil((async()=>{
+  const keys=await caches.keys();
+  await Promise.all(keys.filter(k=>k!==CACHE&&OLD_PREFIXES.some(p=>k.startsWith(p)))
+   .map(k=>caches.delete(k)));
+  await self.clients.claim();
+ })());
 });
-
-self.addEventListener('fetch', event => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
-  // HTML und JavaScript immer frisch anfordern: keine veralteten Programmdateien.
-  if (req.mode !== 'navigate') {
-    event.respondWith(fetch(req, {cache:'no-store'}));
-    return;
+self.addEventListener('fetch',event=>{
+ const req=event.request;
+ if(req.method!=='GET')return;
+ const url=new URL(req.url);
+ if(!inScope(url))return;
+ if(req.mode==='navigate'){
+  if(!isHome(url)){
+   event.respondWith(fetchFresh(req).catch(()=>Response.error()));
+   return;
   }
-  event.respondWith((async () => {
-    try {
-      const response = await fetch(req, {cache:'no-store'});
-      if (response.ok) {
-        const cache = await caches.open(CACHE);
-        await cache.put('./index.html', response.clone());
-      }
-      return response;
-    } catch (error) {
-      const cache = await caches.open(CACHE);
-      return (await cache.match('./index.html')) || Response.error();
-    }
+  event.respondWith((async()=>{
+   try{
+    const response=await fetchFresh(req);
+    // Keine unvollständigen HTML-Updates in den Offline-Cache schreiben.
+    return response;
+   }catch{
+    return (await (await caches.open(CACHE)).match(index.href))||Response.error();
+   }
   })());
+  return;
+ }
+ if(isAsset(url)){
+  event.respondWith((async()=>{
+   try{return await fetchFresh(req);}
+   catch{return (await (await caches.open(CACHE)).match(url.href))||Response.error();}
+  })());
+  return;
+ }
+ event.respondWith(fetchFresh(req).catch(()=>Response.error()));
 });

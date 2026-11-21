@@ -1,0 +1,17 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>NERYX · Grenzwert-Dummy</title>
+<style>:root{color-scheme:dark;font-family:system-ui;background:#10101a;color:#f5f3ff}
+body{max-width:740px;margin:auto;padding:18px}p{line-height:1.55;color:#c3bbd2}
+button{padding:13px 16px;background:#9870ff;border:0;border-radius:12px;font-size:1rem;font-weight:700;margin:6px 5px 6px 0}
+button:disabled{opacity:.4}pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}
+section{padding:18px;border:1px solid #50445f;border-radius:16px;background:#1b1a28;margin:16px 0}</style></head><body>
+<h1>NERYX · Grenzwert- und Eingabetest</h1>
+<p>Sechs künstliche Prüfungen: negative und Null-Maße, zwei fehlerhafte Raster, extreme Zahlen und eine leere Eingabe. Schwachstellen erscheinen als Befund, nicht als bestanden. Kein Zugriff auf Lernspeicher oder Frozen-Daten.</p>
+<button id="run" disabled>Grenzwerte prüfen</button><button id="export" disabled>JSON-Prüfbericht exportieren</button>
+<section><strong>Status</strong><p id="status">Prüfe Fachmodule …</p><pre id="results"></pre></section>
+<script src="../modules/math-verifier.js" integrity="sha256-0s2ihPglnf6JHo2PKU8rlkptELo1pYxH/5ZOHApRpKA="></script>
+<script src="../modules/rule-patterns.js" integrity="sha256-JlGsxHXlH+611qE+tqwnMxAlMlr2v3wApMHk8KAWvIw="></script>
+<script src="../modules/neryx-reasoner.js" integrity="sha256-9EY86RZSHo0nAc+s3Em0H1QBMUW0+Pk8E5na4sU1DoE="></script>
+<script src="../modules/system-hub.js" integrity="sha256-oSgSHbq64uFRABjCehG7pD2v6D1s/uBPIpNybyBpclU="></script>
+<script src="../modules/orchestrator.js" integrity="sha256-h1pN8C9yCP/ap5wZfs5kBKPAB5HXcoR4Vkjh1pXQrXM="></script>
+<script type="module" src="./browser-boundary.js"></script></body></html>

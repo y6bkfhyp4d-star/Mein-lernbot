@@ -1,0 +1,23 @@
+name: NERYX - Contradiction Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/contradiction-score.mjs'
+      - 'eval/tests/contradiction-score.test.mjs'
+      - '.github/workflows/neryx-contradiction.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contradiction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test conservative contradiction scorer using dummy claims
+        run: node --test eval/tests/contradiction-score.test.mjs

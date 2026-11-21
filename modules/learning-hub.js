@@ -122,6 +122,12 @@ function report(){
   d.warnings.length?'Warnungen:\n'+d.warnings.join('\n'):'',
   'Befehle: Lernquellen: THEMA / Lernkonflikte'].filter(Boolean).join('\n');
 }
+// Historische Alternativen ausschließlich lesend anzeigen.
+function alternativeLines(claim){
+ return (Array.isArray(claim.alternatives)?claim.alternatives:[])
+  .filter(a=>a&&typeof a.value==='string'&&a.value.trim()&&fold(a.value)!==fold(claim.value))
+  .map(a=>'  Alternative (ungeprüft): '+text(a.value)+' | Herkunft: '+(text(a.source)||'unbekannt'));
+}
 function sources(q){
  const d=collect(),term=subject(q),search=term.replace(/^(?:wo|was|wer|wie|warum|welche|welcher|welches)\s+/,'');
  if(!search||search.length<2)return 'Format: Lernquellen: Okapi';
@@ -130,7 +136,8 @@ function sources(q){
  return ['NERYX · QUELLENPRÜFUNG: '+text(q),
   rows.length?rows.map(x=>'• '+x.subject+' / '+x.property+': '+x.value+
    '\n  Speicher: '+x.origin+' | Herkunft: '+x.source+
-   (x.conflict?' | Konflikt bereits markiert':'')).join('\n'):'Keine passenden Sachinformationen in den beiden Faktenspeichern.',
+   (x.conflict?' | Konflikt bereits markiert':'')+
+   (alternativeLines(x).length?'\n'+alternativeLines(x).join('\n'):'')).join('\n'):'Keine passenden Sachinformationen in den beiden Faktenspeichern.',
   words.length?'Sprachbeispiele:\n'+words.map(x=>'• '+x.phrase+' → '+x.type+' (gelernte Wortmerkmale)').join('\n'):'',
   d.conflicts.some(x=>x.items.some(i=>rows.includes(i)))?'Achtung: Zu einer gezeigten Information bestehen abweichende Angaben. Lernkonflikte prüfen.':'',
   d.warnings.length?'Warnungen: '+d.warnings.join(' | '):'',
@@ -143,7 +150,7 @@ function conflictReport(){
   'Erkannte Widersprüche: '+d.conflicts.length,
   ...d.conflicts.slice(0,20).map(c=>'• '+c.items[0].subject+' / '+c.items[0].property+
    '\n'+c.items.map(i=>'  '+i.origin+' ('+i.source+'): '+i.value).join('\n')+
-   (c.items.some(x=>x.alternatives.length)?'\n  Weitere Werte in der Hauptwissens-Historie vorhanden':'')
+   (c.items.some(x=>alternativeLines(x).length)?'\n'+c.items.flatMap(alternativeLines).join('\n'):'')
   ),
   d.conflicts.length?'Keine Daten automatisch korrigiert oder überschrieben.':'Keine abweichenden Werte bei exakt zugeordneten Themen/Eigenschaften erkannt.',
   'Unterschiedliche Formulierungen können auf dieselbe Aussage hinauslaufen; fehlende Treffer sind kein Wahrheitsbeweis.',

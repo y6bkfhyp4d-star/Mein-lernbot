@@ -8,7 +8,17 @@ const pairs=/^-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?\s*=
 const embeddedList=/-?\d+(?:\.\d+)?(?:\s*[,;]\s*-?\d+(?:\.\d+)?){3,29}/;
 const embeddedPair=/-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?){1,19}\s*;\s*-?\d+(?:\.\d+)?/;
 const grid=/^[01]{2,20}(?:\s*;\s*[01]{2,20}){1,19}$/;
-const unknown=s=>!s||/^(?:VERWANDTES WISSEN|IN GESPEICHERTEN DOKUMENTEN:|GESPEICHERTES WISSEN)/i.test(String(s).trim())||/(?:keine passende antwort|keine passenden informationen|weiss ich nicht|weiß ich nicht|kein passendes wissen|nicht bekannt|keine informationen|dazu habe ich|habe ich noch keine|nicht gelernt|zu .{1,100} habe ich noch keine)/i.test(String(s));
+// Textbasierter Übergangsvertrag: Marker sind keine unabhängig geprüften Fakten.
+function classify(value){
+ const s=String(value??'').trim();
+ if(!s)return 'no_match';
+ if(/^(?:NERYX · WISSENSKONFLIKT|⚠\s*Unterschiedliche Angaben)/i.test(s))return 'conflict';
+ if(/^(?:VERWANDTES WISSEN|IN GESPEICHERTEN DOKUMENTEN:|GESPEICHERTES WISSEN)\b/i.test(s))return 'related';
+ if(/^(?:Zu [„"].{1,180}[“"] habe ich noch keine passenden Informationen gespeichert\.?|Dazu habe ich noch keine|Keine passende Antwort(?: gespeichert)?\.?|Keine passenden Informationen(?: gespeichert)?\.?|Kein passendes Wissen|Ich (?:weiß|weiss) (?:es )?nicht|Nicht bekannt|Nicht gelernt|Keine Informationen verfügbar)/i.test(s))
+  return 'no_match';
+ return 'answered';
+}
+const unknown=value=>['related','no_match'].includes(classify(value));
 function plan(input){
  const s=String(input??'').trim();
  if(!s||s.length>3000||s.includes('\n'))return {type:'invalid',source:'Eingabe'};
@@ -70,6 +80,8 @@ function narrativePrompt(input){
  return 'Beantworte die folgende Frage auf Deutsch. Gib eine klare Erklärung mit konkretem Beispiel. Antworte direkt, ohne die Frage als Aufgabe an den Nutzer zurückzugeben. Maximal 120 Wörter.\nFrage: '+input;
 }
 async function modelFallback(input){
+ if(typeof navigator!=='undefined'&&navigator.onLine===false)
+  return 'NERYX · OFFLINE\nFür diese Frage habe ich noch keine überprüfte lokale Antwort. Der Lernkern bleibt nutzbar. Das Sprachmodell benötigt zuerst einen erfolgreichen Download mit Internet.';
  const model=window.NERYXLocalModel;
  if(!model?.info?.().loaded){
   if(typeof model?.load!=='function')return 'NERYX · KI-SYSTEM\nKein Sprachmodell verfügbar. Vorhandene NERYX-Funktionen bleiben nutzbar.';
@@ -120,14 +132,23 @@ async function modelFallback(input){
 async function solve(input,{knowledge}={}){
  const s=String(input??'').trim(),selected=plan(s);
  if(selected.type==='invalid')return 'NERYX · KI-SYSTEM\nBitte eine einzelne Frage bis 3000 Zeichen eingeben.';
+ if(/^(?:moin|hallo|hi|hey|guten morgen|guten tag|guten abend)[!. ]*$/i.test(s))
+  return 'Moin! Ich bin NERYX. Du kannst mich nach gespeicherten Fakten fragen oder Hilfe eingeben – auch offline.';
  if(selected.type!=='knowledge')return execute(selected,s)||'NERYX · KI-SYSTEM\nDas Fachwerkzeug ist nicht verfügbar.';
- const coordinated=window.NERYXCoordinator?.decide(s);
- if(coordinated)return coordinated;
+ const checked=window.NERYXCoordinator?.lookup?.(s);
+ if(checked?.status==='answered'||checked?.status==='conflict'||checked?.status==='related')return checked.text;
+ if(checked?.status==='entity_known_no_attribute')
+  return 'NERYX · WISSENSLÜCKE\nZum Thema „'+checked.subject+'“ ist Wissen gespeichert, aber nicht zur gesuchten Eigenschaft „'+checked.property+'“. Ich rate keine Antwort.';
+ if(!checked){const coordinated=window.NERYXCoordinator?.decide(s);if(coordinated)return coordinated;}
  if(typeof knowledge==='function'){
   let answer;try{answer=await knowledge(s)}catch{answer=null}
-  if(typeof answer==='string'&&answer.trim()&&!unknown(answer))return answer;
+  const state=classify(answer);
+  if(state==='answered'||state==='conflict')return answer;
+  if(state==='related')return answer+
+   '\n\nHinweis: Das ist nur verwandtes gespeichertes Wissen, keine sichere Antwort auf die konkrete Frage.'+
+   '\nFür eine ausdrücklich unverifizierte Modellantwort: KI fragen: '+s;
  }
  return await modelFallback(s);
 }
-window.NERYXOrchestrator=Object.freeze({version:'2.4',plan,execute,modelSelection,status,solve,isUnknown:unknown});
+window.NERYXOrchestrator=Object.freeze({version:'2.4',plan,execute,modelSelection,status,solve,isUnknown:unknown,classify});
 })();

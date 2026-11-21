@@ -1,0 +1,45 @@
+name: NERYX - L1 Baseline (development)
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/run-l1.mjs'
+      - 'eval/retrieval-score.mjs'
+      - 'eval/fixtures.json'
+      - 'eval/suite.json'
+      - 'eval/known-issues.json'
+      - 'modules/document-gate.js'
+      - 'modules/answer-review.js'
+      - '.github/workflows/neryx-l1-baseline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  l1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: L1 unchanged baseline - genuine Node runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          node eval/run-l1.mjs --strict > "$RUNNER_TEMP/neryx-l1.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const report = JSON.parse(readFileSync(process.env.RUNNER_TEMP + "/neryx-l1.json", "utf8"));
+            const expected = ["ret01","ret02","dis01","dis02","hard01","hard02","rev04"];
+            const failing = report.results.filter(r => !r.pass).map(r => r.id);
+            const ok = report.summary.passed === 14 &&
+              report.summary.total === 21 &&
+              report.summary.knownFailures === 7 &&
+              report.summary.newRegressions === 0 &&
+              report.summary.unexpectedPasses === 0 &&
+              JSON.stringify(failing) === JSON.stringify(expected);
+            console.log(JSON.stringify({passed:report.summary.passed,total:report.summary.total,knownFailures:report.summary.knownFailures,newRegressions:report.summary.newRegressions,baselineMatched:ok}));
+            if (!ok) process.exitCode = 1;
+          '

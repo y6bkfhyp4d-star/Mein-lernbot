@@ -1,0 +1,25 @@
+name: NERYX corpus smoke 0.2
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'eval/tests/corpus/**'
+      - '.github/workflows/neryx-corpus-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Corpus integration smoke
+        run: node --test eval/tests/corpus/*.test.mjs
+      - name: Existing evaluation tests
+        if: always()
+        run: node --test eval/tests/*.test.mjs

@@ -1,0 +1,23 @@
+{
+  "main": {
+    "version": 6,
+    "facts": [
+      {
+        "id": "fixture-wolf-1",
+        "subject": "Wolf",
+        "property": "lebensraum",
+        "value": "Nebelwald von Testland",
+        "source": "synthetic-test",
+        "confidence": 1,
+        "conflict": false,
+        "alternatives": [],
+        "created": 1700000000000,
+        "updated": 1700000000000
+      }
+    ]
+  },
+  "topics": {
+    "version": 1,
+    "records": []
+  }
+}

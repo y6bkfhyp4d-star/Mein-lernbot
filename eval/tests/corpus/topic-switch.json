@@ -1,0 +1,57 @@
+[
+  {
+    "name": "pronoun without reference",
+    "steps": [
+      {
+        "question": "Und wo lebt es?",
+        "contains": "NERYX · RÜCKFRAGE",
+        "lastSubject": null,
+        "excludes": "Nebelwald von Testland"
+      }
+    ]
+  },
+  {
+    "name": "pronoun after known subject",
+    "steps": [
+      {
+        "question": "Wo lebt der Wolf?",
+        "contains": "Nebelwald von Testland",
+        "lastSubject": "wolf"
+      },
+      {
+        "question": "Und wo lebt es?",
+        "contains": "Nebelwald von Testland",
+        "lastSubject": "wolf",
+        "excludes": "NERYX · RÜCKFRAGE"
+      },
+      {
+        "question": "In welchem Land lebt es?",
+        "contains": "Nebelwald von Testland",
+        "lastSubject": "wolf"
+      }
+    ]
+  },
+  {
+    "name": "explicit unknown topic clears prior reference",
+    "steps": [
+      {
+        "question": "Wo lebt der Wolf?",
+        "contains": "Nebelwald von Testland",
+        "lastSubject": "wolf"
+      },
+      {
+        "question": "Wo lebt das Okapi?",
+        "allowTeaching": true,
+        "contains": "Dazu kenne ich noch keine bestätigte Antwort.",
+        "lastSubject": null,
+        "excludes": "Nebelwald von Testland"
+      },
+      {
+        "question": "Und wo lebt es?",
+        "contains": "NERYX · RÜCKFRAGE",
+        "lastSubject": null,
+        "excludes": "Nebelwald von Testland"
+      }
+    ]
+  }
+]

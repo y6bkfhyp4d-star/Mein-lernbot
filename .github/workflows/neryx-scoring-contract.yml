@@ -1,0 +1,103 @@
+name: NERYX - Scoring Contract Dummy CI
+on:
+  push:
+    branches:
+      - neryx/s2-retrieval-scoring
+    paths:
+      - 'sw.js'
+      - 'eval/tests/service-worker-recovery.test.mjs'
+      - 'modules/learning-coordinator.js'
+      - 'modules/learning-hub.js'
+      - 'antwort-ki.js'
+      - 'eval/tests/answer-conflict-gate.test.mjs'
+      - 'eval/tests/conflict-history-display.test.mjs'
+      - 'eval/tests/structured-knowledge.test.mjs'
+      - 'app.js'
+      - 'eval/tests/app-answer-routing.test.mjs'
+      - 'modules/topic-learning.js'
+      - 'eval/tests/knowledge-homeland.test.mjs'
+      - 'modules/orchestrator.js'
+      - 'eval/tests/orchestrator-offline.test.mjs'
+      - 'eval/tests/orchestrator-knowledge-gate.test.mjs'
+      - 'modules/math-verifier.js'
+      - 'eval/check-contract.mjs'
+      - 'eval/capture-contract.mjs'
+      - 'eval/browser-capture.html'
+      - 'eval/browser-boundary.html'
+      - 'eval/browser-boundary.js'
+      - 'eval/browser-boundary-core.mjs'
+      - 'eval/tests/browser-boundary.test.mjs'
+      - 'eval/browser-negative.html'
+      - 'eval/browser-negative-frame.html'
+      - 'eval/browser-negative.js'
+      - 'eval/browser-negative-core.mjs'
+      - 'eval/tests/browser-negative.test.mjs'
+      - 'eval/browser-capture.js'
+      - 'eval/browser-capture-core.mjs'
+      - 'eval/browser-capture-audit.mjs'
+      - 'eval/tests/browser-capture-audit.test.mjs'
+      - 'eval/tests/browser-capture.test.mjs'
+      - 'eval/tests/capture-contract.test.mjs'
+      - 'eval/tests/check-contract.test.mjs'
+      - 'eval/retrieval-score.mjs'
+      - 'eval/run-l1.mjs'
+      - 'eval/integration-score.mjs'
+      - '.github/workflows/neryx-scoring-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify natural answers never assert conflicted facts
+        run: node --test eval/tests/answer-conflict-gate.test.mjs
+      - name: Verify historical conflicts are visible without storage writes
+        run: node --test eval/tests/conflict-history-display.test.mjs
+      - name: Verify knowledge-first homeland questions with synthetic data
+        run: node --test eval/tests/knowledge-homeland.test.mjs
+      - name: Verify typed knowledge states and conflict safety
+        run: node --test eval/tests/structured-knowledge.test.mjs
+      - name: Verify shared real app answer routing and model gate
+        run: node --test eval/tests/app-answer-routing.test.mjs
+      - name: Guard related knowledge with a model tripwire
+        run: node --test eval/tests/orchestrator-knowledge-gate.test.mjs
+      - name: Verify offline chat routing and local greetings
+        run: node --test eval/tests/orchestrator-offline.test.mjs
+      - name: Prevent service-worker fallback cache poisoning using dummy pages
+        run: node --test eval/tests/service-worker-recovery.test.mjs
+      - name: Validate fixed negative dimensions and all dummy boundary inputs
+        run: node --test eval/tests/browser-boundary.test.mjs
+      - name: Verify isolated negative dummy cases using real NERYX modules
+        run: node --test eval/tests/browser-negative.test.mjs
+      - name: Verify pinned source bytes and browser storage audit with dummy data
+        run: node --test eval/tests/browser-capture-audit.test.mjs
+      - name: Check actual deterministic NERYX path and browser-to-Node dummy format
+        run: node --test eval/tests/browser-capture.test.mjs
+      - name: Check offline capture contract using synthetic data only
+        run: node --test eval/tests/capture-contract.test.mjs
+      - name: Check fail-closed scoring rules
+        run: node --test eval/tests/check-contract.test.mjs
+      - name: Check integration regression tests
+        run: node --test eval/tests/integration-score.test.mjs
+      - name: Reproduce L1 baseline without changing known failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          node eval/run-l1.mjs --strict > "$RUNNER_TEMP/neryx-l1-contract.json"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/neryx-l1-contract.json","utf8"));
+            const known=["ret01","ret02","dis01","dis02","hard01","hard02","rev04"];
+            const bad=r.results.filter(x=>!x.pass).map(x=>x.id);
+            if(r.summary.passed!==14||r.summary.total!==21||
+               r.summary.newRegressions!==0||r.summary.unexpectedPasses!==0||
+               JSON.stringify(bad)!==JSON.stringify(known))
+               throw Error("L1-Baseline verändert.");
+            console.log("L1 baseline verified: 14/21.");
+          '
