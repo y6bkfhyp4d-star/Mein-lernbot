@@ -1,0 +1,24 @@
+name: NERYX Bridge No-WebGPU Safety
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/local-model-bridge.js'
+      - '.github/workflows/neryx-bridge-no-webgpu.yml'
+permissions:
+  contents: read
+jobs:
+  bridge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify no WebGPU failure preserves unloaded and disabled state
+        run: |
+          node --test --test-name-pattern="Sprachmodell-Bridge: Opt-in, kein automatischer Download bei Start und kein ungeprüfter Auto-Modus" tests/neryx-smoke.test.mjs
