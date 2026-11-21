@@ -14,7 +14,11 @@ const types=[
   /^wo (?:kommt|kommen) (.+) vor$/,
   /^in welchem land ist (.+) heimisch$/,
   /^in welchem land (?:lebt|leben) (.+)$/,
-  /^in welcher region ist (.+) heimisch$/]],
+  /^in welcher region ist (.+) heimisch$/,
+  /^in welchem land (?:kommt|kommen) (.+) vor$/,
+  /^in welcher region (?:lebt|leben) (.+)$/,
+  /^wo ist (.+) heimisch$/,
+  /^wo (?:findet man|gibt es) (.+)$/]],
  ['definition',[
   /^was ist (.+)$/, /^was sind (.+)$/,
   /^was bedeutet (.+)$/, /^was versteht man unter (.+)$/,
