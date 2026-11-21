@@ -44,6 +44,28 @@ function decide(input){
 }
 // Strukturierte, lesende Auskunft. Eine unbekannte Frageform ist kein Themenbeweis.
 function lookup(input){
+ const check=window.NERYXTopicLearning?.parseLocationCheck?.(input);
+ if(check){
+  const all=window.NERYXLearningHub?.collect()?.claims||[];
+  const sub=clean(check.subject),same=all.filter(c=>clean(c.subject)===sub);
+  const matches=same.filter(c=>c.property==='lebensraum');
+  if(!matches.length)return {status:same.length?'entity_known_no_attribute':'no_match',
+   text:null,subject:sub,property:'lebensraum'};
+  const values=[...new Set(matches.flatMap(c=>[fold(c.value),...(
+   c.conflict&&Array.isArray(c.alternatives)?c.alternatives.map(a=>fold(a.value)).filter(Boolean):[]
+  )]))];
+  if(matches.some(c=>c.conflict)||values.length>1)
+   return {status:'conflict',subject:sub,property:'lebensraum',
+    text:'NERYX · WISSENSKONFLIKT\nZum Lebensraum von „'+sub+
+     '“ liegen widersprüchliche Angaben vor. Keine Ja/Nein-Aussage möglich.\n'+
+     matches.map(c=>'• '+c.value+' | Quelle: '+c.origin+' ('+c.source+')').join('\n')};
+  return {status:'related',subject:sub,property:'lebensraum',
+   text:'NERYX · ORTSPRÜFUNG\nGespeicherter Lebensraum: '+matches[0].value+
+    '\nQuelle: '+matches.map(c=>c.origin+' ('+c.source+')').filter((v,i,a)=>a.indexOf(v)===i).join('; ')+
+    '\nGefragter Ort: '+check.place+(check.negated?' (verneinte Frage)':'')+
+    '\nAus der gespeicherten Angabe allein lässt sich diese Ja/Nein-Frage nicht sicher entscheiden. Keine Bestätigung oder Verneinung.'+
+    '\nDie gespeicherte Angabe wurde nicht unabhängig verifiziert.'};
+ }
  const parsed=window.NERYXTopicLearning?.parse(input);
  if(!parsed||parsed.subject.length<2)return {status:'no_match',text:null,subject:null,property:null};
  const claims=window.NERYXLearningHub?.collect()?.claims||[];
