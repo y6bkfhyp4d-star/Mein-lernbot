@@ -90,6 +90,9 @@ test('Short pronoun follow-up reuses only a previously matched explicit subject 
  const next=await window.routeAnswer('Und wo lebt es?',{allowTeaching:true});
  assert.match(next,/WISSENSKONFLIKT/);
  assert.match(next,/Testland und Steppe/);
+ const country=await window.routeAnswer('In welchem Land lebt es?',{allowTeaching:true});
+ assert.match(country,/WISSENSKONFLIKT/);
+ assert.match(country,/Testland und Steppe/);
  assert.equal(calls.model,0);
 });
 
