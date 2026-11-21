@@ -12,8 +12,12 @@ on:
 permissions:
   contents: read
 jobs:
-  chromium-offline:
+  browser-offline:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +28,8 @@ jobs:
         run: |
           npm init -y >/dev/null
           npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run real-browser offline smoke
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
         run: node eval/browser-offline-smoke.mjs
