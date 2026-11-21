@@ -38,3 +38,25 @@ test('Overview with mixed properties must not state conflicted value as fact',()
 test('Similar subject is not treated as conflicted',()=>{
  assert.equal(make([main])('Was weißt du über Quendelkraut?'),null);
 });
+
+test('New question must not borrow previous Quendel context for Marsdurchmesser',()=>{
+ const window={};
+ runInNewContext(source,{window,console:{log(){}}});
+ const result=window.LernBotAntwortKI.answer('Wie groß ist der Marsdurchmesser?',{
+  facts:[main],documents:[],context:{subject:'Quendel',property:'lebensraum'}
+ });
+ assert.equal(result,null);
+});
+test('Explicit same subject still finds its facts; genuine pronoun may use context',()=>{
+ const facts=[{subject:'Mars',property:'durchmesser',value:'6.779 Kilometer',source:'user'}];
+ const window={};
+ runInNewContext(source,{window,console:{log(){}}});
+ const explicit=window.LernBotAntwortKI.answer('Welchen Durchmesser hat Mars?',{
+  facts,documents:[],context:{subject:'Quendel'}
+ });
+ assert.match(explicit.text,/6.779 Kilometer/);
+ const pronoun=window.LernBotAntwortKI.answer('Wie groß ist sein Durchmesser?',{
+  facts,documents:[],context:{subject:'Mars'}
+ });
+ assert.match(pronoun.text,/6.779 Kilometer/);
+});
