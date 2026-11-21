@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "2. Hauptsatz der Thermodynamik",
-    "Absolute Temperatur",
-    "Ablenkspule",
-    "Abschirmung (Elektrotechnik)",
-    "Afrika",
-    "Amazonasbecken",
-    "-logie",
-    "Abraham Gottlob Werner",
     "Absorptionsspektrum",
     "Agatha von Catania",
     "1946",
@@ -89,7 +81,15 @@
     "Alkene",
     "Antarafacial",
     "Aggressivität",
-    "Altgriechische Sprache"
+    "Altgriechische Sprache",
+    "Abgeschlossenes System (Thermodynamik)",
+    "Absoluter Nullpunkt",
+    "Abwärme",
+    "Ampere",
+    "Ablenkmagnet",
+    "Ablenkplatte",
+    "Acrylnitril-Butadien-Styrol",
+    "Audioverstärker"
   ],
   "entries": [
     {
@@ -731,6 +731,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Achluophobie"
+    },
+    {
+      "collected_at": "2026-11-21T09:03:40+00:00",
+      "excerpt": "Der Zweite Hauptsatz der Thermodynamik trifft auf der Basis von Beobachtungen die Aussage, dass Wärme zwischen zwei makroskopischen Systemen stets spontan – also ohne äußeren Antrieb – vom wärmeren zum kälteren System fließt, aber nicht umgekehrt. Er wurde von Rudolf Clausius 1850 formuliert und ist nicht axiomatisch bewiesen. Aus dem zweiten Hauptsatz der Thermodynamik lassen sich weitere äquivalente Aussagen über die Richtung von Prozessen und das Prinzip der Irreversibilität ableiten. In mikroskopischen Systemen gilt dies nur eingeschränkt. Aus dem Zweiten Hauptsatz lassen sich die Definition der thermodynamischen Temperatur und dabei zugleich die Zustandsgröße der Entropie herleiten. Ebenso folgt daraus die Unterscheidung von Exergie und Anergie und die Tatsache, dass der Wirkungsgrad einer Wärmekraftmaschine den Carnot-Wirkungsgrad n",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Zweiter_Hauptsatz_der_Thermodynamik",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Zweiter Hauptsatz der Thermodynamik"
+    },
+    {
+      "collected_at": "2026-11-21T09:03:40+00:00",
+      "excerpt": "Thermodynamische Temperatur ist die Temperaturskala, die sich auf den absoluten Nullpunkt bezieht und dort den Wert null hat. Sie wird auch als absolute Temperatur bezeichnet. Im Internationalen Einheitensystem (SI) wird sie in der Einheit Kelvin gemessen; in den USA wird auch die Rankine-Skala verwendet. Anders als die Alltag gebräuchliche Celsius-Temperatur hat die thermodynamische Temperatur keinen willkürlich festgelegten, sondern einen physikalisch begründeten Nullpunkt. Die thermodynamische Temperatur ist bei einem klassischen idealen Gas proportional zu seiner inneren Energie. Wenn in grundlegenden physikalischen Formeln die „Temperatur“ vorkommt, handelt es sich um die thermodynamische Temperatur.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Thermodynamische_Temperatur",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Thermodynamische Temperatur"
+    },
+    {
+      "collected_at": "2026-11-21T09:03:40+00:00",
+      "excerpt": "Ablenkspulen dienen der Richtungsablenkung bewegter geladener Teilchen mittels magnetischer Felder. Es sind spezielle Elektromagnete. Die Teilchen (Ionen, Elektronen, Positronen usw.) werden mit Ablenkspulen entsprechend der Lorentzkraft senkrecht zu den Magnetfeldlinien aus ihrer ansonsten geraden Bahn gelenkt. Ablenkspulen und daraus gefertigte Ablenksysteme dienen u. a.: in Bildröhren wie sie in historischen Fernsehgeräten und Monitoren verwendet wurden, um den Elektronenstrahl über den Bildschirm zu lenken in Teilchenbeschleunigern als Ablenkmagnet, um bestimmte Elementarteilchen zu trennen, auf bestimmte Versuchsstationen oder Bahnen zu lenken in Nebelkammern, um geladene von ungeladenen Teilchen unterscheiden zu können in Elektronenmikroskopen und Elektronenstrahlschweißanlagen zur Fokussierung und zur Strahlablenkung des Elektronen",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Ablenkspule",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Ablenkspule"
+    },
+    {
+      "collected_at": "2026-11-21T09:03:40+00:00",
+      "excerpt": "Die Abschirmung elektrotechnischer Geräte, Einrichtungen und Räume dient dazu, insbesondere bei höheren Frequenzen auftretende elektrische und/oder magnetische Felder von diesen fernzuhalten oder umgekehrt die Umgebung vor den von der Einrichtung ausgehenden Feldern zu schützen. Da Elektromagnetische Wellen sowohl eine magnetische als auch eine elektrische Komponente besitzen, müssen diese ebenfalls häufig abgeschirmt werden, um deren Abstrahlung oder Einstrahlung zu verhindern oder zu verringern. Abschirmungen dienen dazu, die Elektromagnetische Verträglichkeit zu verbessern und darüber hinaus die störungsfreie Signalgewinnung, -übertragung und -verarbeitung zu sichern. Insbesondere bei Leitungen schützen Abschirmungen auch gegen die unerwünschte gegenseitige Beeinflussung (Übersprechen) eigentlich unabhängiger Signalkanäle. Die Wirkung",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abschirmung_%28Elektrotechnik%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abschirmung (Elektrotechnik)"
     }
   ],
   "failed_titles": [
@@ -979,6 +1019,19 @@
         "Achluophobie"
       ],
       "time": "2026-11-21T03:02:40+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Zweiter Hauptsatz der Thermodynamik",
+        "Thermodynamische Temperatur",
+        "Ablenkspule",
+        "Abschirmung (Elektrotechnik)"
+      ],
+      "time": "2026-11-21T09:03:40+00:00"
     }
   ],
   "schema": 1
