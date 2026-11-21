@@ -1225,16 +1225,25 @@ test('Gesamt-KI 2.0: Modell-Erklärung ist ungeprüft; Fachberechnungen haben Vo
  const window={};
  for(const name of ['modules/neryx-reasoner.js','modules/rule-patterns.js','modules/math-verifier.js','modules/system-hub.js','modules/orchestrator.js'])
   runInNewContext(read(name),{window});
- let calls=0;
- window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return 'Das ist eine kurze Erklärung.';}};
+ let calls=0,reply='Das ist eine kurze Erklärung.';
+ window.NERYXLocalModel={info:()=>({loaded:true}),askRaw:async()=>{calls++;return reply;}};
  const orchestrator=window.NERYXOrchestrator;
  const area='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch.';
  assert.match(await orchestrator.solve(area),/Ergebnis: 150 m²/);
- assert.equal(calls,0);
- assert.match(await orchestrator.solve('Erkläre den Unterschied zwischen Theorie und Hypothese.',{knowledge:async()=>null}),/unverifiziert/);
- assert.equal(calls,1);
+ assert.equal(calls,0,'Eine geprüfte Wandfläche darf keinen Modellaufruf auslösen');
+ const question='Erkläre den Unterschied zwischen Theorie und Hypothese.';
+ const rejected=await orchestrator.solve(question,{knowledge:async()=>null});
+ assert.match(rejected,/ANTWORTKONTROLLE/);
+ assert.match(rejected,/keine ausreichende Erklärung/);
+ assert.doesNotMatch(rejected,/LOKALES SPRACHMODELL \(unverifiziert\)/);
+ assert.equal(calls,2,'Unzureichende Antwort wird einmal nachgebessert und dann zurückgewiesen');
+ reply='Eine Theorie ist eine umfassendere wissenschaftliche Erklärung, die viele Beobachtungen zusammenfasst. Eine Hypothese ist dagegen eine konkrete, überprüfbare Annahme, die man mit Messungen testen kann. Beispielsweise kann ein Maler zunächst vermuten, dass eine Grundierung die Haftung verbessert; anschließend vergleicht er zwei Testflächen.';
+ const explained=await orchestrator.solve(question,{knowledge:async()=>null});
+ assert.match(explained,/LOKALES SPRACHMODELL \(unverifiziert\)/);
+ assert.match(explained,/nicht unabhängig überprüft/);
+ assert.equal(calls,3,'Ausreichende Antwort braucht keinen zweiten Versuch');
  assert.match(await orchestrator.solve('Was ist ein Okapi?',{knowledge:async()=> 'Ein Säugetier.'}),/Säugetier/);
- assert.equal(calls,1);
+ assert.equal(calls,3,'Bekanntes lokales Wissen hat vor dem Modell Vorrang');
 });
 test('Modellwechsel 0,5B zu 1,5B ist explizit und lädt kein Modell automatisch',()=>{
  const window={},navigator={gpu:{}},
