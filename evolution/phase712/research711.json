@@ -1,8 +1,8 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(2+2)-Cycloaddition",
-    "2,6-Diaminopurin",
+    "Ablenkspule",
+    "Abschirmung (Elektrotechnik)",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
@@ -10,7 +10,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-21T04:32:16+00:00",
+      "checked_at": "2026-11-21T10:25:38+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T04:32:16+00:00",
+      "checked_at": "2026-11-21T10:25:38+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T04:32:16+00:00",
+      "checked_at": "2026-11-21T10:25:38+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -76,7 +76,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T04:32:16+00:00",
+      "checked_at": "2026-11-21T10:25:38+00:00",
       "claims": [],
       "diagnostics": {
         "keine_klare_klassifikation": 1,
@@ -295,6 +295,40 @@
       "status": "subjekt_nicht_erkannt",
       "title_resolution": "direkter_titel",
       "topic": "Abklingbecken",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T10:25:38+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 5
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Ablenkspule",
+      "question": "Was ist Ablenkspule und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=235385",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Ablenkspule",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T10:25:38+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 6
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "Abschirmung (Elektrotechnik)",
+      "question": "Was ist Abschirmung (Elektrotechnik) und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=1112032",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "Abschirmung (Elektrotechnik)",
       "verified_correction": false
     },
     {
@@ -1202,6 +1236,23 @@
       "topics_with_claims": 2,
       "unresolved_topics": [
         "(2+2)-Cycloaddition",
+        "(1) Ceres",
+        "(136108) Haumea",
+        "(2) Pallas"
+      ]
+    },
+    {
+      "at": "2026-11-21T10:25:38+00:00",
+      "claims": 1,
+      "errors": 0,
+      "new_extractor_same_pages": 1,
+      "old_extractor_same_pages": 1,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 1,
+      "unresolved_topics": [
+        "Ablenkspule",
+        "Abschirmung (Elektrotechnik)",
         "(1) Ceres",
         "(136108) Haumea",
         "(2) Pallas"
