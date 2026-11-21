@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "A*-Algorithmus",
-    "A.I. (Lied)",
-    "A priori",
-    "Aktienmarkt",
-    "(103) Hera",
-    "(3) Juno",
-    "(2060) Chiron",
-    "Albedo",
     "(120178) 2003 OP32",
     "(145453) 2005 RR43",
     "(120347) Salacia",
@@ -89,7 +81,15 @@
     "18. Jahrhundert",
     "19. Jahrhundert",
     "AMD Radeon",
-    "Asus"
+    "Asus",
+    "15-Puzzle",
+    "Algorithmus von Floyd und Warshall",
+    "A.I. – Künstliche Intelligenz",
+    "A Hard Lesson",
+    "A posteriori",
+    "A priori (Begriffsklärung)",
+    "Aktie",
+    "Aktienbörse"
   ],
   "entries": [
     {
@@ -811,6 +811,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "ASRock"
+    },
+    {
+      "collected_at": "2026-11-21T20:57:30+00:00",
+      "excerpt": "Der A*-Algorithmus („A Stern“ oder englisch „a star“, auch A*-Suche) gehört zur Klasse der informierten Suchalgorithmen. Er dient in der Informatik der Berechnung eines kürzesten Pfades zwischen zwei Knoten in einem Graphen mit positiven Kantengewichten. Er wurde das erste Mal 1968 von Peter Hart, Nils J. Nilsson und Bertram Raphael beschrieben. Der Algorithmus gilt als Verallgemeinerung und Erweiterung des Dijkstra-Algorithmus, in vielen Fällen kann aber umgekehrt A* auch auf Dijkstra reduziert werden. Im Gegensatz zu uninformierten Suchalgorithmen verwendet der A*-Algorithmus eine Schätzfunktion (Heuristik), um zielgerichtet zu suchen und damit die Laufzeit zu verringern. Der Algorithmus ist vollständig und optimal. Das heißt, dass immer eine optimale Lösung gefunden wird, falls eine existiert.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/A%2A-Algorithmus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "A*-Algorithmus"
+    },
+    {
+      "collected_at": "2026-11-21T20:57:30+00:00",
+      "excerpt": "A.I. ist ein Lied der der US-amerikanischen Pop-Rock-Band OneRepublic und des britischen Singer-Songwriters und Rockmusikers Peter Gabriel aus dem Jahr 2016.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/A.I._%28Lied%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "A.I. (Lied)"
+    },
+    {
+      "collected_at": "2026-11-21T20:57:30+00:00",
+      "excerpt": "Der Terminus a priori (mittellateinisch a ‚von … her‘ und prius ‚das vordere, frühere, erste [von zweien]‘) wurde in der scholastischen Philosophie als Übersetzung der aristotelischen Unterscheidung zwischen „proteron“ und „hysteron“ verwendet (Bedingung und Bedingtes). Der Ausdruck tritt von dort im 16. Jahrhundert als Syntagma in die deutsche Fachsprache ein. In der neueren Philosophie bezeichnet der Ausdruck eine erkenntnistheoretische Eigenschaft an Urteilen: Urteile a priori können ohne Basis der Erfahrung (Empirie) gefällt werden, sie sind Bedingungen der Erfahrung oder aus diesen abgeleitet. Im Gegensatz dazu stehen Urteile a posteriori. Im Allgemeinen gelten alle analytischen Urteile als a priori. Ihre urteilstheoretische Bedeutung haben die Begriffe a priori und a posteriori seit Mitte des 17. Jahrhunderts, spätestens aber seit I",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/A_priori",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "A priori"
+    },
+    {
+      "collected_at": "2026-11-21T20:57:30+00:00",
+      "excerpt": "Der Aktienmarkt (englisch stock market) ist ein Marktsegment des Kapitalmarkts, das den börslichen und außerbörslichen Handel mit Aktien umfasst. Komplementärbegriff ist der Rentenmarkt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aktienmarkt",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aktienmarkt"
     }
   ],
   "failed_titles": [
@@ -1085,6 +1125,19 @@
         "ASRock"
       ],
       "time": "2026-11-21T15:04:04+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "A*-Algorithmus",
+        "A.I. (Lied)",
+        "A priori",
+        "Aktienmarkt"
+      ],
+      "time": "2026-11-21T20:57:30+00:00"
     }
   ],
   "schema": 1
