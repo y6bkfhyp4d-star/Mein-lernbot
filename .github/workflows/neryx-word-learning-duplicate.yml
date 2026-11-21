@@ -1,0 +1,24 @@
+name: NERYX duplicate word-learning safety
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/word-learning.js'
+      - '.github/workflows/neryx-word-learning-duplicate.yml'
+permissions:
+  contents: read
+jobs:
+  duplicate-learning:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test duplicate training and unchanged storage
+        run: |
+          node --test --test-name-pattern="Sprachmuster-Lernen: Doppeltraining und falsche Beispiele ablehnen" tests/neryx-smoke.test.mjs
