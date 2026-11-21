@@ -1,11 +1,5 @@
 {
   "discovered_queue": [
-    "Adalbert W. A. Pauldrach",
-    "2,6-Diaminopurin",
-    "(2+2)-Cycloaddition",
-    "1,3-Dipole",
-    "Achluophobie",
-    "Adaptation (Auge)",
     "2. Hauptsatz der Thermodynamik",
     "Absolute Temperatur",
     "Ablenkspule",
@@ -89,7 +83,13 @@
     "ADULT.",
     "Erwachsener",
     "1,3-Propandiol",
-    "Abkalben"
+    "Abkalben",
+    "Adenin",
+    "Aggregatzustand",
+    "Alkene",
+    "Antarafacial",
+    "Aggressivität",
+    "Altgriechische Sprache"
   ],
   "entries": [
     {
@@ -701,11 +701,42 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "1,2-Propandiol"
+    },
+    {
+      "collected_at": "2026-11-21T03:02:40+00:00",
+      "excerpt": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst. Es gehört zu den Purin-Nukleinbasen. Diaminopurin (Z) geht eine ideale Basenpaarung mit Thymin (T) ein, da es sich wie Adenin (A) verhält. Es hat eine zusätzliche Aminogruppe an Position 2, so dass nun drei intramolekulare Wasserstoffbrücken gebildet werden können. Im Cyanophagen S-2L (informelle Gattung Cyanostylovirus, Caudoviricetes vom Morphotyp der Siphoviren) wird Diaminopurin anstelle von Adenin verwendet (host evasion ‚Wirtsumgehung‘, eine Art von nicht erworbener, sondern angeborener Immunantwort). Durch das Paarungsverhalten von Diaminopurin wird der Hauptunterschied zwischen den beiden Arten von Basenpaaren (schwach: A-T und stark: C-G) eliminiert. Drei Arbeiten, die 2021 zusammen veröffentlicht wurden, identifizieren und beschreiben Pro",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/2%2C6-Diaminopurin",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "2,6-Diaminopurin"
+    },
+    {
+      "collected_at": "2026-11-21T03:02:40+00:00",
+      "excerpt": "Eine [2+2]-Cycloaddition (auch 1,2-Cycloaddition) ist die photochemische Bildung von Cyclobutan bzw. Cyclobutan-Derivaten aus Alkenen, die eine aktivierte Doppelbindung aufweisen. Dazu zählen Ketene, Allene, Zimtsäuren, sowie mit Fluor oder Chlor und Fluor substituierte Derivate des Ethylens. Die Stereochemie lässt sich mithilfe der Woodward-Hoffmann-Regeln über die Orbitalsymmetrie voraussagen. Man unterscheidet hier grundsätzlich zwischen thermisch erlaubten und photochemisch erlaubten [2+2]-Cycloadditionen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%282%2B2%29-Cycloaddition",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(2+2)-Cycloaddition"
+    },
+    {
+      "collected_at": "2026-11-21T03:02:40+00:00",
+      "excerpt": "Die Achluophobie (auch: Nyktophobie von altgriechisch: νύξ, νυκτός (nýx, nyktós) f. – die Nacht, Skotophobie (von σκότος, σκότου m. (skótos) – Dunkelheit) oder Lygophobie (λύγη f. (lýgē) – Zwielicht)) ist eine phobische Störung mit übersteigerter Angst vor Dunkelheit. Der Name leitet sich von altgriechisch: ἀχλύς, ἀχλύος f. (achlýs, Gen. achlýos) – Nebel her, das auch Dämmerung bedeutet. In der Regel besteht die Angst nicht vor der Dunkelheit an sich, sondern vor möglichen oder eingebildeten Gefahren, die damit verbunden werden. Die Betroffenen vermeiden es, nachts auszugehen, sie meiden die Dämmerung und dunkle Räume, ziehen abends die Vorhänge zu, um nicht versehentlich in die Dunkelheit zu schauen und versuchen, ständig Licht zur Verfügung zu haben. Oft wird die Angst vor Dunkelheit wie beiläufig nur mit kleinen Kindern in Verbindung g",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Achluophobie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Achluophobie"
     }
   ],
   "failed_titles": [
     "Neurales Netz",
-    "Adalbert W. A. Pauldrach"
+    "Adalbert W. A. Pauldrach",
+    "1,3-Dipole"
   ],
   "runs": [
     {
@@ -934,6 +965,20 @@
         "1,2-Propandiol"
       ],
       "time": "2026-11-20T21:07:04+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [
+        "1,3-Dipole: kein geeigneter Artikel"
+      ],
+      "errors": 1,
+      "new_titles": [
+        "2,6-Diaminopurin",
+        "(2+2)-Cycloaddition",
+        "Achluophobie"
+      ],
+      "time": "2026-11-21T03:02:40+00:00"
     }
   ],
   "schema": 1
