@@ -1124,12 +1124,24 @@ test('Rechenprüfer erkennt die Malerfrage und verlangt klare Maße',()=>{
  assert.match(verifier.solve(q+' Fenster abziehen.'),/fehlen hier überprüfbare Angaben/);
  assert.equal(verifier.solve('Was ist ein Okapi?'),null);
 });
-test('Verifizierte Wandfläche kommt im Hauptchat und KI-Brücke vor ungeprüfter Generierung',()=>{
+test('Verifizierte Wandfläche kommt im Hauptchat und KI-Brücke vor ungeprüfter Generierung',async()=>{
  assert.match(app,/const arithmetic=window\.NERYXMathVerifier\?\.solve\(s\);if\(arithmetic\)return arithmetic/);
  assert.match(app,/NERYXMathVerifier\?\.solve\(v\)/);
  const bridge=read('modules/local-model-bridge.js');
  assert.match(bridge,/const verified=window\.NERYXMathVerifier\?\.solve\(s\)/);
- assert.ok(bridge.indexOf('const verified=')<bridge.indexOf('const answer=await client.ask(s)'));
+ const isolated={};let verifiedCalls=0;
+ const noGpu={gpu:null},doc={baseURI:'https://example.test/Mein-lernbot/',currentScript:{src:'https://example.test/Mein-lernbot/modules/local-model-bridge.js'}};
+ runInNewContext(read('modules/math-verifier.js'),{window:isolated});
+ const realVerifier=isolated.NERYXMathVerifier;
+ isolated.NERYXMathVerifier={solve(s){verifiedCalls++;return realVerifier.solve(s)}};
+ runInNewContext(bridge,{window:isolated,navigator:noGpu,document:doc,URL});
+ const q='Ein Maler hat 3 Räume mit jeweils 4 Wänden. Jede Wand ist 5 Meter breit und 2,5 Meter hoch. Wie viel Wandfläche ist zu streichen?';
+ const wall=await isolated.NERYXLocalModel.ask(q);
+ assert.match(wall,/Ergebnis: 150 m²/);
+ assert.doesNotMatch(wall,/LOKALES SPRACHMODELL|WebGPU/);
+ assert.equal(verifiedCalls,1,'Bridge fragt zuerst den verifizierten Rechenkern');
+ assert.equal(isolated.NERYXLocalModel.info().loaded,false,'Keine Modellladung bei geprüfter Wandfläche');
+ assert.equal(isolated.NERYXLocalModel.info().connecting,false,'Kein Download für eine geprüfte Wandfläche');
  assert.match(html, /src="modules\/math-verifier\.js"/);
  assert.match(read('modules/system-hub.js'),/NERYXMathVerifier/);
 });
