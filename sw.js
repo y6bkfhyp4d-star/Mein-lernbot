@@ -8,7 +8,9 @@ const inScope=url=>url.origin===scope.origin&&url.pathname.startsWith(scope.path
 const isHome=url=>inScope(url)&&!url.search&&!url.hash&&
  (url.pathname===home.pathname||url.pathname===index.pathname);
 const isAsset=url=>inScope(url)&&!url.search&&!url.hash&&
- url.pathname.endsWith('.js')&&url.pathname!==new URL('./sw.js',scope).pathname;
+ ((url.pathname.endsWith('.js')&&url.pathname!==new URL('./sw.js',scope).pathname)||
+  url.href===new URL('./manifest.webmanifest',scope).href||
+  url.href===new URL('./icon-192.png',scope).href);
 const fetchFresh=async req=>fetch(req,{cache:'no-store'});
 async function cacheApp(){
  const page=await fetchFresh(index.href);
@@ -16,8 +18,9 @@ async function cacheApp(){
  const html=await page.clone().text();
  // Kein fremdes HTML, keine Testseiten. Ausschließlich lokale Skripte aus index.html.
  const refs=[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(m=>m[1]);
- const urls=[...new Set(refs.map(ref=>new URL(ref,index.href)).filter(isAsset).map(u=>u.href))];
- if(!urls.length||urls.length!==refs.length)throw Error('Offline-Skriptmanifest nicht vollständig lokal.');
+ const extras=[...html.matchAll(/<link\b[^>]*\bhref=["'](manifest\.webmanifest|icon-192\.png)["'][^>]*>/gi)].map(m=>m[1]);
+ const urls=[...new Set([...refs,...extras].map(ref=>new URL(ref,index.href)).filter(isAsset).map(u=>u.href))];
+ if(!urls.length||urls.length!==refs.length+extras.length)throw Error('Offline-Startdateien nicht vollständig lokal.');
  const staged=await Promise.all(urls.map(async url=>{
   const response=await fetchFresh(url);
   if(!response.ok||response.redirected||response.url&&response.url!==url)
