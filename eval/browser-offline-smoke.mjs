@@ -22,12 +22,27 @@ try{
  browser=await chromium.launch({headless:true});
  const context=await browser.newContext({serviceWorkers:'allow'});
  const page=await context.newPage();
- const errors=[];
+ const errors=[],diagnostics=[];
  page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')diagnostics.push('console: '+m.text())});
+ page.on('requestfailed',r=>diagnostics.push('request: '+r.url()+' '+r.failure()?.errorText));
+ context.on('serviceworker',w=>{diagnostics.push('worker: '+w.url());w.on('console',m=>diagnostics.push('worker-console: '+m.text()))});
  await page.goto(origin+'/index.html',{waitUntil:'load',timeout:20000});
- await page.evaluate(async()=>{
-  await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(Error('SW ready timed out')),20000))]);
- });
+ try{
+  await page.evaluate(async()=>{
+   await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(Error('SW ready timed out')),12000))]);
+  });
+ }catch(e){
+  const state=await page.evaluate(async()=>({
+   swSupported:'serviceWorker' in navigator,
+   registrations:await navigator.serviceWorker.getRegistrations().then(rs=>rs.map(r=>({
+    scope:r.scope,installing:r.installing?.state||null,
+    waiting:r.waiting?.state||null,active:r.active?.state||null
+   }))),
+   caches:await caches.keys()
+  }));
+  throw Error(e.message+'; state='+JSON.stringify(state)+'; diagnostics='+JSON.stringify(diagnostics)+'; pageerrors='+JSON.stringify(errors));
+ }
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:20000});
  const cached=await page.evaluate(async()=>({
   names:await caches.keys(),
