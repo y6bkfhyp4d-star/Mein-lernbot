@@ -110,7 +110,7 @@ function knowledge(q){const direct=question(q);if(direct)return direct;const fs=
 let neryxLastSubject=null;
 async function routeAnswer(s,{allowTeaching=false}={}){
  const engine=window.NERYXOrchestrator;
- const follow=/^(?:und\s+)?(?:wo\s+(?:lebt|wohnt)|in\s+welchem\s+land\s+lebt)\s+(?:es|er|sie)\s*[?!.]?$/i.test(s.trim());
+ const follow=/^(?:und\s+)?(?:wo\s+(?:lebt|wohnt)|in\s+(?:welchem\s+land|welcher\s+region)\s+lebt)\s+(?:es|er|sie)\s*[?!.]?$/i.test(s.trim());
  if(follow){
   if(!neryxLastSubject)return 'NERYX · RÜCKFRAGE\nAuf welches Thema beziehst du dich? Bitte nenne den Namen.';
   s='Wo lebt das '+neryxLastSubject+'?';
