@@ -10,6 +10,7 @@ on:
       - 'eval/tests/knowledge-homeland.test.mjs'
       - 'modules/orchestrator.js'
       - 'eval/tests/orchestrator-offline.test.mjs'
+      - 'eval/tests/orchestrator-knowledge-gate.test.mjs'
       - 'modules/math-verifier.js'
       - 'eval/check-contract.mjs'
       - 'eval/capture-contract.mjs'
@@ -48,6 +49,8 @@ jobs:
           node-version: '22'
       - name: Verify knowledge-first homeland questions with synthetic data
         run: node --test eval/tests/knowledge-homeland.test.mjs
+      - name: Guard related knowledge with a model tripwire
+        run: node --test eval/tests/orchestrator-knowledge-gate.test.mjs
       - name: Verify offline chat routing and local greetings
         run: node --test eval/tests/orchestrator-offline.test.mjs
       - name: Prevent service-worker fallback cache poisoning using dummy pages
