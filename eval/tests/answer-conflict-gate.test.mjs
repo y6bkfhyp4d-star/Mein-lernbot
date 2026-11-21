@@ -17,6 +17,8 @@ for(const q of ['Was weißt du über Quendel?','Wo lebt Quendel?']){
  test('Conflict blocks factual lead for '+q,()=>{
   const result=make([main])(q);
   assert.match(result.text,/^NERYX · WISSENSKONFLIKT/);
+  assert.match(result.text,/WISSENSKONFLIKT\nZu diesem Thema/);
+  assert.doesNotMatch(result.text,/\\\\n/);
   assert.match(result.text,/Trockene Steppe/);
   assert.match(result.text,/Nebelwälder/);
   assert.doesNotMatch(result.text,/Quendel lebt in/);
