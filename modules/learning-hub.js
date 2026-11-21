@@ -125,7 +125,7 @@ function report(){
 // Historische Alternativen ausschließlich lesend anzeigen.
 function alternativeLines(claim){
  return (Array.isArray(claim.alternatives)?claim.alternatives:[])
-  .filter(a=>a&&typeof a.value==='string'&&a.value.trim())
+  .filter(a=>a&&typeof a.value==='string'&&a.value.trim()&&fold(a.value)!==fold(claim.value))
   .map(a=>'  Alternative (ungeprüft): '+text(a.value)+' | Herkunft: '+(text(a.source)||'unbekannt'));
 }
 function sources(q){
