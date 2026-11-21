@@ -1,0 +1,33 @@
+name: NERYX GENESIS X 0.6 independent verifier
+on:
+  pull_request:
+    branches: [neryx/genesis-x-05-chain]
+    paths:
+      - 'modules/genesis-x-verifier.js'
+      - 'eval/tests/genesis-x-verifier.test.mjs'
+      - 'docs/GENESIS_X_VERIFIER_06.md'
+      - '.github/workflows/neryx-genesis-x-06.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all isolated Genesis X components
+        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs eval/tests/genesis-x-tools-property.test.mjs eval/tests/genesis-x-logic.test.mjs eval/tests/genesis-x-router.test.mjs eval/tests/genesis-x-chain.test.mjs eval/tests/genesis-x-verifier.test.mjs
+      - name: Assert existing components are unchanged
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/genesis06-changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|modules/genesis-x(-tools|-logic|-router|-chain)?\.js|eval/frozen\.seal\.json)$' /tmp/genesis06-changed.txt; then
+            echo "Protected existing file changed"; exit 1
+          fi
