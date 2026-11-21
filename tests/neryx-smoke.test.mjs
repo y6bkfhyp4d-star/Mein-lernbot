@@ -1145,10 +1145,15 @@ test('Gemeinsame NERYX-KI priorisiert Rechenkern, lokales Wissen, danach optiona
  assert.equal(knowledgeCalls,0);
  assert.equal(await system.solve('Was ist ein Okapi?',{knowledge:async()=>{knowledgeCalls++;return 'Das Okapi ist ein Säugetier.';}}),'Das Okapi ist ein Säugetier.');
  assert.equal(modelCalls,0);
- assert.match(await system.solve('Was bedeutet die fremde Formulierung?',{knowledge:async()=> 'VERWANDTES WISSEN\nMars: Planet'}),/LOKALES SPRACHMODELL/);
- assert.equal(modelCalls,1);
+ const related=await system.solve('Was bedeutet die fremde Formulierung?',{knowledge:async()=> 'VERWANDTES WISSEN\nMars: Planet'});
+ assert.match(related,/VERWANDTES WISSEN/);
+ assert.match(related,/keine sichere Antwort/);
+ assert.match(related,/KI fragen:/);
+ assert.doesNotMatch(related,/LOKALES SPRACHMODELL/);
+ assert.equal(modelCalls,0,'verwandte Fakten dürfen keinen Modellstart auslösen');
  assert.match(system.status(),/GEMEINSAMES KI-SYSTEM/);
- assert.match(app,/NERYXOrchestrator\?\.solve\(v,\{knowledge:intelligentAnswer\}\)/);
+ assert.match(app,/async function routeAnswer\(/);
+ assert.match(app,/return engine\.solve\(s,\{knowledge:intelligentAnswer\}\)/);
  assert.match(html,/src="modules\/orchestrator\.js"/);
 });
 test('Gemeinsame NERYX-KI verlangt lokales Modell bei unbekannten Fragen und verändert keine Speicher',async()=>{

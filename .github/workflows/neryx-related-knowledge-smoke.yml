@@ -1,0 +1,23 @@
+name: NERYX Related Knowledge Safety
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/orchestrator.js'
+      - '.github/workflows/neryx-related-knowledge-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  related-knowledge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test related knowledge is clearly marked and model stays unused
+        run: node --test --test-name-pattern="Gemeinsame NERYX-KI priorisiert" tests/neryx-smoke.test.mjs
