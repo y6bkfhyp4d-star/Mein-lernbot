@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Absorptionsspektrum",
-    "Agatha von Catania",
-    "1946",
-    "ASRock",
-    "Ableitung (Logik)",
-    "Abstraktion",
-    "6Bone",
-    "ARD/ZDF-Onlinestudie",
     "A*-Algorithmus",
     "A.I. (Lied)",
     "A priori",
@@ -89,7 +81,15 @@
     "Ablenkmagnet",
     "Ablenkplatte",
     "Acrylnitril-Butadien-Styrol",
-    "Audioverstärker"
+    "Audioverstärker",
+    "Absorptionsbande",
+    "Absorptionslinie",
+    "Agathabrot",
+    "Agathazettel",
+    "18. Jahrhundert",
+    "19. Jahrhundert",
+    "AMD Radeon",
+    "Asus"
   ],
   "entries": [
     {
@@ -771,6 +771,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Abschirmung (Elektrotechnik)"
+    },
+    {
+      "collected_at": "2026-11-21T15:04:04+00:00",
+      "excerpt": "Ein Absorptionsspektrum ist ein elektromagnetisches Spektrum, das dunkle Spektrallinien enthält. Es entsteht, wenn breitbandiges (weißes) Licht Materie durchstrahlt und Lichtquanten (Photonen) bestimmter Wellenlängen oder Wellenlängenbereiche dabei absorbiert werden (Resonanzabsorption). Die absorbierten Photonen fehlen im hindurchtretenden Licht, weshalb das Spektrum bei den betreffenden Wellenlängen dunkel oder im Extremfall schwarz ist. Diese dunklen Absorptionslinien werden im Sonnenspektrum nach ihrem Entdecker Fraunhoferlinien genannt, sind aber auch im Spektrum von Sternen und vielen anderen Himmelskörpern nachweisbar. Grundsätzlich wird unterschieden zwischen Absorptionsspektren und Emissionsspektren nach der Art ihrer Entstehung, entweder Absorption oder Emission. Als Absorptionsspektrum wird eine Darstellung der Absorptionsinten",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absorptionsspektrum",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absorptionsspektrum"
+    },
+    {
+      "collected_at": "2026-11-21T15:04:04+00:00",
+      "excerpt": "Agatha von Catania (italienisch Agata, spanisch Águeda, französisch Agathe; * um 225 in Catania auf Sizilien; † um 250 ebenda) starb wahrscheinlich unter Kaiser Decius zwischen 249 und 251 als geweihte Jungfrau und Märtyrin. In den orthodoxen Kirchen und der katholischen Kirche wird sie als Heilige verehrt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Agatha_von_Catania",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Agatha von Catania"
+    },
+    {
+      "collected_at": "2026-11-21T15:04:04+00:00",
+      "excerpt": "1946, das erste Jahr nach dem Ende des Zweiten Weltkriegs, steht noch weitgehend unter dem Eindruck der gemeinsamen Schaffung einer Nachkriegsordnung für die Welt durch die Siegerkoalition der vier Alliierten. Deutlichster Ausdruck hierfür sind die Vereinten Nationen, deren Vollversammlung und Sicherheitsrat zu Beginn des Jahres ihre Arbeit aufnehmen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/1946",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "1946"
+    },
+    {
+      "collected_at": "2026-11-21T15:04:04+00:00",
+      "excerpt": "ASRock Inc. ist ein taiwanisches Unternehmen und Produzent von Mainboards, Industrie-PCs, HTPCs und weiteren PC-Komponenten mit Sitz in Taipeh. Es wurde 2002 gegründet und ist im Besitz von Pegatron.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/ASRock",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "ASRock"
     }
   ],
   "failed_titles": [
@@ -1032,6 +1072,19 @@
         "Abschirmung (Elektrotechnik)"
       ],
       "time": "2026-11-21T09:03:40+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Absorptionsspektrum",
+        "Agatha von Catania",
+        "1946",
+        "ASRock"
+      ],
+      "time": "2026-11-21T15:04:04+00:00"
     }
   ],
   "schema": 1
