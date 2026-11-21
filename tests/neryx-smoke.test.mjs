@@ -74,7 +74,7 @@ test('PWA behält die Installation bei und registriert den Update-Dienst', () =>
   const sw = read('sw.js');
   assert.ok(sw.includes('skipWaiting()'));
   assert.ok(sw.includes('clients.claim()'));
-  assert.ok(sw.includes("fetch(req, {cache:'no-store'})"));
+  assert.match(sw,/fetch\(\s*req\s*,\s*\{\s*cache\s*:\s*['"]no-store['"]\s*\}\s*\)/);
 });
 
 
