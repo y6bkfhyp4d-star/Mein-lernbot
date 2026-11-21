@@ -1,0 +1,37 @@
+[
+  {
+    "name": "two contradictory main facts",
+    "question": "Wo lebt der Wolf?",
+    "extraMain": {
+      "id": "fixture-wolf-2",
+      "subject": "Wolf",
+      "property": "lebensraum",
+      "value": "Steppenland von Testland",
+      "source": "synthetic-test-2",
+      "confidence": 1,
+      "conflict": false,
+      "alternatives": [],
+      "created": 1700000000000,
+      "updated": 1700000000000
+    },
+    "expectedOrigins": [
+      "Hauptwissen"
+    ]
+  },
+  {
+    "name": "main fact disagrees with topic learning",
+    "question": "In welchem Land ist der Wolf heimisch?",
+    "extraTopic": {
+      "key": "lebensraum|wolf",
+      "type": "lebensraum",
+      "subject": "wolf",
+      "answer": "Steppenland von Testland",
+      "question": "Wo lebt der Wolf?",
+      "source": "user-confirmed"
+    },
+    "expectedOrigins": [
+      "Hauptwissen",
+      "Themenlernen"
+    ]
+  }
+]
