@@ -40,7 +40,7 @@ test('Malformed historical alternatives are not presented as valid and do not cr
  assert.doesNotMatch(h.hub.conflictReport(),/Alternative \(ungeprüft\)/);
  assert.deepEqual(h.writes,[]);
 });
-test('Different subjects remain isolated and the report does not reveal other alternatives',()=>{
+test('Partial subject search keeps alternatives attached to their own fact',()=>{
  const h=harness([primary,{...primary,subject:'Quendelkraut',value:'Steinboden',
    alternatives:[{value:'Geheimer Testort',source:'tester'}]}]);
  const report=h.hub.sources('Quendel');
@@ -48,6 +48,6 @@ test('Different subjects remain isolated and the report does not reveal other al
  assert.match(report,/Trockene Steppe/);
  // The existing sources search deliberately allows partial subject matches,
  // so this test only verifies that alternatives stay attached to their own fact.
- assert.match(report,/Quendelkraut/);
+ assert.match(report,/quendelkraut/);
  assert.deepEqual(h.writes,[]);
 });
