@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
       - name: Corpus integration smoke
-        run: node --test eval/tests/corpus/harness-smoke.test.mjs
+        run: node --test eval/tests/corpus/*.test.mjs
       - name: Existing evaluation tests
         if: always()
         run: node --test eval/tests/*.test.mjs
