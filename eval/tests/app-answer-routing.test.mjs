@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const app=readFileSync(new URL('../../app.js',import.meta.url),'utf8');
 const orchestrator=readFileSync(new URL('../../modules/orchestrator.js',import.meta.url),'utf8');
-const start=app.indexOf('async function routeAnswer(');
+const start=app.indexOf('let neryxLastSubject=null;');
 const stop=app.indexOf('async function handle(input)',start);
 assert.ok(start>0&&stop>start);
 const helper=app.slice(start,stop);
