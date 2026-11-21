@@ -21,7 +21,7 @@ function conflictAnswer(fs){
   }
  }
  lines.push('Welche Angabe zutrifft, ist nicht geklärt. Nichts wurde automatisch geändert.');
- return lines.join('\\n');
+ return lines.join('\n');
 }
 const number=x=>{let m=String(x).match(/\d[\d.,]*/g);return m&&m.length===1?m[0].replace(/[.,]$/,''):''};
 function warning(f,docs){if(f.conflict)return'⚠ Zu diesem Fakt sind unterschiedliche Angaben gespeichert.';let s=N(f.subject),p=K(f.property),v=number(f.value);if(!v)return'';let found=[];for(let d of docs){let raw=String(d?.content??''),t=N(raw);if(!P(t,s))continue;for(let line of raw.split(/\n|;/)){if(!R(N(line)).includes(p))continue;let n=number(line);if(n&&n!==v)found.push(n)}}return found.length?`⚠ Möglicher Widerspruch: Fakt ${v}, Dokument ${[...new Set(found)].slice(0,3).join(', ')}. Bitte prüfen.`:''}
