@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verify 0.1 unchanged and 0.2 isolated
-        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs
+        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs eval/tests/genesis-x-tools-property.test.mjs
       - name: Check no production entrypoints changed by Genesis X 0.2
         if: github.event_name == 'pull_request'
         run: |
