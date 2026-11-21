@@ -24,7 +24,7 @@ export function createHarness(fixtures){
   const sandbox={
     localStorage,structuredClone,URL,console:{log(){},warn(){},error(){}},
     navigator:{onLine:false},
-    document:{readyState:'loading',addEventListener(){}},
+    document:{readyState:'loading',addEventListener(){},getElementById(){return null}},
     fetch(...args){networkAttempts.push(args);throw Error('Network forbidden in harness')},
   };
   sandbox.window=sandbox;
