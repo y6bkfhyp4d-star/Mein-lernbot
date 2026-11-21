@@ -1,8 +1,8 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Ablenkspule",
-    "Abschirmung (Elektrotechnik)",
+    "1946",
+    "Absorptionsspektrum",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
@@ -10,7 +10,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-21T10:11:37+00:00",
+      "checked_at": "2026-11-21T16:08:18+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -28,7 +28,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T10:11:37+00:00",
+      "checked_at": "2026-11-21T16:08:18+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -46,7 +46,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T10:11:37+00:00",
+      "checked_at": "2026-11-21T16:08:18+00:00",
       "claims": [
         {
           "id": "p79-8db9ea00710e2a",
@@ -77,7 +77,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T10:11:37+00:00",
+      "checked_at": "2026-11-21T16:08:18+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -89,7 +89,7 @@
       "redirect_from": null,
       "source": "https://de.wikipedia.org/?curid=121993",
       "source_method": "direkte_titelabfrage",
-      "status": "keine_klare_klassifikation",
+      "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "(2) Pallas",
       "verified_correction": false
@@ -177,6 +177,24 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "18. Oktober",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T16:08:18+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 3,
+      "page_title": "1946",
+      "question": "Was ist 1946 und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=5913",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "1946",
       "verified_correction": false
     },
     {
@@ -401,6 +419,37 @@
       "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "Absorption (Physik)",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T16:08:18+00:00",
+      "claims": [
+        {
+          "id": "p79-73fb7cf48b9574",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Ein Absorptionsspektrum ist ein elektromagnetisches Spektrum, das dunkle Spektrallinien enthält.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=159818",
+          "statement": "Ein Absorptionsspektrum ist ein elektromagnetisches Spektrum, das dunkle Spektrallinien enthält.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Absorptionsspektrum"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 2,
+      "page_title": "Absorptionsspektrum",
+      "question": "Was ist Absorptionsspektrum und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=159818",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Absorptionsspektrum",
       "verified_correction": false
     },
     {
@@ -1154,6 +1203,19 @@
       "resolved_without_exact_hit": 6,
       "titles_resolved": 6,
       "topics_with_claims": 1,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-21T16:08:18+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "previously_without_exact_hit": 6,
+      "processed": 6,
+      "resolved_without_exact_hit": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
       "unresolved": 0
     }
   ],
