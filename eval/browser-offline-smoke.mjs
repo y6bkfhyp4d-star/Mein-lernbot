@@ -24,9 +24,11 @@ try{
  const page=await context.newPage();
  const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- await page.goto(origin+'/index.html',{waitUntil:'load'});
- await page.evaluate(()=>navigator.serviceWorker.ready);
- await page.waitForFunction(()=>!!navigator.serviceWorker.controller,{timeout:25000});
+ await page.goto(origin+'/index.html',{waitUntil:'load',timeout:20000});
+ await page.evaluate(async()=>{
+  await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(Error('SW ready timed out')),20000))]);
+ });
+ await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:20000});
  const cached=await page.evaluate(async()=>({
   names:await caches.keys(),
   urls:(await (await caches.open('neryx-offline-v4')).keys()).map(r=>new URL(r.url).pathname)
