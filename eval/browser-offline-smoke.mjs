@@ -27,7 +27,7 @@ try{
  const context=await browser.newContext({serviceWorkers:'allow'});
  const page=await context.newPage();
  const errors=[],diagnostics=[];
- page.on('pageerror',e=>errors.push(e.message));
+ page.on('pageerror',e=>errors.push(e.stack||e.message));
  page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')diagnostics.push('console: '+m.text())});
  page.on('requestfailed',r=>diagnostics.push('request: '+r.url()+' '+r.failure()?.errorText));
  context.on('serviceworker',w=>{diagnostics.push('worker: '+w.url());w.on('console',m=>diagnostics.push('worker-console: '+m.text()))});
@@ -65,6 +65,7 @@ try{
   send:!!document.querySelector('#send'),controlled:!!navigator.serviceWorker.controller
  }));
  assert.ok(offline.chat&&offline.send&&offline.controlled,'offline app failed to start');
+ console.log('WEBKIT_OFFLINE_DIAGNOSTICS '+JSON.stringify({engine,errors,diagnostics,offline,requests:requests.slice(-15)}));
  assert.deepEqual(errors,[],'offline JS errors');
  console.log('REAL_BROWSER_OFFLINE_OK '+JSON.stringify({engine,cachedAssets:cached.urls.length,offline}));
  await context.close();
