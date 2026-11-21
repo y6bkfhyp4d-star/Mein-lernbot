@@ -41,7 +41,7 @@ export function createHarness(fixtures){
   const app=source('app.js');
   if(!/\}\)\(\);\s*$/.test(app))throw Error('app.js IIFE ending changed; harness needs review');
   const exposed=app.replace(/\}\)\(\);\s*$/,
-    'window.__neryxHarness={ask:routeAnswer,observe:()=>({lastSubject:neryxLastSubject,context:structuredClone(context)})};\n})();');
+    'window.__neryxHarness={ask:routeAnswer,resetChat:clearChat,observe:()=>({lastSubject:neryxLastSubject,context:structuredClone(context)})};\n})();');
   run(exposed,'app.js');
   for(const path of ['modules/topic-learning.js','modules/learning-hub.js',
                      'modules/learning-coordinator.js','modules/orchestrator.js']){
@@ -53,6 +53,7 @@ export function createHarness(fixtures){
   return {
     ask:(text,{allowTeaching=false}={})=>sandbox.__neryxHarness.ask(text,{allowTeaching}),
     observe:()=>JSON.parse(JSON.stringify(sandbox.__neryxHarness.observe())),
+    resetChat:()=>sandbox.__neryxHarness.resetChat(),
     storage:{
       initial,
       raw:()=>({main:entries.get(MAIN),topics:entries.get(TOPICS)}),
