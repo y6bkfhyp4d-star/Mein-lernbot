@@ -49,6 +49,33 @@ function lookup(input){
   const all=window.NERYXLearningHub?.collect()?.claims||[];
   const sub=clean(check.subject),same=all.filter(c=>clean(c.subject)===sub);
   const matches=same.filter(c=>c.property==='lebensraum');
+  // Explizite Ortsfakten: "vorkommen_in" oder "nicht_vorkommen_in" mit Ortsname als Wert.
+  // Kein Umkehrschluss aus einem freien Lebensraumtext; keine Hierarchie-Inferenz.
+  const place=fold(check.place);
+  const explicit=same.filter(c=>
+   (c.property==='vorkommen_in'||c.property==='nicht_vorkommen_in')&&fold(c.value)===place);
+  const habitatConflict=matches.some(c=>c.conflict)||
+   new Set(matches.flatMap(c=>[fold(c.value),...(
+    c.conflict&&Array.isArray(c.alternatives)?c.alternatives.map(a=>fold(a.value)).filter(Boolean):[]
+   )])).size>1;
+  if(explicit.length){
+   const positive=explicit.some(c=>c.property==='vorkommen_in');
+   const negative=explicit.some(c=>c.property==='nicht_vorkommen_in');
+   const suspicious=explicit.some(c=>c.conflict||
+    (Array.isArray(c.alternatives)&&c.alternatives.some(a=>fold(a.value)!==place)));
+   if((positive&&negative)||suspicious||habitatConflict)
+    return {status:'conflict',subject:sub,property:'vorkommen_in',
+     text:'NERYX · WISSENSKONFLIKT\nZum Vorkommen von „'+sub+
+      '“ am Ort „'+check.place+'“ liegen widersprüchliche oder markierte Angaben vor. Keine Ja/Nein-Aussage möglich.\n'+
+      explicit.map(c=>'• '+c.property+': '+c.value+' | Quelle: '+c.origin+' ('+c.source+')').join('\n')};
+   const answer=positive?'Ja':'Nein';
+   return {status:'answered',subject:sub,property:'vorkommen_in',
+    text:'NERYX · BELEGTE ORTSAUSSAGE\nBehauptung: „'+sub+' kommt in '+check.place+' vor.“\nErgebnis: '+answer+
+     ' – laut ausdrücklich gespeichertem '+(positive?'Vorkommens':'Nichtvorkommens')+'fakt.'+
+     (check.negated?'\nHinweis: Deine Frage enthält eine Verneinung. Das Ergebnis bewertet ausdrücklich die positive Behauptung oben.':'')+
+     '\nQuelle: '+[...new Set(explicit.map(c=>c.origin+' ('+c.source+')'))].join('; ')+
+     '\nDieser gespeicherte Fakt wurde nicht unabhängig überprüft.'};
+  }
   if(!matches.length)return {status:same.length?'entity_known_no_attribute':'no_match',
    text:null,subject:sub,property:'lebensraum'};
   const values=[...new Set(matches.flatMap(c=>[fold(c.value),...(
