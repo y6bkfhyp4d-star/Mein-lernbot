@@ -1,0 +1,24 @@
+name: NERYX Model Explanation Review
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/orchestrator.js'
+      - '.github/workflows/neryx-model-explanation-review.yml'
+permissions:
+  contents: read
+jobs:
+  model-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify poor explanation refusal and unverified good answer
+        run: |
+          node --test --test-name-pattern="Gesamt-KI 2.0: Modell-Erklärung ist ungeprüft" tests/neryx-smoke.test.mjs
