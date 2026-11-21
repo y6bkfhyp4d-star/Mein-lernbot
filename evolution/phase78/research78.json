@@ -1,13 +1,13 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "1946",
-    "Absorptionsspektrum",
+    "A priori",
+    "A*-Algorithmus",
     "(1) Ceres"
   ],
   "records": [
     {
-      "checked_at": "2026-11-21T15:30:05+00:00",
+      "checked_at": "2026-11-21T21:25:29+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
@@ -94,6 +94,24 @@
       "question": "Was ist 2,6-Diaminopurin und wie wird es eingeordnet?",
       "status": "nur_suchtreffer",
       "topic": "2,6-Diaminopurin",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T21:25:29+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist A priori und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "A priori",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T21:25:29+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist A*-Algorithmus und wie wird es eingeordnet?",
+      "status": "nur_suchtreffer",
+      "topic": "A*-Algorithmus",
       "verified_correction": false
     },
     {
@@ -540,6 +558,13 @@
     },
     {
       "at": "2026-11-21T15:30:05+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
+    },
+    {
+      "at": "2026-11-21T21:25:29+00:00",
       "candidates": 0,
       "errors": 0,
       "processed": 3,
