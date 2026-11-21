@@ -64,3 +64,31 @@ test('Both real app entry points use same routeAnswer helper',()=>{
  assert.match(app,/return await routeAnswer\(s,\{allowTeaching:true\}\)/);
  assert.doesNotMatch(app,/window\.NERYXLocalModel\?\.shouldFallback\(original\)/);
 });
+
+test('Short pronoun follow-up reuses only a previously matched explicit subject and never invokes model',async()=>{
+ const appStart=app.indexOf('let neryxLastSubject=null;');
+ const appStop=app.indexOf('async function handle(input)',appStart);
+ assert.ok(appStart>=0&&appStop>appStart);
+ const window={};
+ const calls={model:0};
+ window.NERYXCoordinator={lookup(q){
+  if(q==='Wo lebt das quendel?'||q==='Wo lebt das Quendel?')return {
+   status:'conflict',subject:'quendel',property:'lebensraum',
+   text:'NERYX · WISSENSKONFLIKT\nQuendel / lebensraum: Testland und Steppe'
+  };
+  return {status:'no_match',subject:null,property:null,text:null};
+ }};
+ window.NERYXTopicLearning={parse:()=>null};
+ window.NERYXLocalModel={info(){calls.model++;throw Error('model should not start')}};
+ const context={window,navigator:{onLine:true},intelligentAnswer:async()=>null};
+ runInNewContext(orchestrator+'\n'+app.slice(appStart,appStop)+'\nwindow.routeAnswer=routeAnswer;',context);
+ const early=await window.routeAnswer('Und wo lebt es?',{allowTeaching:true});
+ assert.match(early,/RÜCKFRAGE/);
+ assert.equal(calls.model,0);
+ const first=await window.routeAnswer('Wo lebt das Quendel?',{allowTeaching:true});
+ assert.match(first,/WISSENSKONFLIKT/);
+ const next=await window.routeAnswer('Und wo lebt es?',{allowTeaching:true});
+ assert.match(next,/WISSENSKONFLIKT/);
+ assert.match(next,/Testland und Steppe/);
+ assert.equal(calls.model,0);
+});
