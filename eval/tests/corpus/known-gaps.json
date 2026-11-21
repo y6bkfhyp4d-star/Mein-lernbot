@@ -1,0 +1,36 @@
+[
+  {
+    "id": "GAP-001",
+    "title": "Pronomen-Folgefrage zur Nahrung",
+    "setup": [
+      "Wo lebt der Wolf?"
+    ],
+    "question": "Und was frisst er?",
+    "target": "Nach eindeutigem Wolf-Bezug einen gespeicherten Nahrungsfakt verwenden, ohne ein anderes Thema zu übernehmen.",
+    "evidence": "app.js: routeAnswer erkennt als direkte Pronomen-Folgefrage nur bestimmte Ortsfragen.",
+    "status": "open-unverified"
+  },
+  {
+    "id": "GAP-002",
+    "title": "Indirekte Bezugnahme auf dasselbe Thema",
+    "setup": [
+      "Wo lebt der Wolf?"
+    ],
+    "question": "Und sein Lebensraum?",
+    "target": "Das Thema Wolf auch bei einer kurzen elliptischen Folgefrage sicher zuordnen oder gezielt rückfragen.",
+    "evidence": "app.js: routeAnswer nutzt einen eng begrenzten regulären Ausdruck für Folgefragen.",
+    "status": "open-unverified"
+  },
+  {
+    "id": "GAP-003",
+    "title": "Unklare Folgefrage nach einem Themenwechsel",
+    "setup": [
+      "Wo lebt der Wolf?",
+      "Wo lebt das Okapi?"
+    ],
+    "question": "Und was ist mit seinem Lebensraum?",
+    "target": "Keine veralteten Wolf-Angaben auf das Okapi übertragen; unklare Referenzen gezielt klären.",
+    "evidence": "app.js: neryxLastSubject wird bei eindeutig erkanntem neuen, unbekannten Thema zurückgesetzt; andere Folgeformulierungen sind nicht durch den bisherigen Korpustest gedeckt.",
+    "status": "open-unverified"
+  }
+]
