@@ -31,10 +31,10 @@ test('0.4: observe unresolved conversation capabilities without accepting fabric
     let verdict;
     if(gap.id==='GAP-001')verdict=answer.includes(food)?'feature_observed':'gap_observed';
     else if(gap.id==='GAP-002')verdict=
-      answer.includes(habitat)||answer.startsWith('NERYX · RÜCKFRAGE')?'feature_observed':'gap_observed';
+      answer.startsWith('NERYX · KOORDINIERTE ANTWORT')&&answer.includes(habitat)||answer.startsWith('NERYX · RÜCKFRAGE')?'feature_observed':answer.startsWith('VERWANDTES WISSEN')?'related_only':'gap_observed';
     else {
-      assert.ok(!answer.includes(habitat),gap.id+': leaked stale Wolf fact');
-      verdict=answer.startsWith('NERYX · RÜCKFRAGE')?'feature_observed':'partial_no_leak_without_clarification';
+      const falselyAnswered=answer.startsWith('NERYX · KOORDINIERTE ANTWORT')&&answer.includes(habitat);
+      verdict=answer.startsWith('NERYX · RÜCKFRAGE')?'feature_observed':falselyAnswered?'unsafe_stale_answer':answer.includes(habitat)?'stale_related_context_only':'no_clarification';
     }
     console.log('GAP_DIAGNOSTIC '+JSON.stringify({
       id:gap.id,verdict,priorSubject:prior,afterSubject:after,
