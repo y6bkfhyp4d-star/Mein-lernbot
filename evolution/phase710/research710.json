@@ -1,8 +1,8 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "1,2-Propandiol",
-    "Adult",
+    "(2+2)-Cycloaddition",
+    "2,6-Diaminopurin",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
@@ -10,7 +10,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-20T22:12:00+00:00",
+      "checked_at": "2026-11-21T04:18:11+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -28,7 +28,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T22:12:00+00:00",
+      "checked_at": "2026-11-21T04:18:11+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -46,7 +46,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T22:12:00+00:00",
+      "checked_at": "2026-11-21T04:18:11+00:00",
       "claims": [
         {
           "id": "p79-8db9ea00710e2a",
@@ -77,7 +77,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-20T22:12:00+00:00",
+      "checked_at": "2026-11-21T04:18:11+00:00",
       "claims": [],
       "had_exact_search_hit": false,
       "independent_verified": false,
@@ -92,6 +92,24 @@
       "status": "subjekt_nicht_am_anfang",
       "title_resolution": "direkter_titel",
       "topic": "(2) Pallas",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T04:18:11+00:00",
+      "claims": [],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 0,
+      "old_extractor_claims_same_page": 0,
+      "original_hit_count": 2,
+      "page_title": "(2+2)-Cycloaddition",
+      "question": "Was ist (2+2)-Cycloaddition und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=4410072",
+      "source_method": "direkte_titelabfrage",
+      "status": "subjekt_nicht_am_anfang",
+      "title_resolution": "direkter_titel",
+      "topic": "(2+2)-Cycloaddition",
       "verified_correction": false
     },
     {
@@ -159,6 +177,37 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "18. Oktober",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T04:18:11+00:00",
+      "claims": [
+        {
+          "id": "p79-e57715c327c0b8",
+          "independent_verified": false,
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=7946097",
+          "statement": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "2,6-Diaminopurin"
+        }
+      ],
+      "had_exact_search_hit": false,
+      "independent_verified": false,
+      "new_extractor_claims_same_page": 1,
+      "old_extractor_claims_same_page": 1,
+      "original_hit_count": 1,
+      "page_title": "2,6-Diaminopurin",
+      "question": "Was ist 2,6-Diaminopurin und wie wird es eingeordnet?",
+      "redirect_from": null,
+      "source": "https://de.wikipedia.org/?curid=7946097",
+      "source_method": "direkte_titelabfrage",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "2,6-Diaminopurin",
       "verified_correction": false
     },
     {
@@ -1043,6 +1092,19 @@
       "resolved_without_exact_hit": 6,
       "titles_resolved": 6,
       "topics_with_claims": 1,
+      "unresolved": 0
+    },
+    {
+      "at": "2026-11-21T04:18:11+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "previously_without_exact_hit": 6,
+      "processed": 6,
+      "resolved_without_exact_hit": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
       "unresolved": 0
     }
   ],
