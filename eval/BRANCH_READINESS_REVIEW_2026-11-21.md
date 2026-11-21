@@ -56,3 +56,14 @@ Die vorherigen Angaben zu `clearChat()` und CI beschreiben den damaligen Stand. 
 - Einschränkung: Kein echter iOS-WebKit-Test, kein händisches Durchspielen aller Chat-Funktionen, kein Live-Update unter Benutzerbedingungen und kein Probe-Merge nach `main`.
 
 **Integrationsentscheidung weiterhin ausstehend:** Ein Browser-Offline-Smoke ist nun bestanden, ersetzt jedoch weder den WebKit-Test auf dem iPhone noch einen kontrollierten Merge-/Deployment-Check.
+
+## WebKit-Engine-Prüfung (21.11.2026)
+
+- Derselbe reale Browser-Smoke `eval/browser-offline-smoke.mjs` kann jetzt zwischen Chromium und WebKit per `NERYX_BROWSER` wählen.
+- GitHub-Workflow `.github/workflows/neryx-browser-offline.yml` führt beide Engines in getrennten Jobs auf Ubuntu 24.04 aus: https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/44908372896.
+- Chromium war auch nach dieser Erweiterung erfolgreich.
+- Im ersten WebKit-Lauf https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/44908226049 installierte sich die App, aber eine `page.goto`-Navigation nach `context.setOffline(true)` scheiterte mit „WebKit encountered an internal error“. Das ist ohne weiteren Nachweis kein bestätigter Fehler in NERYX.
+- Der WebKit-Test wurde deshalb auf das Abschalten des lokalen HTTP-Servers anstelle des Browser-Offline-Schalters umgestellt. **Bei Erstellung dieser Notiz lag noch kein erfolgreicher WebKit-Abschluss dieser Wiederholung vor.** Das WebKit-Ergebnis bleibt daher offen.
+- Kein iOS-/Safari-Test auf echter Hardware; kein Merge nach `main`.
+
+**Freigabestatus:** Browsergrundfall in Chromium verifiziert, WebKit-/iOS-Kompatibilität noch nicht freigegeben.
