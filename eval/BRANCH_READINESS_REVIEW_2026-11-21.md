@@ -67,3 +67,14 @@ Die vorherigen Angaben zu `clearChat()` und CI beschreiben den damaligen Stand. 
 - Kein iOS-/Safari-Test auf echter Hardware; kein Merge nach `main`.
 
 **Freigabestatus:** Browsergrundfall in Chromium verifiziert, WebKit-/iOS-Kompatibilität noch nicht freigegeben.
+
+
+## WebKit-Offline-Nachtest bestanden (21.11.2026)
+
+- **Befund:** WebKit konnte die Hauptseite bereits aus dem Cache öffnen, meldete jedoch Fehler beim Abruf von `manifest.webmanifest` und beim erneuten Updateversuch für `sw.js`. Die Browserdiagnose zeigte, dass das Manifest nicht im Offline-Cache enthalten war.
+- **Fix:** `sw.js` nimmt ausschließlich die von der Hauptseite referenzierten lokalen PWA-Dateien `manifest.webmanifest` und `icon-192.png` zusätzlich zu den Startskripten in den Offline-Cache auf; keine Ausweitung auf Testseiten oder fremde Dateien.
+- **Regressionstest:** `eval/tests/service-worker-recovery.test.mjs` prüft Manifest/Icon offline und die fortbestehende Ablehnung einer nicht zugelassenen Testdatei; der Scoring-Contract-Lauf https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/44910952297 ist erfolgreich.
+- **Echter Browser-Nachtest:** https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/44910923493 — Chromium **success** und WebKit **success**. Beide meldeten `REAL_BROWSER_OFFLINE_OK` mit 42 Cache-Einträgen, startender Chatoberfläche, Service-Worker-Kontrolle und null JavaScript-Seitenfehlern.
+- **Grenze:** WebKit meldet weiterhin einen erwartbaren Netzwerkfehler beim erneuten Abruf von `sw.js` über die Update-Prüfung nach Abschalten des lokalen Testservers, ohne Seitenfehler oder verhinderten Start. Der Test läuft auf Linux-WebKit und nicht auf echter iOS-Hardware.
+
+**Status:** Offline-Grundfunktion jetzt in Chromium und WebKit getestet. Für eine produktive Freigabe stehen ein iPhone-Safari-Test mit realem Offline-/Online-Wechsel sowie ein kontrollierter Integrations-/Deploy-Test aus. `main` blieb unverändert.
