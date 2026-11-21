@@ -18,8 +18,8 @@
     ],
     "question": "Und sein Lebensraum?",
     "target": "Das Thema Wolf auch bei einer kurzen elliptischen Folgefrage sicher zuordnen oder gezielt rückfragen.",
-    "evidence": "app.js: routeAnswer nutzt einen eng begrenzten regulären Ausdruck für Folgefragen.",
-    "status": "open-unverified"
+    "evidence": "app.js: enger Pronomen-/Ellipse-Folgefragenpfad für 'sein Lebensraum'; eval/tests/corpus/habitat-followup.test.mjs: bekannte Antwort, fehlender Kontext, Themenwechsel und Konflikt. GitHub Actions erfolgreich.",
+    "status": "resolved-tested"
   },
   {
     "id": "GAP-003",
