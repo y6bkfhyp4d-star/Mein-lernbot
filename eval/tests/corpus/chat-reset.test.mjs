@@ -20,3 +20,16 @@ test('clearChat ends prior subject reference but preserves knowledge',async()=>{
  assert.equal(h.networkAttempts.length,0);
  assert.match(await h.ask('Wo lebt der Wolf?'),/Nebelwald von Testland/);
 });
+
+test('clearChat is idempotent and allows a fresh independent topic',async()=>{
+ const h=createHarness(fixture);
+ await h.ask('Wo lebt der Wolf?');
+ h.resetChat();
+ h.resetChat();
+ assert.equal(h.observe().lastSubject,null);
+ assert.match(await h.ask('Und wo lebt er?'),/^NERYX · RÜCKFRAGE/);
+ assert.match(await h.ask('Wo lebt der Wolf?'),/Nebelwald von Testland/);
+ assert.equal(h.observe().lastSubject,'wolf');
+ assert.equal(h.storage.writeCount,0);
+ assert.equal(h.networkAttempts.length,0);
+});
