@@ -1350,7 +1350,7 @@ test('Antwortkontrolle erkennt angefragte Beispiele, Malerbezug und Schrittabfol
  const review=window.NERYXAnswerReview;
  const q='Erkläre den Unterschied zwischen einer Hypothese und einer Messung anhand eines Beispiels aus dem Malerhandwerk.';
  const raw='Eine Hypothese ist eine überprüfbare Vermutung. Eine Messung liefert Zahlen und Daten.';
- assert.deepEqual([...review.inspect(q,raw).missing].sort(),['Bezug zum Malerhandwerk','konkret gekennzeichnetes Beispiel'].sort());
+ assert.deepEqual([...review.inspect(q,raw).missing].sort(),['Bezug zum Malerhandwerk','konkret gekennzeichnetes Beispiel','konkretes überprüfbares Malerbeispiel'].sort());
  const valid='Hypothese: Die Grundierung senkt die Wasseraufnahme einer Wand. Messung: Wir messen das Wasser an der Wand. Beispiel: Mit und ohne Tiefgrund vergleichen.';
  assert.equal(review.inspect(q,valid).complete,true);
  assert.equal(review.inspect('Schreibe eine Erklärung.',raw).complete,true);
