@@ -30,7 +30,7 @@ test('GENESIS X wählt einfachere Methode nur bei bestätigter Prüfleistung',()
 test('GENESIS X verleiht weder unbekannten Regeln noch fehlerhaften Kandidaten Erfolg',()=>{
  const x=lab();
  assert.equal(x.compare({training:[p(0,1),p(1,4),p(2,9)],holdout:[p(4,123),p(5,36)]}).status,'unconfirmed');
- assert.equal(x.compare({training:[p(0,0),p(1,1),p(2,3),p(3,6)],holdout:[p(4,10),p(5,15)]}).status,'unconfirmed');
+ assert.equal(x.compare({training:[p(0,0),p(1,1),p(2,3),p(3,7)],holdout:[p(4,15),p(5,31)]}).status,'unconfirmed');
 });
 test('GENESIS X lehnt Leckage und ungültige Eingaben ab',()=>{
  const x=lab();
