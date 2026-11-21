@@ -135,8 +135,11 @@ async function solve(input,{knowledge}={}){
  if(/^(?:moin|hallo|hi|hey|guten morgen|guten tag|guten abend)[!. ]*$/i.test(s))
   return 'Moin! Ich bin NERYX. Du kannst mich nach gespeicherten Fakten fragen oder Hilfe eingeben – auch offline.';
  if(selected.type!=='knowledge')return execute(selected,s)||'NERYX · KI-SYSTEM\nDas Fachwerkzeug ist nicht verfügbar.';
- const coordinated=window.NERYXCoordinator?.decide(s);
- if(coordinated)return coordinated;
+ const checked=window.NERYXCoordinator?.lookup?.(s);
+ if(checked?.status==='answered'||checked?.status==='conflict')return checked.text;
+ if(checked?.status==='entity_known_no_attribute')
+  return 'NERYX · WISSENSLÜCKE\nZum Thema „'+checked.subject+'“ ist Wissen gespeichert, aber nicht zur gesuchten Eigenschaft „'+checked.property+'“. Ich rate keine Antwort.';
+ if(!checked){const coordinated=window.NERYXCoordinator?.decide(s);if(coordinated)return coordinated;}
  if(typeof knowledge==='function'){
   let answer;try{answer=await knowledge(s)}catch{answer=null}
   const state=classify(answer);
