@@ -7,8 +7,8 @@
     ],
     "question": "Und was frisst er?",
     "target": "Nach eindeutigem Wolf-Bezug einen gespeicherten Nahrungsfakt verwenden, ohne ein anderes Thema zu übernehmen.",
-    "evidence": "app.js: routeAnswer erkennt als direkte Pronomen-Folgefrage nur bestimmte Ortsfragen.",
-    "status": "open-unverified"
+    "evidence": "app.js: eng begrenzter Nahrung-Folgefragenpfad; eval/tests/corpus/food-followup.test.mjs: positive Antwort, Rückfrage, Wissenslücke und Konflikt; GitHub Actions erfolgreich.",
+    "status": "resolved-tested"
   },
   {
     "id": "GAP-002",
