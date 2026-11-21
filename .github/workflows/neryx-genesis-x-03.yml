@@ -1,0 +1,33 @@
+name: NERYX GENESIS X 0.3 logic lab
+on:
+  pull_request:
+    branches: [neryx/genesis-x-02-tools]
+    paths:
+      - 'modules/genesis-x-logic.js'
+      - 'eval/tests/genesis-x-logic.test.mjs'
+      - 'docs/GENESIS_X_LOGIC_03.md'
+      - '.github/workflows/neryx-genesis-x-03.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify GENESIS X 0.1 0.2 and isolated 0.3
+        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs eval/tests/genesis-x-tools-property.test.mjs eval/tests/genesis-x-logic.test.mjs
+      - name: Protect all existing production entrypoints
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/genesis03-changes.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|modules/genesis-x(-tools)?\.js|eval/frozen\.seal\.json)$' /tmp/genesis03-changes.txt; then
+            echo "Protected file changed"; exit 1
+          fi
