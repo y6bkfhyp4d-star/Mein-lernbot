@@ -1,0 +1,27 @@
+name: NERYX Wall Area Safety
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'modules/math-verifier.js'
+      - 'tests/neryx-smoke.test.mjs'
+      - 'eval/browser-capture-audit.mjs'
+      - '.github/workflows/neryx-wall-area-safety.yml'
+permissions:
+  contents: read
+jobs:
+  wall-area:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify wall dimensions are not inferred from wall counts
+        run: |
+          node --test --test-name-pattern="Rechenprüfer erkennt die Malerfrage" tests/neryx-smoke.test.mjs
+      - name: Verify pinned source integrity
+        run: node --test eval/tests/browser-capture-audit.test.mjs

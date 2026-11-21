@@ -1,7 +1,7 @@
 /* NERYX Browser-Capture Audit v1: lokale Integritätsdiagnose, keine Rohdaten. */
 import {sha256} from './browser-capture-core.mjs';
 export const PINNED_SCRIPTS=Object.freeze({
- 'modules/math-verifier.js':'d2cda284f8259dfe891e8d8f294f2b964a6d10ba35a58c47ff964e1c0a51a4a0',
+ 'modules/math-verifier.js':'d26f5cbe49bbeec3cba1b015913fb7fc7d47a1c89cda77b8dca7218ae6fc123f',
  'modules/rule-patterns.js':'2651acc475e51feeb5d6a13eb6ac27331025325af6bf7c00a4c1e4f0a016bc8c',
  'modules/neryx-reasoner.js':'f4463ce916521e8d2701cfacdc49b41f54013145b4f8f93c1399dae2c5350e81',
  'modules/system-hub.js':'a128121dbabae2e1510018c27a11bba43dafe83d6cfee04f2293726f20697255',

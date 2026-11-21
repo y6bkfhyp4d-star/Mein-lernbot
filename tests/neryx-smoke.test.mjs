@@ -1119,6 +1119,8 @@ test('Rechenprüfer erkennt die Malerfrage und verlangt klare Maße',()=>{
  assert.match(verifier.solve(q),/Ergebnis: 150 m²/);
  assert.match(verifier.solve(q.replace('3 Räume','2 Räume')),/Ergebnis: 100 m²/);
  assert.match(verifier.solve(q.replace('Jede Wand','Die Wand')),/nicht eindeutig/);
+ assert.match(verifier.solve(q.replace('Jede Wand','Die Wand')+' Jeweils vier Wände sind vorhanden.'),/nicht eindeutig/,'Anzahl pro Raum ist keine Flächen-Gleichheit');
+ assert.match(verifier.solve(q.replace('Jede Wand','Alle Wände sind gleich groß. Die Wand')),/Ergebnis: 150 m²/,'Explizite Gleichheit erlaubt Rechnung');
  assert.match(verifier.solve(q+' Fenster abziehen.'),/fehlen hier überprüfbare Angaben/);
  assert.equal(verifier.solve('Was ist ein Okapi?'),null);
 });

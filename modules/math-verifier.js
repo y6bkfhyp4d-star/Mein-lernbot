@@ -20,7 +20,8 @@ function wallArea(input){
  if(rooms===null||walls===null||widths.length!==1||heights.length!==1)return null;
  const width=widths[0],height=heights[0];
  if(![rooms,walls,width,height].every(x=>Number.isFinite(x)&&x>0&&x<=1000)||rooms%1||walls%1)return null;
- const allSame=/\b(?:jede|jeder|alle|jeweils|pro wand|gleich|identisch)\b/.test(s);
+ // "Jeweils 4 Wände" beschreibt nur die Anzahl, nicht identische Wandmaße.
+ const allSame=/\b(?:jede|jeder)\s+wand\b|\balle\s+(?:wände|waende)\b|\b(?:wände|waende)\s+(?:sind\s+)?(?:gleich(?:\s+groß)?|identisch)\b|\b(?:pro wand|je wand)\s+\d+(?:[,.]\d+)?\s*(?:meter|metern|m)\s*(?:breit|hoch)\b/.test(s);
  if(!allSame)return {error:'Es ist nicht eindeutig, ob alle Wände gleich groß sind. Bitte bestätigen, dass jede Wand die angegebenen Maße hat.'};
  const exclusions=/\b(?:fenster|tür|tueren|türen|öffnung|oeffnung|abzieh|abzüglich|ausspar|unterschiedlich|verschieden)\b/.test(s);
  if(exclusions)return {error:'Für Fenster, Türen oder unterschiedliche Wandmaße fehlen hier überprüfbare Angaben. Bitte die einzelnen Flächen nennen.'};
