@@ -1037,7 +1037,9 @@ test('Sprachmodell-Bridge: Opt-in, kein automatischer Download bei Start und kei
  assert.match(model.status(),/nicht geladen/);
  assert.match(model.mode(true),/Erst das lokale Sprachmodell/);
  assert.equal(model.shouldFallback('Dazu habe ich keine Antwort'),false);
- assert.match(await model.ask('Was ist ein Okapi?'),/noch nicht geladen/);
+ assert.match(await model.ask('Was ist ein Okapi?'),/nicht automatisch geladen werden[\s\S]*WebGPU/);
+ assert.equal(model.info().loaded,false,'Kein geladenes Modell ohne WebGPU');
+ assert.equal(model.info().automatic,false,'Keine unbeabsichtigte Auto-Aktivierung');
  assert.match(await model.load(),/WebGPU/);
  assert.match(model.unload(),/getrennt/);
  assert.equal(reads+writes,0);
