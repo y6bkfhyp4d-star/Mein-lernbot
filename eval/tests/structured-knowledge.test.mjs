@@ -65,3 +65,39 @@ test('Duplicate identical facts remain one non-conflict answer',()=>{
  assert.equal(k.status,'answered');
  assert.match(k.text,/Übereinstimmende gespeicherte Einträge: 2/);
 });
+
+test('Five location paraphrases reuse the identical stored habitat, with no model call',async()=>{
+ const h=setup([fact]);
+ for(const q of [
+  'In welchem Land kommt das Quendel vor?',
+  'In welcher Region lebt das Quendel?',
+  'Wo ist das Quendel heimisch?',
+  'Wo findet man das Quendel?',
+  'Wo gibt es das Quendel?'
+ ]){
+  const item=h.window.NERYXCoordinator.lookup(q);
+  assert.equal(item.status,'answered',q);
+  assert.equal(item.subject,'quendel',q);
+  assert.equal(item.property,'lebensraum',q);
+  assert.match(await h.window.NERYXOrchestrator.solve(q),/Nebelwälder/,q);
+ }
+ assert.deepEqual(h.calls,{model:0,writes:0});
+});
+test('Origin questions must not be misrepresented as habitat claims',()=>{
+ const h=setup([fact]);
+ assert.equal(h.window.NERYXTopicLearning.parse('Aus welchem Land stammt das Quendel?'),null);
+ assert.equal(h.window.NERYXCoordinator.lookup('Aus welchem Land stammt das Quendel?').status,'no_match');
+ assert.equal(h.window.NERYXCoordinator.lookup('Woher kommt das Quendel?').status,'entity_known_no_attribute');
+});
+test('Yes-no and negated place questions are not treated as habitat confirmation',()=>{
+ const h=setup([fact]);
+ for(const q of ['Lebt das Quendel in Europa?','Lebt das Quendel nicht in Testland?','Ist das Quendel in Testland heimisch?']){
+  const x=h.window.NERYXCoordinator.lookup(q);
+  assert.equal(x.status,'no_match',q);
+ }
+ assert.deepEqual(h.calls,{model:0,writes:0});
+});
+test('Other similarly named subjects never borrow Quendel habitat',()=>{
+ const h=setup([fact]);
+ assert.equal(h.window.NERYXCoordinator.lookup('Wo findet man das Quendelkraut?').status,'no_match');
+});
