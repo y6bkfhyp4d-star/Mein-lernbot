@@ -1,0 +1,21 @@
+name: NERYX old-main baseline smoke audit
+on:
+  push:
+    branches:
+      - audit/baseline-main-smoke-2026-11-21
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute original main smoke expectations with syntax typo fixed
+        run: node --test tests/neryx-smoke.test.mjs
