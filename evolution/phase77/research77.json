@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "1946",
-    "Absorptionsspektrum"
+    "A priori",
+    "A*-Algorithmus"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-21T15:24:25+00:00",
+      "checked_at": "2026-11-21T21:18:01+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -273,6 +273,64 @@
       "source": "https://de.wikipedia.org/wiki/2%2C6-Diaminopurin",
       "status": "suchtreffer",
       "topic": "2,6-Diaminopurin"
+    },
+    {
+      "checked_at": "2026-11-21T21:18:01+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Für Locke gab es lediglich keine Ideen a priori, sondern nur das Vermögen, Wahrnehmungen zu verarbeiten zu Abbildern, komplexen Ideen und Begriffen. Bei",
+          "title": "John Locke",
+          "url": "https://de.wikipedia.org/?curid=14810"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "bestimmen. Die Prozessabläufe werden also nicht [...] a priori in ein soziales System eingeordnet, sondern als dessen oft unabhängig wirkende Grundlage",
+          "title": "Friedrich Fürstenberg",
+          "url": "https://de.wikipedia.org/?curid=745358"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Rationalismus wie Karl Popper abgelehnt, da sie sich entweder auf A-priori-Annahmen stützen oder in ihrer Argumentation zum unendlichen Regress führen und das ursprüngliche",
+          "title": "Naturwissenschaft",
+          "url": "https://de.wikipedia.org/?curid=3610"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist A priori und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/A_priori",
+      "status": "suchtreffer",
+      "topic": "A priori"
+    },
+    {
+      "checked_at": "2026-11-21T21:18:01+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Anne Jacqueline Hathaway [] (* 12. November 1982 in New York City) ist eine US-amerikanische Filmschauspielerin. Sie spielte in einer Reihe von international",
+          "title": "Anne Hathaway",
+          "url": "https://de.wikipedia.org/?curid=1180933"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Geschlechtsidentität, kurz Nichtbinarität, adjektivisch nichtbinär oder non-binär (englisch nonbinary, kurz enby), ist eine Sammelbezeichnung für Geschlechtsidentitäten",
+          "title": "Nichtbinäre Geschlechtsidentität",
+          "url": "https://de.wikipedia.org/?curid=10891500"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Abenteuerwelt mit Gefahren und abwechslungsreichen Rätseln, der Kampf gegen Gegner mit verschiedenen Schwachpunkten, die es herauszufinden gilt und gegen",
+          "title": "The Legend of Zelda",
+          "url": "https://de.wikipedia.org/?curid=972688"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist A*-Algorithmus und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/A%2A-Algorithmus",
+      "status": "suchtreffer",
+      "topic": "A*-Algorithmus"
     },
     {
       "checked_at": "2026-11-18T15:32:24+00:00",
@@ -1381,6 +1439,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 72,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-21T21:18:01+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 76,
       "searched": 3,
       "with_results": 2
     }
