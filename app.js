@@ -110,9 +110,9 @@ function knowledge(q){const direct=question(q);if(direct)return direct;const fs=
 let neryxLastSubject=null;
 async function routeAnswer(s,{allowTeaching=false}={}){
  const engine=window.NERYXOrchestrator;
- const follow=/^(?:und\\s+)?wo\\s+(?:lebt|wohnt)\\s+(?:es|er|sie)\\s*[?!.]?$/i.test(s.trim());
+ const follow=/^(?:und\s+)?wo\s+(?:lebt|wohnt)\s+(?:es|er|sie)\s*[?!.]?$/i.test(s.trim());
  if(follow){
-  if(!neryxLastSubject)return 'NERYX · RÜCKFRAGE\\nAuf welches Thema beziehst du dich? Bitte nenne den Namen.';
+  if(!neryxLastSubject)return 'NERYX · RÜCKFRAGE\nAuf welches Thema beziehst du dich? Bitte nenne den Namen.';
   s='Wo lebt das '+neryxLastSubject+'?';
  }
  const direct=window.NERYXCoordinator?.lookup?.(s);
