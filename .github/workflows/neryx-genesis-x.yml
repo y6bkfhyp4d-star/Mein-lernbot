@@ -1,0 +1,23 @@
+name: NERYX GENESIS X CORE
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'modules/genesis-x.js'
+      - 'eval/tests/genesis-x-core.test.mjs'
+      - '.github/workflows/neryx-genesis-x.yml'
+permissions:
+  contents: read
+jobs:
+  genesis-x:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated strategies and holdout policy
+        run: node --test eval/tests/genesis-x-core.test.mjs
