@@ -89,12 +89,39 @@ test('Origin questions must not be misrepresented as habitat claims',()=>{
  assert.equal(h.window.NERYXCoordinator.lookup('Aus welchem Land stammt das Quendel?').status,'no_match');
  assert.equal(h.window.NERYXCoordinator.lookup('Woher kommt das Quendel?').status,'entity_known_no_attribute');
 });
-test('Yes-no and negated place questions are not treated as habitat confirmation',()=>{
+test('Yes-no and negated place questions show evidence without confirmation or model',async()=>{
  const h=setup([fact]);
- for(const q of ['Lebt das Quendel in Europa?','Lebt das Quendel nicht in Testland?','Ist das Quendel in Testland heimisch?']){
+ for(const q of ['Lebt das Quendel in Europa?','Lebt das Quendel nicht in Testland?','Ist das Quendel in Testland heimisch?','Wohnt das Quendel in Testland?']){
+  const parsed=h.window.NERYXTopicLearning.parseLocationCheck(q);
+  assert.equal(parsed.subject,'quendel',q);
   const x=h.window.NERYXCoordinator.lookup(q);
-  assert.equal(x.status,'no_match',q);
+  assert.equal(x.status,'related',q);
+  assert.match(x.text,/Nebelwälder/,q);
+  assert.match(x.text,/nicht sicher entscheiden/,q);
+  assert.doesNotMatch(x.text,/^Ja\\b|^Nein\\b/m,q);
+  const answered=await h.window.NERYXOrchestrator.solve(q);
+  assert.equal(answered,x.text,q);
  }
+ assert.deepEqual(h.calls,{model:0,writes:0});
+});
+test('Negation is flagged; missing habitat and unknown or similar subject do not borrow claims',async()=>{
+ const h=setup([fact]);
+ assert.equal(h.window.NERYXTopicLearning.parseLocationCheck('Lebt das Quendel nicht in Testland?').negated,true);
+ assert.equal(h.window.NERYXCoordinator.lookup('Lebt das Quendelkraut in Testland?').status,'no_match');
+ assert.equal(h.window.NERYXCoordinator.lookup('Ist das Quendel in Testland oder Europa heimisch?').status,'no_match');
+ const other=setup([{subject:'quendel',property:'farbe',value:'Blau',origin:'Hauptwissen',source:'user'}]);
+ const missing=other.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?');
+ assert.equal(missing.status,'entity_known_no_attribute');
+ assert.match(await other.window.NERYXOrchestrator.solve('Lebt das Quendel in Testland?'),/WISSENSLÜCKE/);
+ assert.deepEqual(h.calls,{model:0,writes:0});
+ assert.deepEqual(other.calls,{model:0,writes:0});
+});
+test('Contradictory habitat evidence blocks any yes-no judgment',async()=>{
+ const h=setup([fact,{...fact,value:'Trockene Steppe'}]);
+ const state=h.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?');
+ assert.equal(state.status,'conflict');
+ assert.match(state.text,/WISSENSKONFLIKT/);
+ assert.match(await h.window.NERYXOrchestrator.solve('Lebt das Quendel in Testland?'),/WISSENSKONFLIKT/);
  assert.deepEqual(h.calls,{model:0,writes:0});
 });
 test('Other similarly named subjects never borrow Quendel habitat',()=>{
