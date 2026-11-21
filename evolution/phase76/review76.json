@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 31,
+  "cursor": 36,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -356,7 +356,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q11559"
     },
     {
-      "checked_at": "2026-11-18T15:21:00+00:00",
+      "checked_at": "2026-11-21T03:10:52+00:00",
       "classes": [
         "Zwergplanet",
         "klassisches Kuipergürtel-Objekt",
@@ -369,7 +369,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q601"
     },
     {
-      "checked_at": "2026-11-18T15:21:00+00:00",
+      "checked_at": "2026-11-21T03:10:52+00:00",
       "classes": [
         "Asteroid",
         "Zwergplanet",
@@ -383,7 +383,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q611"
     },
     {
-      "checked_at": "2026-11-18T15:21:00+00:00",
+      "checked_at": "2026-11-21T03:10:52+00:00",
       "classes": [
         "biologischer Vorgang"
       ],
@@ -394,7 +394,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q22283600"
     },
     {
-      "checked_at": "2026-11-18T15:21:00+00:00",
+      "checked_at": "2026-11-21T03:10:52+00:00",
       "classes": [
         "Enzymgruppe"
       ],
@@ -405,7 +405,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q3602265"
     },
     {
-      "checked_at": "2026-11-18T21:17:02+00:00",
+      "checked_at": "2026-11-21T03:10:52+00:00",
       "classes": [
         "Zeitpunkt innerhalb eines wiederkehrenden Zeitrahmens"
       ],
@@ -667,6 +667,13 @@
       "error_count": 1,
       "known_sources": 61,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-21T03:10:52+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 64,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -677,9 +684,11 @@
     "(136199) Eris": "40aab008cc318d0c072d",
     "(136472) Makemake": "72e50ba196bcfe8839c1",
     "(2) Pallas": "8f71b0dd701c9170fc69",
+    "(2+2)-Cycloaddition": "32734726679ee9b7cd5a",
     "-genese": "c2d8453aacac20d43ac6",
     "1,2-Propandiol": "c5f3e389010b220964cd",
     "18. Oktober": "f86e5368d33bf440e3cc",
+    "2,6-Diaminopurin": "ec8e0dcd6fd8415c969d",
     "3-Hydroxypropionatzyklus": "d3b69fab85022eae2ed0",
     "AGB-Stern": "76bbf1201c9afff4553e",
     "ATP-Citrat-Lyase": "8538b68b42bd9ef9584e",
@@ -693,6 +702,7 @@
     "Absolute Helligkeit": "55b72b14fc20ad2c608c",
     "Absorption (Physik)": "7ca5ff83537ea243ebe2",
     "Abwasser": "14b2d45bca416c3adb07",
+    "Achluophobie": "6be353f675e57e53621d",
     "Achämenidenreich": "b95fd585994902a62a11",
     "Adaptive Radiation": "5fe056616718c4951303",
     "Adler (Sternbild)": "5d1dbb73ede3cc4d1543",
