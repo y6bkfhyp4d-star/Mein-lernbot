@@ -1042,13 +1042,41 @@ test('Sprachmodell-Bridge: Opt-in, kein automatischer Download bei Start und kei
  assert.ok(app.includes('NERYXLocalModel?.load()'));
  assert.ok(app.includes('NERYXLocalModel?.ask(v)'));
 });
-test('Sprachmodell lädt keine fremden Modellscripte ohne ausdrücklichen Befehl',()=>{
+test('Sprachmodell lädt Modellscripte erst bei einem Ladeaufruf',()=>{
  const source=read('modules/local-model-bridge.js');
  assert.match(source,/async function load\(/);
  assert.match(source,/import\(new URL\('client.js',prototypeURL\)\.href\)/);
  assert.match(source,/document\.currentScript\?\.src/);
  assert.doesNotMatch(source,/localStorage\.setItem/);
- assert.match(app,/NERYXLocalModel\?\.shouldFallback\(original\)/);
+ assert.match(app,/async function routeAnswer\(/);
+ assert.match(app,/return engine\.solve\(s,\{knowledge:intelligentAnswer\}\)/);
+ assert.doesNotMatch(app,/NERYXLocalModel\?\.shouldFallback\(original\)/);
+});
+
+
+
+test('Sprachmodell wird nur bei ungeklärter Online-Frage nachgeladen; lokale Antwort und Offline sperren Download',async()=>{
+ const window={};let loads=0,asks=0,loaded=false,knowledgeCalls=0;
+ const navigator={onLine:true};
+ runInNewContext(read('modules/orchestrator.js'),{window,navigator});
+ window.NERYXLocalModel={
+  info:()=>({loaded}),
+  load:async()=>{loads++;loaded=true;return 'geladen'},
+  askRaw:async()=>{asks++;return 'Ein überprüfbares Beispiel erläutert die Frage verständlich und vorsichtig.'}
+ };
+ const solve=window.NERYXOrchestrator.solve;
+ assert.equal(loads,0,'keine Modellladung beim Initialisieren');
+ assert.match(await solve('Moin'),/Moin!/);
+ assert.equal(await solve('Was ist ein Okapi?',{knowledge:async()=>{knowledgeCalls++;return 'Ein Okapi ist ein Säugetier.';}}),'Ein Okapi ist ein Säugetier.');
+ assert.equal(loads,0,'lokales Wissen darf keinen Download auslösen');
+ navigator.onLine=false;
+ assert.match(await solve('Eine unbekannte Testfrage',{knowledge:async()=>null}),/OFFLINE/);
+ assert.equal(loads,0,'offline keine Modellladung');
+ navigator.onLine=true;
+ assert.match(await solve('Eine unbekannte Testfrage',{knowledge:async()=>null}),/LOKALES SPRACHMODELL \(unverifiziert\)/);
+ assert.equal(loads,1,'Online-Fallback lädt erst bei unbekannter Frage');
+ assert.equal(asks,1);
+ assert.equal(knowledgeCalls,1);
 });
 
 test('Systemdiagnose im Stapel: alle Prüfungen ohne Sprachmodell-Download nacheinander ausführbar',async()=>{
