@@ -1,0 +1,25 @@
+name: NERYX Retrospective Learning Check
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/learning-audit.js'
+      - 'modules/word-learning.js'
+      - '.github/workflows/neryx-retrospective-check.yml'
+permissions:
+  contents: read
+jobs:
+  retrospective:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify leave-one-out accuracy and read-only storage
+        run: |
+          node --test --test-name-pattern="Lernkontrolle: retrospektive Prüfungen lassen ein Beispiel jeweils vollständig weg" tests/neryx-smoke.test.mjs

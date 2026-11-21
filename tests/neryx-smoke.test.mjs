@@ -840,9 +840,9 @@ test('Lernkontrolle: getrennte synthetische Prüfbeispiele und transparentes Erg
 });
 test('Lernkontrolle: retrospektive Prüfungen lassen ein Beispiel jeweils vollständig weg',()=>{
  const examples=[
-  {phrase:'Zahlen werden verdoppelt',type:'geometrisch',tokens:['verdo'],fingerprint:'2,4,8,16,32'},
-  {phrase:'Wir verdoppeln Zahlen',type:'geometrisch',tokens:['verdo'],fingerprint:'3,6,12,24,48'},
-  {phrase:'Wir verdoppeln die Folge',type:'geometrisch',tokens:['verdo'],fingerprint:'5,10,20,40,80'}
+  {phrase:'Zahlen werden verdoppelt',type:'geometrisch',tokens:['verdop'],fingerprint:'2,4,8,16,32'},
+  {phrase:'Wir verdoppeln Zahlen',type:'geometrisch',tokens:['verdop'],fingerprint:'3,6,12,24,48'},
+  {phrase:'Wir verdoppeln die Folge',type:'geometrisch',tokens:['verdop'],fingerprint:'5,10,20,40,80'}
  ];
  const db=new Map([['neryx.learning.wordfeatures.v1',JSON.stringify({version:1,examples})]]);
  const snapshot=JSON.stringify([...db]);
