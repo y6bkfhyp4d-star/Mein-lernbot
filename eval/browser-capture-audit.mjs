@@ -5,7 +5,7 @@ export const PINNED_SCRIPTS=Object.freeze({
  'modules/rule-patterns.js':'2651acc475e51feeb5d6a13eb6ac27331025325af6bf7c00a4c1e4f0a016bc8c',
  'modules/neryx-reasoner.js':'f4463ce916521e8d2701cfacdc49b41f54013145b4f8f93c1399dae2c5350e81',
  'modules/system-hub.js':'a128121dbabae2e1510018c27a11bba43dafe83d6cfee04f2293726f20697255',
- 'modules/orchestrator.js':'875a4df02f7208ffdaa79c197ece6404a3c00791d77284785648e1d695d0ad73'
+ 'modules/orchestrator.js':'2db3be6561b1a002bf26eeb22fdeb496283c6fb2c434a83265490b7b1bdd4e57'
 });
 function entries(store){
  const out=[];
