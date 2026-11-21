@@ -62,5 +62,6 @@ test('App text-marker integration continues to use the expected fallback route',
  const app=readFileSync(new URL('../../app.js',import.meta.url),'utf8');
  assert.match(app,/VERWANDTES WISSEN/);
  assert.match(app,/habe ich noch keine passenden Informationen gespeichert/);
- assert.match(app,/NERYXOrchestrator\.solve/);
+ assert.match(app,/engine\.solve\(s,\{knowledge:intelligentAnswer\}\)/);
+ assert.match(app,/routeAnswer\(s,\{allowTeaching:true\}\)/);
 });
