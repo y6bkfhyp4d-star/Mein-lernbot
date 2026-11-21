@@ -1,0 +1,64 @@
+name: NERYX merge candidate verification
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm pull request merge candidate
+        if: github.event_name == 'pull_request'
+        run: |
+          test "$GITHUB_REF" = "refs/pull/${{ github.event.pull_request.number }}/merge"
+          echo "Testing synthetic merge commit $(git rev-parse HEAD)"
+      - name: Preserve main-only research and audit files
+        run: |
+          for path in \
+            evolution/phase70/knowledge.json \
+            evolution/phase710/research710.json \
+            evolution/phase711/research711.json \
+            evolution/phase712/audit712.json \
+            evolution/phase712/research711.json \
+            evolution/phase713/audit713.json \
+            evolution/phase713/research711.json \
+            evolution/phase76/review76.json \
+            evolution/phase77/research77.json \
+            evolution/phase78/research78.json \
+            evolution/phase79/research79.json; do
+            test -s "$path" || { echo "Missing main-only file: $path"; exit 1; }
+          done
+      - name: Verify all corpus and evaluation tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs
+  browsers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install temporary browser dependencies
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify merged app offline in real browser
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/browser-offline-smoke.mjs
