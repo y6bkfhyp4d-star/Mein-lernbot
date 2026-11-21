@@ -660,12 +660,13 @@ test('Freier Dialog: unbekannte Sprache durch geprüfte Zahlenantwort lernen',()
  for(const path of ['modules/learning-lab.js','modules/word-learning.js','modules/conversation-math.js'])
   runInNewContext(read(path),{window,localStorage});
  const c=window.NERYXConversationMath,w=window.NERYXWordLearning;
- assert.match(c.respond('Wie geht die Folge weiter: 7, 14, 28, 56, wenn ich die Zahlen multipliziere?'),/nicht ausreichend sichere/);
+ assert.match(c.respond('Wie geht die Folge weiter: 7, 14, 28, 56, wenn ich die Zahlen multipliziere?'),/Keine ausreichend sichere Wortzuordnung/);
  assert.match(c.respond('Die richtige Zahl ist 112'),/Beispiel gespeichert/);
- assert.match(c.respond('Wie geht die Folge weiter: 9, 18, 36, 72, wenn ich die Zahlen multipliziere?'),/nicht ausreichend sichere/);
+ assert.match(c.respond('Wie geht die Folge weiter: 9, 18, 36, 72, wenn ich die Zahlen multipliziere?'),/Keine ausreichend sichere Wortzuordnung/);
  assert.match(c.respond('144'),/Beispiel gespeichert/);
  assert.match(c.respond('Wie geht die Folge weiter: 11, 22, 44, 88, wenn ich die Zahlen multipliziere?'),/geometrisch → 176/);
  const snapshot=db.get('neryx.learning.wordfeatures.v1');
+ assert.equal(JSON.parse(snapshot).examples.length,2,'Nur zwei bestätigte Trainingsfolgen wurden gespeichert');
  assert.equal(c.respond('Hallo'),null);
  assert.equal(db.get('neryx.learning.wordfeatures.v1'),snapshot);
  assert.equal(db.has('meinLernBot.v1'),false);

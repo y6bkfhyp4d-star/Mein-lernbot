@@ -1,0 +1,25 @@
+name: NERYX Unknown Phrase Dialog Smoke
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/conversation-math.js'
+      - 'modules/word-learning.js'
+      - '.github/workflows/neryx-unknown-phrase-dialog.yml'
+permissions:
+  contents: read
+jobs:
+  dialog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unknown phrase needs confirmed training before reuse
+        run: |
+          node --test --test-name-pattern="Freier Dialog: unbekannte Sprache durch geprüfte Zahlenantwort lernen" tests/neryx-smoke.test.mjs
