@@ -13,7 +13,7 @@ function classify(value){
  const s=String(value??'').trim();
  if(!s)return 'no_match';
  if(/^(?:NERYX · WISSENSKONFLIKT|⚠\s*Unterschiedliche Angaben)/i.test(s))return 'conflict';
- if(/^(?:VERWANDTES WISSEN|IN GESPEICHERTEN DOKUMENTEN:|GESPEICHERTES WISSEN)\b/i.test(s))return 'related';
+ if(/^(?:VERWANDTES WISSEN\b|IN GESPEICHERTEN DOKUMENTEN:|GESPEICHERTES WISSEN\b)/i.test(s))return 'related';
  if(/^(?:Zu [„"].{1,180}[“"] habe ich noch keine passenden Informationen gespeichert\.?|Dazu habe ich noch keine|Keine passende Antwort(?: gespeichert)?\.?|Keine passenden Informationen(?: gespeichert)?\.?|Kein passendes Wissen|Ich (?:weiß|weiss) (?:es )?nicht|Nicht bekannt|Nicht gelernt|Keine Informationen verfügbar)/i.test(s))
   return 'no_match';
  return 'answered';
