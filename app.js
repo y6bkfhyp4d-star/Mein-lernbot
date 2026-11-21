@@ -116,17 +116,17 @@ async function routeAnswer(s,{allowTeaching=false}={}){
   s='Wo lebt das '+neryxLastSubject+'?';
  }
  // Eng begrenzte Pronomen-Folgefrage zur gespeicherten Nahrung; kein Raten.
- if(/^(?:und\\s+)?was\\s+frisst\\s+(?:er|sie|es)\\s*[?!.]?$/i.test(s.trim())){
-  if(!neryxLastSubject)return 'NERYX · RÜCKFRAGE\\nAuf welches Thema beziehst du dich? Bitte nenne den Namen.';
+ if(/^(?:und\s+)?was\s+frisst\s+(?:er|sie|es)\s*[?!.]?$/i.test(s.trim())){
+  if(!neryxLastSubject)return 'NERYX · RÜCKFRAGE\nAuf welches Thema beziehst du dich? Bitte nenne den Namen.';
   const claims=window.NERYXLearningHub?.collect?.()?.claims||[];
   const rows=claims.filter(c=>c.subject===neryxLastSubject&&c.property==='nahrung');
-  if(!rows.length)return 'NERYX · WISSENSLÜCKE\\nZum Thema „'+neryxLastSubject+'“ ist keine Nahrung gespeichert. Ich rate keine Antwort.';
+  if(!rows.length)return 'NERYX · WISSENSLÜCKE\nZum Thema „'+neryxLastSubject+'“ ist keine Nahrung gespeichert. Ich rate keine Antwort.';
   const values=new Set(rows.map(c=>String(c.value).trim().toLocaleLowerCase('de')));
   if(rows.some(c=>c.conflict)||values.size!==1)
-   return 'NERYX · WISSENSKONFLIKT\\nZur Nahrung von „'+neryxLastSubject+'“ liegen widersprüchliche Angaben vor. Keine Angabe wird automatisch ausgewählt.';
-  return 'NERYX · KOORDINIERTE ANTWORT\\n'+rows[0].value+
-   '\\nQuelle: '+[...new Set(rows.map(c=>c.origin+' ('+c.source+')'))].join('; ')+
-   '\\nHinweis: Lokal gespeichert, nicht unabhängig verifiziert.';
+   return 'NERYX · WISSENSKONFLIKT\nZur Nahrung von „'+neryxLastSubject+'“ liegen widersprüchliche Angaben vor. Keine Angabe wird automatisch ausgewählt.';
+  return 'NERYX · KOORDINIERTE ANTWORT\n'+rows[0].value+
+   '\nQuelle: '+[...new Set(rows.map(c=>c.origin+' ('+c.source+')'))].join('; ')+
+   '\nHinweis: Lokal gespeichert, nicht unabhängig verifiziert.';
  }
  const direct=window.NERYXCoordinator?.lookup?.(s);
  // Ein ausdrücklich neues, auch unbekanntes Thema beendet den alten Pronomenbezug.
