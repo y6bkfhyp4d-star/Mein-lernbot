@@ -1,15 +1,15 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "1946",
-    "Absorptionsspektrum",
+    "A priori",
+    "A*-Algorithmus",
     "(1) Ceres",
     "(136108) Haumea"
   ],
   "records": [
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-21T15:46:32+00:00",
+      "checked_at": "2026-11-21T21:41:21+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
@@ -20,7 +20,7 @@
     },
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-21T15:46:32+00:00",
+      "checked_at": "2026-11-21T21:41:21+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
@@ -115,6 +115,28 @@
       "reasons": [],
       "status": "kein_passender_titel",
       "topic": "2,6-Diaminopurin",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-21T21:41:21+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist A priori und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "A priori",
+      "verified_correction": false
+    },
+    {
+      "baseline_claims": 0,
+      "checked_at": "2026-11-21T21:41:21+00:00",
+      "claims": [],
+      "independent_verified": false,
+      "question": "Was ist A*-Algorithmus und wie wird es eingeordnet?",
+      "reasons": [],
+      "status": "kein_passender_titel",
+      "topic": "A*-Algorithmus",
       "verified_correction": false
     },
     {
@@ -694,6 +716,16 @@
     },
     {
       "at": "2026-11-21T15:46:32+00:00",
+      "baseline_candidates_same_pages": 0,
+      "baseline_topics_same_pages": 0,
+      "candidates": 0,
+      "errors": 0,
+      "processed": 4,
+      "with_claims": 0,
+      "without_matching_hit": 4
+    },
+    {
+      "at": "2026-11-21T21:41:21+00:00",
       "baseline_candidates_same_pages": 0,
       "baseline_topics_same_pages": 0,
       "candidates": 0,
