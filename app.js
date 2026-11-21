@@ -116,6 +116,10 @@ async function routeAnswer(s,{allowTeaching=false}={}){
   s='Wo lebt das '+neryxLastSubject+'?';
  }
  const direct=window.NERYXCoordinator?.lookup?.(s);
+ // Ein ausdrücklich neues, auch unbekanntes Thema beendet den alten Pronomenbezug.
+ const explicit=window.NERYXTopicLearning?.parse?.(s);
+ if(!follow&&explicit&&explicit.type!=='allgemein'&&explicit.subject&&
+    explicit.subject!==neryxLastSubject)neryxLastSubject=null;
  if(direct?.subject&&direct.status!=='no_match'&&direct.status!=='entity_known_no_attribute')
   neryxLastSubject=direct.subject;
  if(!engine?.solve)return intelligentAnswer(s);
