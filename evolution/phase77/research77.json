@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "Ablenkspule",
-    "Abschirmung (Elektrotechnik)"
+    "1946",
+    "Absorptionsspektrum"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-21T09:25:34+00:00",
+      "checked_at": "2026-11-21T15:24:25+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -227,6 +227,35 @@
       "source": "https://de.wikipedia.org/wiki/18._Oktober",
       "status": "suchtreffer",
       "topic": "18. Oktober"
+    },
+    {
+      "checked_at": "2026-11-21T15:24:25+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Birkenbihl (* 26. April 1946 in München; † 3. Dezember 2011 in Osterholz-Scharmbeck) war eine deutsche Managementtrainerin, Sachbuchautorin und Esoterikerin. Vera",
+          "title": "Vera F. Birkenbihl",
+          "url": "https://de.wikipedia.org/?curid=658185"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "[lyki lyk]) ist die Titelfigur einer seit 1946 erscheinenden belgischen Comic-Serie des Zeichners Maurice De Bevere alias Morris. Sie ist mit mehr als",
+          "title": "Lucky Luke",
+          "url": "https://de.wikipedia.org/?curid=43578"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "unterziehen. Er verlor alle Ämter und über ihn wurde ein Berufsverbot verhängt. 1946 wurde er als „Hauptschuldiger“ eingeordnet. Diese Einordnung wurde in mehreren",
+          "title": "Kurt Schmitt",
+          "url": "https://de.wikipedia.org/?curid=623857"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist 1946 und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/1946",
+      "status": "suchtreffer",
+      "topic": "1946"
     },
     {
       "checked_at": "2026-11-21T03:27:24+00:00",
@@ -510,6 +539,29 @@
       "source": "https://de.wikipedia.org/wiki/Absorption_%28Physik%29",
       "status": "suchtreffer",
       "topic": "Absorption (Physik)"
+    },
+    {
+      "checked_at": "2026-11-21T15:24:25+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Antennen um ein gemeinsames Reaktionszentrum wird sowohl der Querschnitt vergrößert als auch das Absorptionsspektrum verbreitert. Die eng benachbarten Chromophore",
+          "title": "Photosynthese",
+          "url": "https://de.wikipedia.org/?curid=3327081"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "und Fälschung können auch bezüglich ihrer Dichte, Brechungsindex, Lichtabsorption (siehe Absorptionsspektrum von Türkis) und anderen physischen und optischen",
+          "title": "Türkis (Mineral)",
+          "url": "https://de.wikipedia.org/?curid=77761"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Absorptionsspektrum und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Absorptionsspektrum",
+      "status": "suchtreffer",
+      "topic": "Absorptionsspektrum"
     },
     {
       "checked_at": "2026-11-19T09:39:01+00:00",
@@ -1321,6 +1373,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 68,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-21T15:24:25+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 72,
       "searched": 3,
       "with_results": 2
     }
