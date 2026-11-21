@@ -149,3 +149,21 @@ test('Online script requests are fresh; offline fallback is the pinned installed
  w.setFetcher(async()=>{throw Error('offline')});
  assert.equal((await w.request('app.js','same-origin')).response.body,'// compiled');
 });
+
+
+test('PWA manifest and icon linked by shell are installed and available offline',async()=>{
+ const w=worker();
+ const shell='<!doctype html><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><script src="app.js"></script>';
+ w.setFetcher(async req=>{
+  const url=typeof req==='string'?req:req.url;
+  return response(url===base+'index.html'?shell:url.endsWith('.webmanifest')?'{"name":"NERYX"}':url.endsWith('.png')?'png-icon':'// compiled',url);
+ });
+ await w.lifecycle('install');
+ const cache=w.stores.get('neryx-offline-v4');
+ assert.equal(cache.get(base+'manifest.webmanifest').body,'{"name":"NERYX"}');
+ assert.equal(cache.get(base+'icon-192.png').body,'png-icon');
+ w.setFetcher(async()=>{throw Error('offline')});
+ assert.equal((await w.request('manifest.webmanifest','same-origin')).response.body,'{"name":"NERYX"}');
+ assert.equal((await w.request('icon-192.png','same-origin')).response.body,'png-icon');
+ assert.equal((await w.request('eval/browser-negative.js','same-origin')).response.error,true);
+});
