@@ -1444,15 +1444,25 @@ test('L1-Triage: bekannte Fehler bleiben sichtbar, statt als bestanden zu zähle
  assert.match(runner,/unexpectedPasses:surprises.length/);
  assert.match(runner,/--all-strict/);
 });
-test('Frozen-L1-Siegel ist inaktiv und Frozen-Dateien werden nicht im Repo vorausgesetzt',()=>{
+test('Frozen-Schema 2 bleibt inaktiv, extern und gegen CI abgesichert',()=>{
  const seal=JSON.parse(read('eval/frozen.seal.json'));
+ assert.equal(seal.schema,2);
  assert.equal(seal.active,false);
- assert.equal(seal.sha256,null);
+ assert.equal(seal.version,null);
  assert.equal(seal.itemCount,null);
+ assert.equal(seal.claimCount,null);
+ assert.equal(seal.files.fixture.sha256,null);
+ assert.equal(seal.files.suite.sha256,null);
  const runner=read('eval/run-frozen.mjs');
- assert.match(runner,/sha256/);
- assert.match(runner,/realpathSync/);
- assert.match(runner,/Frozen-Datei muss außerhalb des Repositories liegen/);
- assert.doesNotMatch(runner,/localStorage|getItem\(|indexedDB/);
- assert.match(runner,/byCategory/);
+ const loader=read('eval/frozen-loader.mjs');
+ const paths=read('eval/frozen-path-policy.mjs');
+ assert.match(runner,/loadFrozen\(/);
+ assert.match(loader,/assertFrozenNotCI\(\)/);
+ assert.match(loader,/externalFrozenPath\(/);
+ assert.match(loader,/seal\.files\.fixture\.sha256/);
+ assert.match(loader,/seal\.files\.suite\.sha256/);
+ assert.match(paths,/realpathSync\(/);
+ assert.match(paths,/Frozen-Testdaten dürfen nicht im Repository liegen/);
+ assert.match(paths,/Frozen-Evaluation in CI\/GitHub Actions gesperrt/);
+ assert.doesNotMatch(runner+loader+paths,/localStorage|getItem\(|indexedDB/);
 });
