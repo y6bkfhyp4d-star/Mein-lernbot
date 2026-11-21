@@ -389,7 +389,7 @@ test('Lernlabor: Rückmeldung ändert spätere Strategie-Auswahl in getrenntem S
   const lab=window.NERYXLearning;
   assert.equal(lab.ranked([2,4,8,16])[0].next,32,'Vorher geometrisch favorisiert');
   assert.match(lab.proposal('2, 4, 8, 16'),/geometrisch: 32/);
-  assert.match(lab.feedback('30'),/Feedback übernommen/);
+  assert.match(lab.feedback('30'),/Lernfeedback übernommen: 30/);
   assert.equal(lab.ranked([2,4,8,16])[0].next,30,'Nachher kubisch favorisiert');
   assert.equal(lab.ranked([3,6,12,24])[0].next,45,'Erfahrungsübertragung auf andere Folge');
   assert.ok(db.has('neryx.learning.strategies.v1'));
