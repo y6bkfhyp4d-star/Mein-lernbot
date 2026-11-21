@@ -24,6 +24,7 @@ test('Conflict report exposes current and historical values with source, with no
  assert.match(report,/Erkannte Widersprüche: 1/);
  assert.match(report,/Nebelwälder im Norden von Testland/);
  assert.match(report,/Alternative \(ungeprüft\): Trockene Steppe \| Herkunft: user/);
+ assert.doesNotMatch(report,/Alternative \(ungeprüft\): Nebelwälder im Norden von Testland/);
  assert.deepEqual(h.writes,[]);
 });
 test('Lernquellen exposes historical alternatives, without turning them into confirmed facts',()=>{
