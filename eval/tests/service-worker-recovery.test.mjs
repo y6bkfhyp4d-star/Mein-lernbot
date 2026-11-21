@@ -114,3 +114,38 @@ test('Echte NERYX-Startseite nennt nur lokal verfügbare Script-Dateien',()=>{
   assert.equal(existsSync(new URL('../../'+path,import.meta.url)),true,path);
  }
 });
+
+
+test('Upgrade from real recovery-v2 cache removes legacy only after successful v4 install',async()=>{
+ const w=worker();
+ await (await w.caches.open('neryx-recovery-v2')).put(base+'index.html',response('legacy-shell',base+'index.html'));
+ await (await w.caches.open('unrelated-app-cache')).put('keep',response('unrelated',base));
+ await w.lifecycle('install');
+ assert.equal(w.stores.has('neryx-recovery-v2'),true,'install must not delete older offline fallback');
+ await w.lifecycle('activate');
+ assert.equal(w.stores.has('neryx-recovery-v2'),false,'activate removes old recovery cache');
+ assert.equal(w.stores.has('unrelated-app-cache'),true,'unrelated caches stay untouched');
+ assert.equal(w.stores.get('neryx-offline-v4').get(base+'index.html').body,html);
+});
+test('Failed upgrade does not delete the prior offline recovery cache',async()=>{
+ const w=worker();
+ await (await w.caches.open('neryx-recovery-v2')).put(base+'index.html',response('old-recovery',base+'index.html'));
+ w.setFetcher(async req=>{
+  const url=typeof req==='string'?req:req.url;
+  if(url.endsWith('modules/math-verifier.js'))throw Error('upgrade network failure');
+  return response(url===base+'index.html'?html:'// compiled',url);
+ });
+ await assert.rejects(w.lifecycle('install'),/upgrade network failure/);
+ assert.equal(w.stores.has('neryx-recovery-v2'),true);
+ assert.equal(w.stores.get('neryx-recovery-v2').get(base+'index.html').body,'old-recovery');
+ assert.equal(w.deleted.length,0);
+});
+test('Online script requests are fresh; offline fallback is the pinned installed version',async()=>{
+ const w=worker();
+ await w.lifecycle('install');
+ w.setFetcher(async req=>response('// newest',typeof req==='string'?req:req.url));
+ assert.equal((await w.request('app.js','same-origin')).response.body,'// newest');
+ assert.equal(w.stores.get('neryx-offline-v4').get(base+'app.js').body,'// compiled');
+ w.setFetcher(async()=>{throw Error('offline')});
+ assert.equal((await w.request('app.js','same-origin')).response.body,'// compiled');
+});
