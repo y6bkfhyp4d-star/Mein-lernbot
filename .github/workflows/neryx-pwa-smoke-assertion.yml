@@ -1,0 +1,23 @@
+name: NERYX PWA smoke assertion
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'sw.js'
+      - '.github/workflows/neryx-pwa-smoke-assertion.yml'
+permissions:
+  contents: read
+jobs:
+  pwa-assertion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify PWA fetch remains cache-bypassing
+        run: node --test --test-name-pattern="PWA behält die Installation" tests/neryx-smoke.test.mjs
