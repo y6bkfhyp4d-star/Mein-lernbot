@@ -1,0 +1,24 @@
+name: NERYX Model Loading Safety Smoke
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/orchestrator.js'
+      - 'modules/local-model-bridge.js'
+      - '.github/workflows/neryx-model-load-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  model-loading:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify model lazy load and offline/local guard
+        run: node --test --test-name-pattern="Sprachmodell wird nur bei ungeklärter Online-Frage|Sprachmodell lädt Modellscripte erst bei einem Ladeaufruf" tests/neryx-smoke.test.mjs
