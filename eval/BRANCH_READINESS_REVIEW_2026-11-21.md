@@ -44,3 +44,15 @@ Die vorherigen Angaben zu `clearChat()` und CI beschreiben den damaligen Stand. 
 **Einordnung:** Ein klassischer Konflikt an identischen bearbeiteten Dateipfaden ist nach diesem Vergleich nicht zu erwarten. Ein tatsächlicher Probe-Merge wurde jedoch nicht ausgeführt; semantische, Laufzeit- und Deploy-Risiken bleiben. Vor allem die unterschiedlichen Service-Worker-Strategien erfordern separate Browser- und Upgrade-Tests. Die Branch-Divergenz alleine ist deshalb kein nachgewiesener Dateikonflikt, aber ein Anlass zu kontrollierter Integration.
 
 **Nächster sicherer Einzel-Schritt:** Browser-/Service-Worker-Upgradeverhalten auf einer isolierten Testumgebung prüfen. Noch kein Merge in `main`.
+
+
+## Browser-Offline-Nachprüfung (21.11.2026)
+
+- Neuer GitHub-Actions-Workflow: `.github/workflows/neryx-browser-offline.yml` (Ubuntu 24.04, temporäres Playwright/Chromium, lokaler HTTP-Server, leerer Browser-Speicher).
+- Echter Chromium-Test: https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/44907839734 — erfolgreich; 40 Cache-Einträge, Offline-Neustart der tatsächlichen `index.html`, Service-Worker-Kontrolle und vorhandene Chat- und Senden-Elemente.
+- Dabei wurde ein Browser-Installationsproblem sichtbar: parallele `fetch()`-Antworten für App-Skripte wurden vor dem Cache-Schreiben nicht vollständig gelesen; der Worker blieb im Zustand `installing`.
+- Minimaler Fix in `sw.js`: Jede Skriptantwort wird über `await response.clone().text()` vollständig übertragen, bevor die bereits vorhandene Cache-Staging-Logik fortgesetzt wird.
+- Bestehender Scoring-Contract-CI nach Fix: https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/44907839781 — erfolgreich.
+- Einschränkung: Kein echter iOS-WebKit-Test, kein händisches Durchspielen aller Chat-Funktionen, kein Live-Update unter Benutzerbedingungen und kein Probe-Merge nach `main`.
+
+**Integrationsentscheidung weiterhin ausstehend:** Ein Browser-Offline-Smoke ist nun bestanden, ersetzt jedoch weder den WebKit-Test auf dem iPhone noch einen kontrollierten Merge-/Deployment-Check.
