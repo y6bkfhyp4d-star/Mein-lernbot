@@ -1,9 +1,11 @@
-/* Real Chromium smoke with fresh local-only storage. */
+/* Real Chromium/WebKit smoke with fresh local-only storage. */
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve,sep,extname} from 'node:path';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
+const engine=process.env.NERYX_BROWSER||'chromium';
+if(!['chromium','webkit'].includes(engine))throw Error('Unsupported browser: '+engine);
 const root=resolve('.');
 const types={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png'};
 const requests=[];
@@ -21,7 +23,7 @@ let browser;
 try{
  await new Promise((ok,bad)=>{server.once('error',bad);server.listen(0,'127.0.0.1',ok)});
  const origin='http://127.0.0.1:'+server.address().port;
- browser=await chromium.launch({headless:true});
+ browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
  const context=await browser.newContext({serviceWorkers:'allow'});
  const page=await context.newPage();
  const errors=[],diagnostics=[];
@@ -61,7 +63,7 @@ try{
  }));
  assert.ok(offline.chat&&offline.send&&offline.controlled,'offline app failed to start');
  assert.deepEqual(errors,[],'offline JS errors');
- console.log('REAL_CHROMIUM_OFFLINE_OK '+JSON.stringify({cachedAssets:cached.urls.length,offline}));
+ console.log('REAL_BROWSER_OFFLINE_OK '+JSON.stringify({engine,cachedAssets:cached.urls.length,offline}));
  await context.close();
 }finally{
  if(browser)await browser.close();
