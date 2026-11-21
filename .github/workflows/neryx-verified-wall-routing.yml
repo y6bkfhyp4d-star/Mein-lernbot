@@ -1,0 +1,25 @@
+name: NERYX Verified Wall Routing
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'modules/local-model-bridge.js'
+      - 'modules/math-verifier.js'
+      - '.github/workflows/neryx-verified-wall-routing.yml'
+permissions:
+  contents: read
+jobs:
+  verified-wall:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify wall calculation bypasses the language model
+        run: |
+          node --test --test-name-pattern="Verifizierte Wandfläche kommt im Hauptchat" tests/neryx-smoke.test.mjs
