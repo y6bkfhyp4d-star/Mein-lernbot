@@ -92,3 +92,31 @@ test('Short pronoun follow-up reuses only a previously matched explicit subject 
  assert.match(next,/Testland und Steppe/);
  assert.equal(calls.model,0);
 });
+
+test('Switch to an unknown explicit topic invalidates previous pronoun reference',async()=>{
+ const begin=app.indexOf('let neryxLastSubject=null;');
+ const end=app.indexOf('async function handle(input)',begin);
+ const window={},calls={model:0};
+ window.NERYXCoordinator={lookup(q){
+  if(q==='Wo lebt das Quendel?')return {status:'conflict',subject:'quendel',property:'lebensraum',text:'NERYX · WISSENSKONFLIKT\nQuendel'};
+  return {status:'no_match',subject:null,property:null,text:null};
+ }};
+ window.NERYXTopicLearning={
+  parse:q=>/^Wo lebt das (Quendel|Okapi)\?$/.test(q)?{
+   type:'lebensraum',subject:q.includes('Okapi')?'okapi':'quendel'
+  }:null,
+  match:()=>null,
+  ask:()=> 'Dazu kenne ich noch keine bestätigte Antwort.\nFrage: Wo lebt das Okapi?'
+ };
+ window.NERYXLocalModel={info(){calls.model++;throw Error('must not reach model')}};
+ runInNewContext(orchestrator+'\n'+app.slice(begin,end)+'\nwindow.routeAnswer=routeAnswer;',
+  {window,navigator:{onLine:true},intelligentAnswer:async()=> 'Zu „Okapi“ habe ich noch keine passenden Informationen gespeichert.'});
+ const known=await window.routeAnswer('Wo lebt das Quendel?',{allowTeaching:true});
+ assert.match(known,/WISSENSKONFLIKT/);
+ const unknown=await window.routeAnswer('Wo lebt das Okapi?',{allowTeaching:true});
+ assert.match(unknown,/noch keine bestätigte Antwort/);
+ const follow=await window.routeAnswer('Und wo lebt es?',{allowTeaching:true});
+ assert.match(follow,/RÜCKFRAGE/);
+ assert.doesNotMatch(follow,/Quendel|WISSENSKONFLIKT/);
+ assert.equal(calls.model,0);
+});
