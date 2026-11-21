@@ -17,9 +17,9 @@ test('0.3f: known-gap registry has a unique, actionable schema',()=>{
     assert.ok(typeof gap.question==='string'&&gap.question.trim());
     assert.ok(typeof gap.target==='string'&&gap.target.length>=25);
     assert.ok(typeof gap.evidence==='string'&&gap.evidence.length>=25);
-    assert.equal(gap.status,'open-unverified');
+    assert.ok(['open-unverified','resolved-tested'].includes(gap.status));
   }
 });
 for(const gap of gaps){
-  test.todo(gap.id+' – '+gap.title+' (open: '+gap.target+')');
+  if(gap.status==='open-unverified')test.todo(gap.id+' – '+gap.title+' (open: '+gap.target+')');
 }
