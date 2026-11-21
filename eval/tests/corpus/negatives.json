@@ -1,0 +1,20 @@
+[
+  {
+    "question": "Wo lebt das Okapi?",
+    "allowTeaching": true,
+    "marker": "Dazu kenne ich noch keine bestätigte Antwort.",
+    "lastSubject": null
+  },
+  {
+    "question": "Wo lebt der Wolfshund?",
+    "allowTeaching": true,
+    "marker": "Dazu kenne ich noch keine bestätigte Antwort.",
+    "lastSubject": null
+  },
+  {
+    "question": "Welche Farbe hat der Wolf?",
+    "allowTeaching": true,
+    "marker": "NERYX · WISSENSLÜCKE",
+    "lastSubject": null
+  }
+]
