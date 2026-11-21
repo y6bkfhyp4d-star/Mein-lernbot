@@ -8,6 +8,8 @@ on:
       - 'eval/tests/service-worker-recovery.test.mjs'
       - 'modules/learning-coordinator.js'
       - 'modules/learning-hub.js'
+      - 'antwort-ki.js'
+      - 'eval/tests/answer-conflict-gate.test.mjs'
       - 'eval/tests/conflict-history-display.test.mjs'
       - 'eval/tests/structured-knowledge.test.mjs'
       - 'app.js'
@@ -53,6 +55,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify natural answers never assert conflicted facts
+        run: node --test eval/tests/answer-conflict-gate.test.mjs
       - name: Verify historical conflicts are visible without storage writes
         run: node --test eval/tests/conflict-history-display.test.mjs
       - name: Verify knowledge-first homeland questions with synthetic data
