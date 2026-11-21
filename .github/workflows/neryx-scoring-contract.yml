@@ -7,6 +7,8 @@ on:
       - 'sw.js'
       - 'eval/tests/service-worker-recovery.test.mjs'
       - 'modules/learning-coordinator.js'
+      - 'modules/learning-hub.js'
+      - 'eval/tests/conflict-history-display.test.mjs'
       - 'eval/tests/structured-knowledge.test.mjs'
       - 'app.js'
       - 'eval/tests/app-answer-routing.test.mjs'
@@ -51,6 +53,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify historical conflicts are visible without storage writes
+        run: node --test eval/tests/conflict-history-display.test.mjs
       - name: Verify knowledge-first homeland questions with synthetic data
         run: node --test eval/tests/knowledge-homeland.test.mjs
       - name: Verify typed knowledge states and conflict safety
