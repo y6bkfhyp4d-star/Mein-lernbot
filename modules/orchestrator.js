@@ -19,6 +19,16 @@ function classify(value){
  return 'answered';
 }
 const unknown=value=>['related','no_match'].includes(classify(value));
+// Dokument-Suchtreffer sind nur Kontext. Ein themenfremder Treffer darf den
+// Sprachmodell-Fallback nicht blockieren. Keine Änderung am Wissensspeicher.
+const documentTerms=x=>{
+ const stop=new Set('der die das den dem des ein eine einer einem und oder ist sind wird war wie was wer wo wann warum mit von zum zur im am an auf fuer für als aber auch bitte mir kannst kann koennen können erklaere erkläre unterschied zwischen anhand beispiel beispiels beispiele aus malerhandwerk quelle lerninhalt definition gespeichert dokumenten'.split(' '));
+ return new Set(String(x??'').toLocaleLowerCase('de').replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,' ').split(/\s+/).filter(w=>w.length>2&&!stop.has(w)));
+};
+function relevantDocument(query,answer){
+ const q=documentTerms(query),d=documentTerms(String(answer).replace(/^IN GESPEICHERTEN DOKUMENTEN:/i,''));
+ return [...q].some(term=>d.has(term));
+}
 function plan(input){
  const s=String(input??'').trim();
  if(!s||s.length>3000||s.includes('\n'))return {type:'invalid',source:'Eingabe'};
@@ -144,7 +154,7 @@ async function solve(input,{knowledge}={}){
   let answer;try{answer=await knowledge(s)}catch{answer=null}
   const state=classify(answer);
   if(state==='answered'||state==='conflict')return answer;
-  if(state==='related')return answer+
+  if(state==='related'&&(!/^IN GESPEICHERTEN DOKUMENTEN:/i.test(String(answer).trim())||relevantDocument(s,answer)))return answer+
    '\n\nHinweis: Das ist nur verwandtes gespeichertes Wissen, keine sichere Antwort auf die konkrete Frage.'+
    '\nFür eine ausdrücklich unverifizierte Modellantwort: KI fragen: '+s;
  }
