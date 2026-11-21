@@ -1,0 +1,33 @@
+name: NERYX GENESIS X 0.9 held-out research loop
+on:
+  pull_request:
+    branches: [neryx/genesis-x-08-diagnostics]
+    paths:
+      - 'modules/genesis-x-research.js'
+      - 'eval/tests/genesis-x-research.test.mjs'
+      - 'docs/GENESIS_X_RESEARCH_09.md'
+      - '.github/workflows/neryx-genesis-x-09.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all isolated Genesis X experiments
+        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs eval/tests/genesis-x-tools-property.test.mjs eval/tests/genesis-x-logic.test.mjs eval/tests/genesis-x-router.test.mjs eval/tests/genesis-x-chain.test.mjs eval/tests/genesis-x-verifier.test.mjs eval/tests/genesis-x-verified-chain.test.mjs eval/tests/genesis-x-diagnostics.test.mjs eval/tests/genesis-x-research.test.mjs
+      - name: Check app prior labs and Frozen seal remained intact
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/genesis09-changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|modules/genesis-x(-tools|-logic|-router|-chain|-verifier|-verified-chain|-diagnostics)?\.js|eval/frozen\.seal\.json)$' /tmp/genesis09-changed.txt; then
+            echo "Protected file changed"; exit 1
+          fi
