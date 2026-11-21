@@ -1,8 +1,8 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "Ablenkspule",
-    "Abschirmung (Elektrotechnik)",
+    "1946",
+    "Absorptionsspektrum",
     "(1) Ceres",
     "(136108) Haumea",
     "(136199) Eris",
@@ -10,7 +10,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-21T10:25:38+00:00",
+      "checked_at": "2026-11-21T16:22:41+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 6
@@ -27,7 +27,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T10:25:38+00:00",
+      "checked_at": "2026-11-21T16:22:41+00:00",
       "claims": [],
       "diagnostics": {
         "subjekt_nicht_erkannt": 4
@@ -44,7 +44,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T10:25:38+00:00",
+      "checked_at": "2026-11-21T16:22:41+00:00",
       "claims": [
         {
           "id": "p711-37f44a903c564d",
@@ -76,7 +76,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-21T10:25:38+00:00",
+      "checked_at": "2026-11-21T16:22:41+00:00",
       "claims": [],
       "diagnostics": {
         "keine_klare_klassifikation": 1,
@@ -173,6 +173,23 @@
       "status": "aussagen_gefunden",
       "title_resolution": "direkter_titel",
       "topic": "18. Oktober",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T16:22:41+00:00",
+      "claims": [],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 2
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 0,
+      "old_claims_same_page": 0,
+      "page_title": "1946",
+      "question": "Was ist 1946 und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=5913",
+      "status": "subjekt_nicht_erkannt",
+      "title_resolution": "direkter_titel",
+      "topic": "1946",
       "verified_correction": false
     },
     {
@@ -375,6 +392,38 @@
       "status": "abruf_fehler",
       "title_resolution": null,
       "topic": "Absorption (Physik)",
+      "verified_correction": false
+    },
+    {
+      "checked_at": "2026-11-21T16:22:41+00:00",
+      "claims": [
+        {
+          "id": "p711-c78a5950696658",
+          "independent_verified": false,
+          "pattern": "direkt",
+          "quality": "vollstaendiger_quellensatz",
+          "quote": "Ein Absorptionsspektrum ist ein elektromagnetisches Spektrum, das dunkle Spektrallinien enthält.",
+          "relation": "quellenbeschreibung",
+          "rule": "ist",
+          "source": "https://de.wikipedia.org/?curid=159818",
+          "statement": "Ein Absorptionsspektrum ist ein elektromagnetisches Spektrum, das dunkle Spektrallinien enthält.",
+          "status": "unbestaetigte_quellenbehauptung",
+          "subject": "Absorptionsspektrum",
+          "subject_form": "Absorptionsspektrum"
+        }
+      ],
+      "diagnostics": {
+        "subjekt_nicht_erkannt": 5
+      },
+      "independent_verified": false,
+      "new_claims_same_page": 1,
+      "old_claims_same_page": 1,
+      "page_title": "Absorptionsspektrum",
+      "question": "Was ist Absorptionsspektrum und wie wird es eingeordnet?",
+      "source": "https://de.wikipedia.org/?curid=159818",
+      "status": "aussagen_gefunden",
+      "title_resolution": "direkter_titel",
+      "topic": "Absorptionsspektrum",
       "verified_correction": false
     },
     {
@@ -1253,6 +1302,22 @@
       "unresolved_topics": [
         "Ablenkspule",
         "Abschirmung (Elektrotechnik)",
+        "(1) Ceres",
+        "(136108) Haumea",
+        "(2) Pallas"
+      ]
+    },
+    {
+      "at": "2026-11-21T16:22:41+00:00",
+      "claims": 2,
+      "errors": 0,
+      "new_extractor_same_pages": 2,
+      "old_extractor_same_pages": 2,
+      "processed": 6,
+      "titles_resolved": 6,
+      "topics_with_claims": 2,
+      "unresolved_topics": [
+        "1946",
         "(1) Ceres",
         "(136108) Haumea",
         "(2) Pallas"
