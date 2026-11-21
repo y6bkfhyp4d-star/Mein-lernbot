@@ -128,3 +128,60 @@ test('Other similarly named subjects never borrow Quendel habitat',()=>{
  const h=setup([fact]);
  assert.equal(h.window.NERYXCoordinator.lookup('Wo findet man das Quendelkraut?').status,'no_match');
 });
+
+const placeClaim=(property,value='Testland')=>({
+ subject:'quendel',property,value,origin:'Hauptwissen',source:'user',conflict:false
+});
+test('Exact positive location claim supports explicit Ja; negated question remains unambiguous',async()=>{
+ const h=setup([fact,placeClaim('vorkommen_in')]);
+ for(const q of ['Lebt das Quendel in Testland?','Ist das Quendel in Testland heimisch?']){
+  const r=h.window.NERYXCoordinator.lookup(q);
+  assert.equal(r.status,'answered');
+  assert.match(r.text,/Ergebnis: Ja/);
+  assert.match(r.text,/vorkommen_in|Vorkommensfakt/);
+  assert.match(await h.window.NERYXOrchestrator.solve(q),/Ergebnis: Ja/);
+ }
+ const neg=h.window.NERYXCoordinator.lookup('Lebt das Quendel nicht in Testland?');
+ assert.equal(neg.status,'answered');
+ assert.match(neg.text,/Ergebnis: Ja/);
+ assert.match(neg.text,/bewertet ausdrücklich die positive Behauptung/);
+ assert.deepEqual(h.calls,{model:0,writes:0});
+});
+test('Explicit negative claim supports Nein only for same exact place, no closed-world inference',async()=>{
+ const h=setup([fact,placeClaim('nicht_vorkommen_in','Europa')]);
+ const no=h.window.NERYXCoordinator.lookup('Lebt das Quendel in Europa?');
+ assert.equal(no.status,'answered');
+ assert.match(no.text,/Ergebnis: Nein/);
+ const neither=h.window.NERYXCoordinator.lookup('Lebt das Quendel in Asien?');
+ assert.equal(neither.status,'related');
+ assert.match(neither.text,/nicht sicher entscheiden/);
+ assert.doesNotMatch(neither.text,/Ergebnis: Nein/);
+ assert.deepEqual(h.calls,{model:0,writes:0});
+});
+test('Positive and negative evidence for same exact location is a conflict',async()=>{
+ const h=setup([fact,placeClaim('vorkommen_in'),placeClaim('nicht_vorkommen_in')]);
+ const status=h.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?');
+ assert.equal(status.status,'conflict');
+ assert.match(status.text,/WISSENSKONFLIKT/);
+ assert.match(await h.window.NERYXOrchestrator.solve('Lebt das Quendel in Testland?'),/WISSENSKONFLIKT/);
+ assert.deepEqual(h.calls,{model:0,writes:0});
+});
+test('Conflicting free habitat claims block certainty even if an explicit claim exists',()=>{
+ const h=setup([fact,{...fact,value:'Trockene Steppe'},placeClaim('vorkommen_in')]);
+ const k=h.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?');
+ assert.equal(k.status,'conflict');
+});
+test('An unrelated or longer place name never provides a proof for requested place',()=>{
+ const h=setup([fact,placeClaim('vorkommen_in','Nordtestland')]);
+ const k=h.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?');
+ assert.equal(k.status,'related');
+ assert.doesNotMatch(k.text,/Ergebnis: Ja/);
+ const other=setup([fact,placeClaim('vorkommen_in')]);
+ assert.equal(other.window.NERYXCoordinator.lookup('Lebt das Quendelkraut in Testland?').status,'no_match');
+});
+test('A marked explicit conflict or alternative never becomes a positive proof',()=>{
+ const h=setup([fact,{...placeClaim('vorkommen_in'),conflict:true}]);
+ assert.equal(h.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?').status,'conflict');
+ const alternative=setup([fact,{...placeClaim('vorkommen_in'),alternatives:[{value:'Anderes Land'}]}]);
+ assert.equal(alternative.window.NERYXCoordinator.lookup('Lebt das Quendel in Testland?').status,'conflict');
+});
