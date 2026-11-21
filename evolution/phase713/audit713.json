@@ -1,12 +1,12 @@
 {
   "schema": 713,
-  "generated_at": "2026-11-20T05:11:10+00:00",
+  "generated_at": "2026-11-21T05:03:44+00:00",
   "phase7_closure": "technisch_abgeschlossen_mit_offenen_wahrheitsfragen",
   "status_explanation": "Phase-7-Pipeline vorhanden und automatisierte Strukturtests dokumentiert. Keine unabhängige Sachverifikation.",
   "source_schema": 711,
-  "source_records": 32,
+  "source_records": 40,
   "audit": {
-    "checked": 16,
+    "checked": 17,
     "rows": [
       {
         "topic": "(136199) Eris",
@@ -21,6 +21,15 @@
         "topic": "18. Oktober",
         "statement": "Der 18. Oktober ist der 291. Tag des gregorianischen Kalenders (der 292. in Schaltjahren), somit verbleiben 74 Tage bis zum Jahresende.",
         "source": "https://de.wikipedia.org/?curid=6299",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "2,6-Diaminopurin",
+        "statement": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst.",
+        "source": "https://de.wikipedia.org/?curid=7946097",
         "flags": [],
         "risk": "keine_strukturhinweise",
         "independent_verified": false,
