@@ -112,8 +112,9 @@ async function routeAnswer(s,{allowTeaching=false}={}){
  if(!engine?.solve)return intelligentAnswer(s);
  const parsed=allowTeaching&&window.NERYXTopicLearning?.parse(s);
  if(!parsed)return engine.solve(s,{knowledge:intelligentAnswer});
- const coordinated=window.NERYXCoordinator?.decide(s);
- if(coordinated)return coordinated;
+ const checked=window.NERYXCoordinator?.lookup?.(s);
+ if(checked&&checked.status!=='no_match')return engine.solve(s,{knowledge:intelligentAnswer});
+ if(!checked){const coordinated=window.NERYXCoordinator?.decide(s);if(coordinated)return coordinated;}
  const original=await intelligentAnswer(s);
  const state=engine.classify?.(original);
  if(state==='no_match'){
