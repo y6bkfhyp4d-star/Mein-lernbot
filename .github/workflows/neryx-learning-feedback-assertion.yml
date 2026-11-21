@@ -20,4 +20,5 @@ jobs:
         with:
           node-version: '22'
       - name: Verify feedback and ranked strategy outcome
-        run: node --test --test-name-pattern="Lernlabor: Rückmeldung ändert" tests/neryx-smoke.test.mjs
+        run: |
+          node --test --test-name-pattern="Lernlabor: Rückmeldung ändert" tests/neryx-smoke.test.mjs
