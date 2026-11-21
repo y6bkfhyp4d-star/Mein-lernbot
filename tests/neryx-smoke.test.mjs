@@ -572,7 +572,9 @@ test('Sprachmuster-Lernen: Doppeltraining und falsche Beispiele ablehnen',()=>{
  runInNewContext(read('modules/word-learning.js'),{window,localStorage});
  const m=window.NERYXWordLearning;
  assert.match(m.teach('Verdoppeln | 2,4,8,16,32'),/gespeichert/);
- assert.match(m.teach('Andere Worte | 2,4,8,16,32'),/bereits/);
+ const saved=db.get('neryx.learning.wordfeatures.v1');
+ assert.match(m.teach('Andere Worte | 2,4,8,16,32'),/Bereits gespeichert/);
+ assert.equal(db.get('neryx.learning.wordfeatures.v1'),saved,'Doppeltraining verändert den Speicher nicht');
  assert.match(m.teach('Verdoppeln | 2,4,8,16,999'),/Nichts gespeichert/);
  assert.match(m.teach('Verdoppeln | 1,2,3'),/Format/);
  assert.match(m.status(),/Trainingsbeispiele: 1/);
