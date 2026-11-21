@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "1,2-Propandiol",
-    "Adult"
+    "(2+2)-Cycloaddition",
+    "2,6-Diaminopurin"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-20T21:26:28+00:00",
+      "checked_at": "2026-11-21T03:27:24+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -123,6 +123,29 @@
       "source": "https://de.wikipedia.org/wiki/%282%29_Pallas",
       "status": "suchtreffer",
       "topic": "(2) Pallas"
+    },
+    {
+      "checked_at": "2026-11-21T03:27:24+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "3-Dienen in einer [4+2]-Cycloaddition zu Peroxiden. Mit Alkenen und Alkinen reagiert Singulett-Sauerstoff in einer [2+2]-Cycloaddition. Sauerstoff reagiert",
+          "title": "Sauerstoff",
+          "url": "https://de.wikipedia.org/?curid=4543"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Schmidt, A. M. Tondreau, P. J. Chirik: Iron-catalyzed intermolecular [2+2] cycloadditions of unactivated alkenes. In: Science. Band 349, Nr. 6251, 28. August",
+          "title": "Paul Chirik",
+          "url": "https://de.wikipedia.org/?curid=11182811"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist (2+2)-Cycloaddition und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%282%2B2%29-Cycloaddition",
+      "status": "suchtreffer",
+      "topic": "(2+2)-Cycloaddition"
     },
     {
       "checked_at": "2026-11-19T21:27:26+00:00",
@@ -204,6 +227,23 @@
       "source": "https://de.wikipedia.org/wiki/18._Oktober",
       "status": "suchtreffer",
       "topic": "18. Oktober"
+    },
+    {
+      "checked_at": "2026-11-21T03:27:24+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "S-1“ und „Cyanophage S-2L“ (alias „Cyanobacteria phage S-2L“ – Wirte aus den Gattungen Synechococcus und Synechocystis, siehe auch 2,6-Diaminopurin) (Zusammenfassungen",
+          "title": "Cyanophagen",
+          "url": "https://de.wikipedia.org/?curid=11774380"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist 2,6-Diaminopurin und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/2%2C6-Diaminopurin",
+      "status": "suchtreffer",
+      "topic": "2,6-Diaminopurin"
     },
     {
       "checked_at": "2026-11-18T15:32:24+00:00",
@@ -1219,6 +1259,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 61,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-21T03:27:24+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 64,
       "searched": 3,
       "with_results": 2
     }
