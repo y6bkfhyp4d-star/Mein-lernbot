@@ -24,7 +24,9 @@ function capabilities(){
    available:!!(engine&&engine.version===config.version&&typeof engine[config.method]==='function')});
  }));
 }
-function run({mode,input}={}){
+function run(request){
+ const mode=object(request)?request.mode:undefined;
+ const input=object(request)?request.input:undefined;
  if(typeof mode!=='string'||!Object.hasOwn(engines,mode)||!object(input))
   return {status:'invalid',reason:'A supported mode and structured input are required.'};
  const config=engines[mode],engine=window[config.key];
