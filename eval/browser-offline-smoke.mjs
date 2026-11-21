@@ -55,7 +55,10 @@ try{
  assert.ok(cached.names.includes('neryx-offline-v4'));
  for(const p of ['/index.html','/app.js','/modules/orchestrator.js'])assert.ok(cached.urls.includes(p),'missing offline '+p);
  assert.deepEqual(errors,[],'online errors');
- await context.setOffline(true);
+ // WebKit on Linux can fail internally with Playwright's network-offline switch;
+ // stopping the actual local server tests an unavailable origin without that switch.
+ if(engine==='webkit')await new Promise(ok=>server.close(ok));
+ else await context.setOffline(true);
  await page.goto(origin+'/index.html',{waitUntil:'load',timeout:25000});
  const offline=await page.evaluate(()=>({
   title:document.title,chat:!!document.querySelector('#log'),
@@ -67,5 +70,5 @@ try{
  await context.close();
 }finally{
  if(browser)await browser.close();
- await new Promise(ok=>server.close(ok));
+ if(server.listening)await new Promise(ok=>server.close(ok));
 }
