@@ -1,0 +1,25 @@
+name: NERYX Frozen seal smoke assertion
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/neryx-smoke.test.mjs'
+      - 'eval/frozen.seal.json'
+      - 'eval/frozen-loader.mjs'
+      - 'eval/frozen-path-policy.mjs'
+      - '.github/workflows/neryx-frozen-seal-assertion.yml'
+permissions:
+  contents: read
+jobs:
+  frozen-seal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify inactive seal and protected external frozen data
+        run: node --test --test-name-pattern="Frozen-Schema 2" tests/neryx-smoke.test.mjs
