@@ -22,6 +22,9 @@ async function cacheApp(){
   const response=await fetchFresh(url);
   if(!response.ok||response.redirected||response.url&&response.url!==url)
    throw Error('Offline-Skript nicht ladbar: '+url);
+  // Antwortkörper vor dem späteren Cache-Schreiben vollständig laden;
+  // unbehandelte parallele Streams können die Installation blockieren.
+  await response.clone().text();
   return [url,response];
  }));
  const cache=await caches.open(CACHE);
