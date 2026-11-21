@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 36,
+  "cursor": 41,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -416,7 +416,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q2964"
     },
     {
-      "checked_at": "2026-11-18T21:17:02+00:00",
+      "checked_at": "2026-11-21T09:10:09+00:00",
       "classes": [
         "historischer Staat",
         "historische Periode"
@@ -428,7 +428,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q389688"
     },
     {
-      "checked_at": "2026-11-18T21:17:02+00:00",
+      "checked_at": "2026-11-21T09:10:09+00:00",
       "classes": [
         "Mensch"
       ],
@@ -439,7 +439,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q28189"
     },
     {
-      "checked_at": "2026-11-18T21:17:02+00:00",
+      "checked_at": "2026-11-21T09:10:09+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -448,7 +448,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q187510"
     },
     {
-      "checked_at": "2026-11-18T21:17:02+00:00",
+      "checked_at": "2026-11-21T09:10:09+00:00",
       "classes": [
         "Einzelwissenschaft"
       ],
@@ -459,7 +459,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q82811"
     },
     {
-      "checked_at": "2026-11-19T03:16:11+00:00",
+      "checked_at": "2026-11-21T09:10:09+00:00",
       "classes": [
         "Einzelsprache",
         "ausgestorbene Sprache",
@@ -674,6 +674,13 @@
       "error_count": 1,
       "known_sources": 64,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-21T09:10:09+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 68,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -698,6 +705,8 @@
     "Abgeschlossenes System": "f8bd0a3627453becda93",
     "Abiotisch": "4f6407d66d1ccb850359",
     "Abklingbecken": "f84838054d1e05b2e2dc",
+    "Ablenkspule": "0bf6307b9fc9fb0f4cb4",
+    "Abschirmung (Elektrotechnik)": "b2fe6aa12bf0367d6c7b",
     "Abschirmung (Gravitation)": "a7513d7c79d0b8a57abc",
     "Absolute Helligkeit": "55b72b14fc20ad2c608c",
     "Absorption (Physik)": "7ca5ff83537ea243ebe2",
@@ -738,9 +747,11 @@
     "Sonnensystem": "5735d9ddbaa6e2ce0cd8",
     "Stern": "4a9814fa32d3238b46f1",
     "Temperatur": "0e0a5b8b8ffb7b4aafd6",
+    "Thermodynamische Temperatur": "43916b47a08fadd78d45",
     "Vulkan": "78d996dfe68ab3b83a07",
     "Wasser": "a687c11c03621dc26f2b",
     "Wasserstoff": "e25b16f31b8362068e7f",
-    "Zelle (Biologie)": "a68ca8f349b367dc3862"
+    "Zelle (Biologie)": "a68ca8f349b367dc3862",
+    "Zweiter Hauptsatz der Thermodynamik": "af007134944c4a11c971"
   }
 }
