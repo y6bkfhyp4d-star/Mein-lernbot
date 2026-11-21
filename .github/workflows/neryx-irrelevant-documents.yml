@@ -23,4 +23,5 @@ jobs:
       - name: Test irrelevant, relevant and offline documents
         run: node --test eval/tests/irrelevant-documents.test.mjs
       - name: Verify legacy smoke cases for irrelevant documents and lazy loading
-        run: node --test --test-name-pattern="Gesamt-KI: irrelevante gespeicherte Dokumententreffer|Lazy Loading: unbekannte Frage startet Qwen" tests/neryx-smoke.test.mjs
+        run: |
+          node --test --test-name-pattern="Gesamt-KI: irrelevante gespeicherte Dokumententreffer|Lazy Loading: unbekannte Frage startet Qwen" tests/neryx-smoke.test.mjs
