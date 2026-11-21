@@ -6,6 +6,8 @@ on:
     paths:
       - 'sw.js'
       - 'eval/tests/service-worker-recovery.test.mjs'
+      - 'app.js'
+      - 'eval/tests/app-answer-routing.test.mjs'
       - 'modules/topic-learning.js'
       - 'eval/tests/knowledge-homeland.test.mjs'
       - 'modules/orchestrator.js'
@@ -49,6 +51,8 @@ jobs:
           node-version: '22'
       - name: Verify knowledge-first homeland questions with synthetic data
         run: node --test eval/tests/knowledge-homeland.test.mjs
+      - name: Verify shared real app answer routing and model gate
+        run: node --test eval/tests/app-answer-routing.test.mjs
       - name: Guard related knowledge with a model tripwire
         run: node --test eval/tests/orchestrator-knowledge-gate.test.mjs
       - name: Verify offline chat routing and local greetings
