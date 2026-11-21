@@ -1,0 +1,17 @@
+[
+  {
+    "question": "Wo lebt der Wolf?",
+    "expected": "Nebelwald von Testland",
+    "subject": "wolf"
+  },
+  {
+    "question": "In welchem Land ist der Wolf heimisch?",
+    "expected": "Nebelwald von Testland",
+    "subject": "wolf"
+  },
+  {
+    "question": "In welcher Region lebt der Wolf?",
+    "expected": "Nebelwald von Testland",
+    "subject": "wolf"
+  }
+]
