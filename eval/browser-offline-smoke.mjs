@@ -6,7 +6,9 @@ import {resolve,sep,extname} from 'node:path';
 import {chromium} from 'playwright';
 const root=resolve('.');
 const types={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png'};
+const requests=[];
 const server=createServer(async(req,res)=>{
+ requests.push(req.method+' '+req.url);
  try{
   const relative=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/, '')||'index.html';
   const file=resolve(root,relative);
@@ -18,7 +20,7 @@ const server=createServer(async(req,res)=>{
 let browser;
 try{
  await new Promise((ok,bad)=>{server.once('error',bad);server.listen(0,'127.0.0.1',ok)});
- const origin='http://localhost:'+server.address().port;
+ const origin='http://127.0.0.1:'+server.address().port;
  browser=await chromium.launch({headless:true});
  const context=await browser.newContext({serviceWorkers:'allow'});
  const page=await context.newPage();
@@ -41,7 +43,7 @@ try{
    }))),
    caches:await caches.keys()
   }));
-  throw Error(e.message+'; state='+JSON.stringify(state)+'; diagnostics='+JSON.stringify(diagnostics)+'; pageerrors='+JSON.stringify(errors));
+  throw Error(e.message+'; state='+JSON.stringify(state)+'; diagnostics='+JSON.stringify(diagnostics)+'; httpRequests='+JSON.stringify(requests.slice(-80))+'; pageerrors='+JSON.stringify(errors));
  }
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:20000});
  const cached=await page.evaluate(async()=>({
