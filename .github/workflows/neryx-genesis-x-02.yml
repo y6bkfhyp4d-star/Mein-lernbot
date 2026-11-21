@@ -1,0 +1,31 @@
+name: NERYX GENESIS X 0.2 isolated verification
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'modules/genesis-x-tools.js'
+      - 'eval/tests/genesis-x-tools*.test.mjs'
+      - 'docs/GENESIS_X_TOOLS_02.md'
+      - '.github/workflows/neryx-genesis-x-02.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify 0.1 unchanged and 0.2 isolated
+        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs
+      - name: Check no production entrypoints changed by Genesis X 0.2
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|modules/genesis-x\.js)$' /tmp/changed.txt; then
+            echo "Protected production/core file modified"; exit 1
+          fi
