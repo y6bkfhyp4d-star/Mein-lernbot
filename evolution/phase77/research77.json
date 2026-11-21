@@ -2,8 +2,8 @@
   "independent_confirmations": 0,
   "last_batch": [
     "(136472) Makemake",
-    "(2+2)-Cycloaddition",
-    "2,6-Diaminopurin"
+    "Ablenkspule",
+    "Abschirmung (Elektrotechnik)"
   ],
   "questions": [
     {
@@ -86,7 +86,7 @@
       "topic": "(136199) Eris"
     },
     {
-      "checked_at": "2026-11-21T03:27:24+00:00",
+      "checked_at": "2026-11-21T09:25:34+00:00",
       "hits": [],
       "independent_confirmation": false,
       "question": "Was ist (136472) Makemake und wie wird es eingeordnet?",
@@ -389,6 +389,52 @@
       "source": "https://de.wikipedia.org/wiki/Abklingbecken",
       "status": "suchtreffer",
       "topic": "Abklingbecken"
+    },
+    {
+      "checked_at": "2026-11-21T09:25:34+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Edelgasen wie Argon, Xenon, Neon, normalen Gasen wie Wasserstoff und Deuterium oder auch Quecksilberdampf. Die Gasfüllung wird im Betrieb ionisiert, was eine",
+          "title": "Elektronenröhre",
+          "url": "https://de.wikipedia.org/?curid=21385"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Ablenkspule und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Ablenkspule",
+      "status": "suchtreffer",
+      "topic": "Ablenkspule"
+    },
+    {
+      "checked_at": "2026-11-21T09:25:34+00:00",
+      "hits": [
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Atommasse und größerer Dichte. Deshalb wird es ganz allgemein im Strahlenschutz (zum Beispiel Nuklearmedizin, Radiologie, Strahlentherapie) zur Abschirmung benutzt",
+          "title": "Blei",
+          "url": "https://de.wikipedia.org/?curid=492"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "Ausbildung und in der Forschung wird die Regel als Teilaspekt des Induktionsgesetzes und der Maxwell-Gleichungen eingeordnet. Nähert man einen Permanentmagneten",
+          "title": "Lenzsche Regel",
+          "url": "https://de.wikipedia.org/?curid=691163"
+        },
+        {
+          "ecosystem": "Wikimedia",
+          "snippet": "leichter als Glas ist, wird es als Material für Getränkeflaschen und Verpackungen für Lebensmittel und Kosmetika verwendet. In der Elektrotechnik finden PET-Folien",
+          "title": "Kunststoff",
+          "url": "https://de.wikipedia.org/?curid=14345"
+        }
+      ],
+      "independent_confirmation": false,
+      "question": "Was ist Abschirmung (Elektrotechnik) und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/Abschirmung_%28Elektrotechnik%29",
+      "status": "suchtreffer",
+      "topic": "Abschirmung (Elektrotechnik)"
     },
     {
       "checked_at": "2026-11-18T21:29:38+00:00",
@@ -1267,6 +1313,14 @@
       "errors": 0,
       "no_results": 1,
       "open_gaps": 64,
+      "searched": 3,
+      "with_results": 2
+    },
+    {
+      "at": "2026-11-21T09:25:34+00:00",
+      "errors": 0,
+      "no_results": 1,
+      "open_gaps": 68,
       "searched": 3,
       "with_results": 2
     }
