@@ -1,0 +1,38 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>GENESIS X #65 – Abschlussprüfung</title>
+<style>
+:root{color-scheme:dark;background:#11111a;color:#f5f3ff;font:16px/1.5 system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}body{margin:0;padding:max(24px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+main{max-width:700px;margin:auto}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}a{color:#c4b5fd}
+article{padding:20px;background:#20202e;border:1px solid #4d426c;border-radius:18px}h1{font-size:1.55rem;margin:0 0 10px}
+.notice{padding:12px;background:#2a2140;border-left:3px solid #a78bfa;border-radius:10px}
+label{font-weight:700;display:block;margin:18px 0 8px}textarea{display:block;width:100%;min-height:155px;padding:12px;border:1px solid #786994;border-radius:12px;color:white;background:#11111a;font:16px/1.5 system-ui,-apple-system,sans-serif}
+button{font:inherit;font-weight:700;min-height:48px;border:0;border-radius:12px;padding:12px;background:#8b5cf6;color:white}
+button:disabled{opacity:.55}.actions{display:grid;gap:10px;margin-top:15px}.secondary{background:#42345d}
+output{display:block;white-space:pre-wrap;border:1px solid #564969;background:#151321;padding:15px;min-height:90px;border-radius:12px;margin-top:18px}
+small{color:#c0b7d1;display:block;margin-top:12px}:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+</style></head><body><main>
+<header><strong>NERYX <span style="color:#c4b5fd">× GENESIS X #65</span></strong><a href="../index.html">Zur Haupt-App</a></header>
+<article>
+<h1>Finale Systemprüfung – GENESIS X #65</h1>
+<p class="notice"><strong>Forschungsabschluss, keine Chat-Freigabe:</strong> Das lokale Qwen 2.5 beurteilt nur den Prüfauftrag; eine separate Kontrolle bewertet Originaleingabe, Qwen-Einstufung und GENESIS-Status getrennt. Es darf keine Rechenwerte an GENESIS X weiterreichen. Nur die Zahlen aus deiner Eingabe werden verarbeitet. Keine Ergebnisse werden in den Chat übernommen.</p>
+<label for="qwen-question">Deine Zahlenfrage</label>
+<textarea id="qwen-question" maxlength="1400" spellcheck="false" required>Kannst du diese Zahlen mit GENESIS X prüfen: 0=2, 1=3, 2=4, 4=6, 7=9; 10</textarea>
+<div class="actions">
+<button id="qwen-load" type="button" class="secondary">Qwen 2.5 lokal laden (optional, Download)</button>
+<button id="qwen-run" type="button">Qwen fragen und GENESIS X prüfen</button>
+<button id="genesis-only" type="button" class="secondary">Nur GENESIS X prüfen (ohne Qwen)</button>
+</div>
+<output id="qwen-result" role="status" aria-live="polite">Bereit. Kein Modell gestartet.</output>
+<small>Für den direkten Test ohne Qwen bitte mit „GENESIS prüfen:“ beginnen. Das Laden benötigt WebGPU und kann erstmals umfangreiche Modelldaten aus dem Internet laden. Der Forschungsversuch benötigt weder API-Schlüssel noch kostenpflichtige Dienste. Auf dem iPhone sind WebGPU und Modellstart nicht garantiert. Keine automatische Speicherung, kein Modelltraining, kein normaler NERYX-Chat.</small>
+</article></main>
+<script src="../modules/orchestrator.js"></script>
+<script src="../modules/genesis-x-ambiguity-client.js"></script>
+<script src="../modules/neryx-genesis-x-research-bridge.js"></script>
+<script src="neryx-genesis-x-routed-research.js"></script>
+<script src="neryx-genesis-x-61-decision-gate.js"></script>
+<script src="../modules/local-model-bridge.js"></script>
+<script src="neryx-genesis-x-62-qwen-intent.js"></script>
+<script src="neryx-genesis-x-63-natural-intent.js"></script>
+<script src="neryx-genesis-x-64-quality-gate.js"></script>
+<script src="neryx-genesis-x-64-quality-ui.js"></script>
+</body></html>
