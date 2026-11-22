@@ -71,3 +71,31 @@ test('external benchmark: invalid review case cannot inflate accuracy',()=>{
   assert.deepEqual(result.confusion,{TP:0,FP:0,TN:1,FN:0});
   assert.equal(result.accuracy,1); // conditional on ONE valid case, not two
 });
+
+test('external benchmark: executable top-level side effect is excluded, not a TP',()=>{
+  globalThis.__outsideProbe=0;
+  const result=evaluateCorpus({schema:1,cases:[{
+    id:'top-level-side-effect',expected:'eligible',
+    source:'globalThis.__outsideProbe=42;function safe(x){return x;}'
+  }]});
+  assert.equal(result.complete,false);
+  assert.equal(result.evaluated,0);
+  assert.equal(result.excluded,1);
+  assert.deepEqual(result.confusion,{TP:0,FP:0,TN:0,FN:0});
+  assert.deepEqual(result.errors,[{
+    id:'top-level-side-effect',reason:'requires-single-top-level-function'
+  }]);
+  assert.equal(globalThis.__outsideProbe,0);
+  delete globalThis.__outsideProbe;
+});
+test('external benchmark: multiple declarations and IIFE wrapper are excluded',()=>{
+  const result=evaluateCorpus({schema:1,cases:[
+    {id:'two',expected:'eligible',source:'function a(x){return x;} function b(y){return y;}'},
+    {id:'wrapper',expected:'eligible',source:'(()=>{function a(x){return x;}})();'}
+  ]});
+  assert.equal(result.evaluated,0);
+  assert.equal(result.excluded,2);
+  assert.deepEqual(result.errors.map(e=>e.reason),[
+    'requires-single-top-level-function','requires-single-top-level-function'
+  ]);
+});
