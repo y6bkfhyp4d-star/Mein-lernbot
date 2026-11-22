@@ -25,3 +25,14 @@ Runs on Chromium and Linux WebKit, plus all Node evaluation and corpus regressio
 The research Worker remains same-origin JavaScript, not an isolated security domain against malicious scripts. Its preview output remains `publishable:false` and does not establish correct real-world answers.
 
 **Production merge remains blocked.**
+
+## Observed CI results — 2026-11-22
+
+[GitHub Actions #45010203807](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45010203807): **all four jobs successful**. Regression: **595/595 passed**; protected-file check passed.
+
+| Real browser | Optional GENESIS X complete | Optional GENESIS X missing |
+|---|---|---|
+| Chromium | 55 total cache assets; 13 experimental assets; app restarted offline and Worker returned `review_required` | 42 app assets; **0** experimental assets; normal NERYX app restarted offline |
+| WebKit | 55 total cache assets; 13 experimental assets; app restarted offline and Worker returned `review_required` | 42 app assets; **0** experimental assets; normal NERYX app restarted offline |
+
+Both scenarios also confirmed the real app's controlled offline page exposes chat and send controls, and no network request occurred after the local server was shut down. This supports *a possible safe opt-in caching design*, **not** actual production activation.
