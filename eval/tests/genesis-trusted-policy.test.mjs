@@ -37,7 +37,12 @@ test('ordinary sensitive PR requires current-head independent real-person approv
   assert.match(policy,/review\.get\("commit_id"\) == head_sha/);
   assert.match(policy,/login\.casefold\(\) != author\.casefold\(\)/);
   assert.match(policy,/author_association/);
-  assert.match(policy,/REVIEW_FREE/);
+  assert.match(policy,/def candidate_data\(path\):/);
+  assert.match(policy,/path\.endswith\("\.json"\)/);
+  assert.match(policy,/CANDIDATE_DIRS/);
+  assert.match(policy,/def review_exempt\(path\):/);
+  assert.match(policy,/path\.endswith\("\.md"\)/);
+  assert.match(policy,/DOCS_DIR/);
   assert.match(policy,/review\["state"\] == "APPROVED"/);
   assert.match(policy,/sensitive-path-requires-independent-current-approval/);
 });
