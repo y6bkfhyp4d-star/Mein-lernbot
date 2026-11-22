@@ -43,7 +43,7 @@ test('does not call false success a repair',()=>{
 });
 test('fails closed on tampered output instead of trying a repair',()=>{
  const w=lab(),old=w.NERYXGenesisXVerifiedChain;
- w.NERYXGenesisXVerifiedChain={solve(){return {status:'blocked',faultStage:'logic'}}};
+ w.NERYXGenesisXVerifiedChain={version:'0.7',solve(){return {status:'blocked',faultStage:'logic'}}};
  const r=w.NERYXGenesisXDiagnostics.diagnose(task());
  assert.equal(r.status,'blocked');assert.equal(r.stage,'logic');assert.equal(r.suggestedConstants,undefined);
  w.NERYXGenesisXVerifiedChain=old;
@@ -61,7 +61,7 @@ test('rejects malformed and over-budget samples',()=>{
 });
 test('unrecognized solver statuses cannot produce proposal',()=>{
  const w=lab();
- w.NERYXGenesisXVerifiedChain={solve(){return {status:'approved'}}};
+ w.NERYXGenesisXVerifiedChain={version:'0.7',solve(){return {status:'approved'}}};
  assert.equal(w.NERYXGenesisXDiagnostics.diagnose(task()).status,'blocked');
 });
 test('public interface is frozen and cannot write state or install',()=>{
