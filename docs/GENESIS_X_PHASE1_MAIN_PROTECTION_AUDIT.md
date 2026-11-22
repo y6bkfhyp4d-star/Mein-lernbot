@@ -30,3 +30,11 @@
 - Keine automatische PR-Merge-Funktion, keine Codegenerierung mit eigenständigem Merge und keine Vercel-Produktionsfreigabe, bevor alle Schutz-Nachweise vollständig sind.
 
 **Beurteilung:** Ruleset und CI-Anforderungen sind aktiv nachgewiesen (**Konfiguration bestanden**); der vollständige negative Phase-1-Schutztest und die unabhängige menschliche Review-Grenze sind **nicht bestanden/nicht verifiziert**. Phase 1 und vollständige Phase 2 nicht als abgeschlossen deklarieren. Der externe AST/SEC-Regel-Holdout-v2-Erfolg ist davon unabhängig und bleibt gültig nur für seinen begrenzten Messgegenstand.
+
+## Separates negatives Testmodell (nicht GitHub-Erzwingung)
+
+Auf dem Draft-Branch wurden `eval/genesis-ast/trusted-policy-model.mjs` und `tests/trusted-policy-model.test.mjs` ergänzt. Der pure JS-Prüfer modelliert die zulässigen `neryx/auto/*`-Datenpfade und meldet auch für **gewöhnliche** PRs sensible Dateiänderungen als `manual-trust-review-required` – eine Erkennung, keine GitHub-Review-Pflicht. Tests führen erlaubte und verbotene Vorschläge **zweimal** aus, inklusive Workflow-/App-/Gate-/Test-Tampering, Umbenennungen und ungültiger Pfade. Es werden weder GitHub-Endpunkte verändert noch PR-Quelltexte ausgeführt.
+
+**Scharfe Trennung:** `mode:'simulation-only'` und `enforcedOnGitHub:false` gehören absichtlich zu jedem Ergebnis. Die Simulation liefert nur vorläufige, deterministische Testnachweise für die Policy-Logik. Sie erfüllt **nicht** die geforderten zweimaligen Negativtests gegen eine tatsächliche GitHub-Branchschutz-Konfiguration. Keine Aussage, dass gewöhnliche PRs jetzt aktiv blockiert würden.
+
+**Nicht als abschließende Sicherheitsfreigabe verwenden:** Ein Entwickler kann einen von der Branch-Namensform unabhängigen Identitätsnachweis und eine tatsächliche verpflichtende zweite menschliche Review nicht durch ein neues Testskript ersetzen. Erst nach Klärung des zulässigen zweiten Reviewers sollen die Regeln auf dem geschützten Base-Workflow implementiert und gegen eine isolierte Test-Repositoriumskopie geprüft werden.
