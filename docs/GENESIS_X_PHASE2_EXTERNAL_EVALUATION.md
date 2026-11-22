@@ -20,7 +20,7 @@ Als externe JSON-Datei, **außerhalb des Git-Repositories**:
 }
 ```
 
-Ein Fall enthält genau `id`, `expected` und `source`. Erlaubte erwartete Klassen sind `eligible` und `review`. Maximal 500 Fälle mit bis zu 10.000 Zeichen Quelltext pro Fall und insgesamt 2 MB Eingabedatei.
+Ein Fall enthält genau `id`, `expected` und `source`. **Jeder `source`-Text muss genau eine direkt auf Top-Level deklarierte benannte Funktion enthalten, ohne weitere Top-Level-Anweisungen oder Wrapper.** Mehrere Funktionen, IIFEs, zusätzliche Ausdrücke und sonstige Skriptanweisungen werden mit `requires-single-top-level-function` ausgeschlossen. Diese enge Fixture-Regel gilt nur für den externen Benchmark, nicht für den allgemeinen AST-Analyzer. Erlaubte erwartete Klassen sind `eligible` und `review`. Maximal 500 Fälle mit bis zu 10.000 Zeichen Quelltext pro Fall und insgesamt 2 MB Eingabedatei.
 
 Ausführung im Klon des Projekts (nach Installieren der isolierten Abhängigkeiten):
 
