@@ -1,0 +1,6 @@
+{
+  "kind": "genesis-security-smoke",
+  "expected": "pass",
+  "non_executable": true,
+  "review_required": true
+}
