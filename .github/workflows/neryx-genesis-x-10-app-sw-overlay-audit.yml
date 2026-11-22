@@ -1,0 +1,59 @@
+name: NERYX current SW GENESIS X opt-in compatibility audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-worker-offline-cache]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  existing-sw-overlay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install temporary browser dependencies
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Test unchanged NERYX SW plus opt-in overlay after origin shutdown
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/genesis-x-real-sw-overlay-smoke.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: All NERYX, corpus, and Genesis tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Confirm app, production SW and Frozen unchanged
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo 'Protected file changed'; exit 1
+          fi
