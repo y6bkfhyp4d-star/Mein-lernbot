@@ -20,8 +20,6 @@ function harness({replies=[],knowledge='Keine passende Antwort gespeichert.',onl
  const localStorage={setItem:()=>{calls.storage++;throw Error('No storage write allowed')},
   getItem:()=>{throw Error('No personal storage allowed')}};
  runInNewContext(scripts.join('\n'),{window,navigator:{onLine:online},localStorage},{timeout:2000});
- const math=window.NERYXMathVerifier.solve;
- window.NERYXMathVerifier.solve=q=>{calls.math++;return math(q)};
  return {solve:q=>window.NERYXOrchestrator.solve(q,{knowledge:async()=>knowledge}),
   window,calls,asked};
 }
