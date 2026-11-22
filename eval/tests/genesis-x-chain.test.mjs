@@ -56,7 +56,7 @@ test('logic failure prevents all predictions',()=>{
 test('rejects malicious or malformed module output',()=>{
  const w=lab();
  const saved=w.NERYXGenesisXRouter;
- w.NERYXGenesisXRouter={solve(input){return input.type==='numeric'?
+ w.NERYXGenesisXRouter={version:'0.4',solve(input){return input.type==='numeric'?
   {status:'candidate',result:{selected:{program:[{op:'exec',c:1}]}}}:
   {status:'candidate',result:{rule:{kind:'atom',field:'a',target:'constant',constant:2,op:'gt'}}};}};
  assert.equal(w.NERYXGenesisXChain.solve(task()).status,'unconfirmed');

@@ -30,7 +30,7 @@ function solve(task){
  const type=decision.type;
  const api=type==='numeric'?window.NERYXGenesisXTools:window.NERYXGenesisXLogic;
  const method=type==='numeric'?'compose':'learn';
- if(!api||typeof api[method]!=='function')
+ if(!api||api.version!==(type==='numeric'?'0.2':'0.3')||typeof api[method]!=='function')
   return {status:'unavailable',type,reason:'Required isolated capability was not loaded.'};
  const args=type==='numeric'?
   {training:task.training,holdout:task.validation,

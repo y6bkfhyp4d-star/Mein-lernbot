@@ -55,7 +55,7 @@ test('no storage, DOM, network, code execution or installation interface',()=>{
  assert.equal(r.version,'0.4');
 });
 test('capability exceptions and malformed success signals fail closed',()=>{
- const w={NERYXGenesisXTools:{compose(){throw Error('failure');}}};
+ const w={NERYXGenesisXTools:{version:'0.2',compose(){throw Error('failure');}}};
  const ctx={window:w};
  load('genesis-x-router.js',ctx);
  assert.equal(w.NERYXGenesisXRouter.solve(numeric).status,'unconfirmed');

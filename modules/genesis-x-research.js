@@ -25,7 +25,8 @@ function run({task,audit}={}){
  }
  const diagnose=window.NERYXGenesisXDiagnostics;
  const verified=window.NERYXGenesisXVerifiedChain;
- if(!diagnose||typeof diagnose.diagnose!=='function'||!verified||typeof verified.solve!=='function')
+ if(!diagnose||diagnose.version!=='0.8'||typeof diagnose.diagnose!=='function'||
+    !verified||verified.version!=='0.7'||typeof verified.solve!=='function')
   return {status:'unavailable',reason:'Required isolated experiment is missing.'};
  // No audit cases or truth are passed to hypothesis generation.
  let proposal;

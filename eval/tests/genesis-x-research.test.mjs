@@ -65,7 +65,7 @@ test('missing dependency returns unavailable without inventing a score',()=>{
 });
 test('hypothesis is not trained on audit cases or reference outputs',()=>{
  const w=lab(),original=w.NERYXGenesisXDiagnostics;
- w.NERYXGenesisXDiagnostics={diagnose(data){
+ w.NERYXGenesisXDiagnostics={version:'0.8',diagnose(data){
   assert.equal(data.audit,undefined);
   assert.equal(data.cases.length,2);
   assert.equal(data.cases.some(c=>Object.hasOwn(c,'truth')),false);
@@ -75,12 +75,12 @@ test('hypothesis is not trained on audit cases or reference outputs',()=>{
 });
 test('refuses unsupported proposal or fabricated success',()=>{
  const w=lab();
- w.NERYXGenesisXDiagnostics={diagnose(){return {status:'proposal',reviewRequired:false,suggestedConstants:[5]}}};
+ w.NERYXGenesisXDiagnostics={version:'0.8',diagnose(){return {status:'proposal',reviewRequired:false,suggestedConstants:[5]}}};
  assert.equal(w.NERYXGenesisXResearch.run({task:task(),audit:audit()}).status,'no_evidence');
 });
 test('unexpected baseline evaluation status cannot produce a gain',()=>{
  const w=lab(),old=w.NERYXGenesisXVerifiedChain;
- w.NERYXGenesisXVerifiedChain={solve(data){
+ w.NERYXGenesisXVerifiedChain={version:'0.7',solve(data){
   if(data.cases.length===4)return {status:'blocked'};
   return old.solve(data);
  }};
