@@ -31,7 +31,7 @@ export function collectNamedFunctions(file,source){
         depth,node});
     }
     for(const [key,value] of Object.entries(node)){
-      if(['start','end','loc','range','raw','name','value'].includes(key))continue;
+      if(['start','end','loc','range','raw'].includes(key))continue;
       if(value&&typeof value==='object')visit(value,depth+(isFunction?1:0));
     }
   }

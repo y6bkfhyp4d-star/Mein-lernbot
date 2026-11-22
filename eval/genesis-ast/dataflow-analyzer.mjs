@@ -13,15 +13,35 @@ function identifiers(pattern,out=[]){
     identifiers(p.type==='RestElement'?p.argument:p.value,out);
   return out;
 }
-function inputs(expr,out=new Set(),flags={calls:false,dynamic:false}){
+function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:false,effects:false,conditional:false}){
   if(!expr)return {names:out,flags};
   if(Array.isArray(expr)){for(const n of expr)inputs(n,out,flags);return {names:out,flags};}
   if(expr.type==='Identifier'){out.add(expr.name);return {names:out,flags};}
-  if(expr.type==='Literal'||expr.type==='ThisExpression'||expr.type==='Super')return {names:out,flags};
+  if(expr.type==='Literal')return {names:out,flags};
+  // Receiver/super/meta values depend on invocation context, not just parameters.
+  if(['ThisExpression','Super','MetaProperty'].includes(expr.type)){
+    flags.context=true;return {names:out,flags};
+  }
   if(expr.type==='MemberExpression'){
+    // A property access can execute a getter or Proxy trap; purity is unknown.
+    flags.effects=true;
     inputs(expr.object,out,flags);
     if(expr.computed)inputs(expr.property,out,flags);
     return {names:out,flags};
+  }
+  if(['AssignmentExpression','UpdateExpression','AwaitExpression','YieldExpression','TaggedTemplateExpression','ImportExpression','DeleteExpression'].includes(expr.type)||
+     (expr.type==='UnaryExpression'&&expr.operator==='delete'))flags.effects=true;
+  // Ternaries, short-circuit logic and optional chains have path-dependent evaluation.
+  if(['ConditionalExpression','LogicalExpression','ChainExpression'].includes(expr.type))
+    flags.conditional=true;
+  // Audit B1/B2: class creation, spreads and coercive operators can run code.
+  if(expr.type==='SpreadElement'||
+     (expr.type==='BinaryExpression'&&['in','instanceof'].includes(expr.operator)))
+    flags.effects=true;
+  // Class static initializers and computed definitions may run at creation.
+  // Preserve uncertainty rather than claiming straight-line provenance.
+  if(expr.type==='ClassExpression'||expr.type==='ClassDeclaration'){
+    flags.dynamic=true;return {names:out,flags};
   }
   if(expr.type==='CallExpression'||expr.type==='NewExpression'){
     flags.calls=true;
@@ -46,6 +66,12 @@ function analyzeFunction(node){
   const params=node.params.flatMap(p=>identifiers(p));
   const provenance=new Map(params.map(p=>[p,new Set([p])]));
   const events=[],limitations=new Set();
+  // Defaults can invoke functions; destructuring can trigger getters and aliases.
+  // Neither is safe to describe as plain parameter provenance.
+  if(node.params.some(p=>p.type!=='Identifier'))
+    limitations.add('complex-parameter-binding-not-tracked');
+  if(node.async||node.generator)
+    limitations.add('async-or-generator-function-not-tracked');
   const origin=expression=>{
     const {names,flags}=inputs(expression);
     const sources=new Set();
@@ -56,6 +82,9 @@ function analyzeFunction(node){
     }
     if(flags.calls)sources.add('unknown:call-result');
     if(flags.dynamic)sources.add('unknown:closure');
+    if(flags.context)sources.add('unknown:receiver-context');
+    if(flags.effects)sources.add('unknown:expression-effects');
+    if(flags.conditional)sources.add('unknown:conditional-evaluation');
     return [...sources].sort();
   };
   function update(name,sources,kind,node){

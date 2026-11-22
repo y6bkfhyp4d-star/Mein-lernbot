@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "purpose": "prelabelled-seeded-AST-rule-detection",
+  "frozenAt": "2026-11-22",
+  "thresholds": {
+    "minRecall": 0.9,
+    "maxFalsePositiveRate": 0.1
+  },
+  "caveat": "Developer-authored seed. Not independent holdout, not semantic bug or security proof.",
+  "cases": [
+    {
+      "id": "P01",
+      "expected": "AST001",
+      "source": "eval('1+1');"
+    },
+    {
+      "id": "P02",
+      "expected": "AST001",
+      "source": "function unsafe(x){return eval(x);}"
+    },
+    {
+      "id": "P03",
+      "expected": "AST001",
+      "source": "const result=eval(input);"
+    },
+    {
+      "id": "P04",
+      "expected": "AST002",
+      "source": "const f=new Function('return 5');"
+    },
+    {
+      "id": "P05",
+      "expected": "AST002",
+      "source": "function make(x){return new Function(x);}"
+    },
+    {
+      "id": "P06",
+      "expected": "AST002",
+      "source": "let generated=new Function('x','return x');"
+    },
+    {
+      "id": "P07",
+      "expected": "AST003",
+      "source": "el.innerHTML=raw;"
+    },
+    {
+      "id": "P08",
+      "expected": "AST003",
+      "source": "function show(node,html){node.innerHTML=html;}"
+    },
+    {
+      "id": "P09",
+      "expected": "AST003",
+      "source": "view.innerHTML='<b>fixed</b>';"
+    },
+    {
+      "id": "P10",
+      "expected": "AST004",
+      "source": "localStorage.clear();"
+    },
+    {
+      "id": "P11",
+      "expected": "AST004",
+      "source": "function wipe(){localStorage.clear();}"
+    },
+    {
+      "id": "P12",
+      "expected": "AST004",
+      "source": "const reset=()=>localStorage.clear();"
+    },
+    {
+      "id": "P13",
+      "expected": "AST005",
+      "source": "document.write('<p>x</p>');"
+    },
+    {
+      "id": "P14",
+      "expected": "AST005",
+      "source": "function render(x){document.write(x);}"
+    },
+    {
+      "id": "P15",
+      "expected": "AST005",
+      "source": "const fn=()=>document.write('ok');"
+    },
+    {
+      "id": "P16",
+      "expected": "AST007",
+      "source": "async function load(p){return import(p);}"
+    },
+    {
+      "id": "P17",
+      "expected": "AST007",
+      "source": "const mod=import('./'+name+'.js');"
+    },
+    {
+      "id": "P18",
+      "expected": "AST000",
+      "source": "function incomplete( {"
+    },
+    {
+      "id": "P19",
+      "expected": "AST000",
+      "source": "const broken = ;"
+    },
+    {
+      "id": "P20",
+      "expected": "SEC001",
+      "source": "const key='-----BEGIN PRIVATE KEY-----';"
+    },
+    {
+      "id": "P21",
+      "expected": "SEC001",
+      "source": "/* -----BEGIN RSA PRIVATE KEY----- */"
+    },
+    {
+      "id": "P22",
+      "expected": "AST001",
+      "source": "(0,eval)('2');"
+    },
+    {
+      "id": "P23",
+      "expected": "AST003",
+      "source": "function two(el,x){el.textContent=x;el.innerHTML=x;}"
+    },
+    {
+      "id": "P24",
+      "expected": "AST004",
+      "source": "localStorage.clear?.();"
+    },
+    {
+      "id": "N01",
+      "expected": null,
+      "source": "function id(x){return x;}"
+    },
+    {
+      "id": "N02",
+      "expected": null,
+      "source": "const text='eval(input)';"
+    },
+    {
+      "id": "N03",
+      "expected": null,
+      "source": "// document.write('<x>')\nconst safe=1;"
+    },
+    {
+      "id": "N04",
+      "expected": null,
+      "source": "const phrase='new Function()';"
+    },
+    {
+      "id": "N05",
+      "expected": null,
+      "source": "function paint(el,s){el.textContent=s;}"
+    },
+    {
+      "id": "N06",
+      "expected": null,
+      "source": "localStorage.removeItem('mine');"
+    },
+    {
+      "id": "N07",
+      "expected": null,
+      "source": "const key='not a private key';"
+    },
+    {
+      "id": "N08",
+      "expected": null,
+      "source": "function doWork(x){return x?.value;}"
+    },
+    {
+      "id": "N09",
+      "expected": null,
+      "source": "const obj={write(x){return x;}};obj.write('safe');"
+    },
+    {
+      "id": "N10",
+      "expected": null,
+      "source": "const src=import('./fixed.mjs');"
+    },
+    {
+      "id": "N11",
+      "expected": null,
+      "source": "const o={innerHTML:'abc'};"
+    },
+    {
+      "id": "N12",
+      "expected": null,
+      "source": "const shadow={clear(){}};shadow.clear();"
+    },
+    {
+      "id": "N13",
+      "expected": null,
+      "source": "function evalSafe(eval){return eval;}"
+    },
+    {
+      "id": "N14",
+      "expected": null,
+      "source": "function f(document){return document;}"
+    },
+    {
+      "id": "N15",
+      "expected": null,
+      "source": "/* Function constructor mentioned */const x=2;"
+    },
+    {
+      "id": "N16",
+      "expected": null,
+      "source": "class Store{clear(){} }"
+    },
+    {
+      "id": "N17",
+      "expected": null,
+      "source": "function normal(){return new Date(0);}"
+    },
+    {
+      "id": "N18",
+      "expected": null,
+      "source": "const f=()=>String.raw`hello`;"
+    }
+  ]
+}
