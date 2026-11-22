@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Read-only trusted-base PR policy. NEVER fetch or execute PR-head source."""
+import base64
+import binascii
 import json
 import os
 import sys
+import urllib.parse
 import urllib.request
+from genesis_candidate_schema import validate_candidate_bytes
 
 CANDIDATE_DIRS = ("candidates/", "eval/candidates/")
 # Only JSON candidate data and Markdown docs get a review exemption.
@@ -177,6 +181,48 @@ def get_ruleset(api, token, repository):
         return json.load(response)
 
 
+def validate_candidate_files(api, token, repository, head_sha, base_sha, files):
+    """Fetch pinned blobs via read-only contents API; never execute PR code."""
+    candidates = [f for f in files if candidate_data(f["filename"])]
+    if len(candidates) > 20:
+        raise ValueError("Too many candidate JSON files")
+    for f in candidates:
+        if f.get("status") not in ("added", "modified"):
+            raise ValueError("Candidate deletions and renames are not allowed")
+        blob_sha = f.get("sha")
+        if not isinstance(blob_sha, str) or len(blob_sha) != 40 or any(
+            x not in "0123456789abcdef" for x in blob_sha
+        ):
+            raise ValueError("Unpinned candidate blob")
+        path = urllib.parse.quote(f["filename"], safe="/")
+        url = f"{api}/repos/{repository}/contents/{path}?ref={head_sha}"
+        req = urllib.request.Request(url, headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "GENESIS-X-readonly-candidate-schema",
+        })
+        with urllib.request.urlopen(req, timeout=15) as response:
+            payload = json.load(response)
+        if not isinstance(payload, dict) or payload.get("sha") != blob_sha:
+            raise ValueError("Candidate blob identity mismatch")
+        if payload.get("encoding") != "base64":
+            raise ValueError("Candidate content encoding unsupported")
+        encoded = payload.get("content")
+        if not isinstance(encoded, str) or len(encoded) > 50_000:
+            raise ValueError("Candidate JSON body too large")
+        try:
+            raw = base64.b64decode(encoded, validate=False)
+        except (ValueError, binascii.Error) as exc:
+            raise ValueError("Invalid candidate base64") from exc
+        report = validate_candidate_bytes(raw)
+        # Bind proposal to the same protected base commit seen by this workflow.
+        decoded = json.loads(raw.decode("utf-8"))
+        if decoded["baseSha"] != base_sha:
+            raise ValueError("Candidate proposal baseline does not match PR base")
+        print(f"Validated candidate {report['id']} with {report['evidenceCount']} evidence items")
+
+
 def main():
     api = os.environ["API_URL"].rstrip("/")
     repository = os.environ["REPOSITORY"]
@@ -184,11 +230,17 @@ def main():
     token = os.environ["GH_TOKEN"]
     head = os.environ["HEAD_REF"]
     head_sha = os.environ["HEAD_SHA"]
+    base_sha = os.environ["BASE_SHA"]
     author = os.environ["PR_AUTHOR"]
     if not repository or number < 1 or not token or not api.startswith("https://"):
         raise ValueError("Invalid runner configuration")
+    if not isinstance(base_sha, str) or len(base_sha) != 40 or any(
+        char not in "0123456789abcdef" for char in base_sha
+    ):
+        raise ValueError("Invalid runner configuration")
     prefix = f"repos/{repository}/pulls/{number}"
     files = get_pages(api, token, prefix + "/files")
+    validate_candidate_files(api, token, repository, head_sha, base_sha, files)
     # Read only reviews; do not trust PR-controlled code, labels or comments.
     reviews = get_pages(api, token, prefix + "/reviews")
     # Native GitHub protection is a prerequisite for any sensitive-source PASS.
