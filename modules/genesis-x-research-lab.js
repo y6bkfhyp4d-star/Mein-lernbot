@@ -24,6 +24,7 @@ const statuses=Object.freeze({
  diagnosis:Object.freeze(['no_change','proposal','blocked','needs_input','unconfirmed','invalid','unavailable']),
  research:Object.freeze(['coverage_gain_observed','no_improvement','rejected','inconclusive','no_change','no_evidence','blocked','invalid','unavailable'])
 });
+let researchSession,researchOwner;
 function capabilities(){
  return Object.freeze(Object.entries(engines).map(([name,config])=>{
   const engine=window[config.key];
@@ -40,7 +41,18 @@ function run(request){
  if(!engine||engine.version!==config.version||typeof engine[config.method]!=='function')
   return {status:'unavailable',mode,reason:'Required research module missing or version mismatch.',publishable:false};
  try{
-  const report=engine[config.method](input);
+  let report;
+  if(mode==='research'){
+   if(typeof engine.createSession!=='function')
+    return {status:'unavailable',mode,publishable:false,reason:'Audit-ledger session is required for research mode.'};
+   if(researchOwner&&researchOwner!==engine)
+    return {status:'blocked',mode,publishable:false,reason:'Research engine changed during ledger session.'};
+   if(!researchSession){
+    researchSession=engine.createSession();
+    researchOwner=engine;
+   }
+   report=researchSession.run(input);
+  }else report=engine[config.method](input);
   if(!object(report)||typeof report.status!=='string'||!statuses[mode].includes(report.status))
    return {status:'blocked',mode,reason:'Status is not permitted for this research mode.',publishable:false};
   // Chain 0.5 is deliberately unverified. Never return its case predictions via this facade.
