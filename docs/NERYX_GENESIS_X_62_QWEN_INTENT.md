@@ -26,3 +26,13 @@ Der enge Qwen-Wortlaut kann bei einem echten kleineren Modell zu `model_rejected
 - Deployment-ID `dpl_585kwmK8UvoVvDhsXSN99nUHq84r`, getesteter Git SHA `3dfbd6768a158c1e3090f7fb9d1bf11c1b4991e0`
 
 Der reale Qwen-Modellstart auf iPhone-Safari wurde hier **noch nicht** durchgeführt. Die nachträgliche Dokumentation ändert keine Datei des geprüften Previews.
+
+## Nachtrag: realer iPhone-Befund und Korrektur
+
+Auf einem echten iPhone wurde zweimal beobachtet, dass das lokal geladene Qwen 2.5 auf die wörtliche, klar bejahende Preset-Frage `NICHT_PRUEFEN` liefert. **Das ist ein Fehler der Modell-Absichtserkennung, nicht ein erfolgreich erkannter Nutzerwunsch.** Die ursprüngliche Sperre hat korrekt nicht geforscht.
+
+Die zweite Korrektur löst den Fehlschluss auf: Bei `useQwen:true` und real geladenem Modell wird Qwen weiter befragt. Wenn es `NICHT_PRUEFEN` sagt, darf eine **exakt erlaubte Aufforderung** (`Bitte untersuche diese Zahlen mit GENESIS X:` oder `GENESIS prüfen:`), kombiniert mit dem expliziten Nutzerklick und einem vollständig validierten einzigen Zahlenblock, die Forschungsprüfung dennoch starten. Das Ergebnis meldet mit `modelDisagreed:true` ausdrücklich, dass Qwen widersprochen hat. Unspezifische, verneinte oder angehängte Texte bleiben bei Qwen-Nein gesperrt; unzulässige Modellantworten oder Modellwerte werden weiterhin nicht zu Werkzeugaufrufen. Alles bleibt `reviewOnly:true` und `publishable:false`.
+
+**CI-Nachweis:** [GitHub Actions #45024835051](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45024835051) **4/4 Jobs erfolgreich, 673/673 Node-Tests, Chromium und WebKit bestanden**. Es wird der realistische False-Negative-Fall mit simuliertem Qwen-Nein und echtem GENESIS Worker geprüft; die reale iPhone-Modellentscheidung muss nach dem Fix erneut manuell getestet werden.
+
+**Separates Preview, READY, nicht Produktion:** https://mein-lernbot-70mas1vpj-pierags.vercel.app/eval/neryx-genesis-x-62-qwen.html (`dpl_HX3dU6rJEwxc4ssioaPSJeYdJKpL`, Commit `3f4cbfa3d588dc6d561835e9b71101027315761d`). Dieser Dokumentationsnachtrag ändert kein Laufzeitverhalten des Previews.
