@@ -34,6 +34,15 @@ function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:fals
   // Ternaries, short-circuit logic and optional chains have path-dependent evaluation.
   if(['ConditionalExpression','LogicalExpression','ChainExpression'].includes(expr.type))
     flags.conditional=true;
+  // Audit B1/B2: class creation, spreads and coercive operators can run code.
+  if(expr.type==='SpreadElement'||
+     (expr.type==='BinaryExpression'&&['in','instanceof'].includes(expr.operator)))
+    flags.effects=true;
+  // Class static initializers and computed definitions may run at creation.
+  // Preserve uncertainty rather than claiming straight-line provenance.
+  if(expr.type==='ClassExpression'||expr.type==='ClassDeclaration'){
+    flags.dynamic=true;return {names:out,flags};
+  }
   if(expr.type==='CallExpression'||expr.type==='NewExpression'){
     flags.calls=true;
     inputs(expr.callee,out,flags);
