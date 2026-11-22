@@ -81,6 +81,12 @@ try{
  await page.locator('#qwen-run').click();
  await page.waitForFunction(()=>document.querySelector('#qwen-result')?.textContent.includes('kein gültiges Absichts-Signal'));
  assert.equal(requests,before,'Rejected model output cannot reach GENESIS Worker');
+ // User's explicit direct click must succeed even if Qwen previously declined.
+ await page.locator('#qwen-question').fill('Bitte untersuche diese Zahlen mit GENESIS X: 0=2, 1=3, 2=4, 4=6, 7=9; 10');
+ await page.locator('#genesis-only').click();
+ await page.waitForFunction(()=>document.querySelector('#qwen-result')?.textContent.includes('Interne Regelprüfung abgeschlossen'),
+  null,{timeout:14000});
+ assert.match(await page.locator('#qwen-result').textContent(),/Keine Antwort freigegeben/);
  await page.locator('#qwen-question').fill('GENESIS prüfen: 0=2, 1=3, 2=4, 4=999, 7=9; 10');
  await page.locator('#genesis-only').click();
  await page.waitForFunction(()=>document.querySelector('#qwen-result')?.textContent.includes('Keine passende Rechenregel bestätigt'));
