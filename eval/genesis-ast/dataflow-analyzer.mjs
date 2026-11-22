@@ -89,7 +89,7 @@ export function analyzeDataFlow(file,source){
   const functions=discovered.functions.map(item=>({
     ...analyzeFunction(item.node),functionId:item.id,depth:item.depth
   }));
-  const untracked=[];
+  const untracked=discovered.assigned.map(a=>({...a,reason:'assigned-function-not-tracked'}));
   return {version:'2.4-prototype',file,parsed:true,mode:'read-only',analysis:'conservative-straight-line',
     functions,untracked,limitations:[
       'Not a full control-flow or taint analysis',
