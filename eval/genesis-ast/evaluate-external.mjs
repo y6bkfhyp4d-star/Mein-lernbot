@@ -9,7 +9,6 @@ import {correlateFlows} from './flow-correlation.mjs';
 
 const root=realpathSync(fileURLToPath(new URL('../../',import.meta.url)));
 const statuses=new Set(['eligible','review']);
-const own=(object,key)=>Object.prototype.hasOwnProperty.call(object,key);
 const isObject=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const resultStatus='eligible-for-limited-report';
 
@@ -48,21 +47,24 @@ export function evaluateCorpus(corpus){
     }catch(error){
       reason='analysis-error';
     }
-    if(reason)errors.push({id:item.id,reason});
+    // Invalid or unanalyzable samples are not successful classifications.
+    if(reason){errors.push({id:item.id,reason});continue;}
     if(item.expected==='eligible')confusion[actual==='eligible'?'TP':'FN']++;
     else confusion[actual==='eligible'?'FP':'TN']++;
   }
   const ratio=(a,b)=>b?Number((a/b).toFixed(6)):null;
+  const valid=cases.length-errors.length;
   return {
     schema:1,purpose:'limited-provenance-classification-not-security',
-    evaluated:cases.length,confusion,
+    submitted:cases.length,evaluated:valid,excluded:errors.length,
+    complete:errors.length===0,confusion,
     precision:ratio(confusion.TP,confusion.TP+confusion.FP),
     eligibleRecall:ratio(confusion.TP,confusion.TP+confusion.FN),
     reviewRecall:ratio(confusion.TN,confusion.TN+confusion.FP),
-    accuracy:ratio(confusion.TP+confusion.TN,cases.length),
+    accuracy:ratio(confusion.TP+confusion.TN,valid),
     errors,
     limitations:['Not an independent holdout unless cases and labels were created externally before analyzer inspection',
-      'Analysis failures and parse errors fail closed to review, but are reported separately',
+      'Analysis and parse failures are excluded from classification scores and make the run incomplete',
       'Not a proof of security, correctness, semantic precision or production readiness']
   };
 }
