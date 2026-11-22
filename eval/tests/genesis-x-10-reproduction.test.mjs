@@ -110,8 +110,7 @@ test('H / FIXED: captured program changed after evaluation fails independent aud
  }};
  const r=w.NERYXGenesisXVerifiedChain.solve(task());
  assert.equal(r.status,'blocked');
- assert.equal(r.reason,'mismatch');
- assert.equal(r.faultStage,'numeric');
+ assert.equal(r.stage,'artifact-provenance');
 });
 test('H / FIXED: missing candidate artifacts fail closed',()=>{
  const w=lab(),original=w.NERYXGenesisXChain;

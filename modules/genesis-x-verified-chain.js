@@ -9,14 +9,26 @@ function solve(task){
     Array.from(task.cases,c=>!record(c)||!finite(c.x)||!finite(c.b)).some(Boolean))
   return {status:'invalid',stage:'input'};
  const chain=window.NERYXGenesisXChain;
+ const router=window.NERYXGenesisXRouter;
  const verifier=window.NERYXGenesisXVerifier;
  if(!chain||chain.version!=='0.5'||typeof chain.solve!=='function'||
+    !router||router.version!=='0.4'||typeof router.solve!=='function'||
     !verifier||verifier.version!=='0.6'||typeof verifier.verify!=='function')
   return {status:'unavailable',stage:'dependencies'};
  try{
-  // Verify the actual candidate artifacts captured by the chain, never re-select them.
-  // The independent interpreter checks the claims against those exact artifacts.
-  const result=chain.solve(task);
+  // The checked orchestrator selects once, independently of the untrusted chain output.
+  const first=router.solve({...task.numeric,type:'numeric'});
+  if(!record(first)||first.status!=='candidate')
+   return {status:first?.status==='invalid'?'invalid':'unconfirmed',stage:'numeric'};
+  const second=router.solve({...task.logic,type:'logic'});
+  if(!record(second)||second.status!=='candidate')
+   return {status:second?.status==='invalid'?'invalid':'unconfirmed',stage:'logic'};
+  const program=JSON.parse(JSON.stringify(first.result?.selected?.program));
+  const rule=JSON.parse(JSON.stringify(second.result?.rule));
+  if(!Array.isArray(program)||!record(rule))
+   return {status:'blocked',stage:'selection-shape'};
+  const selected={program,rule};
+  const result=chain.solve(task,JSON.parse(JSON.stringify(selected)));
   if(!record(result)||result.status!=='candidate')
    return {status:result?.status==='invalid'?'invalid':'unconfirmed',stage:'chain'};
   if(!Array.isArray(result.cases)||result.cases.length!==task.cases.length)
@@ -24,7 +36,8 @@ function solve(task){
   if(!record(result.artifacts)||!Array.isArray(result.artifacts.program)||
      !record(result.artifacts.rule))
    return {status:'blocked',stage:'artifact-missing'};
-  const {program,rule}=result.artifacts;
+  if(JSON.stringify(result.artifacts)!==JSON.stringify(selected))
+   return {status:'blocked',stage:'artifact-provenance'};
   const claims=[];
   for(let i=0;i<task.cases.length;i++){
    const actual=result.cases[i],input=task.cases[i];
