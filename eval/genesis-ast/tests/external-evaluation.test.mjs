@@ -28,7 +28,13 @@ test('external benchmark: parse failure remains review, with error report',()=>{
   const result=evaluateCorpus({schema:1,cases:[
     {id:'bad',expected:'review',source:'function broken( {'}
   ]});
-  assert.equal(result.confusion.TN,1);
+  assert.equal(result.confusion.TN,0);
+  assert.deepEqual(result.confusion,{TP:0,FP:0,TN:0,FN:0});
+  assert.equal(result.submitted,1);
+  assert.equal(result.evaluated,0);
+  assert.equal(result.excluded,1);
+  assert.equal(result.complete,false);
+  assert.equal(result.accuracy,null);
   assert.deepEqual(result.errors,[{id:'bad',reason:'parse-error'}]);
 });
 test('external benchmark: wrong label does not silently change',()=>{
@@ -51,4 +57,17 @@ test('external benchmark: schema, duplicate IDs and unexpected fields rejected',
 test('external benchmark: no full input source in the summary',()=>{
   const result=evaluateCorpus(pass);
   assert.ok(!JSON.stringify(result).includes('function simple'));
+});
+
+test('external benchmark: invalid review case cannot inflate accuracy',()=>{
+  const result=evaluateCorpus({schema:1,cases:[
+    {id:'good',expected:'review',source:'function risk(){return this.value;}'},
+    {id:'bad',expected:'review',source:'function broken( {'}
+  ]});
+  assert.equal(result.submitted,2);
+  assert.equal(result.evaluated,1);
+  assert.equal(result.excluded,1);
+  assert.equal(result.complete,false);
+  assert.deepEqual(result.confusion,{TP:0,FP:0,TN:1,FN:0});
+  assert.equal(result.accuracy,1); // conditional on ONE valid case, not two
 });
