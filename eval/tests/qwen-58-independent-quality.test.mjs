@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
-const scripts=[read('../modules/math-verifier.js'),read('../modules/answer-review.js'),read('../modules/orchestrator.js')];
+const scripts=[read('../../modules/math-verifier.js'),read('../../modules/answer-review.js'),read('../../modules/orchestrator.js')];
 function harness({replies=[],knowledge='Keine passende Antwort gespeichert.',online=true,modelLoaded=true,coordinator=null}={}){
  const calls={load:0,ask:0,math:0,storage:0},asked=[];
  const window={};
