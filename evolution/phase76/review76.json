@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 66,
+  "cursor": 71,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -737,6 +737,61 @@
       "title": "Thermodynamische Temperatur",
       "wikidata_id": "Q264647",
       "wikidata_url": "https://www.wikidata.org/wiki/Q264647"
+    },
+    {
+      "checked_at": "2026-11-22T19:54:21+00:00",
+      "classes": [
+        "Spule",
+        "elektronisches Bauelement"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Ablenkspule",
+      "wikidata_id": "Q322355",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q322355"
+    },
+    {
+      "checked_at": "2026-11-22T19:54:21+00:00",
+      "classes": [
+        "Technik"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abschirmung (Elektrotechnik)",
+      "wikidata_id": "Q332007",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q332007"
+    },
+    {
+      "checked_at": "2026-11-22T19:54:21+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Absorptionsspektrum",
+      "wikidata_id": "Q865545",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q865545"
+    },
+    {
+      "checked_at": "2026-11-22T19:54:21+00:00",
+      "classes": [
+        "Mensch"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Agatha von Catania",
+      "wikidata_id": "Q200895",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q200895"
+    },
+    {
+      "checked_at": "2026-11-22T19:54:21+00:00",
+      "classes": [
+        "Kalenderjahr",
+        "common year starting and ending on Tuesday"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "1946",
+      "wikidata_id": "Q18610",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q18610"
     }
   ],
   "runs": [
@@ -900,6 +955,13 @@
       "error_count": 1,
       "known_sources": 86,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-22T19:54:21+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 89,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -914,6 +976,7 @@
     "(2) Pallas": "8f71b0dd701c9170fc69",
     "(2+2)-Cycloaddition": "32734726679ee9b7cd5a",
     "(225088) Gonggong": "f8d525a5c88b3ca52468",
+    "(9936) Al-Biruni": "4576ab9d63360cb22e37",
     "-genese": "c2d8453aacac20d43ac6",
     "1,2-Propandiol": "c5f3e389010b220964cd",
     "1. Oktober": "f9fac2d8d8dedfbc68eb",
@@ -957,7 +1020,9 @@
     "Aktienmarkt": "4e0b0ffa5504d55816a9",
     "Akustik": "6b29301f6434da9497eb",
     "Al-Bīrūnī": "db8db0ba87075447910c",
+    "Albert Einstein": "c38bc16e38192b0a153a",
     "Algorithmus": "2e117fc2cba9ccd398d2",
+    "Allgemeine Relativitätstheorie": "03315e42143ecf2f03b6",
     "Althochdeutsche Sprache": "8b351251df9a2132b0f9",
     "Bempedoinsäure": "ffdb714118d1d6a66feb",
     "Chemische Reaktion": "9e3d50613cc0a78c4822",
