@@ -1,0 +1,28 @@
+name: NERYX GENESIS X 1.0 final audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-fix-truth-d]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Full GENESIS X test corpus including original adversarial reproduction
+        run: node --test eval/tests/genesis-x*.test.mjs
+      - name: Protect application and Frozen evaluation
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo "Protected file changed"; exit 1
+          fi
