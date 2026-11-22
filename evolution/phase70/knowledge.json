@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Acetylgruppe",
-    "Bempedoinsäure",
-    "1. Oktober",
-    "10. Oktober",
-    "2. Buch der Chronik",
-    "3. Buch Esra",
-    "1926",
-    "1996",
     "Airbus",
     "Akkumulator (Begriffsklärung)",
     "Abstandsgesetz",
@@ -89,7 +81,15 @@
     "(208996) Achlys",
     "(307261) Máni",
     "(50000) Quaoar",
-    "(90482) Orcus"
+    "(90482) Orcus",
+    "Acetoxygruppe",
+    "Acetyl-Coenzym A",
+    "Acyl-CoA-Synthetase",
+    "Adenosintriphosphat-Citrat-Lyase",
+    "1. April",
+    "11. Oktober",
+    "(139) Juewa",
+    "12. Oktober"
   ],
   "entries": [
     {
@@ -881,6 +881,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "(225088) Gonggong"
+    },
+    {
+      "collected_at": "2026-11-22T09:03:22+00:00",
+      "excerpt": "Der Begriff Acetylgruppe (abgekürzt: Ac) bezeichnet die chemische Struktur –C(O)CH3, die sich aus der Carbonyl- und Methylgruppe zusammensetzt. Sie ist die von der Essigsäure (AcOH) abgeleitete Acylgruppe. Die Bezeichnung ist abgeleitet vom lateinischen acetum = „Essig“ sowie von altgriechisch ὕλη hýlē, deutsch ‚Holz, Stoff, Materie‘. Die Gruppe, die auch das zweite Sauerstoffatom der Essigsäure umfasst, wird Acetoxygruppe genannt. Die Acetylgruppe kommt in sehr vielen natürlichen (biologischen) und synthetischen Molekülen, z. B. Acetylsalicylsäure (Aspirin), vor. Als Acetyl-Coenzym A sind Acetylgruppen Bestandteil bzw. Ausgangs- oder Endprodukte zahlreicher Reaktionen des Stoffwechsels. Die chemische beziehungsweise biochemische Anlagerung einer Acetylgruppe bezeichnet man in der organischen Chemie als Acetylierung, wobei ein oder mehrer",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Acetylgruppe",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Acetylgruppe"
+    },
+    {
+      "collected_at": "2026-11-22T09:03:22+00:00",
+      "excerpt": "Bempedoinsäure ist ein Arzneistoff, der zur Senkung des LDL-Cholesterins bei Erwachsenen mit bestimmten Fettstoffwechselstörung eingesetzt wird. Als Inhibitor der Adenosintriphosphat-Citrat-Lyase (ACL) senkt Bempedoinsäure das LDL-Cholesterin durch Hemmung der Cholesterinsynthese. Chemisch handelt es sich um eine hydroxylierte langkettige Dicarbonsäure.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Bempedoins%C3%A4ure",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Bempedoinsäure"
+    },
+    {
+      "collected_at": "2026-11-22T09:03:22+00:00",
+      "excerpt": "Der 1. Oktober ist der 274. Tag des gregorianischen Kalenders (der 275. in Schaltjahren), somit bleiben 91 Tage bis zum Jahresende. Bis zum Ende des 19. Jahrhunderts war er zusammen mit dem 1. April ein sog. „Ziehtag“, weil Mietverträge halbjährlich abgeschlossen wurden und Mieter nur zu diesen Daten die Wohnungen wechselten. Später etablierten sich vierteljährliche Umzugstage, wodurch sich die Fuhrkapazitäten etwas besser verteilten. Zweitere Gemeinsamkeit mit dem 1. April sind, dass beide Daten den Beginn eines Studiensemesters markieren und dass sie gleich weit – und zwar genau ein Dritteljahr – vom Jahreswechsel und der Jahresmitte entfernt liegen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/1._Oktober",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "1. Oktober"
+    },
+    {
+      "collected_at": "2026-11-22T09:03:22+00:00",
+      "excerpt": "Der 10. Oktober ist der 283. Tag des gregorianischen Kalenders (der 284. in Schaltjahren), somit bleiben 82 Tage bis zum Jahresende.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/10._Oktober",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "10. Oktober"
     }
   ],
   "failed_titles": [
@@ -1183,6 +1223,19 @@
         "(225088) Gonggong"
       ],
       "time": "2026-11-22T03:06:04+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Acetylgruppe",
+        "Bempedoinsäure",
+        "1. Oktober",
+        "10. Oktober"
+      ],
+      "time": "2026-11-22T09:03:22+00:00"
     }
   ],
   "schema": 1
