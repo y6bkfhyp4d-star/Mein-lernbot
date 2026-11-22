@@ -1,16 +1,13 @@
 name: LernBot 7.0 – automatisches Wissen (Review-Branch)
-
 on:
   workflow_dispatch: {}
   schedule:
     - cron: "17 2,8,14,20 * * *"
 
-# Writes exclusively to a dedicated review branch, NEVER to main.
-# GITHUB_TOKEN-created pushes don't automatically trigger other GitHub Actions workflows.
-# A human must open a PR manually before changes can be reviewed and merged.
+# Only a reviewed main workflow executes research code. A bot branch supplies data,
+# never source code. The GITHUB_TOKEN only pushes a review branch, not main.
 permissions:
   contents: write
-
 concurrency:
   group: lernbot-phase70
   cancel-in-progress: false
@@ -22,47 +19,58 @@ jobs:
     env:
       REPORT_BRANCH: neryx/research-phase70
     steps:
-      - name: Aus main laden (ohne persistente Tokens in erzeugten Dateien)
+      - name: Vertrauenswuerdigen Code aus main laden
         uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
           fetch-depth: 0
       - name: Python einrichten
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - name: Abgetrennten Review-Branch bereitstellen
+          python-version: "3.12"
+      - name: Forschungsdaten aus Review-Branch lesen, nie dessen Code ausfuehren
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
+          if git ls-remote --exit-code --heads origin "refs/heads/$REPORT_BRANCH" >/dev/null; then
+            git fetch --no-tags origin "refs/heads/$REPORT_BRANCH:refs/remotes/origin/$REPORT_BRANCH"
+            # Only the data file may be imported from the untrusted review branch.
+            git show "refs/remotes/origin/$REPORT_BRANCH:evolution/phase70/knowledge.json" > "$RUNNER_TEMP/phase70-previous.json"
+            python -m json.tool "$RUNNER_TEMP/phase70-previous.json" >/dev/null
+            test "$(wc -c < "$RUNNER_TEMP/phase70-previous.json")" -le 2000000
+            cp "$RUNNER_TEMP/phase70-previous.json" evolution/phase70/knowledge.json
+          fi
+      - name: Tests des main-Generators
+        run: python -m unittest discover -s evolution/phase70 -p 'test_*.py' -v
+      - name: Neue Quellen mit vertrauenswuerdigem main-Code einsammeln
+        run: python evolution/phase70/engine.py
+      - name: Nur Ergebnis auf Review-Branch uebertragen
         shell: bash
         run: |
           set -euo pipefail
           test "$REPORT_BRANCH" != main
+          cp evolution/phase70/knowledge.json "$RUNNER_TEMP/phase70-new.json"
+          python -m json.tool "$RUNNER_TEMP/phase70-new.json" >/dev/null
+          git reset --hard HEAD
+          git clean -fd -- evolution/phase70
           git config user.name "LernBot Research Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --no-tags origin main
-          if git ls-remote --exit-code --heads origin "refs/heads/$REPORT_BRANCH" >/dev/null; then
-            git fetch --no-tags origin "refs/heads/$REPORT_BRANCH"
-            git switch -C "$REPORT_BRANCH" FETCH_HEAD
-            # Integrate current main without discarding existing unpublished research.
-            # On conflicts the job stops; it NEVER force-pushes.
-            git merge --no-edit origin/main
+          if git show-ref --verify --quiet "refs/remotes/origin/$REPORT_BRANCH"; then
+            git switch -C "$REPORT_BRANCH" "refs/remotes/origin/$REPORT_BRANCH"
+            # Carry forward trusted main commits; stop on conflict, never force.
+            git merge --no-edit refs/remotes/origin/main
           else
-            git switch -c "$REPORT_BRANCH" origin/main
+            git switch -c "$REPORT_BRANCH" refs/remotes/origin/main
           fi
-      - name: Tests
-        run: python -m unittest discover -s evolution/phase70 -p 'test_*.py' -v
-      - name: Neue Quellen einsammeln
-        run: python evolution/phase70/engine.py
-      - name: Ausschliesslich Forschungsbericht committen und Review-Branch aktualisieren
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git branch --show-current)" = "$REPORT_BRANCH"
+          cp "$RUNNER_TEMP/phase70-new.json" evolution/phase70/knowledge.json
           git add -- evolution/phase70/knowledge.json
           if ! git diff --cached --quiet; then
-            git commit -m "LernBot: automatischer Wissenslauf (nur Review-Branch)"
+            git commit -m "LernBot: automatischer Wissenslauf (Review-Branch)"
           else
-            echo "Keine neue Wissensaenderung"
+            echo "Kein geaenderter Bericht"
           fi
-          # Rejected on divergence; no force, no writes to main, no deploy.
           git push origin "HEAD:refs/heads/$REPORT_BRANCH"
-          echo "Review unter https://github.com/${GITHUB_REPOSITORY}/compare/main...$REPORT_BRANCH"
+          echo "Zum manuellen PR: https://github.com/${GITHUB_REPOSITORY}/compare/main...$REPORT_BRANCH"
