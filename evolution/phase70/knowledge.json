@@ -1,11 +1,5 @@
 {
   "discovered_queue": [
-    "(120178) 2003 OP32",
-    "(145453) 2005 RR43",
-    "(120347) Salacia",
-    "(225088) Gonggong",
-    "3-Hydroxypropionat/4-Hydroxybutyratzyklus",
-    "Acetyl-CoA",
     "Acetylgruppe",
     "Bempedoinsäure",
     "1. Oktober",
@@ -89,7 +83,13 @@
     "A posteriori",
     "A priori (Begriffsklärung)",
     "Aktie",
-    "Aktienbörse"
+    "Aktienbörse",
+    "Albedo",
+    "Apsis (Astronomie)",
+    "(208996) Achlys",
+    "(307261) Máni",
+    "(50000) Quaoar",
+    "(90482) Orcus"
   ],
   "entries": [
     {
@@ -851,12 +851,43 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Aktienmarkt"
+    },
+    {
+      "collected_at": "2026-11-22T03:06:04+00:00",
+      "excerpt": "(120178) 2003 OP32 ist ein transneptunisches Objekt im Kuipergürtel, das als Cubewano oder erweitertes SDO (DO) und als Mitglied der Haumea-Familie eingestuft wird.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28120178%29_2003_OP32",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(120178) 2003 OP32"
+    },
+    {
+      "collected_at": "2026-11-22T03:06:04+00:00",
+      "excerpt": "(120347) Salacia (frühere Bezeichnung 2004 SB60) ist ein großes transneptunisches Objekt im Kuipergürtel, das bahndynamisch als Cubewano oder als erweitertes Scattered Disc Object (DO) eingestuft wird. Aufgrund seiner Größe ist der Asteroid ein Zwergplanetenkandidat. Da Salacia über einen großen Begleiter namens Actaea verfügt, kann dieses System auch als Doppelasteroidensystem verstanden werden.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28120347%29_Salacia",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(120347) Salacia"
+    },
+    {
+      "collected_at": "2026-11-22T03:06:04+00:00",
+      "excerpt": "(225088) Gonggong, provisorische Bezeichnung (225088) 2007 OR10, ist eines der größten bekannten transneptunischen Objekte (TNO). Es wird bahndynamisch als resonantes Kuipergürtel-Objekt (RKBO) oder als Scattered Disk Object (SDO) eingestuft. Der Asteroid Gonggong ist ein Zwergplanetenkandidat und verfügt über einen Mond mit der Bezeichnung Xiangliu.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28225088%29_Gonggong",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(225088) Gonggong"
     }
   ],
   "failed_titles": [
     "Neurales Netz",
     "Adalbert W. A. Pauldrach",
-    "1,3-Dipole"
+    "1,3-Dipole",
+    "(145453) 2005 RR43"
   ],
   "runs": [
     {
@@ -1138,6 +1169,20 @@
         "Aktienmarkt"
       ],
       "time": "2026-11-21T20:57:30+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [
+        "(145453) 2005 RR43: kein geeigneter Artikel"
+      ],
+      "errors": 1,
+      "new_titles": [
+        "(120178) 2003 OP32",
+        "(120347) Salacia",
+        "(225088) Gonggong"
+      ],
+      "time": "2026-11-22T03:06:04+00:00"
     }
   ],
   "schema": 1
