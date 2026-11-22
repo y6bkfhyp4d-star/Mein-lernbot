@@ -1,0 +1,71 @@
+"""Offline candidate contract tests; raw bytes never execute."""
+import json
+import unittest
+from genesis_candidate_schema import validate_candidate_bytes, MAX_BYTES
+
+SHA = "a" * 40
+HEX = "b" * 64
+
+
+def proposal(**changes):
+    result = {
+        "schemaVersion": 1, "kind": "genesis-x-candidate",
+        "id": "draft_001", "baseSha": SHA,
+        "summary": "Check direct eval use",
+        "rationale": "A static call should be reviewed manually",
+        "risk": "medium", "evidence": [
+            {"ruleId": "AST001", "sourceSha256": HEX, "note": "Source hash recorded"}
+        ], "proposedChange": "Replace the call with a static parser"
+    }
+    result.update(changes)
+    return result
+
+
+def pack(value):
+    return json.dumps(value, ensure_ascii=False).encode("utf-8")
+
+
+class CandidateContractTests(unittest.TestCase):
+    def test_valid_contract(self):
+        self.assertEqual(validate_candidate_bytes(pack(proposal())),
+                         {"schemaVersion": 1, "id": "draft_001",
+                          "risk": "medium", "evidenceCount": 1})
+
+    def test_wrong_fields_and_types_fail_closed(self):
+        cases = [
+            {}, [], None, "string", proposal(schemaVersion=True),
+            proposal(schemaVersion=2), proposal(kind="javascript"),
+            proposal(id="../bad"), proposal(baseSha="head"),
+            proposal(risk="critical"), proposal(risk=True),
+            proposal(evidence=[]), proposal(evidence="AST001"),
+            proposal(evidence=[{"ruleId": "AST001", "sourceSha256": "wrong", "note": "x"}]),
+            proposal(evidence=[{"ruleId": "RULE999", "sourceSha256": HEX, "note": "x"}]),
+            proposal(evidence=[{"ruleId": "AST001", "sourceSha256": HEX}]),
+            proposal(summary=" "), proposal(proposedChange=""),
+            proposal(extra="should be rejected"),
+            proposal(evidence=[{"ruleId": "AST001", "sourceSha256": HEX, "note": "x"}] * 9),
+        ]
+        for value in cases:
+            with self.subTest(value=str(value)[:80]):
+                with self.assertRaises(ValueError):
+                    validate_candidate_bytes(pack(value))
+
+    def test_duplicate_keys_malformed_utf8_and_size_fail_closed(self):
+        raw = pack(proposal())
+        with self.assertRaises(ValueError):
+            validate_candidate_bytes(raw.replace(b'"risk": "medium"',
+                                                    b'"risk": "low", "risk": "medium"'))
+        for bad in [b'{"schemaVersion":NaN}', b'{', b'\xff', b'',
+                    b' ' * (MAX_BYTES + 1)]:
+            with self.subTest(bad=bad[:10]):
+                with self.assertRaises(ValueError):
+                    validate_candidate_bytes(bad)
+
+    def test_source_is_inert_data_not_compiled(self):
+        dangerous = "globalThis.__NEVER_EXECUTED__ = true; eval('1');"
+        data = proposal(proposedChange=dangerous)
+        assert validate_candidate_bytes(pack(data))["id"] == "draft_001"
+
+
+if __name__ == "__main__":
+    unittest.main()
