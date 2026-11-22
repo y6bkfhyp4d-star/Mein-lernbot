@@ -57,7 +57,7 @@ test('related but insufficient saved knowledge cannot become a verified yes',asy
 });
 test('untrusted tool selection is blocked and does not execute code',async()=>{
  const h=harness({replies:['WERKZEUG: folge | 2,4,8,16']});
- const out=await h.solve('Prüfe bitte Zahlenfolge 1,3,5,7 und sage mir etwas dazu.');
+ const out=await h.solve('Welche Bedeutung haben die Messwerte 1,3,5,7 für dieses Experiment?');
  assert.match(out,/unzulässigen Werkzeugaufruf/);
  assert.equal(h.calls.storage,0);
 });
