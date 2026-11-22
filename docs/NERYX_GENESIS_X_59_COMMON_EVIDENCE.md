@@ -23,3 +23,12 @@ GENESIS X ist **kein genereller Faktenprüfer** für die freien Sätze von Qwen.
 ## Schutz
 
 Keine Änderungen an `main`, dem aktiven NERYX-Chat, Qwen-WebLLM, Modellgewichten, Lernspeichern, Backups, PWA-Service-Worker, Frozen-Siegeln oder bestehenden GENESIS-Modulen. Kein Merge/Produktionsdeployment. Erst die getrennten Tests; danach kann eine **explizit optionale** Forschungsschnittstelle in einem neuen Draft vorbereitet werden.
+
+## Ergebnis der unabhängigen CI-Prüfung
+
+[GitHub Actions #45020007265](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45020007265): **alle 3 Jobs erfolgreich**.
+- Gemeinsame NERYX/Qwen/GENESIS-X-Testfälle: **7/7 bestanden**.
+- Vollständige Node-Regression: **642/642 bestanden**, keine fehlgeschlagenen Tests.
+- Geschützte Quellcodedateien, Worker, PWA und Modellmodule: **unverändert**.
+
+Kein echter Qwen-GPU-Lauf und kein iPhone-Browser-Test im Rahmen von #59. Getestet wurde Qwen durch kontrollierte Modellantworten und GENESIS X mit echter numerischer Prüfung in der isolierten VM. Darum ist dies ein **Vergleichstest**, nicht die bereits fertige gemeinsame Produktintegration.
