@@ -6,9 +6,9 @@ import sys
 import urllib.request
 
 ALLOWED = ("candidates/", "eval/candidates/")
-SENSITIVE = (".github/", "modules/", "eval/genesis-ast/", "eval/tests/",
-             "scripts/", "app.js", "index.html", "sw.js", "vercel.json",
-             "package.json", "package-lock.json", "manifest.webmanifest")
+# Fail closed: only inert candidate data and ordinary docs have a review exemption.
+# Any other path, including future unknown files and build/test tooling, is sensitive.
+REVIEW_FREE = ("docs/", "candidates/", "eval/candidates/")
 
 
 def valid_path(path):
@@ -21,8 +21,7 @@ def valid_path(path):
 
 
 def sensitive(path):
-    return any(path == p if not p.endswith("/") else path.startswith(p)
-               for p in SENSITIVE)
+    return not any(path.startswith(prefix) for prefix in REVIEW_FREE)
 
 
 def decide(head_ref, files, reviews, author, head_sha):
@@ -78,10 +77,11 @@ def decide(head_ref, files, reviews, author, head_sha):
             decisions[login] = review
     for login, review in decisions.items():
         user = review["user"]
-        if login != author and user.get("type") == "User" and (
-            review["state"] == "APPROVED"
-            and review.get("commit_id") == head_sha
-        ):
+        if (login.casefold() != author.casefold()
+            and user.get("type") == "User"
+            and review.get("author_association") in ("OWNER", "MEMBER", "COLLABORATOR")
+            and review["state"] == "APPROVED"
+            and review.get("commit_id") == head_sha):
             return True, "independent-current-approval"
     return False, "sensitive-path-requires-independent-current-approval"
 
