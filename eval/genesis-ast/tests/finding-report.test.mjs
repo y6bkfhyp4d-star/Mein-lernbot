@@ -60,3 +60,16 @@ test('findings: private-key signature flags potential false positive',()=>{
   assert.equal(finding.falsePositiveClass,'signature-may-be-in-comment-or-string');
   assert.equal(finding.verification,'manual-review-required');
 });
+
+test('seed P22 regression: indirect eval is flagged without running JavaScript',()=>{
+  globalThis.__indirectEvalProbe=0;
+  const report=createFindingReport('indirect.js','(0,eval)("globalThis.__indirectEvalProbe=1");');
+  assert.equal(report.findings.filter(f=>f.ruleId==='AST001').length,1);
+  assert.equal(report.findings.find(f=>f.ruleId==='AST001').message,'Indirekter eval()-Aufruf');
+  assert.equal(globalThis.__indirectEvalProbe,0);
+  delete globalThis.__indirectEvalProbe;
+});
+test('indirect eval check does not flag unrelated comma-expression call',()=>{
+  const report=createFindingReport('normal.js','(0,fn)(1);');
+  assert.equal(report.findings.filter(f=>f.ruleId==='AST001').length,0);
+});
