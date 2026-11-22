@@ -2,7 +2,6 @@
 # Ownership rules are effective as mandatory reviews only after a branch ruleset requires code-owner review.
 # The generator must never receive a token with permission to bypass these rules.
 
-* @y6bkfhyp4d-star
 /.github/ @y6bkfhyp4d-star
 /app.js @y6bkfhyp4d-star
 /index.html @y6bkfhyp4d-star
@@ -12,4 +11,5 @@
 /modules/code-diagnose.js @y6bkfhyp4d-star
 /eval/frozen.seal.json @y6bkfhyp4d-star
 /eval/ @y6bkfhyp4d-star
+/candidates/ @y6bkfhyp4d-star
 /docs/GENESIS_X_SELBSTENTWICKLUNG_MASTERPLAN.md @y6bkfhyp4d-star
