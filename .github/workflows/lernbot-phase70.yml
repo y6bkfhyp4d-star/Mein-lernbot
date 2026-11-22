@@ -3,21 +3,18 @@ on:
   workflow_dispatch: {}
   schedule:
     - cron: "17 2,8,14,20 * * *"
-
-# Only a reviewed main workflow executes research code. A bot branch supplies data,
-# never source code. The GITHUB_TOKEN only pushes a review branch, not main.
 permissions:
   contents: write
 concurrency:
   group: lernbot-phase70
   cancel-in-progress: false
-
 jobs:
   research:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       REPORT_BRANCH: neryx/research-phase70
+      REPORT_FILES: evolution/phase70/knowledge.json
     steps:
       - name: Vertrauenswuerdigen Code aus main laden
         uses: actions/checkout@v4
@@ -28,49 +25,12 @@ jobs:
       - name: Python einrichten
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - name: Forschungsdaten aus Review-Branch lesen, nie dessen Code ausfuehren
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --no-tags origin main:refs/remotes/origin/main
-          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
-          if git ls-remote --exit-code --heads origin "refs/heads/$REPORT_BRANCH" >/dev/null; then
-            git fetch --no-tags origin "refs/heads/$REPORT_BRANCH:refs/remotes/origin/$REPORT_BRANCH"
-            # Only the data file may be imported from the untrusted review branch.
-            git show "refs/remotes/origin/$REPORT_BRANCH:evolution/phase70/knowledge.json" > "$RUNNER_TEMP/phase70-previous.json"
-            python -m json.tool "$RUNNER_TEMP/phase70-previous.json" >/dev/null
-            test "$(wc -c < "$RUNNER_TEMP/phase70-previous.json")" -le 2000000
-            cp "$RUNNER_TEMP/phase70-previous.json" evolution/phase70/knowledge.json
-          fi
+          python-version: '3.12'
+      - name: Zugelassene JSON-Forschungsdaten einlesen
+        run: bash .github/scripts/research-review-branch.sh prepare
       - name: Tests des main-Generators
         run: python -m unittest discover -s evolution/phase70 -p 'test_*.py' -v
-      - name: Neue Quellen mit vertrauenswuerdigem main-Code einsammeln
+      - name: Neue Quellen mit main-Code einsammeln
         run: python evolution/phase70/engine.py
-      - name: Nur Ergebnis auf Review-Branch uebertragen
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$REPORT_BRANCH" != main
-          cp evolution/phase70/knowledge.json "$RUNNER_TEMP/phase70-new.json"
-          python -m json.tool "$RUNNER_TEMP/phase70-new.json" >/dev/null
-          git reset --hard HEAD
-          git clean -fd -- evolution/phase70
-          git config user.name "LernBot Research Bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git show-ref --verify --quiet "refs/remotes/origin/$REPORT_BRANCH"; then
-            git switch -C "$REPORT_BRANCH" "refs/remotes/origin/$REPORT_BRANCH"
-            # Carry forward trusted main commits; stop on conflict, never force.
-            git merge --no-edit refs/remotes/origin/main
-          else
-            git switch -c "$REPORT_BRANCH" refs/remotes/origin/main
-          fi
-          cp "$RUNNER_TEMP/phase70-new.json" evolution/phase70/knowledge.json
-          git add -- evolution/phase70/knowledge.json
-          if ! git diff --cached --quiet; then
-            git commit -m "LernBot: automatischer Wissenslauf (Review-Branch)"
-          else
-            echo "Kein geaenderter Bericht"
-          fi
-          git push origin "HEAD:refs/heads/$REPORT_BRANCH"
-          echo "Zum manuellen PR: https://github.com/${GITHUB_REPOSITORY}/compare/main...$REPORT_BRANCH"
+      - name: Nur Bericht auf Review-Branch veroeffentlichen
+        run: bash .github/scripts/research-review-branch.sh publish
