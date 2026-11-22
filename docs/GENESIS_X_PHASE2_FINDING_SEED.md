@@ -18,3 +18,9 @@ Es ist bewusst eine **entwicklererstellte, transparente und stark regelgebundene
 Der bereits bekannte Claude-94er-Provenienzkorpus ist eine **andere Metrik** und wurde hierfür nicht als neu oder geheim ausgegeben. Weitere Fehler nach dem Einfrieren der Seeds werden dokumentiert, nicht durch Änderungen an deren Ground Truth verdeckt.
 
 **Phase 2 bleibt offen** bis zu einer unabhängig spezifizierten Qualitätsmessung, dokumentierter Unsicherheit, lückenlos wiederholbaren Git-Berichten und nachgewiesenen Main-Schutzkontrollen. Keine automatische Änderung oder Produktionsfreigabe.
+
+## Erstes unverändertes Seed-Ergebnis und gezielte Korrektur
+
+Erster gemessener CI-Lauf auf Commit `a6507539db22dba59a9207c949e6cdbae22d0181`: 42 Fälle, **TP=23, FP=0, TN=18, FN=1**, Recall 95,83 %, beobachtete False-Positive-Rate 0/18. Seed-SHA-256: `962c2eca68e3d8aa034046813ce7a41635061dc50c5586b54e3ee6068bc0b9e1`.
+
+Das dokumentierte Fehlbeispiel `P22` verwendet indirektes `eval` als SequenceExpression. Danach wurde **nur der Analyzer** erweitert, sodass die vorhandene Regel `AST001` auch dieses konkrete Muster erkennt; die Seed-Datei und ihre vorab fixierten Labels wurden nicht geändert. Die nachfolgende Wiederholung ist **Regressionstest, kein zweiter unabhängiger Validierungslauf**. Weitere unbekannte JavaScript-Varianten bleiben möglich.
