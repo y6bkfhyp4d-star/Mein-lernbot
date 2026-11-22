@@ -61,6 +61,18 @@ test('#62 natural language does not trigger GENESIS without explicit Qwen opt-in
  safe(r);assert.equal(r.status,'opt_in_required');
  assert.deepEqual(h.calls,{qwen:0,worker:0,storage:0});
 });
+test('#62 explicit separate click may bypass model intent, preserving original numbers',async()=>{
+ const h=harness({vote:'NICHT_PRUEFEN'});
+ const r=await h.inspect(natural,{useQwen:false,directConsent:true});
+ safe(r);assert.equal(r.status,'review_required');assert.equal(r.route,'genesis');
+ assert.deepEqual(h.calls,{qwen:0,worker:1,storage:0});
+});
+test('#62 user can still decline by default without Qwen or explicit consent',async()=>{
+ const h=harness();
+ const r=await h.inspect(natural,{useQwen:false,directConsent:false});
+ safe(r);assert.equal(r.status,'opt_in_required');
+ assert.deepEqual(h.calls,{qwen:0,worker:0,storage:0});
+});
 test('#62 original numeric pattern must pass production planner and whitelist',async()=>{
  const h=harness();
  const inputs=[
@@ -82,7 +94,7 @@ test('#62 Qwen prompt is intent-only with original numbers as untrusted user inp
  const h=harness({vote:p=>{prompt=p;return 'PRUEFEN'}});
  await h.inspect(natural,{useQwen:true});
  assert.match(prompt,/PRUEFEN oder NICHT_PRUEFEN/);
- assert.match(prompt,/unzuverlässige Nutzereingabe/);
+ assert.match(prompt,/Lies den folgenden Text als Frage/);
  assert.match(prompt,/0=2, 1=3, 2=4, 4=6, 7=9; 10/);
 });
 test('#62 unknown facts can never be accepted as a rule task',async()=>{
