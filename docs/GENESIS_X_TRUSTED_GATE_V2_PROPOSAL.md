@@ -99,3 +99,11 @@ Beispiel eines inert gespeicherten Kandidaten:
 **Abgrenzung:** Dies ist zunächst ein neues, ausdrücklich versioniertes, sehr kleines **Vorschlagsformat**; keine bereits vorhandenen Kandidatenformate wurden im gesichteten `main`-Tree gefunden. Die JSON-Datei wird nie als Code ausgeführt. JSON-Inhalte können trotzdem schädliche Anweisungen enthalten, wenn sie später ungeprüft interpretiert werden. Für zukünftige Verbraucher braucht es strikte sichere Darstellung, Kontextprüfung, Provenienz und eine eigene Human-Review-Schranke. Das Gate implementiert ausdrücklich **keine** automatischen Patches.
 
 **Nicht aktiviert:** Alle Änderungen bleiben in Draft-PR #90. Das bislang aktive Trusted-Base-Gate auf `main` führt diese neuen Inhaltsprüfungen noch nicht aus.
+
+## API-Identität und Race-Condition-Absicherung (separater Draft)
+
+Noch vor der ersten und unmittelbar nach der letzten PR-Datei-/Review-/Ruleset-Abfrage wird der PR live per **GET /pulls/{number}** gelesen. Head-Branch, Head-SHA, Basis-Branch `main`, Basis-SHA, Repository, PR-Autor, Nummer und Status `open` müssen exakt den ursprünglichen GitHub-Workflow-Ereignisdaten entsprechen. Abweichungen führen zu **DENY**. So kann ein veralteter Workflow nicht stillschweigend einen inzwischen retargeteten oder geänderten PR gutheißen. **Einschränkung:** Wie jede Abfolge mehrerer API-Anfragen ist das keine atomare GitHub-Transaktion und kein Ersatz für GitHubs native Merge-Time-Prüfung. Der Endstand muss durch GitHub-Ruleset und aktuelle verpflichtende Checks gesichert bleiben.
+
+Die Bytes jeder Kandidatendatei werden zusätzlich unabhängig zu ihrem **Git-Blob-SHA-1** gehasht (Git-Format `blob <byte-length>\\0<bytes>`) und mit dem erwarteten Blob-SHA aus der PR-Dateiliste verglichen. Base64-Daten werden nur nach Entfernen standardisierter Zeilenumbrüche strikt dekodiert. Selbst wenn Contents- und Files-API dieselbe (falsche) Metadaten-SHA liefern, wird ein abweichender Byte-Inhalt abgelehnt. Unit-Negativfälle simulieren beschädigte Bytes, fehlerhafte Base64, veränderte PR-Metadaten und veraltete Workflow-Events **jeweils mindestens zweimal**.
+
+**Ergebnisstatus:** Nur Policy-/API-Mock-Tests im Draft, keine produktive Ruleset-Änderung; für tatsächliche GitHub-Erzwingung braucht es noch isolierte Live-Testfälle und die zweite unabhängige menschliche Freigabe.
