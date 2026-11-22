@@ -21,3 +21,18 @@ Nach der Typ- und Zahlenprüfung geht ein versionierter `research_check` an die 
 Der Node-Regressionstest nutzt echte Planner-/GENESIS-Implementierungen und eine simulierte Worker-Nachrichtengrenze. Chromium und Linux WebKit prüfen die reale iPhone-artige Eingabeseite und echte Web Worker, negative Daten, fehlenden Worker und das Ausbleiben von Browser-Speicherzugriffen. Das Gesamtregressionspaket läuft zusätzlich. Kein Release, Merge, Produktionsdeployment, persönlicher Speicherzugriff oder Änderung an vorhandenen Modulen.
 
 Grenzen: GENESIS X sucht nur nach beschränkten numerischen Programmen; `review_required` bedeutet **nicht**, dass eine Formel wahr oder die von Qwen ausgegebene Antwort bestätigt ist. Ein echter Safari-Test auf dem iPhone ist separat nötig.
+
+## Verifizierter Teststand vom 22. November 2026
+
+[GitHub Actions #45021290166](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45021290166) **4/4 Jobs erfolgreich**.
+- **648/648** Node-Tests bestanden, davon sechs neue Routing-Gruppentests.
+- Chromium: drei gültige Routingfälle, eine lokal abgewiesene Eingabe, fehlender Worker `blocked`, keine Browser-Datenspeicherung.
+- Linux WebKit: dieselben Prüfungen erfolgreich.
+- Protected-File-Gate: keine Änderungen an existierendem App-/Modell-/Forschungscode.
+
+**Getrenntes Vercel-Preview (READY, kein Produktionsziel)**: https://mein-lernbot-jp3kcuc4x-pierags.vercel.app/eval/neryx-genesis-x-routed-research.html
+- Deployment-ID: `dpl_3J48MqvkgERCgVupeGPU2ategnJx`
+- Getesteter Preview-Git-Commit: `f8cd4c46eb7139898c152846adae4a46933d29e3`
+- Vercel-Schutz kann einen Login verlangen.
+
+Die Dokumentationsaktualisierung erfolgt nach diesem verifizierten Preview-Commit und ändert keinerlei dort implementiertes Laufzeitverhalten. Safari auf echter iPhone-Hardware muss noch separat manuell geprüft werden.
