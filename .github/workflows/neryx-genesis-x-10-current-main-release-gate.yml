@@ -1,0 +1,96 @@
+name: NERYX GENESIS X current-main release-readiness audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-app-sw-overlay-audit]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  overlay-regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble disposable current-main with read-only research files
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git worktree add --detach "$RUNNER_TEMP/neryx-current-main" origin/main
+          cp modules/genesis-x*.js "$RUNNER_TEMP/neryx-current-main/modules/"
+          cp eval/tests/genesis-x*.test.mjs "$RUNNER_TEMP/neryx-current-main/eval/tests/"
+          cp eval/genesis-x-sw-overlay.mjs eval/genesis-x-real-sw-overlay-smoke.mjs "$RUNNER_TEMP/neryx-current-main/eval/"
+          echo "CURRENT_MAIN_SHA=$(git -C "$RUNNER_TEMP/neryx-current-main" rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "RESEARCH_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "TEST_BASE_CURRENT_MAIN=$(git -C "$RUNNER_TEMP/neryx-current-main" rev-parse HEAD)"
+      - name: Run actual current-main NERYX and GENESIS X test corpus
+        run: |
+          cd "$RUNNER_TEMP/neryx-current-main"
+          node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+      - name: Check current-main remained an untouched Git checkout
+        run: |
+          set -euo pipefail
+          test "$(git -C "$RUNNER_TEMP/neryx-current-main" rev-parse HEAD)" = "$CURRENT_MAIN_SHA"
+          test "$(git rev-parse HEAD)" = "$RESEARCH_SHA"
+          test -z "$(git status --porcelain)"
+  overlay-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble fresh current-main browser workspace
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git worktree add --detach "$RUNNER_TEMP/neryx-current-main" origin/main
+          cp modules/genesis-x*.js "$RUNNER_TEMP/neryx-current-main/modules/"
+          cp eval/tests/genesis-x*.test.mjs "$RUNNER_TEMP/neryx-current-main/eval/tests/"
+          cp eval/genesis-x-sw-overlay.mjs eval/genesis-x-real-sw-overlay-smoke.mjs "$RUNNER_TEMP/neryx-current-main/eval/"
+          echo "Browser test current main: $(git -C "$RUNNER_TEMP/neryx-current-main" rev-parse HEAD)"
+          echo "Research source: $(git rev-parse HEAD)"
+      - name: Install disposable Playwright browser runtime
+        working-directory: ${{ runner.temp }}/neryx-current-main
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Existing production NERYX offline smoke on actual current main
+        working-directory: ${{ runner.temp }}/neryx-current-main
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/browser-offline-smoke.mjs
+      - name: Current-main compatibility with experimental opt-in SW overlay
+        working-directory: ${{ runner.temp }}/neryx-current-main
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/genesis-x-real-sw-overlay-smoke.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Block direct edits of app, production SW and Frozen
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo "Protected production/Frozen file changed"; exit 1
+          fi
