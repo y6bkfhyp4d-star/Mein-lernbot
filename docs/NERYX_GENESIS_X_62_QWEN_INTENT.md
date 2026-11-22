@@ -15,3 +15,14 @@ Die automatischen Tests arbeiten mit **simulierten Qwen-Absichtswerten**, aber e
 Kein Cloud-API-Aufruf, kein kostenpflichtiger Anbieter, keine Veränderung an Lernspeichern, bestehendem WebLLM, `main`, PWA, Frozen-Siegel, Browser-Chats oder der normalen Modellsteuerung. **Keine automatisierte Zusammenführung und keine Produktion.**
 
 Der enge Qwen-Wortlaut kann bei einem echten kleineren Modell zu `model_rejected` führen, auch wenn die Anfrage verständlich ist. Das ist eine absichtliche konservative Sperre, kein Beweis für mangelnde Qwen-Fähigkeiten.
+
+## Testnachweis vom 22.11.2026
+
+- [GitHub Actions #45023530000](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45023530000): **4/4 Jobs erfolgreich**
+- **670/670** Node-Tests bestanden, davon 11 neu angelegte Qwen/GENESIS-Sicherheitsfälle
+- Chromium und Linux WebKit: beide Browser-Tests mit echtem GENESIS-Worker, simuliertem Qwen-Intent, kein Modellstart, kein Storage, gefälschte Modellbefehle abgewiesen
+- Protected-Dateien unverändert (einschließlich Produktion, WebLLM, `app.js`, GENESIS-Module)
+- Verifiziertes isoliertes **Vercel Preview READY**, target null: https://mein-lernbot-dyvv9xw5e-pierags.vercel.app/eval/neryx-genesis-x-62-qwen.html
+- Deployment-ID `dpl_585kwmK8UvoVvDhsXSN99nUHq84r`, getesteter Git SHA `3dfbd6768a158c1e3090f7fb9d1bf11c1b4991e0`
+
+Der reale Qwen-Modellstart auf iPhone-Safari wurde hier **noch nicht** durchgeführt. Die nachträgliche Dokumentation ändert keine Datei des geprüften Previews.
