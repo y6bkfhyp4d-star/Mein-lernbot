@@ -27,3 +27,15 @@ No independent sealed accuracy benchmark has been performed. Successful syntheti
 ## Decision gate
 
 **Accept as research-ready** only if the four GitHub Actions jobs complete green with fresh current-main SHA in the logs. Regardless of CI result, **do not** merge the stacked research branches into `main`, deploy them to a production domain, enable auto-loading, or change user data. Additional test results may be appended below after the workflow actually runs.
+
+## Actual run — 2026-11-22
+
+[GitHub Actions #45012535839](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45012535839) completed **success** with four green jobs. Detached current-main worktree SHA was **`8f9726ddfd0e913fd0a428f47b89671c834c8ef6`**. All **595/595** combined Node tests passed; production/Frozen protected-file check passed.
+
+**Chromium and Linux WebKit independently passed all three real-browser scenarios on current main:**
+
+1. Standard NERYX app (unchanged service worker): **42 cached assets**, offline reload retained chat/send controls.
+2. Optional 13-file GENESIS X overlay: **55 cached assets**, offline reload retained the app and a fresh Worker returned `review_required`, `publishable:false`.
+3. Intentionally missing GENESIS X module: **42 cached app assets**, **0** experimental assets; offline reload of the regular NERYX chat still succeeded.
+
+This is strong **integration compatibility evidence**, but not a Git merge, real-device iPhone Safari certification, independent capability audit, or permission for production.
