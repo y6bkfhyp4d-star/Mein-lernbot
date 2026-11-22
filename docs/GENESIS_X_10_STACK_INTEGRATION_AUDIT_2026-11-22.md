@@ -23,6 +23,8 @@ CI `.github/workflows/neryx-genesis-x-10-stack-integration-audit.yml` contains t
 1. **Research full suite:** `node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs` on the full research branch.
 2. **Disposable main overlay:** create a detached worktree at **current** `origin/main`, copy *only* `modules/genesis-x*.js` and `eval/tests/genesis-x*.test.mjs` from the research branch over matching paths, then run the same full test corpus. This is a temporary working tree inside GitHub Actions, **not** a GitHub merge, PR rebase, file upload to main, or production deployment.
 
+**Observed CI results:** [GitHub Actions run #45008664121](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45008664121) completed successfully. The research-suite job passed **587/587 tests** (0 failed), and the disposable current-main overlay passed **587/587 tests** (0 failed). Both jobs completed successfully.
+
 The overlay tests source-level coexistence and non-browser Node regression behavior. It does not exercise a true Git merge conflict resolution, production wiring, web service workers, iOS compatibility, or sealed independent benchmarking. A separate real browser CI on an eventual controlled merge candidate is still required.
 
 ## Threat-model caveats
