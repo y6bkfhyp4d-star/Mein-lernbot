@@ -1,50 +1,36 @@
-
-name: LernBot 7.0 - Qualitaetspruefung 7.9
-
+name: LernBot 7.0 – Qualitaetspruefung 7.9 (Review-Branch)
 on:
   workflow_dispatch: {}
   schedule:
     - cron: "11 3,9,15,21 * * *"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/lernbot-phase79.yml"
-
 permissions:
   contents: write
-
 concurrency:
   group: lernbot-phase79
   cancel-in-progress: false
-
 jobs:
   extract:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      REPORT_BRANCH: neryx/research-phase79
+      REPORT_FILES: evolution/phase79/research79.json
     steps:
-      - uses: actions/checkout@v4
+      - name: Geprueften Code aus main laden
+        uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
-
-      - uses: actions/setup-python@v5
+          fetch-depth: 0
+      - name: Python einrichten
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-
-      - name: Neue Faktenkandidaten aus passenden Recherchetreffern extrahieren
+          python-version: "3.12"
+      - name: Nur zugelassene JSON-Daten aus Review-Branch einlesen
+        run: bash .github/scripts/research-review-branch.sh prepare
+      - name: Faktenkandidaten extrahieren
         run: python3 evolution/phase79/research79.py
-
       - name: Tests
         run: python3 -m unittest discover -s evolution/phase79 -p 'test_research79.py'
-
-      - name: Extraktionsbericht speichern
-        run: |
-          if ! git diff --quiet -- evolution/phase79/research79.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add evolution/phase79/research79.json
-            git commit -m "LernBot 7.9: Extraktionsbericht aktualisieren"
-            git pull --rebase
-            git push
-          else
-            echo "Keine Änderungen am Extraktionsbericht."
-          fi
+      - name: Nur erlaubte JSON-Berichte auf Review-Branch schreiben
+        run: bash .github/scripts/research-review-branch.sh publish
