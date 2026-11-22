@@ -1,11 +1,5 @@
 {
   "discovered_queue": [
-    "Airbus",
-    "Akkumulator (Begriffsklärung)",
-    "Abstandsgesetz",
-    "Adiabatische Zustandsänderung",
-    "11. Jahrhundert",
-    "Ablaut",
     "Albert Einstein",
     "Allgemeine Relativitätstheorie",
     "(9936) Al-Biruni",
@@ -89,7 +83,13 @@
     "1. April",
     "11. Oktober",
     "(139) Juewa",
-    "12. Oktober"
+    "12. Oktober",
+    "A318",
+    "ASML",
+    "Abstandsquadratgesetz",
+    "Antennendiagramm",
+    "Absolute Temperatur",
+    "Adiabatenexponent"
   ],
   "entries": [
     {
@@ -921,13 +921,44 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "10. Oktober"
+    },
+    {
+      "collected_at": "2026-11-22T15:02:09+00:00",
+      "excerpt": "Die Airbus SE (von 2000 bis 2013 EADS für European Aeronautic Defence and Space) ist Europas größter Luft- und Raumfahrt- sowie (nach BAE Systems) zweitgrößter Rüstungskonzern. Mit einem Umsatz von rund 52 Milliarden Euro war Airbus im Jahr 2021 das drittgrößte Luft- und Raumfahrtunternehmen der Welt. Zum Jahreswechsel 2013/14 übernahm der Konzern den Namen seiner Tochtergesellschaft Airbus S.A.S., die als Flugzeughersteller im Bereich Verkehrsflugzeuge tätig ist. Das Unternehmen beschäftigt an mehr als 70 Entwicklungs- und Produktionsstandorten in Europa sowie in 35 Außenbüros weltweit rund 157.000 Mitarbeiter (Stand 2024). Seit der Gründung im Jahr 2000 werden die Aktien des Konzerns an den Börsen Paris und Frankfurt gehandelt und in den französischen Leitindex CAC 40 sowie seit dem 20. September 2021 in den DAX einbezogen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Airbus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Airbus"
+    },
+    {
+      "collected_at": "2026-11-22T15:02:09+00:00",
+      "excerpt": "Das Abstandsgesetz oder Entfernungsgesetz beschreibt die Abnahme einer physikalischen Größe mit wachsender Entfernung zur Quelle oder zum Sender. Voraussetzungen sind eine punktförmige Quelle (näherungsweise: kleine Ausdehnung der Quelle im Vergleich zur Entfernung), die isotrop – also nicht gerichtet – emittiert, und ein freies Feld ohne reflektierende Berandung. Somit ist das Abstandsgesetz für praktische Anwendungen nur annäherungsweise nutzbar. Im Falle von z. B. Lasern oder Parabolantennen sind weitere Einflüsse zu berücksichtigen wie der Divergenzwinkel oder das Antennendiagramm.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abstandsgesetz",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abstandsgesetz"
+    },
+    {
+      "collected_at": "2026-11-22T15:02:09+00:00",
+      "excerpt": "Eine adiabatische oder adiabate Zustandsänderung (griechisch α a, deutsch ‚nicht‘ und διαβαίνειν diabaínein ‚hindurchgehen‘) ist ein thermodynamischer Vorgang, bei dem ein System von einem Zustand in einen anderen überführt wird, ohne Wärme mit seiner Umgebung auszutauschen. In diesem Sinne werden adiabat und „wärmedicht“ synonym verwendet. Die Eigenschaft eines solchen Systems, keine Wärme mit der Umgebung auszutauschen, wird Adiabasie genannt. Im Gegensatz dazu wird bei diabatischen und diathermen Prozessen Wärme mit der Umgebung ausgetauscht (siehe etwa: Isotherme Zustandsänderung). Adiabatische Zustandsänderungen, bei welchen vom Anfang bis zum Ende der Änderung zu jedem Zeitpunkt das System nahezu im thermodynamischen Gleichgewicht ist, werden quasistatisch genannt, ihr Verlauf lässt sich durch eine Kurve im Zustandsraum darstellen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adiabatische_Zustands%C3%A4nderung",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adiabatische Zustandsänderung"
     }
   ],
   "failed_titles": [
     "Neurales Netz",
     "Adalbert W. A. Pauldrach",
     "1,3-Dipole",
-    "(145453) 2005 RR43"
+    "(145453) 2005 RR43",
+    "Akkumulator (Begriffsklärung)"
   ],
   "runs": [
     {
@@ -1236,6 +1267,20 @@
         "10. Oktober"
       ],
       "time": "2026-11-22T09:03:22+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [
+        "Akkumulator (Begriffsklärung): kein geeigneter Artikel"
+      ],
+      "errors": 1,
+      "new_titles": [
+        "Airbus",
+        "Abstandsgesetz",
+        "Adiabatische Zustandsänderung"
+      ],
+      "time": "2026-11-22T15:02:09+00:00"
     }
   ],
   "schema": 1
