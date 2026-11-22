@@ -79,7 +79,11 @@ export function analyzeAST(file,source){
     if(node.type==='CallExpression'){
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
-      if(identifier(node.callee,'eval'))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
+      const indirectEval=node.callee?.type==='SequenceExpression'&&
+        identifier(node.callee.expressions.at(-1),'eval');
+      if(identifier(node.callee,'eval')||indirectEval)
+        report('AST001','high',node,indirectEval?'Indirekter eval()-Aufruf':'Direkter eval()-Aufruf',
+          'Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
       if(member(node.callee,'localStorage','clear'))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
       if(member(node.callee,'document','write'))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
