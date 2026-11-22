@@ -1,0 +1,59 @@
+name: GENESIS X ambiguity worker real NERYX offline overlay audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-ambiguity-worker-gate]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  current-sw-overlay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install disposable Playwright browser
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Test cold-offline app and ambiguity worker with actual SW overlay
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/genesis-x-ambiguity-real-sw-offline-smoke.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Complete NERYX and GENESIS X node regressions
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify no edits to active app, SW, research code or Frozen
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json|modules/)' /tmp/changed.txt; then
+            echo 'Protected production or research module changed'; exit 1
+          fi
