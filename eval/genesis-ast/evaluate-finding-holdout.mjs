@@ -13,6 +13,19 @@ const RULE=/^(?:AST|SEC)[0-9]{3}$/;
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 const object=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const fraction=(a,b)=>b?Number((a/b).toFixed(6)):null;
+// Fingerprint the exact analyzer components used by this local evaluation.
+// This proves byte identity of local code, not which Git commit they came from.
+function evaluatorFingerprint(){
+  const filenames=['analyzer.mjs','finding-report.mjs',
+    'evaluate-finding-holdout.mjs','package.json'];
+  const components=Object.fromEntries(filenames.map(file=>[
+    file,createHash('sha256').update(readFileSync(new URL('./'+file,import.meta.url))).digest('hex')
+  ]));
+  const pinnedAcorn=JSON.parse(readFileSync(new URL('./package.json',import.meta.url),'utf8'))
+    .dependencies?.acorn??null;
+  return {nodeVersion:process.version,pinnedAcornVersion:pinnedAcorn,
+    componentSha256:components};
+}
 export function validateFindingHoldout(input){
   if(!object(input)||input.schema!==1||input.purpose!=='AST-rule-detection'||
      !Array.isArray(input.cases)||input.cases.length<2||input.cases.length>500)
@@ -70,6 +83,7 @@ export function evaluateFindingHoldout(input,{
     recall>=minRecall&&fpr<=maxFalsePositiveRate;
   return {
     schema:1,purpose:'AST-rule-detection',corpusSha256:actualSha256,
+    evaluator:evaluatorFingerprint(),
     submitted:input.cases.length,evaluated:validPositives+validNegatives,
     excluded:errors.length,complete,positive,negative,
     counts,recall,falsePositiveRate:fpr,
