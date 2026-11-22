@@ -1,0 +1,28 @@
+name: NERYX GENESIS X integration preview boundary
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-browser-offline-audit]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Full GENESIS X and existing NERYX test corpus
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+      - name: No changes to the production app or Frozen seal
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo 'Protected file changed'; exit 1
+          fi
