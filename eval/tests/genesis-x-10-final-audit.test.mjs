@@ -116,5 +116,5 @@ test('AUDIT: no user-data or self-deployment interface exposed',()=>{
 });
 test('AUDIT FINDING: null research request currently throws (not yet fixed)',()=>{
  const w=lab();
- assert.throws(()=>w.NERYXGenesisXResearch.run(null),TypeError);
+ assert.throws(()=>w.NERYXGenesisXResearch.run(null),/Cannot destructure/);
 });
