@@ -40,6 +40,7 @@ async function inspect(input,{useQwen=false,directConsent=false}={}){
  const gate=window.NERYXGenesisXDecisionGate;
  if(gate?.version!=='0.1-research'||typeof gate.decide!=='function')
   return fixed('unavailable','none');
+ let disagreement=false;
  if(useQwen!==true){
   if(directConsent!==true&&!/^GENESIS prüfen\s*:/i.test(input.trim()))return fixed('opt_in_required','none');
  }else{
@@ -62,8 +63,15 @@ async function inspect(input,{useQwen=false,directConsent=false}={}){
   let vote;
   try{vote=await model.askRaw(prompt)}
   catch{return fixed('model_error')}
-  if(vote==='NICHT_PRUEFEN')return fixed('declined');
-  if(vote!=='PRUEFEN')return fixed('model_rejected');
+  if(vote==='NICHT_PRUEFEN'){
+   // Qwen 0.5B has twice misclassified the *exact* preset on real iPhone.
+   // Respect the user-click plus exact clear request, not the unreliable vote.
+   // No fallback for a vague, negated or extended message.
+   if(!clearResearchRequest.test(input.trim())||
+      input.trim().replace(clearResearchRequest,'').trim()!==canonical.slice('GENESIS prüfen: '.length))
+    return fixed('declined');
+   disagreement=true;
+  }else if(vote!=='PRUEFEN')return fixed('model_rejected');
  }
  try{
   const r=await gate.decide(canonical);
@@ -71,7 +79,7 @@ async function inspect(input,{useQwen=false,directConsent=false}={}){
   if(!r||r.publishable!==false||r.reviewOnly!==true||
    r.route!=='genesis'||!allowed.includes(r.status)||
    Object.keys(r).length!==4)return fixed('blocked','genesis');
-  return fixed(r.status,'genesis');
+  return disagreement?Object.freeze({...fixed(r.status,'genesis'),modelDisagreed:true}):fixed(r.status,'genesis');
  }catch{return fixed('blocked','genesis');}
 }
 window.NERYXGenesisXQwenIntent=Object.freeze({version:'0.1-research',inspect});
