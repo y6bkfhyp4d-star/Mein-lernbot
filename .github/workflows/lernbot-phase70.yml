@@ -1,11 +1,13 @@
-name: LernBot 7.0 – automatisches Wissen
-
+name: LernBot 7.0 – automatisches Wissen (Review-Branch)
 
 on:
   workflow_dispatch: {}
   schedule:
     - cron: "17 2,8,14,20 * * *"
 
+# Writes exclusively to a dedicated review branch, NEVER to main.
+# GITHUB_TOKEN-created pushes don't automatically trigger other GitHub Actions workflows.
+# A human must open a PR manually before changes can be reviewed and merged.
 permissions:
   contents: write
 
@@ -15,27 +17,52 @@ concurrency:
 
 jobs:
   research:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      REPORT_BRANCH: neryx/research-phase70
     steps:
-      - uses: actions/checkout@v4
+      - name: Aus main laden (ohne persistente Tokens in erzeugten Dateien)
+        uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - uses: actions/setup-python@v5
+          fetch-depth: 0
+      - name: Python einrichten
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Abgetrennten Review-Branch bereitstellen
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$REPORT_BRANCH" != main
+          git config user.name "LernBot Research Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags origin main
+          if git ls-remote --exit-code --heads origin "refs/heads/$REPORT_BRANCH" >/dev/null; then
+            git fetch --no-tags origin "refs/heads/$REPORT_BRANCH"
+            git switch -C "$REPORT_BRANCH" FETCH_HEAD
+            # Integrate current main without discarding existing unpublished research.
+            # On conflicts the job stops; it NEVER force-pushes.
+            git merge --no-edit origin/main
+          else
+            git switch -c "$REPORT_BRANCH" origin/main
+          fi
       - name: Tests
         run: python -m unittest discover -s evolution/phase70 -p 'test_*.py' -v
       - name: Neue Quellen einsammeln
         run: python evolution/phase70/engine.py
-      - name: Wissensstand sichern
+      - name: Ausschliesslich Forschungsbericht committen und Review-Branch aktualisieren
+        shell: bash
         run: |
-          git config user.name "LernBot Research Bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add evolution/phase70/knowledge.json
+          set -euo pipefail
+          test "$(git branch --show-current)" = "$REPORT_BRANCH"
+          git add -- evolution/phase70/knowledge.json
           if ! git diff --cached --quiet; then
-            git commit -m "LernBot: automatischer Wissenslauf"
-            git push
+            git commit -m "LernBot: automatischer Wissenslauf (nur Review-Branch)"
           else
-            echo "Keine Änderungen"
+            echo "Keine neue Wissensaenderung"
           fi
+          # Rejected on divergence; no force, no writes to main, no deploy.
+          git push origin "HEAD:refs/heads/$REPORT_BRANCH"
+          echo "Review unter https://github.com/${GITHUB_REPOSITORY}/compare/main...$REPORT_BRANCH"
