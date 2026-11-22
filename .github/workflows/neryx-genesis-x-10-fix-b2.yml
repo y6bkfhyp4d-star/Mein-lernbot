@@ -1,0 +1,30 @@
+name: NERYX GENESIS X 1.0 B2 dependency verification
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-fix-provenance-h]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: All prior GENESIS X 0.1–1.0 regression tests and B2 tests
+        run: node --test eval/tests/genesis-x-core.test.mjs eval/tests/genesis-x-tools.test.mjs eval/tests/genesis-x-tools-adversarial.test.mjs eval/tests/genesis-x-tools-property.test.mjs eval/tests/genesis-x-logic.test.mjs eval/tests/genesis-x-router.test.mjs eval/tests/genesis-x-chain.test.mjs eval/tests/genesis-x-verifier.test.mjs eval/tests/genesis-x-verified-chain.test.mjs eval/tests/genesis-x-diagnostics.test.mjs eval/tests/genesis-x-research.test.mjs eval/tests/genesis-x-research-lab.test.mjs eval/tests/genesis-x-10-dependency-versions.test.mjs
+      - name: Previously fixed A/B/H and original-engine characterization
+        run: node --test --test-name-pattern='^(control:|A / RED:|B / RED:|B2 / RED:|E / characterization:|F / characterization:|G / characterization:|H / FIXED:)' eval/tests/genesis-x-10-reproduction.test.mjs
+      - name: Protect app and Frozen
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo "Protected file was changed"; exit 1
+          fi
