@@ -31,3 +31,26 @@
 
 ## Abnahmekriterium
 Sechs CI-Jobs erfolgreich und Messwerte im Log plausibel. Bei vielen nicht parsebaren Dateien oder `manual-review-required`-Ergebnissen wird **zuerst die Genauigkeit verbessert**, nicht autonomes Editieren eingeschaltet. Dieser PR bleibt bis zur Prüfung getrennt von `main`.
+
+## Erste reale Messung (GitHub Actions, 22.11.2026)
+
+Der neue `genesis-ast`-Test war erfolgreich; die **fachliche Abdeckung** ist allerdings noch unzureichend:
+
+| Kennzahl | Ergebnis |
+|---|---:|
+| Exakt untersuchte Projektdateien | 5 |
+| Vom AST-Parser lesbare Dateien | 5 |
+| AST-erkannte Funktionsdeklarationen | 123 |
+| AST-Hinweise (keine bestätigten Fehler) | 3 |
+| Scope-Bindings | 947 |
+| Vom separaten Kontrollfluss-Analyzer erfasste Funktionen | **0** |
+| Vom separaten Datenfluss-Analyzer erfasste Funktionen | **0** |
+| Korrelationen | **0** |
+| Gefundene Importkanten | 1 |
+| Innerhalb der fünf Dateien aufgelöste Importkanten | 0 |
+
+**Wichtige Ursache:** `app.js` und `modules/code-diagnose.js` sind in eine sofort aufgerufene Funktion (`(() => { ... })();`, IIFE) eingeschlossen. Die Analyzer 2.4/2.5/2.6 betrachten bislang nur benannte Funktionen direkt auf Programmebene. Sie überspringen daher die eigentlichen LernBot-Funktionen. Die Dateien sind parsbar, aber die relevante Kontroll-/Datenflussabdeckung ist in dieser Auswahl **null**. Der Importgraph ist für die hauptsächlich über klassische Skripte eingebundene App außerdem nur begrenzt aussagekräftig.
+
+**Konsequenz:** Kein Grund, autonomes Code-Editieren zu aktivieren. Bevor wir von echter Qualität sprechen, müssen wir eine sichere Erfassung von Funktionen innerhalb von IIFEs und anderen realen Projektstrukturen ergänzen und dann dieselben Metriken erneut messen.
+
+Diese Angaben stammen aus dem AST-Job von PR #87; die fünf Quelldateien wurden laut Hash-Vergleich nicht verändert.
