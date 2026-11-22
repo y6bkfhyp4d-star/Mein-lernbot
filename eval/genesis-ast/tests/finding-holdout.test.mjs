@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -87,4 +87,16 @@ test('external finding holdout: never executes the supplied code',()=>{
   evaluate(input);
   assert.equal(globalThis.__holdoutProbe,0);
   delete globalThis.__holdoutProbe;
+});
+
+test('external holdout: records exact local analyzer fingerprints and pinned runtime versions',()=>{
+  const a=evaluate(),b=evaluate();
+  assert.deepEqual(a.evaluator,b.evaluator);
+  assert.equal(a.evaluator.nodeVersion,process.version);
+  assert.equal(a.evaluator.pinnedAcornVersion,'8.15.0');
+  for(const file of ['analyzer.mjs','finding-report.mjs',
+    'evaluate-finding-holdout.mjs','package.json']){
+    const bytes=readFileSync(new URL('../'+file,import.meta.url));
+    assert.equal(a.evaluator.componentSha256[file],sha(bytes));
+  }
 });
