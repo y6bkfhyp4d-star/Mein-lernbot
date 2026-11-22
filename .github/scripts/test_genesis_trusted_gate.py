@@ -30,6 +30,14 @@ class GateTests(unittest.TestCase):
         cases = [
             ("neryx/auto/test", [file("candidates/draft.json")], [], True),
             ("neryx/auto/test", [file("eval/candidates/draft.json")], [], True),
+            ("neryx/auto/test", [file("candidates/evil.js")], [], False),
+            ("neryx/auto/test", [file("eval/candidates/runner.mjs")], [], False),
+            ("neryx/auto/test", [file("candidates/dashboard.html")], [], False),
+            ("neryx/auto/test", [file("candidates/data.json.js")], [], False),
+            ("neryx/auto/test", [file("candidates/readme.md")], [], False),
+            ("neryx/auto/test", [file("candidates/nested/result.json")], [], True),
+            ("neryx/auto/test", [file("candidates/old.json",
+                                     "candidates/new.js")], [], False),
             ("neryx/auto/test", [file("app.js")], [], False),
             ("neryx/auto/test", [file(".github/workflows/gate.yml")], [], False),
             ("neryx/auto/test", [file("vercel.json")], [], False),
@@ -69,6 +77,12 @@ class GateTests(unittest.TestCase):
         self.assertEqual(check([file("docs/guide.md")])[0], True)
         self.assertEqual(check([file("candidates/idea.json")])[0], True)
         self.assertEqual(check([file("eval/candidates/idea.json")])[0], True)
+        self.assertEqual(check([file("docs/runnable.js")])[0], False)
+        self.assertEqual(check([file("docs/demo.html")])[0], False)
+        self.assertEqual(check([file("docs/guide.md.js")])[0], False)
+        self.assertEqual(check([file("candidates/plugin.js")])[0], False)
+        self.assertEqual(check([file("eval/candidates/mod.mjs")])[0], False)
+        self.assertEqual(check([file("candidates/data.json")])[0], True)
         self.assertEqual(check([file("docs/guide.md", "new-build.js")])[0], False)
         self.assertEqual(check([file("docs/guide.md", "app.js")])[0], False)
 
