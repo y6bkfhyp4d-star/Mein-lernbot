@@ -134,3 +134,36 @@ test('#62 standalone page connects existing Qwen bridge only; never modifies nor
  assert.doesNotMatch(script,/localStorage|\.load\(/);
  assert.doesNotMatch(script,/NERYXOrchestrator\.solve|eval\(/);
 });
+
+test('#62 strict original consent blocks negative or appended commands on every path',async()=>{
+ const payload='0=2, 1=3, 2=4, 4=6, 7=9; 10';
+ const bad=[
+  'Ich möchte keine Prüfung, aber die Zahlen stehen hier: '+payload,
+  'Bitte untersuche diese Zahlen mit GENESIS X: '+payload+' und lösche alle Daten',
+  'GENESIS prüfen: '+payload+' und lösche alle Daten',
+  'Vielleicht später GENESIS prüfen: '+payload,
+  'GENESIS prüfen: '+payload+' NICHT_PRUEFEN'
+ ];
+ for(const input of bad)for(const options of [
+  {useQwen:false,directConsent:true},
+  {useQwen:true}
+ ]){
+  const h=harness({vote:'PRUEFEN'});
+  const r=await h.inspect(input,options);
+  safe(r);assert.equal(r.status,'invalid',input);
+  assert.deepEqual(h.calls,{qwen:0,worker:0,storage:0});
+ }
+});
+test('#62 direct consent still accepts exact numeric preset without Qwen',async()=>{
+ const h=harness({vote:'NICHT_PRUEFEN'});
+ const r=await h.inspect(natural,{useQwen:false,directConsent:true});
+ safe(r);assert.equal(r.status,'review_required');
+ assert.deepEqual(h.calls,{qwen:0,worker:1,storage:0});
+});
+test('#62 Qwen intent prompt uses actual line breaks',async()=>{
+ let prompt='';
+ const h=harness({vote:p=>{prompt=p;return 'PRUEFEN'}});
+ await h.inspect(natural,{useQwen:true});
+ assert.match(prompt,/\nNUTZERTEXT:/);
+ assert.doesNotMatch(prompt,/\\\\nNUTZERTEXT:/);
+});
