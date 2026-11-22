@@ -57,7 +57,7 @@ function solve(task){
     task.cases.some(c=>!record(c)||!finite(c.x)||!finite(c.b)))
   return {status:'invalid',reason:'Chain requires numeric, logic and up to 20 bounded cases.'};
  const router=window.NERYXGenesisXRouter;
- if(!router||typeof router.solve!=='function')
+ if(!router||router.version!=='0.4'||typeof router.solve!=='function')
   return {status:'unavailable',reason:'Typed router missing.'};
  let first,second;
  try{
