@@ -72,7 +72,16 @@ try{
  assert.equal(await page.evaluate(()=>window.__qwenVotes.length),1);
  const first=await page.locator('#qwen-result').textContent();
  assert.match(first,/Keine Antwort freigegeben/);
+ // Real iPhone reported Qwen's false-negative NICHT_PRUEFEN for the exact preset.
+ await page.evaluate(()=>{window.NERYXLocalModel=Object.freeze({version:'1.2',
+  info:()=>({loaded:true}),askRaw:async()=> 'NICHT_PRUEFEN'})});
+ await page.locator('#qwen-run').click();
+ await page.waitForFunction(()=>document.querySelector('#qwen-result')?.textContent.includes('Qwen hat die Absicht falsch eingestuft'),
+  null,{timeout:14000});
+ assert.match(await page.locator('#qwen-result').textContent(),/Interne Regelprüfung abgeschlossen/);
  await page.locator('#qwen-question').fill('Bitte untersuche diese Zahlen mit GENESIS X: 0=2, 0.0000000001=2.0000000001, 0.0000000002=2.0000000002, 0.0000000003=2.0000000003, 0.0000000004=2.0000000004; 10');
+ await page.evaluate(()=>{window.NERYXLocalModel=Object.freeze({version:'1.2',
+  info:()=>({loaded:true}),askRaw:async()=> 'PRUEFEN'})});
  await page.locator('#qwen-run').click();
  await page.waitForFunction(()=>document.querySelector('#qwen-result')?.textContent.includes('Mehrdeutigkeit erkannt'));
  await page.evaluate(()=>{window.NERYXLocalModel=Object.freeze({version:'1.2',
