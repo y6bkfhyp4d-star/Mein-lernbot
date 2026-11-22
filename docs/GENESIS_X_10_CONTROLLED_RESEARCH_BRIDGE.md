@@ -1,0 +1,28 @@
+# GENESIS X – kontrollierte Forschungsbrücke #56
+
+**Stand: 22.11.2026.** Stacked Draft auf #55. **Nicht in main und nicht produktiv.**
+
+## Architektur
+
+Das experimentelle Modul `modules/neryx-genesis-x-research-bridge.js` stellt eine **nur auf ausdrücklichen Aufruf reagierende** API `window.NERYXGenesisXResearchBridge.review(request)` bereit.
+
+Anfragen müssen genau dem strukturierten Schema entsprechen: `{version:1,kind:'research_check',task:{training:[{x,y}],validation:[{x,y}],probes:[x]}}`. Es gibt strikte Grenzen für Anzahl, Zahlenbereich, eindeutige x-Werte, ungefragte Felder und doppelte Proben. Die Eingaben werden als neue, validierte Records erstellt, bevor der separate Ambiguity-Worker-Client aufgerufen wird.
+
+Ergebnis:
+- `ambiguous`: mehrere kompatible Rechenwege führen auf Probe-Eingaben zu verschiedenen Ergebnissen.
+- `review_required`: keine divergierenden Verhaltensweisen innerhalb des begrenzt geprüften Programmpools gefunden; **keine externe Richtigkeitsbestätigung**.
+- `unconfirmed`, `invalid`, `unavailable` und `blocked`: blockiert bzw. nicht bestätigt.
+
+Alle Rückgaben sind **`publishable:false` und `reviewOnly:true`**. Die Brücke gibt weder Rohprogramme, Einzelvorhersagen, Trainingsdaten noch ein als gültig erklärtes Chatresultat heraus. Fehlerhafte, manipulierte oder überraschende Worker-Ausgaben werden blockiert. Kein `eval`, keine API-Kosten, kein Lese-/Schreibzugriff auf `meinLernBot.v1`.
+
+Die Brücke enthält **keinen Anschluss an den produktiven NERYX-Chat**. Sie ist als explizit importierbare Integrationsschnittstelle für zukünftige Reviews gedacht. `eval/neryx-genesis-x-bridge-demo.html` zeigt auf dem iPhone drei begrenzte Beispiele mit explizitem Startknopf und Link zur Haupt-App. Diese Demonstration ist nicht der echte NERYX-Chat.
+
+## Qualitätssicherung
+
+- Node VM prüft Status- und Schemafilter, Nichtveröffentlichung, Ausfälle und dass die API weder Schreiben noch Publizieren unterstützt.
+- Browser-Smoke (Chromium und Linux WebKit mit mobilem Viewport) prüft drei reale Forschungsfälle, fehlenden Worker, keine Speicheränderungen, keine Chat-Ansicht und keine Forschungs-Engines im Fenster.
+- Gesamtregressionen und die Schutzprüfung für App, Worker-Protokoll, PWA, Frozen, Vercel-Konfiguration.
+
+## Releasegrenze
+
+Es wird **keine** bereits benutzte NERYX-Datei ersetzt. `main`, `index.html`, `app.js`, `sw.js`, `manifest.webmanifest`, bestehende Worker und `vercel.json` bleiben unverändert. Die Brücke ist nur ein getrenntes, experimentelles Anschlussmodul und noch keine automatische KI-Hilfe im Hauptchat. Reale Nutzeraufgaben, unabhängige Daten und Safari auf dem physischen iPhone bleiben weitere zu prüfende Faktoren. Nicht nach main mergen oder produktiv veröffentlichen ohne ausdrückliche Freigabe.
