@@ -22,3 +22,17 @@ Playwright WebKit on a Linux runner approximates some Safari engine behavior but
 The isolated offline check runs already loaded JavaScript after server shutdown; it is **not** a test of automatic offline caching or installing the GENESIS X modules through NERYX's service worker. The existing app smoke separately checks NERYX's own offline caching.
 
 No production activation or merge is authorized. Further gate: explicit integration design, actual synthetic merge CI, device checks and independently managed sealed benchmark.
+
+## Verified GitHub Actions result
+
+Run [#45008906048](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45008906048) completed with **success** for all five jobs:
+
+| Job | Result | Observed output |
+|---|---|---|
+| isolated-genesis-browser (chromium) | PASS | `GENESIS_X_ISOLATED_OFFLINE_BROWSER_OK`; 11 HTTP requests before shutdown, none afterwards; 9 research capabilities |
+| isolated-genesis-browser (webkit) | PASS | Same offline smoke result and audit-reuse protection |
+| existing-app-browser (chromium) | PASS | `REAL_BROWSER_OFFLINE_OK`; 42 cached assets, controlled app, chat/send present |
+| existing-app-browser (webkit) | PASS | Same app offline checks and 42 cached assets |
+| protect-production | PASS | No app.js, index.html, sw.js, or Frozen seal modification |
+
+The two browser jobs confirm **isolated research execution** and the two app jobs confirm **the existing app still works offline**. They do not demonstrate productive wiring or actual iOS Safari behavior.
