@@ -30,3 +30,17 @@ Das alte Trusted-Base-Gate für `main` prüft `neryx/auto/*`-PRs auf `candidates
 7. Die `pull_request_target`-Konfiguration darf niemals PR-Code oder PR-gesteuerte Befehle ausführen. API-Ausgaben sind reine Daten.
 
 **Entscheidung:** Nur als separater Draft-PR zur menschlichen Sicherheitsabnahme; weder `main` verändern noch automatische Freigabe / Merge / Produktion einschalten.
+
+## Security-Review-Nachtrag: unbekannte Pfade und Reviewer-Herkunft
+
+Die ursprüngliche Liste einzelner sensibler Pfade wäre für neu hinzukommende JS-/Build-/Test-Dateien lückenhaft. Der Entwurf wurde **vor Aktivierung** auf eine restriktive Ausnahme-Liste umgestellt: Nur `docs/`, `candidates/` und `eval/candidates/` gelten bei normalen PRs als review-frei; alle übrigen Pfade benötigen die unabhängige Review. Misch-PRs mit nur einer sensiblen Datei benötigen ebenfalls die Review. `neryx/auto/*` bleibt auch bei einer gültigen Review strikt auf die Kandidatendaten-Pfade beschränkt.
+
+Als zusätzliche vorläufige Identitätsprüfung wird nur eine `APPROVED`-Review eines anderen GitHub-`User` mit `author_association` in `OWNER`, `MEMBER`, `COLLABORATOR` akzeptiert, dessen Commit-ID dem aktuellen PR-Head entspricht. **Achtung:** `author_association` beweist keine aktuell gültige Schreibberechtigung und ist keine zweite unabhängige Identitätsprüfung. Diese Grenze ist vor Aktivierung zu bewerten; insbesondere können nicht ausreichend berechtigte Accounts oder Organisationszugehörigkeiten sonst eine Scheinsicherheit erzeugen. Freigabe nur nach Berechtigungsprüfung oder streng bestätigtem Reviewer-Verfahren.
+
+### Kritischer Trigger- und Lifecycle-Hinweis
+
+Der Trusted-Base-Workflow läuft derzeit über `pull_request_target` für `opened`, `synchronize`, `reopened` und `ready_for_review`. **Ein später eingereichter oder zurückgezogener PR-Review triggert diesen Workflow damit nicht automatisch.** Nach einer gültigen neuen Review muss der zuständige Mensch den ursprünglichen Trusted-Base-Check manuell erneut ausführen und anschließend überprüfen, dass der **aktuelle** Check mit **aktueller HEAD-SHA** an `main`-Ruleset gebunden ist. Auch Review-Widerrufe müssen zu einer aktualisierten Blockierung führen; andernfalls kann ein vormals grüner Check fortbestehen.
+
+Ein naiv hinzugefügter `pull_request_review`-Trigger wäre als Ersatz nicht automatisch vertrauenswürdig: GitHub weist auf unterschiedliche Ausführungskontexte für Review-Ereignisse hin; es wäre zunächst zu prüfen, dass Workflow-Code **nicht aus dem PR-Merge-Commit** ausgeführt wird. Das Aktivierungskriterium verlangt ein **automatisch oder verlässlich erneut ausgelöstes und nach Widerruf blockierendes** Check-Gate. Bis zum Nachweis ist der Lebenszyklus **nicht abgeschlossen**, auch wenn alle Offline-Policy-Tests bestehen.
+
+**Keine Aktivierung, kein Merge, keine Änderung an `main`.** Entwurf und Tests dienen ausschließlich der Sicherheitsvorbereitung.
