@@ -1,6 +1,10 @@
 """Offline candidate contract tests; raw bytes never execute."""
+import base64
+import io
 import json
 import unittest
+from unittest.mock import patch
+from genesis_trusted_gate import validate_candidate_files
 from genesis_candidate_schema import validate_candidate_bytes, MAX_BYTES
 
 SHA = "a" * 40
@@ -60,6 +64,48 @@ class CandidateContractTests(unittest.TestCase):
             with self.subTest(bad=bad[:10]):
                 with self.assertRaises(ValueError):
                     validate_candidate_bytes(bad)
+
+    def test_pinned_github_content_and_blob_mismatch(self):
+        from contextlib import contextmanager
+        candidate = pack(proposal())
+        blob = "c" * 40
+        payload = {"sha": blob, "encoding": "base64",
+                   "content": base64.b64encode(candidate).decode("ascii")}
+        head = "d" * 40
+        files = [{"filename": "candidates/idea.json", "status": "added",
+                  "sha": blob}]
+        @contextmanager
+        def fake_open(request, timeout=None):
+            self.assertIn("?ref=" + head, request.full_url)
+            yield io.BytesIO(json.dumps(payload).encode("utf-8"))
+        with patch("genesis_trusted_gate.urllib.request.urlopen", fake_open):
+            validate_candidate_files("https://api.github.com", "testtoken",
+                                     "owner/repo", head, SHA, files)
+            with self.assertRaises(ValueError):
+                validate_candidate_files("https://api.github.com", "testtoken",
+                                         "owner/repo", head, "e" * 40, files)
+            payload["sha"] = "f" * 40
+            with self.assertRaises(ValueError):
+                validate_candidate_files("https://api.github.com", "testtoken",
+                                         "owner/repo", head, SHA, files)
+
+    def test_deleted_renamed_or_unpinned_candidate_fails(self):
+        kwargs = ("https://api.github.com", "token", "owner/repo",
+                  "d" * 40, SHA)
+        for status in ("removed", "renamed", "unknown"):
+            with self.subTest(status=status):
+                with self.assertRaises(ValueError):
+                    validate_candidate_files(*kwargs, [{
+                        "filename": "candidates/a.json", "status": status,
+                        "sha": "f" * 40}])
+        with self.assertRaises(ValueError):
+            validate_candidate_files(*kwargs, [{
+                "filename": "candidates/a.json", "status": "added",
+                "sha": "bad"}])
+        with self.assertRaises(ValueError):
+            validate_candidate_files(*kwargs, [{
+                "filename": "candidates/a.json", "status": "added",
+                "sha": "f" * 40}] * 21)
 
     def test_source_is_inert_data_not_compiled(self):
         dangerous = "globalThis.__NEVER_EXECUTED__ = true; eval('1');"
