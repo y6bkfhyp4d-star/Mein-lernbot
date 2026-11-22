@@ -4,7 +4,7 @@
 import {analyzeControlFlow} from './control-flow.mjs';
 import {analyzeDataFlow} from './dataflow-analyzer.mjs';
 
-const ALLOWED_GRAPH_TYPES=new Set(['entry','exit','VariableDeclaration','ExpressionStatement','ReturnStatement','EmptyStatement']);
+const ALLOWED_GRAPH_TYPES=new Set(['entry','exit','VariableDeclaration','ExpressionStatement','return','EmptyStatement']);
 const UNKNOWN=s=>s.startsWith('unknown:');
 
 export function correlateFlows(file,source){
