@@ -6,7 +6,7 @@
 **Aktive Domain (nicht durch dieses Dokument veröffentlicht):** https://mein-lernbot.vercel.app  
 **WICHTIG:** Diese Datei dokumentiert Zustände und ist keine automatische Freigabe zum Mergen, Deployen oder zum Verändern von Nutzerdaten.
 
-## 1. Unveränderliche Projektregeln
+> **Historische Entwicklung vor GENESIS X:** Siehe [NERYX_CHRONIK.md](NERYX_CHRONIK.md) für die detaillierte Entwicklung von LernBot 3.1 und 6.0 über die Phasen 3/5/7, iPhone-WebLLM-Tests, die ersten NERYX-Integrationen bis zu GENESIS X. Die Chronik unterscheidet Wünsche, historische Implementierungen, aktive App-Funktionen und konkret geprüfte Ergebnisse.\n\n## 1. Unveränderliche Projektregeln
 
 - Die **aktive NERYX-App**, die **GENESIS-X-Forschung** und **separate Sprachmodell-Prototypen** nicht miteinander verwechseln.
 - Keine Experimentdateien heimlich in `index.html`, `app.js`, `sw.js` oder den aktiven Chat integrieren.
