@@ -25,4 +25,4 @@ jobs:
         run: npm test
       - name: AST smoke on existing source (no writeback)
         working-directory: eval/genesis-ast
-        run: node analyzer.mjs ../../modules/code-diagnose.js > /dev/null
+        run: node analyzer.mjs analyzer.mjs > /dev/null
