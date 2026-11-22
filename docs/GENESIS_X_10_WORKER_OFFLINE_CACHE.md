@@ -16,3 +16,14 @@ This proves offline startup **only for this test-only cache configuration** in P
 No production files, `main`, app storage or Frozen evaluation change. The isolated cache is in the disposable Playwright browser context. A browser Worker is same-origin code separation rather than a sandbox for hostile same-origin scripts.
 
 A successful offline cold worker restart is still **not a production integration approval**.
+
+## Executed CI evidence — 2026-11-22
+
+[GitHub Actions run #45009849779](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45009849779) completed **success**, with four successful jobs:
+
+- Chromium: `GENESIS_X_WORKER_COLD_OFFLINE_OK`, **14 cached assets**, new checked Worker response after offline reload, no main-thread research engine globals, zero localStorage writes.
+- WebKit: identical successful cold offline startup and same cache/metadata checks.
+- Existing Node regression suite: **595 passed, 0 failed**.
+- Protected files: pass; no changes to `app.js`, `index.html`, `sw.js` or `eval/frozen.seal.json`.
+
+Both browser jobs recorded **17 server requests before shutdown**, and the new Worker returned `review_required` after the origin stopped. This validates the **test fixture's precache**, not production NERYX's `sw.js` or real iPhone Safari.
