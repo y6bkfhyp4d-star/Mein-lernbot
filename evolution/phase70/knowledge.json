@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Abgas",
-    "Aerodynamischer Durchmesser",
-    "ATPasen",
-    "Adenosindiphosphat",
-    "Abiotische Erdölentstehung",
-    "Abiotische Umweltfaktoren",
-    "Abklinganlage",
-    "Abklingzeit",
     "Abwasser (Album)",
     "Abwasserabgabengesetz",
     "Adjektiv",
@@ -89,7 +81,15 @@
     "(1566) Icarus",
     "Abraham Pais",
     "(9935) 1986 CP1",
-    "(9937) Triceratops"
+    "(9937) Triceratops",
+    "Abgas (Band)",
+    "Abgaskessel",
+    "Alveolengängige Fraktion",
+    "Brown’sche Molekularbewegung",
+    "Adenosintriphosphat",
+    "Dynein",
+    "Adenosin",
+    "Adenosinmonophosphat"
   ],
   "entries": [
     {
@@ -981,6 +981,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "(9936) Al-Biruni"
+    },
+    {
+      "collected_at": "2026-11-22T20:59:18+00:00",
+      "excerpt": "Abgase sind die bei Stoffumwandlungsprozessen anfallende, gasförmigen Abfallprodukte. Im allgemeinen Sprachgebrauch werden sie als Verbrennungsabgase bezeichnet, also als Abgase, die bei einer Verbrennung entstehen. Die DIN EN 1443 definiert Abgase so, dass Abgase nur gasförmige Verbrennungsprodukte enthalten, ohne festen Ruß (korrekt genannt Glanzruß) und flüssiges Wasser. Dagegen enthalten Rauchgas und Rauch Ruß­beimengungen. Der alles umfassende Begriff wäre flüchtige Verbrennungsprodukte. Je nach dem textlichen Zusammenhang werden zudem die Bezeichnungen Brandgase oder selten Abluft verwendet. Chemisch betrachtet sind Abgase Aerosole, also Dispersionen (heterogene Gemische) aus festen oder flüssigen Schwebeteilchen in Gasen. Die meisten Abgase sind für Mensch und Umwelt schädlich und gefährden die Gesundheit. In Industriestaaten ist f",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abgas",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abgas"
+    },
+    {
+      "collected_at": "2026-11-22T20:59:18+00:00",
+      "excerpt": "Der aerodynamische Durchmesser ist eine abstrakte Hilfsgröße zur Beschreibung des Verhaltens eines gasgetragenen Partikels in der Partikelmesstechnik.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aerodynamischer_Durchmesser",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aerodynamischer Durchmesser"
+    },
+    {
+      "collected_at": "2026-11-22T20:59:18+00:00",
+      "excerpt": "ATPasen (Kurzform von Adenosintriphosphatasen) sind Enzyme, die ATP in ADP und Phosphat aufspalten können. Bei dieser Hydrolyse wird Energie frei, die vom Enzym genutzt werden kann, um eine andere Reaktion zu treiben. Verschiedene ATPasen fördern so den Transport von Ionen, Bewegung von Muskelfasern oder verschiedene Reaktionen des Energiestoffwechsels. ATPasen kommen in allen Lebewesen vor. Manche ATPasen sind Membranproteine. Diese membranständigen ATPasen sind in einem eigenen Artikel dargestellt. Weitere Beispiele für ATPasen sind: Natrium-Kalium-ATPase Dynein Myosin Phosphofructokinase",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/ATPasen",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "ATPasen"
+    },
+    {
+      "collected_at": "2026-11-22T20:59:18+00:00",
+      "excerpt": "Adenosindiphosphat (ADP) ist ein Nucleotid, bestehend aus dem Diphosphat des Nucleosids Adenosin. Es entsteht bei der Hydrolyse von Adenosintriphosphat (ATP). Adenosin mit einer einteiligen Phosphorkette heißt analog Adenosinmonophosphat (AMP); mit einer dreiteiligen Phosphorkette heißt es Adenosintriphosphat (ATP). ATP ist von diesen drei Molekülen das energiereichste Molekül – AMP das energieärmste. Die Bezeichnung energiereich bzw. energiearm ist eigentlich irreführend. Die Bindungen sind keineswegs stark, sondern eher labil. Da alle drei Phosphatgruppen in biologischen Systemen negativ geladen sind und dicht beieinander gedrängt liegen, stoßen sie sich ab; vergleichbar einer gespannten Feder. Das unter physiologischen Bedingungen koordinierte, zweiwertige Magnesiumion stabilisiert diese Spannung etwas. Bei der Phosphorylierung von Sub",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adenosindiphosphat",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adenosindiphosphat"
     }
   ],
   "failed_titles": [
@@ -1326,6 +1366,19 @@
         "(9936) Al-Biruni"
       ],
       "time": "2026-11-22T19:42:22+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Abgas",
+        "Aerodynamischer Durchmesser",
+        "ATPasen",
+        "Adenosindiphosphat"
+      ],
+      "time": "2026-11-22T20:59:18+00:00"
     }
   ],
   "schema": 1
