@@ -1,6 +1,7 @@
 """Offline candidate contract tests; raw bytes never execute."""
 import base64
 import io
+import hashlib
 import json
 import unittest
 from unittest.mock import patch
@@ -68,7 +69,8 @@ class CandidateContractTests(unittest.TestCase):
     def test_pinned_github_content_and_blob_mismatch(self):
         from contextlib import contextmanager
         candidate = pack(proposal())
-        blob = "c" * 40
+        blob = hashlib.sha1(b"blob " + str(len(candidate)).encode("ascii")
+                            + b"\\0" + candidate).hexdigest()
         payload = {"sha": blob, "encoding": "base64",
                    "content": base64.b64encode(candidate).decode("ascii")}
         head = "d" * 40
@@ -85,6 +87,15 @@ class CandidateContractTests(unittest.TestCase):
                 validate_candidate_files("https://api.github.com", "testtoken",
                                          "owner/repo", head, "e" * 40, files)
             payload["sha"] = "f" * 40
+            with self.assertRaises(ValueError):
+                validate_candidate_files("https://api.github.com", "testtoken",
+                                         "owner/repo", head, SHA, files)
+            payload["sha"] = blob
+            payload["content"] = base64.b64encode(b"{}").decode("ascii")
+            with self.assertRaises(ValueError):
+                validate_candidate_files("https://api.github.com", "testtoken",
+                                         "owner/repo", head, SHA, files)
+            payload["content"] = "not-valid-@base64"
             with self.assertRaises(ValueError):
                 validate_candidate_files("https://api.github.com", "testtoken",
                                          "owner/repo", head, SHA, files)
