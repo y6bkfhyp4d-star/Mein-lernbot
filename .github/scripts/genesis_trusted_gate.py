@@ -5,10 +5,10 @@ import os
 import sys
 import urllib.request
 
-ALLOWED = ("candidates/", "eval/candidates/")
-# Fail closed: only inert candidate data and ordinary docs have a review exemption.
-# Any other path, including future unknown files and build/test tooling, is sensitive.
-REVIEW_FREE = ("docs/", "candidates/", "eval/candidates/")
+CANDIDATE_DIRS = ("candidates/", "eval/candidates/")
+# Only JSON candidate data and Markdown docs get a review exemption.
+# A filename extension is not proof of harmless content; consumers must never execute it.
+DOCS_DIR = "docs/"
 
 
 def valid_path(path):
@@ -20,8 +20,20 @@ def valid_path(path):
     )
 
 
+def candidate_data(path):
+    return path.endswith(".json") and any(
+        path.startswith(prefix) for prefix in CANDIDATE_DIRS
+    )
+
+
+def review_exempt(path):
+    return candidate_data(path) or (
+        path.startswith(DOCS_DIR) and path.endswith(".md")
+    )
+
+
 def sensitive(path):
-    return not any(path.startswith(prefix) for prefix in REVIEW_FREE)
+    return not review_exempt(path)
 
 
 def native_review_enforced(ruleset, repository):
@@ -92,7 +104,7 @@ def decide(head_ref, files, reviews, author, head_sha,
             paths.append(previous)
     paths = sorted(set(paths))
     if head_ref.startswith("neryx/auto/"):
-        prohibited = [p for p in paths if not p.startswith(ALLOWED)]
+        prohibited = [p for p in paths if not candidate_data(p)]
         return (False, "auto-candidate-prohibited-path") if prohibited else (
             True, "candidate-data-only"
         )
