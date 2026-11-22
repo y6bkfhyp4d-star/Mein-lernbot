@@ -10,8 +10,8 @@ function solve(task){
   return {status:'invalid',stage:'input'};
  const chain=window.NERYXGenesisXChain;
  const verifier=window.NERYXGenesisXVerifier;
- if(!chain||typeof chain.solve!=='function'||
-    !verifier||typeof verifier.verify!=='function')
+ if(!chain||chain.version!=='0.5'||typeof chain.solve!=='function'||
+    !verifier||verifier.version!=='0.6'||typeof verifier.verify!=='function')
   return {status:'unavailable',stage:'dependencies'};
  try{
   // Verify the actual candidate artifacts captured by the chain, never re-select them.
