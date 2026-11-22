@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>NERYX – GENESIS X Forschungsbrücke</title>
+<style>
+:root{color-scheme:dark;background:#11111a;color:#f5f3ff;font:16px system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}body{margin:0;padding:max(20px,env(safe-area-inset-top)) 16px max(26px,env(safe-area-inset-bottom))}
+main{max-width:590px;margin:auto}header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:24px}a{color:#c4b5fd}
+article{background:#20202e;border:1px solid #4d426c;border-radius:18px;padding:20px}
+h1{font-size:1.6rem;line-height:1.2;margin:8px 0 14px}p{line-height:1.5}
+.notice{padding:12px;background:#2b2143;border-left:3px solid #a78bfa;border-radius:8px}
+label{display:block;margin:20px 0 8px;font-weight:650}
+select{display:block;width:100%;min-height:48px;padding:12px;border:1px solid #756291;border-radius:12px;font:inherit;background:#11111a;color:white}
+button{font:inherit;min-height:48px;padding:13px;width:100%;margin-top:18px;background:#8b5cf6;color:white;border:0;border-radius:12px;font-weight:700}
+button:disabled{opacity:.5}
+output{display:block;min-height:105px;margin:18px 0;padding:14px;border:1px solid #514365;border-radius:12px;background:#151321;line-height:1.5;white-space:pre-wrap}
+small{color:#b9b2ce;display:block;line-height:1.5}
+:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+<header><strong>NERYX <span style="color:#c4b5fd">/ GENESIS X</span></strong><a href="../index.html">Zur Haupt-App</a></header>
+<article>
+<h1>Kontrollierte Forschungsbrücke</h1>
+<p class="notice"><strong>Nur Testumgebung:</strong> Die Brücke nimmt strukturierte Forschungsaufgaben an und zeigt ausschließlich Prüfstati an. Sie ist nicht mit dem NERYX-Chat verbunden und speichert keine persönlichen Daten.</p>
+<form id="bridge-form">
+<label for="bridge-case">Forschungsauftrag auswählen</label>
+<select id="bridge-case">
+<option value="unique">Rechenregel mit zwei Schritten</option>
+<option value="ambiguous">Nicht eindeutig: mehrere Rechenwege</option>
+<option value="contradictory">Unvereinbare Beispieldaten</option>
+</select>
+<button id="bridge-run" type="submit">Nur Forschungsprüfung anfordern</button>
+</form>
+<output id="bridge-result" aria-live="polite" role="status">Kein Forschungsauftrag gestartet.</output>
+<small>Ergebnisse werden nicht als Chatantworten veröffentlicht, nicht zu Wissen erklärt und nicht in deine NERYX-Datenbank geschrieben. Ein erfolgreicher interner Check ist keine unabhängige Bestätigung.</small>
+</article>
+</main>
+<script src="../modules/genesis-x-ambiguity-client.js"></script>
+<script src="../modules/neryx-genesis-x-research-bridge.js"></script>
+<script src="neryx-genesis-x-bridge-demo.js"></script>
+</body>
+</html>
