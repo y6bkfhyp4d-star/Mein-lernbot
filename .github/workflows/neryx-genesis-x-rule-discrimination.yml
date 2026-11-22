@@ -1,0 +1,49 @@
+name: GENESIS X rule discrimination and safe abstention
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-adversarial-holdout]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rule-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify four rules and two safe abstentions
+        run: node eval/genesis-x-rule-discrimination.mjs
+      - name: Recheck preceding adversarial holdouts
+        run: node eval/genesis-x-adversarial-holdout.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: All existing and new tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Ensure no changes to app, engine, PWA or Frozen
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json|modules/)' /tmp/changed.txt; then
+            echo 'Protected file changed'; exit 1
+          fi
