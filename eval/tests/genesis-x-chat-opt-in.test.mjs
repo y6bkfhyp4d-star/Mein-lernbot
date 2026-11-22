@@ -64,8 +64,11 @@ test('plain messages bypass research and fallback is not a fabricated answer',as
 });
 test('real app chat entry intercepts before all other handlers; excludes GENESIS from persistence',()=>{
  const app=read('../../app.js'),html=read('../../index.html');
- assert.match(app,/if\(window\.NERYXGenesisXChat\?\.isRequest\(s\)\)return await window\.NERYXGenesisXChat\.reply\(s\)/);
- assert.match(app,/if\(!window\.NERYXGenesisXChat\?\.isRequest\(s\)\)\{const saved=transaction/);
- assert.ok(html.indexOf('eval/neryx-genesis-x-chat-bridge.js')>html.indexOf('modules/orchestrator.js'));
+ assert.match(app,/if\(isGenesisRequest\(s\)\)\{try\{await loadGenesisChat\(\)/);
+ assert.match(app,/if\(!isGenesisRequest\(s\)\)\{const saved=transaction/);
+ assert.match(app,/eval\/neryx-genesis-x-chat-bridge\.js/);
+ assert.match(app,/script\.src=src;script\.onload=resolve/);
+ assert.equal((html.match(/<script\\b[^>]*\\bsrc=/g)||[]).length,39);
+ assert.doesNotMatch(html,/src="eval\/neryx-genesis-x-chat-bridge\.js"/);
  assert.doesNotMatch(read('../neryx-genesis-x-chat-bridge.js'),/localStorage|fetch\(|\.load\(/);
 });
