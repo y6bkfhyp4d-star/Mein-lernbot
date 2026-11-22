@@ -13,7 +13,7 @@ function identifiers(pattern,out=[]){
     identifiers(p.type==='RestElement'?p.argument:p.value,out);
   return out;
 }
-function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:false,effects:false}){
+function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:false,effects:false,conditional:false}){
   if(!expr)return {names:out,flags};
   if(Array.isArray(expr)){for(const n of expr)inputs(n,out,flags);return {names:out,flags};}
   if(expr.type==='Identifier'){out.add(expr.name);return {names:out,flags};}
@@ -31,6 +31,9 @@ function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:fals
   }
   if(['AssignmentExpression','UpdateExpression','AwaitExpression','YieldExpression','TaggedTemplateExpression','ImportExpression','DeleteExpression'].includes(expr.type)||
      (expr.type==='UnaryExpression'&&expr.operator==='delete'))flags.effects=true;
+  // Ternaries, short-circuit logic and optional chains have path-dependent evaluation.
+  if(['ConditionalExpression','LogicalExpression','ChainExpression'].includes(expr.type))
+    flags.conditional=true;
   if(expr.type==='CallExpression'||expr.type==='NewExpression'){
     flags.calls=true;
     inputs(expr.callee,out,flags);
@@ -58,6 +61,8 @@ function analyzeFunction(node){
   // Neither is safe to describe as plain parameter provenance.
   if(node.params.some(p=>p.type!=='Identifier'))
     limitations.add('complex-parameter-binding-not-tracked');
+  if(node.async||node.generator)
+    limitations.add('async-or-generator-function-not-tracked');
   const origin=expression=>{
     const {names,flags}=inputs(expression);
     const sources=new Set();
@@ -70,6 +75,7 @@ function analyzeFunction(node){
     if(flags.dynamic)sources.add('unknown:closure');
     if(flags.context)sources.add('unknown:receiver-context');
     if(flags.effects)sources.add('unknown:expression-effects');
+    if(flags.conditional)sources.add('unknown:conditional-evaluation');
     return [...sources].sort();
   };
   function update(name,sources,kind,node){
