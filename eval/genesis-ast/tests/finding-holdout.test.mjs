@@ -81,7 +81,7 @@ test('external finding holdout CLI: pinned small corpus does not falsely pass de
 test('external finding holdout: never executes the supplied code',()=>{
   globalThis.__holdoutProbe=0;
   const input={schema:1,purpose:'AST-rule-detection',cases:[
-    {id:'a',expected:null,source:'globalThis.__holdoutProbe=99;'},
+    {id:'a',expected:'AST001',source:'eval(globalThis.__holdoutProbe=99);'},
     {id:'b',expected:null,source:'const x=1;'}
   ]};
   evaluate(input);
