@@ -28,7 +28,7 @@ test('NULL: five public APIs reject null and other malformed argument shapes wit
  ]){
   for(const value of [null,undefined,false,0,[],{},'bad']){
    assert.doesNotThrow(()=>assert.equal(fn(value).status,'invalid'),
-    name+' must reject malformed input'));
+    name+' must reject malformed input');
   }
  }
 });
