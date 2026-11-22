@@ -41,3 +41,17 @@ Ausgabe: TP, FP, TN, FN, Recall, FPR, IDs und Regeln nicht erkannter oder unerwa
 GitHub CI testet den Runner nur mit bekannten künstlichen Inputs. Die externen JSON-Testdateien gehören nicht in den Quell-PR und werden nicht automatisch aus dem Netzwerk geladen. Die Parseranalyse von fremdem Text findet in einem beschränkten Testprozess statt; sie ist **keine nachweislich isolierte Sandbox**. Sehr tiefe AST-Eingaben oder Parser-Ressourcenprobleme bleiben eine gesonderte Robustheitsfrage.
 
 **Phase 2 bleibt offen.**
+
+## Reproduzierbare Prüfer-Identität
+
+Jeder Bericht enthält außerdem `evaluator.nodeVersion`, `evaluator.pinnedAcornVersion` und SHA-256-Fingerprints des tatsächlich lokal geladenen Quelltexts von `analyzer.mjs`, `finding-report.mjs`, `evaluate-finding-holdout.mjs` und `package.json`. Das ermöglicht es, wiederholte Auswertungen auf identische lokale Prüferbytes zurückzuführen. `pinnedAcornVersion` stammt aus dem isolierten `package.json` und beweist **nicht** allein die tatsächlich installierte Runtime-Abhängigkeit. Git-Commit und korrekte Herkunft müssen separat belegt werden.
+
+### Abnahmeablauf ohne Aufbrauchen des Holdouts
+
+1. Ein unabhängiger Prüfer erstellt den Fehlerkorpus und markiert die erwarteten Regel-IDs, bevor das Team seine Fälle einsehen kann.
+2. Der Prüfer veröffentlicht **vor** der Prüfung den SHA-256 der endgültigen JSON-Datei, Zeitstempel und die vereinbarten Bewertungsgrenzen (z. B. in einem unveränderbaren Freigabeprotokoll).
+3. Das Entwicklerteam friert Code-Commit und Prüfer-Fingerprints ein. Der externe Prüfer führt den gepinnten CLI-Lauf einmal aus und bewahrt die Originaldatei zurück.
+4. Ergebnisse einschließlich aller Fehlklassifikationen, Ausschlüsse und Grenzwertverletzungen dokumentieren. Nach Einsicht in Fälle darf deren Wiederholung nur noch Regression heißen, nicht unabhängiger Blindtest.
+5. Ein **tatsächlich neuer** unabhängiger Korpus ist für eine spätere frische Blindabnahme notwendig.
+
+Dieser Ablauf kann nicht allein durch die SHA-Option technisch erzwungen werden. Deshalb muss die unabhängige Vorabregistrierung organisatorisch nachgewiesen werden.
