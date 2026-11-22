@@ -6,6 +6,7 @@ import {resolve,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {correlateFlows} from './flow-correlation.mjs';
+import {parse} from 'acorn';
 
 const root=realpathSync(fileURLToPath(new URL('../../',import.meta.url)));
 const statuses=new Set(['eligible','review']);
@@ -36,6 +37,16 @@ export function evaluateCorpus(corpus){
     let actual='review';
     let reason=null;
     try{
+      // Require one standalone function declaration, without other executable
+      // top-level statements. Otherwise an apparently clean function can mask
+      // unrelated code and inflate a per-function benchmark score.
+      let syntax;
+      try{syntax=parse(item.source,{ecmaVersion:'latest',sourceType:'script',allowHashBang:true});}
+      catch{reason='parse-error';}
+      if(!reason&&(
+        syntax.body.length!==1||syntax.body[0].type!=='FunctionDeclaration'||
+        !syntax.body[0].id?.name))reason='requires-single-top-level-function';
+      if(reason){errors.push({id:item.id,reason});continue;}
       const report=correlateFlows('external.js',item.source);
       if(!report.parsed)reason='parse-error';
       else if(report.functions.length!==1)reason='requires-exactly-one-named-function';
