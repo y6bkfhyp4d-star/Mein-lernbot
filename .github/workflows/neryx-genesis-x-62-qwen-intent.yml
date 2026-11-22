@@ -1,0 +1,58 @@
+name: GENESIS X #62 opt-in Qwen intent bridge
+on:
+  pull_request:
+    branches: [neryx/genesis-x-61-evidence-decision-gate]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test browser without modifying committed dependencies
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Real Worker + mock Qwen model adapter smoke
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/neryx-genesis-x-62-qwen-browser-smoke.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run all old and new Node tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Existing application and model modules must be unchanged
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|manifest\.webmanifest|vercel\.json|eval/frozen\.seal\.json|modules/|evolution/neryx/)' /tmp/changed.txt; then
+            echo 'Protected application or model module touched'; exit 1
+          fi
