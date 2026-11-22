@@ -32,11 +32,16 @@ const cases=[
   {id:'N14',label:'review',source:'function increment(x){return x++;}'},
   {id:'N15',label:'review',source:'function assignment(x){return (x=3);}'},
   {id:'N16',label:'review',source:'async function asyncValue(x){return await x;}'},
-  {id:'N17',label:'review',source:'function mutable(x){return x+=2;}'}
+  {id:'N17',label:'review',source:'function mutable(x){return x+=2;}'},
+  {id:'N18',label:'review',source:'function ternary(x){return x ? 1 : 2;}'},
+  {id:'N19',label:'review',source:'function shortCircuit(x,y){return x && y;}'},
+  {id:'N20',label:'review',source:'function fallback(x,y){return x ?? y;}'},
+  {id:'N21',label:'review',source:'async function asyncReturn(x){return x;}'},
+  {id:'N22',label:'review',source:'function* generated(x){return x;}'}
 ];
 
 test('quality benchmark: stable labels, coverage, read-only and measured confusion matrix',()=>{
-  assert.equal(cases.length,25);
+  assert.equal(cases.length,30);
   assert.equal(new Set(cases.map(x=>x.id)).size,cases.length);
   const counts={TP:0,FP:0,TN:0,FN:0};
   const mistakes=[];
