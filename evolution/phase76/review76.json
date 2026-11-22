@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 61,
+  "cursor": 66,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -681,6 +681,62 @@
       "title": "1,2-Propandiol",
       "wikidata_id": "Q161495",
       "wikidata_url": "https://www.wikidata.org/wiki/Q161495"
+    },
+    {
+      "checked_at": "2026-11-22T15:09:56+00:00",
+      "classes": [
+        "definierte chemische Substanz"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "2,6-Diaminopurin",
+      "wikidata_id": "Q4596802",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q4596802"
+    },
+    {
+      "checked_at": "2026-11-22T15:09:56+00:00",
+      "classes": [
+        "type of chemical reaction"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(2+2)-Cycloaddition",
+      "wikidata_id": "Q146615",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q146615"
+    },
+    {
+      "checked_at": "2026-11-22T15:09:56+00:00",
+      "classes": [
+        "Phobie"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Achluophobie",
+      "wikidata_id": "Q1152594",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q1152594"
+    },
+    {
+      "checked_at": "2026-11-22T15:09:56+00:00",
+      "classes": [
+        "law of thermodynamics"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Zweiter Hauptsatz der Thermodynamik",
+      "wikidata_id": "Q177045",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q177045"
+    },
+    {
+      "checked_at": "2026-11-22T15:09:56+00:00",
+      "classes": [
+        "Größenart",
+        "Basisgröße im ISQ"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Thermodynamische Temperatur",
+      "wikidata_id": "Q264647",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q264647"
     }
   ],
   "runs": [
@@ -837,6 +893,13 @@
       "error_count": 1,
       "known_sources": 83,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-22T15:09:56+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 86,
+      "source_changes": 0
     }
   ],
   "schema": 76,
@@ -877,16 +940,19 @@
     "Absolute Helligkeit": "55b72b14fc20ad2c608c",
     "Absorption (Physik)": "7ca5ff83537ea243ebe2",
     "Absorptionsspektrum": "5ec64550cda9fcf50a6c",
+    "Abstandsgesetz": "17b2ca93ee064ab984a6",
     "Abwasser": "14b2d45bca416c3adb07",
     "Acetylgruppe": "257b77c4ca752354157c",
     "Achluophobie": "6be353f675e57e53621d",
     "Achämenidenreich": "b95fd585994902a62a11",
     "Adaptive Radiation": "5fe056616718c4951303",
+    "Adiabatische Zustandsänderung": "2ddfecd71cee95c54708",
     "Adler (Sternbild)": "5d1dbb73ede3cc4d1543",
     "Adult": "d0661e2811e32e2eaa94",
     "Aerologie": "06b3f4b36704b4bc63c0",
     "Aerosol": "8b6a119ae687cb359c79",
     "Agatha von Catania": "1362f0df3aba159346c4",
+    "Airbus": "8461c5bae7332debf718",
     "Akkumulator": "e0e64a933525e075dbe3",
     "Aktienmarkt": "4e0b0ffa5504d55816a9",
     "Akustik": "6b29301f6434da9497eb",
