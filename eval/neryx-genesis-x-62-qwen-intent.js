@@ -41,7 +41,7 @@ async function inspect(input,{useQwen=false,directConsent=false}={}){
  if(gate?.version!=='0.1-research'||typeof gate.decide!=='function')
   return fixed('unavailable','none');
  if(useQwen!==true){
-  if(!/^GENESIS prüfen\s*:/i.test(input.trim()))return fixed('opt_in_required','none');
+  if(directConsent!==true&&!/^GENESIS prüfen\s*:/i.test(input.trim()))return fixed('opt_in_required','none');
  }else{
   const model=window.NERYXLocalModel;
   // Explicit loading occurs in a separate user click in the UI.
