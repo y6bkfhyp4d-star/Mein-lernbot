@@ -84,3 +84,22 @@ test('git finding diff: does not evaluate committed JavaScript',()=>fixture(x=>{
   assert.equal(globalThis.__genesisGitProbe,0);
   delete globalThis.__genesisGitProbe;
 }));
+
+test('phase 2 acceptance: identical pinned SHA produces byte-identical JSON twice',()=>fixture(x=>{
+  const args={root:x.root,baseSha:x.baseSha,headSha:x.baseSha,files:['modules/sample.js']};
+  const original=readFileSync(x.file,'utf8');
+  const statusBefore=git(x.root,'status','--porcelain');
+  const first=JSON.stringify(compareGitFindings(args));
+  const second=JSON.stringify(compareGitFindings(args));
+  assert.equal(second,first,'Reports from the same pinned commit must match byte-for-byte');
+  const result=JSON.parse(first);
+  assert.equal(result.repository.baseSha,x.baseSha);
+  assert.equal(result.repository.headSha,x.baseSha);
+  assert.equal(result.files[0].base.sha256,hash(x.first));
+  assert.equal(result.files[0].head.sha256,hash(x.first));
+  assert.equal(result.summary.added,0);
+  assert.equal(result.summary.removed,0);
+  assert.equal(result.summary.unchanged,1);
+  assert.equal(readFileSync(x.file,'utf8'),original);
+  assert.equal(git(x.root,'status','--porcelain'),statusBefore);
+}));
