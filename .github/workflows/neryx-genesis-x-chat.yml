@@ -1,0 +1,57 @@
+name: GENESIS X opt-in NERYX chat integration
+on:
+  push:
+    branches: [neryx/genesis-x-release-candidate]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test browser without modifying committed dependencies
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Real Worker + mock Qwen model adapter smoke
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/genesis-x-chat-browser-smoke.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run all old and new Node tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Release allowlist – only reviewed GENESIS files change
+        run: |
+          set -euo pipefail
+          git diff --name-only 8dd1adba9480758e849d36ed77f359882f99ac6e HEAD | tee /tmp/changed.txt
+          if grep -Ev '^(app\.js|index\.html|modules/(genesis-x-ambiguity-(client|worker|gate)\.js|genesis-x-tools\.js|neryx-genesis-x-research-bridge\.js)|eval/(neryx-genesis-x-(routed-research|61-decision-gate|62-qwen-intent|63-natural-intent|64-quality-gate|64-quality-ui|chat-bridge)\.js|genesis-x-(integrated\.html|chat-browser-smoke\.mjs))|eval/tests/genesis-x-chat-opt-in\.test\.mjs|\.github/workflows/neryx-genesis-x-chat\.yml|docs/GENESIS_X_RELEASE_CANDIDATE\.md)$' /tmp/changed.txt; then
+            echo 'Unapproved files changed'; exit 1
+          fi
