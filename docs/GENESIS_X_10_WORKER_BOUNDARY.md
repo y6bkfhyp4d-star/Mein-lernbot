@@ -23,3 +23,14 @@ The worker is loaded from the network/cache for each request; this implementatio
 `eval/genesis-x-worker-browser-smoke.mjs` exercises actual classic workers in Chromium and mobile-emulated WebKit. It checks successful metadata, caller reference matching, bad references, null/sparse input, no research globals on the main page, no local storage writes, no NERYX app load and static allowlisted imports. All previous Node regression suites and the unchanged NERYX application browser smoke remain mandatory.
 
 **Status: experimental only; production release BLOCKED.**
+
+## GitHub Actions evidence (2026-11-22)
+
+Run [#45009516019](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45009516019) completed **success** with all four jobs passed:
+
+- All existing Node NERYX/GENESIS X/corpus/smoke tests: **595/595 passed**.
+- Real Chromium classic Worker: `GENESIS_X_WORKER_BOUNDARY_OK`; checked-only metadata, no main-thread research engine globals and no browser-storage changes.
+- Real WebKit classic Worker: same `GENESIS_X_WORKER_BOUNDARY_OK` checks, including caller-supplied truth reference count.
+- Production/Frozen file guard: passed.
+
+Both browser jobs intentionally loaded the same-origin worker scripts on demand. This does not demonstrate offline **startup** after reload, iOS Safari performance, or malicious same-origin script containment.
