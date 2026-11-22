@@ -13,11 +13,15 @@ function identifiers(pattern,out=[]){
     identifiers(p.type==='RestElement'?p.argument:p.value,out);
   return out;
 }
-function inputs(expr,out=new Set(),flags={calls:false,dynamic:false}){
+function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:false}){
   if(!expr)return {names:out,flags};
   if(Array.isArray(expr)){for(const n of expr)inputs(n,out,flags);return {names:out,flags};}
   if(expr.type==='Identifier'){out.add(expr.name);return {names:out,flags};}
-  if(expr.type==='Literal'||expr.type==='ThisExpression'||expr.type==='Super')return {names:out,flags};
+  if(expr.type==='Literal')return {names:out,flags};
+  // Receiver/super/meta values depend on invocation context, not just parameters.
+  if(['ThisExpression','Super','MetaProperty'].includes(expr.type)){
+    flags.context=true;return {names:out,flags};
+  }
   if(expr.type==='MemberExpression'){
     inputs(expr.object,out,flags);
     if(expr.computed)inputs(expr.property,out,flags);
@@ -46,6 +50,10 @@ function analyzeFunction(node){
   const params=node.params.flatMap(p=>identifiers(p));
   const provenance=new Map(params.map(p=>[p,new Set([p])]));
   const events=[],limitations=new Set();
+  // Defaults can invoke functions; destructuring can trigger getters and aliases.
+  // Neither is safe to describe as plain parameter provenance.
+  if(node.params.some(p=>p.type!=='Identifier'))
+    limitations.add('complex-parameter-binding-not-tracked');
   const origin=expression=>{
     const {names,flags}=inputs(expression);
     const sources=new Set();
@@ -56,6 +64,7 @@ function analyzeFunction(node){
     }
     if(flags.calls)sources.add('unknown:call-result');
     if(flags.dynamic)sources.add('unknown:closure');
+    if(flags.context)sources.add('unknown:receiver-context');
     return [...sources].sort();
   };
   function update(name,sources,kind,node){
