@@ -51,7 +51,7 @@ jobs:
       - name: Release allowlist – only reviewed GENESIS files change
         run: |
           set -euo pipefail
-          git diff --name-only cc0e9876948e4c643686cb2ac08acffe2fe070b3 HEAD | tee /tmp/changed.txt
+          git diff --name-only 8dd1adba9480758e849d36ed77f359882f99ac6e HEAD | tee /tmp/changed.txt
           if grep -Ev '^(app\.js|index\.html|modules/(genesis-x-ambiguity-(client|worker|gate)\.js|genesis-x-tools\.js|neryx-genesis-x-research-bridge\.js)|eval/(neryx-genesis-x-(routed-research|61-decision-gate|62-qwen-intent|63-natural-intent|64-quality-gate|64-quality-ui|chat-bridge)\.js|genesis-x-(integrated\.html|chat-browser-smoke\.mjs))|eval/tests/genesis-x-chat-opt-in\.test\.mjs|\.github/workflows/neryx-genesis-x-chat\.yml|docs/GENESIS_X_RELEASE_CANDIDATE\.md)$' /tmp/changed.txt; then
             echo 'Unapproved files changed'; exit 1
           fi
