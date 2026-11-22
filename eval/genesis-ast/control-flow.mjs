@@ -59,7 +59,7 @@ export function analyzeControlFlow(file,source){
   const discovered=collectNamedFunctions(file,source);
   if(!discovered.parsed)return {version:'2.5-control-flow',file,parsed:false,
     error:discovered.error,graphs:[],mode:'read-only',changesApplied:false};
-  const graphs=[],untracked=[];
+  const graphs=[],untracked=discovered.assigned.map(a=>({...a,reason:'assigned-function-not-expanded'}));
   for(const item of discovered.functions){
     try{
       const g=graph(item.node);
