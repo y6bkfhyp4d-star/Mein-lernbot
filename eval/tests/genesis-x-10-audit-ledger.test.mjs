@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const files=['genesis-x-tools.js','genesis-x-logic.js','genesis-x-router.js',
 'genesis-x-chain.js','genesis-x-verifier.js','genesis-x-verified-chain.js',
-'genesis-x-diagnostics.js','genesis-x-research.js'];
+'genesis-x-diagnostics.js','genesis-x-research.js','genesis-x-research-lab.js'];
 function lab(){
  const window={},deny=()=>{throw Error('Side effects forbidden');};
  const ctx={window,fetch:deny,eval:deny,document:{getElementById:deny},
@@ -98,4 +98,25 @@ test('LEDGER LIMITATION: a new session cannot detect reuse in another session',(
  assert.equal(b.run({task:task(),audit:audit()}).status,'coverage_gain_observed');
  assert.equal(a.summary().evaluations,1);
  assert.equal(b.summary().evaluations,1);
+});
+
+test('FACADE: research mode shares session and rejects a repeated audit',()=>{
+ const w=lab(),facade=w.NERYXGenesisXResearchLab,request={mode:'research',input:{task:task(),audit:audit()}};
+ const first=facade.run(request),second=facade.run(request);
+ assert.equal(first.status,'coverage_gain_observed');
+ assert.equal(first.publishable,false);
+ assert.equal(second.status,'blocked');
+ assert.equal(second.report.reason,'audit_reuse');
+ assert.equal(second.report.reuseDetected,true);
+ assert.equal(second.publishable,false);
+});
+test('FACADE: after the session starts, a substituted engine cannot reset the ledger',()=>{
+ const w=lab(),facade=w.NERYXGenesisXResearchLab;
+ const input={task:task(),audit:audit()};
+ assert.equal(facade.run({mode:'research',input}).status,'coverage_gain_observed');
+ const original=w.NERYXGenesisXResearch;
+ w.NERYXGenesisXResearch={version:'0.9',run:original.run,createSession:original.createSession};
+ const result=facade.run({mode:'research',input});
+ assert.equal(result.status,'blocked');
+ assert.match(result.reason,/engine changed/);
 });
