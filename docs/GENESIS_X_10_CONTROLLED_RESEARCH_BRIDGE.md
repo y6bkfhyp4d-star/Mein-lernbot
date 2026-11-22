@@ -26,3 +26,14 @@ Die Brücke enthält **keinen Anschluss an den produktiven NERYX-Chat**. Sie ist
 ## Releasegrenze
 
 Es wird **keine** bereits benutzte NERYX-Datei ersetzt. `main`, `index.html`, `app.js`, `sw.js`, `manifest.webmanifest`, bestehende Worker und `vercel.json` bleiben unverändert. Die Brücke ist nur ein getrenntes, experimentelles Anschlussmodul und noch keine automatische KI-Hilfe im Hauptchat. Reale Nutzeraufgaben, unabhängige Daten und Safari auf dem physischen iPhone bleiben weitere zu prüfende Faktoren. Nicht nach main mergen oder produktiv veröffentlichen ohne ausdrückliche Freigabe.
+
+## Verifizierte CI- und Preview-Ergebnisse (22.11.2026)
+
+[GitHub Actions #45016322950](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45016322950): **4/4 Jobs erfolgreich**. Vollständige Node-Regression **625/625 bestanden**. Chromium und Linux WebKit prüften alle drei Anfragen `unique`, `ambiguous`, `contradictory`, zusätzlich einen absichtlich fehlenden Worker (`blocked`), `storage:0`, keine Forschungs-Engines im Hauptfenster und keine Chat-Anbindung. Die Protected-File-Prüfung war grün.
+
+**Separates Vercel-Preview-Deployment:** `dpl_5sekrBRspVvidihhyr15pQZkCf4Z`, Commit `ae8954fdcc20dba468779b54f1142b35c45cff4e`, Branch `neryx/genesis-x-10-controlled-research-bridge`, Status **READY**, Target **Preview** (nicht Production).
+- https://mein-lernbot-fo7mwidgs-pierags.vercel.app/eval/neryx-genesis-x-bridge-demo.html
+
+Das Projekt erzwingt für nicht öffentliche Deployment-Domains möglicherweise **Vercel-SSO-Anmeldung**. `READY` beweist nur einen erfolgreichen Build, nicht die Browserqualität auf dem persönlichen iPhone. Die Produktdomain `mein-lernbot.vercel.app` ist **nicht umgestellt**.
+
+**Wichtig:** Die NERYX-Forschungsbrücke ist ein **neues optionales Modul**, das in der eigenständigen Testseite aufgerufen wird. Der echte NERYX-Chat wurde noch *nicht* mit der Brücke verdrahtet. Das schützt bestehende Gespräche und gespeicherte Daten.
