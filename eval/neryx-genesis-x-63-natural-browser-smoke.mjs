@@ -80,6 +80,9 @@ try{
  await page.waitForFunction(()=>document.querySelector('#qwen-result')?.textContent.includes('Qwen hat die Absicht falsch eingestuft'),
   null,{timeout:14000});
  assert.match(await page.locator('#qwen-result').textContent(),/Interne Regelprüfung abgeschlossen/);
+ const falseNegativeOutput=await page.locator('#qwen-result').textContent();
+ assert.match(falseNegativeOutput,/\nHinweis: Qwen hat die Absicht falsch eingestuft/);
+ assert.ok(!falseNegativeOutput.includes('\\\\nHinweis'),'UI must render a real line break, not backslash-n');
  await page.locator('#qwen-question').fill('Bitte untersuche diese Zahlen mit GENESIS X: 0=2, 0.0000000001=2.0000000001, 0.0000000002=2.0000000002, 0.0000000003=2.0000000003, 0.0000000004=2.0000000004; 10');
  await page.evaluate(()=>{window.NERYXLocalModel=Object.freeze({version:'1.2',
   info:()=>({loaded:true}),askRaw:async()=> 'PRUEFEN'})});
