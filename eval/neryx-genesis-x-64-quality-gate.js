@@ -22,7 +22,7 @@ async function inspect(input,options={}){
  const model=options.useQwen===true?
    (result.modelDisagreed===true?'disagreed':checked?'accepted':'not_confirmed'):'not_requested';
  const evidence=checked?'internal_review_only':'none';
- return Object.freeze({status:result.status,route:result.route,original:'validated',model,evidence,reviewOnly:true,publishable:false});
+ return Object.freeze({status:result.status,route:result.route,original:result.status==='invalid'?'rejected':'validated',model,evidence,reviewOnly:true,publishable:false});
 }
 window.NERYXGenesisXQualityGate=Object.freeze({version:'0.1-research',inspect});
 })();
