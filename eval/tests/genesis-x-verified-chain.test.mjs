@@ -49,7 +49,7 @@ test('missing verifier causes unavailable and never returns unchecked cases',()=
 });
 test('tampered numeric output gets blocked and error localized',()=>{
  const w=lab(),old=w.NERYXGenesisXChain;
- w.NERYXGenesisXChain={solve(task){
+ w.NERYXGenesisXChain={version:'0.5',solve(task){
   const result=old.solve(task);
   result.cases[1].value+=10;
   return result;
@@ -60,7 +60,7 @@ test('tampered numeric output gets blocked and error localized',()=>{
 });
 test('tampered logic output gets blocked at logic stage',()=>{
  const w=lab(),old=w.NERYXGenesisXChain;
- w.NERYXGenesisXChain={solve(task){
+ w.NERYXGenesisXChain={version:'0.5',solve(task){
   const result=old.solve(task);
   result.cases[0].decision=false;
   return result;
@@ -71,7 +71,7 @@ test('tampered logic output gets blocked at logic stage',()=>{
 });
 test('reordered input records are blocked before audit',()=>{
  const w=lab(),old=w.NERYXGenesisXChain;
- w.NERYXGenesisXChain={solve(t){
+ w.NERYXGenesisXChain={version:'0.5',solve(t){
   const r=old.solve(t);r.cases.reverse();return r;
  }};
  assert.equal(w.NERYXGenesisXVerifiedChain.solve(data()).stage,'chain-shape');
@@ -85,7 +85,7 @@ test('reject invalid input and missing candidates',()=>{
 });
 test('cannot trick audit by reporting success without complete comparison',()=>{
  const w=lab();
- w.NERYXGenesisXVerifier={verify(){return {status:'execution_matched',checked:1,references:0}}};
+ w.NERYXGenesisXVerifier={version:'0.6',verify(){return {status:'execution_matched',checked:1,references:0}}};
  const r=w.NERYXGenesisXVerifiedChain.solve(data());
  assert.equal(r.status,'blocked');assert.equal(r.stage,'audit-shape');
 });
