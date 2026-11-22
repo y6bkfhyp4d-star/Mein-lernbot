@@ -75,5 +75,44 @@ function run({task,audit}={}){
  return {status:'coverage_gain_observed',...report,
   reason:'Baseline abstained; proposed strategy matched all supplied audit references. This measures coverage on these examples, not accuracy improvement.'};
 }
-window.NERYXGenesisXResearch=Object.freeze({version:'0.9',run});
+// Optional controlled research session: tracks actual reused audit x values in memory.
+// This is an experiment-scoped ledger, not a secret or persistent benchmark registry.
+function createSession(){
+ const used=new Set();
+ const MAX_AUDITS=32;
+ let evaluations=0;
+ function evaluate(request){
+  if(!object(request)||!Array.isArray(request.audit)||
+     request.audit.length<3||request.audit.length>20)
+   return {status:'invalid',reason:'A bounded audit set is required.',reviewRequired:true};
+  const xs=[];
+  for(const row of request.audit){
+   if(!object(row)||!finite(row.x))
+    return {status:'invalid',reason:'Audit x values must be finite.',reviewRequired:true};
+   xs.push(row.x===0?0:row.x);
+  }
+  if(xs.some(x=>used.has(x)))
+   return {status:'blocked',reason:'audit_reuse',reuseDetected:true,reviewRequired:true,
+    limitation:'This audit x was already used in this research session; it cannot provide new independent evidence.'};
+  if(evaluations>=MAX_AUDITS)
+   return {status:'blocked',reason:'audit_budget_exhausted',reviewRequired:true};
+  let result;
+  try{result=run(request);}catch{
+   return {status:'blocked',reason:'Evaluation threw; audit not recorded.',reviewRequired:true};
+  }
+  // Only runs that actually compared candidate(s) on the audit consume evidence.
+  if(object(result)&&Number.isInteger(result.auditCount)&&result.auditCount===xs.length){
+   xs.forEach(x=>used.add(x));
+   evaluations++;
+  }
+  return result;
+ }
+ function summary(){
+  return Object.freeze({evaluations,distinctAuditInputs:used.size,
+   capacity:MAX_AUDITS,persistent:false,
+   limitation:'In-memory session only. Other sessions/restarts are not tracked.'});
+ }
+ return Object.freeze({run:evaluate,summary});
+}
+window.NERYXGenesisXResearch=Object.freeze({version:'0.9',run,createSession});
 })();
