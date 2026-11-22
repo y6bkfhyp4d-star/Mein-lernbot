@@ -59,7 +59,7 @@ function verify(request){
     !Array.isArray(claims)||claims.length!==cases.length||
     Array.from(cases,c=>!obj(c)||!num(c.x)||!num(c.b)).some(Boolean)||
     Array.from(claims,c=>!obj(c)||!own(c,'value')||!own(c,'decision')||
-     typeof c.value!=='number'||!Number.isFinite(c.value)||typeof c.decision!=='boolean'))
+     typeof c.value!=='number'||!Number.isFinite(c.value)||typeof c.decision!=='boolean').some(Boolean))
   return {status:'invalid',reason:'Invalid cases or claims.'};
  const checked=[];
  for(let i=0;i<cases.length;i++){
