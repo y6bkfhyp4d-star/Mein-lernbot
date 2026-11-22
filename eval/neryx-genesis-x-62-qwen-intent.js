@@ -6,6 +6,7 @@
 'use strict';
 const fixed=(status,route='qwen')=>Object.freeze({status,route,reviewOnly:true,publishable:false});
 const token=/(?:-?\d+(?:\.\d+)?)\s*=\s*(?:-?\d+(?:\.\d+)?)/;
+const clearResearchRequest=/^(?:Bitte untersuche diese Zahlen mit GENESIS X|GENESIS prüfen)\\s*:\\s*/i;
 const expression=/-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?\s*=\s*-?\d+(?:\.\d+)?){4,12}\s*;\s*-?\d+(?:\.\d+)?/g;
 function extract(input){
  if(typeof input!=='string'||!input.trim()||input.length>1400||input.includes('\n'))return null;
