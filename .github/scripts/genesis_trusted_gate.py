@@ -181,6 +181,40 @@ def get_ruleset(api, token, repository):
         return json.load(response)
 
 
+def get_pull_snapshot(api, token, repository, number):
+    """Read live PR identity, not only the potentially stale workflow event."""
+    url = f"{api}/repos/{repository}/pulls/{number}"
+    req = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "GENESIS-X-readonly-pr-identity",
+    })
+    with urllib.request.urlopen(req, timeout=15) as response:
+        return json.load(response)
+
+
+def verify_pull_snapshot(snapshot, repository, number, head, head_sha, base_sha, author):
+    """Deny PR retargeting, head changes, author spoofing, closure and metadata drift."""
+    if not isinstance(snapshot, dict) or snapshot.get("number") != number or (
+        snapshot.get("state") != "open"
+    ):
+        raise ValueError("PR identity or state changed")
+    pr_head, pr_base, pr_user = (
+        snapshot.get("head"), snapshot.get("base"), snapshot.get("user")
+    )
+    if not all(isinstance(x, dict) for x in (pr_head, pr_base, pr_user)):
+        raise ValueError("Malformed live PR snapshot")
+    if (pr_head.get("sha") != head_sha or pr_head.get("ref") != head or
+        pr_base.get("sha") != base_sha or pr_base.get("ref") != "main" or
+        pr_user.get("login") != author):
+        raise ValueError("PR changed since triggering workflow")
+    if (not isinstance(pr_base.get("repo"), dict) or
+        pr_base["repo"].get("full_name") != repository):
+        raise ValueError("PR base repo changed")
+    return True
+
+
 def validate_candidate_files(api, token, repository, head_sha, base_sha, files):
     """Fetch pinned blobs via read-only contents API; never execute PR code."""
     candidates = [f for f in files if candidate_data(f["filename"])]
@@ -238,6 +272,9 @@ def main():
         char not in "0123456789abcdef" for char in base_sha
     ):
         raise ValueError("Invalid runner configuration")
+    # Fail closed if a PR changes after the event that started this run.
+    verify_pull_snapshot(get_pull_snapshot(api, token, repository, number),
+                         repository, number, head, head_sha, base_sha, author)
     prefix = f"repos/{repository}/pulls/{number}"
     files = get_pages(api, token, prefix + "/files")
     validate_candidate_files(api, token, repository, head_sha, base_sha, files)
@@ -248,6 +285,8 @@ def main():
     rule = get_ruleset(api, token, repository)
     protected = native_review_enforced(rule, repository)
     ok, reason = decide(head, files, reviews, author, head_sha, protected)
+    verify_pull_snapshot(get_pull_snapshot(api, token, repository, number),
+                         repository, number, head, head_sha, base_sha, author)
     print(f"GENESIS trusted policy: {'PASS' if ok else 'DENY'} ({reason})")
     if not ok:
         raise SystemExit(1)
