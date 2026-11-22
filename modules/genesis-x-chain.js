@@ -68,7 +68,13 @@ function solve(task){
   if(!record(second)||second.status!=='candidate')
    return {status:second?.status==='invalid'?'invalid':'unconfirmed',stage:'logic'};
  }catch{return {status:'unconfirmed',reason:'The chain stopped safely.'};}
- const program=first.result?.selected?.program,rule=second.result?.rule;
+ // Capture the exact selected artifacts before evaluating cases; no second router call.
+ // JSON cloning prevents upstream changes from mutating the program during evaluation.
+ let program,rule;
+ try{
+  program=JSON.parse(JSON.stringify(first.result?.selected?.program));
+  rule=JSON.parse(JSON.stringify(second.result?.rule));
+ }catch{return {status:'unconfirmed',stage:'artifact-capture'};}
  const out=[];
  for(const c of task.cases){
   const value=numeric(program,c.x);
@@ -78,6 +84,7 @@ function solve(task){
   out.push({x:c.x,b:c.b,value,decision});
  }
  return {status:'candidate',stages:['numeric','logic'],cases:out,
+  artifacts:{program,rule},
   explanation:'Numeric mapping and Boolean decision derived from separate supplied examples. Predictions are not independently verified.'};
 }
 window.NERYXGenesisXChain=Object.freeze({version:'0.5',solve});
