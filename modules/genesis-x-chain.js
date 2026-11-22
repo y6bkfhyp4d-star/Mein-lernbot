@@ -54,7 +54,7 @@ function boolean(rule,a,b,depth=0){
 function solve(task){
  if(!record(task)||!record(task.numeric)||!record(task.logic)||
     !Array.isArray(task.cases)||task.cases.length<1||task.cases.length>20||
-    task.cases.some(c=>!record(c)||!finite(c.x)||!finite(c.b)))
+    Array.from(task.cases,c=>!record(c)||!finite(c.x)||!finite(c.b)).some(Boolean))
   return {status:'invalid',reason:'Chain requires numeric, logic and up to 20 bounded cases.'};
  const router=window.NERYXGenesisXRouter;
  if(!router||router.version!=='0.4'||typeof router.solve!=='function')
