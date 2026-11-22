@@ -18,6 +18,20 @@ function extract(input){
  if(!token.test(value))return null;
  const plan=window.NERYXOrchestrator?.plan?.(value);
  if(plan?.type!=='pairs'||plan.query!==value)return null;
+ // Validate numeric bounds and distinct examples BEFORE any model invocation.
+ const [pairs,probe]=value.split(';'),seen=new Set();
+ const examples=pairs.split(',');
+ if(examples.length<5||examples.length>13)return null;
+ for(const row of examples){
+  const parts=row.split('=');
+  if(parts.length!==2)return null;
+  const x=Number(parts[0].trim()),y=Number(parts[1].trim());
+  if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>1e6||
+     Math.abs(y)>1e12||seen.has(x))return null;
+  seen.add(x);
+ }
+ const p=Number(probe.trim());
+ if(!Number.isFinite(p)||Math.abs(p)>1e6||seen.has(p))return null;
  return 'GENESIS prüfen: '+value;
 }
 async function inspect(input,{useQwen=false}={}){
