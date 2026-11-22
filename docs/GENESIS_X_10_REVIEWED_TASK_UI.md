@@ -17,3 +17,14 @@ Date: 2026-11-22. Research-only draft stacked on PR #47; **not a main-app featur
 The CI runs the full NERYX and GENESIS X corpus, the two browsers, and a protected-file check. It does not run the page on a real iPhone or provide a Vercel Preview. Production `app.js`, `index.html`, `sw.js`, Frozen, and `main` stay unchanged.
 
 **Do not merge or deploy to production without user approval and explicit independent test results.**
+
+## Verified results (2026-11-22)
+
+[GitHub Actions run 45012975719](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45012975719): **four jobs passed**. The complete existing NERYX/GENESIS X Node suite passed **595/595**, protected production/Frozen-file check passed, and both **Chromium** and **Linux WebKit** emitted `GENESIS_X_ONE_CASE_UI_OK` after verifying:
+
+- A bounded task produces only a `review_required` text status, **not** a candidate output or a publishable answer.
+- Browser-native invalid-field constraints prevent submission.
+- Missing Worker script returns `blocked` and **no result released**.
+- No main-window research engine globals, **zero** `localStorage` records, and only the two explicitly allowed page scripts.
+
+**Release still blocked:** this verifies a stand-alone research form only; no main chat integration, real iPhone Safari certification, or independently validated answer quality.
