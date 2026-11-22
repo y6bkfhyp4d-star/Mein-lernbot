@@ -41,7 +41,7 @@ run.addEventListener('click',()=>action(async()=>{
  const r=await window.NERYXGenesisXNaturalIntent?.inspect?.(question.value,{useQwen:true});
  output.textContent=r?.reviewOnly===true&&r?.publishable===false?
   (labels[r.status]||labels.blocked)+(r.modelDisagreed===true?
-   '\\nHinweis: Qwen hat die Absicht falsch eingestuft. Dein ausdrücklicher Prüfauftrag und die Originalzahlen waren ausschlaggebend.':''):
+   '\nHinweis: Qwen hat die Absicht falsch eingestuft. Dein ausdrücklicher Prüfauftrag und die Originalzahlen waren ausschlaggebend.':''):
   labels.blocked;
 }));
 direct.addEventListener('click',()=>action(async()=>{
