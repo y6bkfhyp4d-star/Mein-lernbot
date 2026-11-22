@@ -13,7 +13,7 @@ function identifiers(pattern,out=[]){
     identifiers(p.type==='RestElement'?p.argument:p.value,out);
   return out;
 }
-function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:false}){
+function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:false,effects:false}){
   if(!expr)return {names:out,flags};
   if(Array.isArray(expr)){for(const n of expr)inputs(n,out,flags);return {names:out,flags};}
   if(expr.type==='Identifier'){out.add(expr.name);return {names:out,flags};}
@@ -23,10 +23,14 @@ function inputs(expr,out=new Set(),flags={calls:false,dynamic:false,context:fals
     flags.context=true;return {names:out,flags};
   }
   if(expr.type==='MemberExpression'){
+    // A property access can execute a getter or Proxy trap; purity is unknown.
+    flags.effects=true;
     inputs(expr.object,out,flags);
     if(expr.computed)inputs(expr.property,out,flags);
     return {names:out,flags};
   }
+  if(['AssignmentExpression','UpdateExpression','AwaitExpression','YieldExpression','TaggedTemplateExpression','ImportExpression','DeleteExpression'].includes(expr.type)||
+     (expr.type==='UnaryExpression'&&expr.operator==='delete'))flags.effects=true;
   if(expr.type==='CallExpression'||expr.type==='NewExpression'){
     flags.calls=true;
     inputs(expr.callee,out,flags);
@@ -65,6 +69,7 @@ function analyzeFunction(node){
     if(flags.calls)sources.add('unknown:call-result');
     if(flags.dynamic)sources.add('unknown:closure');
     if(flags.context)sources.add('unknown:receiver-context');
+    if(flags.effects)sources.add('unknown:expression-effects');
     return [...sources].sort();
   };
   function update(name,sources,kind,node){
