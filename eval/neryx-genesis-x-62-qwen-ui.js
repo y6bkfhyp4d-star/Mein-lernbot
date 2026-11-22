@@ -17,7 +17,7 @@ const labels=Object.freeze({
  model_not_loaded:'Qwen ist noch nicht geladen. Erst über die separate Schaltfläche laden oder GENESIS ohne Qwen verwenden.',
  model_error:'Qwen konnte nicht antworten. Keine Prüfung ausgelöst.',
  model_rejected:'Qwen hat kein gültiges Absichts-Signal geliefert. GENESIS X wurde nicht gestartet.',
- declined:'Qwen hat keinen eindeutigen Prüfauftrag erkannt. GENESIS X wurde nicht gestartet.',
+ declined:'Qwen hat den Prüfwunsch verneint. GENESIS X wurde nicht gestartet. Du kannst die Prüfung mit „Nur GENESIS X prüfen“ ausdrücklich selbst starten.',
  unavailable:'Prüfung nicht verfügbar. Keine Antwort freigegeben.',
  blocked:'Prüfung blockiert. Keine Antwort freigegeben.'
 });
@@ -44,7 +44,7 @@ run.addEventListener('click',()=>action(async()=>{
 }));
 direct.addEventListener('click',()=>action(async()=>{
  output.textContent='GENESIS X prüft nur die vorhandenen Zahlen; kein Qwen-Aufruf.';
- const r=await window.NERYXGenesisXQwenIntent?.inspect?.(question.value,{useQwen:false});
+ const r=await window.NERYXGenesisXQwenIntent?.inspect?.(question.value,{useQwen:false,directConsent:true});
  output.textContent=r?.reviewOnly===true&&r?.publishable===false?
   labels[r.status]||labels.blocked:labels.blocked;
 }));
