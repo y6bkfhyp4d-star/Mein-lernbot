@@ -68,7 +68,7 @@ test('real app chat entry intercepts before all other handlers; excludes GENESIS
  assert.match(app,/if\(!isGenesisRequest\(s\)\)\{const saved=transaction/);
  assert.match(app,/eval\/neryx-genesis-x-chat-bridge\.js/);
  assert.match(app,/script\.src=src;script\.onload=resolve/);
- assert.equal((html.match(/<script\\b[^>]*\\bsrc=/g)||[]).length,39);
+ assert.equal((html.match(/<script\b[^>]*\bsrc=/g)||[]).length,39);
  assert.doesNotMatch(html,/src="eval\/neryx-genesis-x-chat-bridge\.js"/);
  assert.doesNotMatch(read('../neryx-genesis-x-chat-bridge.js'),/localStorage|fetch\(|\.load\(/);
 });
