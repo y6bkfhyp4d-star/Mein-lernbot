@@ -19,3 +19,19 @@ Der neue mobile Browser-Test gibt Daten **in die Textfelder** ein und kontrollie
 Die mathematische Suchfunktion bleibt auf die sechs ursprünglichen Operatoren, die Konstanten 0–3 und höchstens zwei Schritte begrenzt. Ein `ambiguous` ist ein Ergebnis eines begrenzten Suchraums und konkreter Probe-Eingaben. Die Seite ist kein freier KI-Chat.
 
 Keine Änderung an `main`, `index.html`, `app.js`, `sw.js`, `meinLernBot.v1`, vorhandenen Forschungsmodulen oder dem Vercel-Produktionsdeployment. Nur ein neuer Forschungszweig mit eigenständiger Seite; kein Mergen oder Deployment in Produktion ohne ausdrückliche Freigabe.
+
+## Ausgeführte Tests und opt-in Teststand
+
+[GitHub Actions #45017236765](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45017236765) – **4/4 Jobs erfolgreich**.
+
+- Gesamt-Regressionen: **625/625** bestanden, keine Fehler.
+- Chromium: 4 gültige frei eingegebene Szenarien, 5 lokal abgewiesene ungültige Szenarien, fehlender Worker `blocked`, `localStorage:0`, keine Chat-Anbindung.
+- Linux WebKit: dieselben Ergebnisse.
+- Schutzprüfung: keine Änderungen an aktiver App, existierenden Forschungsmodulen oder Frozen.
+
+**Separates Preview Deployment – READY, Target Preview, kein Production-Deploy:**
+- Deployment `dpl_2ruULuHvN5K6VwVVMyU24LKMz13E`
+- Commit `7639e42a4ea0f9616726d6cb2233ca92deb03b26`
+- Forschungsformular: https://mein-lernbot-ksynkvbvz-pierags.vercel.app/eval/neryx-genesis-x-custom-input.html
+
+Vercel-SSO-Schutz kann eine Anmeldung erfordern. Browserautomatisierung ist kein Ersatz für einen manuellen Safari-Test auf dem iPhone. Die Produktdomain wurde nicht verändert.
