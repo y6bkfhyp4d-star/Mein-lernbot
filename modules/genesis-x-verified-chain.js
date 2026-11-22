@@ -9,24 +9,22 @@ function solve(task){
     task.cases.some(c=>!record(c)||!finite(c.x)||!finite(c.b)))
   return {status:'invalid',stage:'input'};
  const chain=window.NERYXGenesisXChain;
- const router=window.NERYXGenesisXRouter;
  const verifier=window.NERYXGenesisXVerifier;
- if(!chain||typeof chain.solve!=='function'||!router||typeof router.solve!=='function'||
+ if(!chain||typeof chain.solve!=='function'||
     !verifier||typeof verifier.verify!=='function')
   return {status:'unavailable',stage:'dependencies'};
  try{
-  // Chain returns predictions; rerun the two deterministic, read-only classifiers to
-  // obtain candidate ASTs. The verifier independently checks *the actual chain output*.
+  // Verify the actual candidate artifacts captured by the chain, never re-select them.
+  // The independent interpreter checks the claims against those exact artifacts.
   const result=chain.solve(task);
   if(!record(result)||result.status!=='candidate')
    return {status:result?.status==='invalid'?'invalid':'unconfirmed',stage:'chain'};
   if(!Array.isArray(result.cases)||result.cases.length!==task.cases.length)
    return {status:'blocked',stage:'chain-shape'};
-  const numeric=router.solve({...task.numeric,type:'numeric'});
-  const logic=router.solve({...task.logic,type:'logic'});
-  if(!record(numeric)||numeric.status!=='candidate'||!record(logic)||logic.status!=='candidate')
-   return {status:'blocked',stage:'candidate-reconstruction'};
-  const program=numeric.result?.selected?.program,rule=logic.result?.rule;
+  if(!record(result.artifacts)||!Array.isArray(result.artifacts.program)||
+     !record(result.artifacts.rule))
+   return {status:'blocked',stage:'artifact-missing'};
+  const {program,rule}=result.artifacts;
   const claims=[];
   for(let i=0;i<task.cases.length;i++){
    const actual=result.cases[i],input=task.cases[i];
