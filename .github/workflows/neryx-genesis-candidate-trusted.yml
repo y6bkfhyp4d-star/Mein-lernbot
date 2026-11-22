@@ -1,6 +1,4 @@
-# GENESIS X – trusted-base read-only candidate path gate.
-# IMPORTANT: pull_request_target loads this workflow from the protected BASE,
-# never from a PR head. We do not check out or execute untrusted PR code.
+# GENESIS X: protected-base policy. Never checkout or execute PR head content.
 name: NERYX GENESIS X trusted candidate policy
 on:
   pull_request_target:
@@ -15,7 +13,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Check candidate paths via GitHub read-only API (trusted base workflow)
+      - name: Checkout only protected base commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Evaluate file paths and independent review without executing PR code
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -23,49 +26,9 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json
-          import os
-          import urllib.request
-
-          head = os.environ["HEAD_REF"]
-          if not head.startswith("neryx/auto/"):
-              print("Ordinary PR: auto-candidate path restriction does not apply.")
-              print("Human PR review and other required CI checks remain necessary.")
-              raise SystemExit(0)
-
-          repository = os.environ["REPOSITORY"]
-          number = int(os.environ["PR_NUMBER"])
-          api = os.environ["API_URL"].rstrip("/")
-          token = os.environ["GH_TOKEN"]
-          paths = []
-          for page in range(1, 32):
-              url = f"{api}/repos/{repository}/pulls/{number}/files?per_page=100&page={page}"
-              request = urllib.request.Request(url, headers={
-                  "Authorization": f"Bearer {token}",
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-                  "User-Agent": "GENESIS-X-readonly-policy"
-              })
-              with urllib.request.urlopen(request, timeout=15) as response:
-                  files = json.load(response)
-              if not isinstance(files, list):
-                  raise RuntimeError("Invalid GitHub PR files response")
-              for file in files:
-                  paths.append(file["filename"])
-                  if file.get("previous_filename"):
-                      paths.append(file["previous_filename"])
-              if len(files) < 100:
-                  break
-          else:
-              raise RuntimeError("Too many files to verify safely")
-
-          if not paths:
-              raise RuntimeError("Empty auto-candidate PR not permitted")
-          for path in paths:
-              if not (path.startswith("candidates/") or path.startswith("eval/candidates/")):
-                  raise RuntimeError(f"DENIED: auto-candidate attempted disallowed path: {path}")
-          print(f"PASS: {len(paths)} candidate file paths allowed; no PR code executed")
-          PY
+          python3 .github/scripts/genesis_trusted_gate.py
