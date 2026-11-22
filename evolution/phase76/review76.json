@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 71,
+  "cursor": 76,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -792,6 +792,67 @@
       "title": "1946",
       "wikidata_id": "Q18610",
       "wikidata_url": "https://www.wikidata.org/wiki/Q18610"
+    },
+    {
+      "checked_at": "2026-11-22T21:08:24+00:00",
+      "classes": [
+        "Gewerbebetrieb",
+        "Unternehmen",
+        "Technologieunternehmen",
+        "Marke"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "ASRock",
+      "wikidata_id": "Q93894",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q93894"
+    },
+    {
+      "checked_at": "2026-11-22T21:08:24+00:00",
+      "classes": [
+        "Pfadsuch-Algorithmus",
+        "graphentheoretischer Algorithmus",
+        "complete search algorithm",
+        "admissible search algorithm"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "A*-Algorithmus",
+      "wikidata_id": "Q277680",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q277680"
+    },
+    {
+      "checked_at": "2026-11-22T21:08:24+00:00",
+      "classes": [
+        "musikalisches Werk / Komposition"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "A.I. (Lied)",
+      "wikidata_id": "Q127257803",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q127257803"
+    },
+    {
+      "checked_at": "2026-11-22T21:08:24+00:00",
+      "classes": [
+        "lateinische Phrase"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "A priori",
+      "wikidata_id": "Q12078874",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q12078874"
+    },
+    {
+      "checked_at": "2026-11-22T21:08:24+00:00",
+      "classes": [
+        "Wirtschaftstätigkeit"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Aktienmarkt",
+      "wikidata_id": "Q475000",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q475000"
     }
   ],
   "runs": [
@@ -958,6 +1019,13 @@
     },
     {
       "at": "2026-11-22T19:54:21+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-22T21:08:24+00:00",
       "checked": 5,
       "error_count": 1,
       "known_sources": 89,
