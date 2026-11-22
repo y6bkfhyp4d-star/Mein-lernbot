@@ -79,7 +79,7 @@ export function evaluateCorpus(corpus){
       'Not a proof of security, correctness, semantic precision or production readiness']
   };
 }
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+if(process.argv[1]&&realpathSync(resolve(process.argv[1]))===realpathSync(fileURLToPath(import.meta.url))){
   try{
     const file=process.argv[2];
     if(process.argv.length!==3||!file||!isAbsolute(file))throw new Error('Requires exactly one absolute corpus path');
