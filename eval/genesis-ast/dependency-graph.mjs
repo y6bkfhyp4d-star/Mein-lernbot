@@ -48,6 +48,12 @@ function resolveEdge(edge,nodes){
     return {...edge,status:'external',to:null};
   // Reject query/hash syntax for local modules: cannot safely infer a filesystem target.
   if(/[?#]/.test(s))return {...edge,status:'unresolved-specifier',to:null};
+  // Track traversal explicitly; path.resolve would otherwise clamp ../ above '/'.
+  let depth=dirname(edge.from).split('/').filter(Boolean).length;
+  for(const part of s.split('/')){
+    if(part==='..'){if(--depth<0)return {...edge,status:'out-of-root',to:null};}
+    else if(part&&part!=='.')depth++;
+  }
   const base=normalize(resolve('/',dirname(edge.from),s)).slice(1).replaceAll('\\','/');
   if(base==='..'||base.startsWith('../'))return {...edge,status:'out-of-root',to:null};
   const candidates=extname(base)?[base]:[base+'.js',base+'.mjs',base+'.cjs',base+'/index.js',base+'/index.mjs',base+'/index.cjs'];
