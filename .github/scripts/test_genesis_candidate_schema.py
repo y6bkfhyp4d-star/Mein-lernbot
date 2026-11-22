@@ -70,7 +70,7 @@ class CandidateContractTests(unittest.TestCase):
         from contextlib import contextmanager
         candidate = pack(proposal())
         blob = hashlib.sha1(b"blob " + str(len(candidate)).encode("ascii")
-                            + b"\\0" + candidate).hexdigest()
+                            + b"\0" + candidate).hexdigest()
         payload = {"sha": blob, "encoding": "base64",
                    "content": base64.b64encode(candidate).decode("ascii")}
         head = "d" * 40
