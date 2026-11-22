@@ -1,6 +1,6 @@
 """Isolated offline regression suite; no network, no protected branch mutation."""
 import unittest
-from genesis_trusted_gate import decide, native_review_enforced
+from genesis_trusted_gate import decide, native_review_enforced, verify_pull_snapshot
 
 SHA = "a" * 40
 OTHER = "b" * 40
@@ -155,6 +155,40 @@ class GateTests(unittest.TestCase):
                          (True, "independent-current-approval"))
         self.assertEqual(check([file("index.html")], reviews=[review(sha=OTHER)]),
                          (False, "sensitive-path-requires-independent-current-approval"))
+
+    def test_live_pr_snapshot_must_match_event_before_and_after(self):
+        import copy
+        repo = "y6bkfhyp4d-star/Mein-lernbot"
+        base = "c" * 40
+        snapshot = {
+            "number": 90, "state": "open",
+            "head": {"ref": "security/change", "sha": SHA},
+            "base": {"ref": "main", "sha": base,
+                     "repo": {"full_name": repo}},
+            "user": {"login": "author"}
+        }
+        args = (repo, 90, "security/change", SHA, base, "author")
+        self.assertTrue(verify_pull_snapshot(snapshot, *args))
+        variants = [
+            (("head", "sha"), OTHER), (("head", "ref"), "neryx/auto/forged"),
+            (("base", "sha"), OTHER), (("base", "ref"), "develop"),
+            (("base", "repo", "full_name"), "other/repo"),
+            (("user", "login"), "other-user"),
+            (("number",), 91), (("state",), "closed"),
+        ]
+        for keys, new_value in variants:
+            with self.subTest(keys=keys):
+                item = copy.deepcopy(snapshot)
+                node = item
+                for key in keys[:-1]:
+                    node = node[key]
+                node[keys[-1]] = new_value
+                for attempt in range(2):
+                    with self.assertRaises(ValueError):
+                        verify_pull_snapshot(item, *args)
+        for invalid in (None, {}, {"number": 90}, []):
+            with self.assertRaises(ValueError):
+                verify_pull_snapshot(invalid, *args)
 
     def test_invalid_payloads_fail_closed(self):
         for records in ([], [{"wrong": "missing filename"}],
