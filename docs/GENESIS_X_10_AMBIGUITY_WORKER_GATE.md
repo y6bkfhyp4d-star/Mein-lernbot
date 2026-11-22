@@ -26,3 +26,15 @@ Der gleiche Ursprung und die gemeinsame JavaScript-Laufzeit setzen keine starke 
 Keine Änderungen an `main`, `app.js`, `index.html`, `sw.js`, Frozen oder den bestehenden Worker-Protokollen. **Keine automatische Verdrahtung in die Live-App, keine Vercel-Veröffentlichung**. Die opt-in Worker-Funktion ist nur im Forschungsbranch vorhanden und nicht automatisch offline vorgecached.
 
 Ein zukünftiger Release benötigt weiterhin unabhängige Qualitätsprüfung, echte iPhone-Tests und ausdrückliche Freigabe.
+
+## Verifizierter Stand – 22.11.2026
+
+[GitHub Actions #45014647302](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45014647302): **4/4 Jobs erfolgreich**.
+
+- Vollständige Node-Regression: **620/620 Tests bestanden** (vier neue Unit-Tests zu Mehrdeutigkeit, Eindeutigkeit, unzulässigen Eingaben und widersprüchlichen Beispielen).
+- Echte Browser-Smokes: Chromium **bestanden**, Linux WebKit **bestanden**.
+- Der Worker meldet für den absichtlich unterbestimmten Fall **`ambiguous`** und für den geprüften Zwei-Schritt-Fall **`review_required`**; beide Antworten behalten **`publishable:false`**.
+- Bei fehlendem Worker erfolgt **`blocked`** statt einer veröffentlichten Antwort; der Browser-Speicher bleibt unberührt und Forschungs-Globals sind nicht im Hauptfenster sichtbar.
+- Die geschützten Produktions- und vorhandenen Worker-Dateien bleiben unverändert; kein `main`-Merge und kein Vercel-Deployment.
+
+**Forschungsgrenze:** Dies ist eine neue isolierte *opt-in* Worker-Fähigkeit, keine automatische Funktion des bestehenden NERYX-Chats und kein Nachweis allgemeiner Intelligenz. Ein für die spätere App-Integration relevanter Offline-/iPhone-Laufzeittest dieses neuen Workers steht weiterhin aus.
