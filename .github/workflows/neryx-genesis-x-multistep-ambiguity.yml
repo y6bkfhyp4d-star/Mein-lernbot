@@ -1,0 +1,49 @@
+name: GENESIS X multi-step equivalence and ambiguity gate
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-rule-discrimination-abstention]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  challenge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Two-step rule synthesis and ambiguity detection
+        run: node eval/genesis-x-multistep-ambiguity-audit.mjs
+      - name: Previous rule discrimination checks
+        run: node eval/genesis-x-rule-discrimination.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: All NERYX and GENESIS X regression tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Reject changes to app, research engine or Frozen
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json|modules/)' /tmp/changed.txt; then
+            echo 'Protected file changed'; exit 1
+          fi
