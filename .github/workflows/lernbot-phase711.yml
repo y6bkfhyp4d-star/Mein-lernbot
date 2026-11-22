@@ -1,56 +1,38 @@
-
-name: LernBot 7.0 - Flexible Satzanalyse 7.11
-
+name: LernBot 7.0 – Flexible Satzanalyse 7.11 (Review-Branch)
 on:
   workflow_dispatch: {}
   schedule:
     - cron: "37 3,9,15,21 * * *"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/lernbot-phase711.yml"
-
 permissions:
   contents: write
-
 concurrency:
   group: lernbot-phase711
   cancel-in-progress: false
-
 jobs:
   extract:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-
+    env:
+      REPORT_BRANCH: neryx/research-phase711
+      REPORT_FILES: evolution/phase711/research711.json
     steps:
-      - name: Repository laden
+      - name: Geprueften Code aus main laden
         uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
-
-      - name: Python installieren
+          fetch-depth: 0
+      - name: Python einrichten
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Tests fuer Quellenzuordnung und Satzanalyse
+      - name: Nur zugelassene JSON-Daten aus Review-Branch einlesen
+        run: bash .github/scripts/research-review-branch.sh prepare
+      - name: Tests fuer Quellenzuordnung
         run: |
           python3 -m unittest discover -s evolution/phase711 -p 'test_research710.py'
           python3 -m unittest discover -s evolution/phase711 -p 'test_research711.py'
-
-      - name: Quellen und flexible Definitionen untersuchen
+      - name: Quellen und Definitionen untersuchen
         run: python3 evolution/phase711/research711.py
-
-      - name: Neuen Bericht speichern
-        run: |
-          if ! git diff --quiet -- evolution/phase711/research711.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-            git add evolution/phase711/research711.json
-            git commit -m "LernBot 7.11: Neue Satzanalyse aktualisieren"
-            git pull --rebase
-            git push
-          else
-            echo "Keine Aenderungen am Bericht."
-          fi
+      - name: Nur erlaubte JSON-Berichte auf Review-Branch schreiben
+        run: bash .github/scripts/research-review-branch.sh publish
