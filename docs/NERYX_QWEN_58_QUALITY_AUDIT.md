@@ -25,3 +25,12 @@ Diese Suite testet die **realen Orchestrator-/Prüfer-Codepfade**, aber Qwen-Tex
 Produktive Dateien, bestehende Lernspeicher, Service Worker, Frozen-Siegel, Modellintegrationen und die offiziellen NERYX-Befehle bleiben unverändert. Keine automatischen Modell-Downloads, kein Merge nach `main`, kein Production-Deploy.
 
 **Folgeschritt nach Review:** Blind-Holdout mit ausgewogenen deutschen Fragen aus echten Nutzerkategorien und reproduzierbarem Quellabgleich für Faktenbehauptungen; dann minimalen, separat getesteten Qualitätsfilter vorschlagen. Einen einzelnen bekannten Zahlentyp nicht als allgemeine Mathematikprüfung ausgeben.
+
+## GitHub-Actions-Ergebnis (22.11.2026)
+
+[CI-Lauf #45018676201](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45018676201) **success: 3/3 Jobs**.
+- Unabhängige adversariale Qualitätsfälle: **10/10 bestanden**.
+- Vollständige Node-Regression: **635/635 bestanden**, 0 Fehler.
+- Geschützte Dateien unverändert: **success**.
+
+Die frühen fehlgeschlagenen Läufe während der Erstellung dieses neuen Test-Harness wurden durch Korrektur relativer Test-Dateipfade, Entfernen eines unzulässigen Überschreibversuchs einer bereits eingefrorenen Produkt-API und präzise Testbezeichnungen behoben. Es wurde **kein Produktcode** für grüne Tests verändert. Das Ergebnis beschreibt ausschließlich den abschließenden Commit.
