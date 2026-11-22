@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>GENESIS X – Isolierte Aufgabenprüfung</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#11111a;color:#f5f3ff}
+body{max-width:500px;margin:24px auto;padding:0 18px}
+main{background:#20202e;border:1px solid #49445c;border-radius:16px;padding:20px}
+label{display:block;margin:14px 0 5px}
+input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #6d6380;border-radius:9px;background:#11111a;color:#fff;font:inherit}
+button{width:100%;padding:14px;border:0;border-radius:9px;background:#8b5cf6;color:white;font:inherit;font-weight:700;margin-top:20px}
+button:disabled{opacity:.5}
+output{display:block;white-space:pre-wrap;border-top:1px solid #49445c;margin-top:16px;padding-top:16px;min-height:4em}
+small{color:#c4b5fd}
+</style>
+</head>
+<body>
+<main>
+<h1>GENESIS X · Forschungstest</h1>
+<p>Eine begrenzte Zahlenaufgabe als <strong>interne Konsistenzprüfung</strong> übermitteln. Diese Testseite liefert <strong>keine freigegebene Antwort</strong>.</p>
+<form id="task-form">
+<label for="x">Zahl x (−1.000.000 bis 1.000.000)</label><input id="x" inputmode="decimal" type="number" min="-1000000" max="1000000" step="any" value="3" required>
+<label for="b">Vergleichszahl b (−1.000.000 bis 1.000.000)</label><input id="b" inputmode="decimal" type="number" min="-1000000" max="1000000" step="any" value="4" required>
+<button id="run" type="submit">Nur intern prüfen</button>
+</form>
+<output id="report" role="status" aria-live="polite">Noch keine Prüfung durchgeführt.</output>
+<small>Nur Forschungs-UI. Keine Speicherung, kein Hauptchat, keine Produktionsfreigabe.</small>
+</main>
+<script src="../modules/genesis-x-worker-client.js"></script>
+<script src="genesis-x-task-ui.js"></script>
+</body>
+</html>
