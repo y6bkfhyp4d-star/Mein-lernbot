@@ -1,0 +1,50 @@
+name: GENESIS X independent deterministic reference audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-reviewed-task-ui]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare GENESIS X checked outputs with independent reference arithmetic
+        run: node eval/genesis-x-reference-audit.mjs
+      - name: Verify the oracle rejects injected faults
+        run: node --test eval/tests/genesis-x-independent-oracle.test.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Complete NERYX and GENESIS X regression suite
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify no app, worker, main service worker or Frozen changes
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json|modules/genesis-x-worker\.js|modules/genesis-x-worker-client\.js)$' /tmp/changed.txt; then
+            echo "Protected production or worker protocol file modified"; exit 1
+          fi
