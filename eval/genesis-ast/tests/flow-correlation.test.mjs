@@ -58,3 +58,10 @@ test('assigned arrow function remains untracked',()=>{
   assert.equal(r.functions.length,0);
   assert.equal(r.untracked.data[0].reason,'assigned-function-not-tracked');
 });
+
+test('duplicate top-level function names cannot be correlated by name',()=>{
+  const r=get('function f(a){return a;} function f(b){return b;}');
+  assert.equal(r.functions.length,2);
+  assert.ok(r.functions.every(x=>x.reasons.includes('nonunique-function-identity')));
+  assert.ok(r.functions.every(x=>x.evidence.length===0));
+});
