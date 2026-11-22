@@ -1,0 +1,47 @@
+name: NERYX GENESIS X #59 joint evidence benchmark
+on:
+  pull_request:
+    branches: [neryx/qwen-58-independent-quality-bench]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cross-system:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run the real-module NERYX Qwen GENESIS X comparison
+        run: node --test eval/tests/genesis-x-59-common-evidence-benchmark.test.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run complete Node regression suite
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Keep every production and existing research module untouched
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|manifest\.webmanifest|vercel\.json|eval/frozen\.seal\.json|modules/|evolution/neryx/)' /tmp/changed.txt; then
+            echo 'Protected production or research module changed'; exit 1
+          fi
