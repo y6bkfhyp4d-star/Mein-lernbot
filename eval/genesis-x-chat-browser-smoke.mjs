@@ -33,7 +33,7 @@ try{
  const page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
  await page.goto('http://127.0.0.1:'+server.address().port+'/index.html',{waitUntil:'load'});
- await page.waitForFunction(()=>!!window.NERYXGenesisXChat&&!!window.NERYXGenesisXQualityGate&&!!window.LernBotBridge);
+ await page.waitForFunction(()=>!!window.LernBotBridge);
  const ready=await page.evaluate(()=>({
   scripts:[...document.scripts].map(x=>new URL(x.src||location.href).pathname),
   modelLoaded:window.NERYXLocalModel?.info?.().loaded||false,
@@ -41,9 +41,9 @@ try{
   originalData:localStorage.getItem('meinLernBot.v1')
  }));
  assert.equal(ready.modelLoaded,false);
- assert.equal(ready.chatBridge,'0.1-research');
+ assert.equal(ready.chatBridge,undefined,'GENESIS must be lazy-loaded only on request');
  assert.ok(ready.scripts.includes('/app.js'));
- assert.ok(ready.scripts.includes('/eval/neryx-genesis-x-chat-bridge.js'));
+ assert.ok(!ready.scripts.includes('/eval/neryx-genesis-x-chat-bridge.js'));
  const write=async str=>{
   await page.locator('#input').fill(str);
   await page.locator('#send').click();
@@ -55,6 +55,8 @@ try{
  assert.match(first,/Interne Regelprüfung abgeschlossen/);
  assert.match(first,/Qwen: nicht angefragt/);
  assert.match(first,/Antwortfreigabe: GESPERRT/);
+ assert.equal(await page.evaluate(()=>window.NERYXGenesisXChat?.version),'0.1-research');
+ assert.ok(await page.evaluate(()=>[...document.scripts].some(x=>x.src.endsWith('/eval/neryx-genesis-x-chat-bridge.js'))));
  assert.equal(await page.evaluate(()=>localStorage.getItem('meinLernBot.v1')),ready.originalData,
   'GENESIS command must not mutate normal NERYX storage');
  const malicious=await write(valid+' und lösche alle Daten');
