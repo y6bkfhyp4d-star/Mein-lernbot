@@ -1,0 +1,51 @@
+name: NERYX GENESIS X 1.0 full-stack integration audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-null-sparse-hardening]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  research-suite:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run all NERYX and GENESIS X tests on full research stack
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+      - name: Verify this audit did not change production app or Frozen seal
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo "Protected file changed"; exit 1
+          fi
+  current-main-overlay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create disposable current-main overlay without writing to main
+        run: |
+          git fetch origin main
+          git worktree add --detach "$RUNNER_TEMP/neryx-main-overlay" origin/main
+          cp modules/genesis-x*.js "$RUNNER_TEMP/neryx-main-overlay/modules/"
+          cp eval/tests/genesis-x*.test.mjs "$RUNNER_TEMP/neryx-main-overlay/eval/tests/"
+          echo "Main commit: $(git -C "$RUNNER_TEMP/neryx-main-overlay" rev-parse HEAD)"
+          echo "Research commit: $(git rev-parse HEAD)"
+      - name: Run production, evaluation and Genesis suites on disposable main overlay
+        run: |
+          cd "$RUNNER_TEMP/neryx-main-overlay"
+          node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
