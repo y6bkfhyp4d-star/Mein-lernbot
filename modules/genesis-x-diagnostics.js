@@ -31,7 +31,7 @@ function valid(task){
 function diagnose(task){
  if(!valid(task))return {status:'invalid',reason:'Malformed or unbounded task.'};
  const solver=window.NERYXGenesisXVerifiedChain;
- if(!solver||typeof solver.solve!=='function')
+ if(!solver||solver.version!=='0.7'||typeof solver.solve!=='function')
   return {status:'unavailable',reason:'Verified chain dependency absent.'};
  let baseline;
  try{baseline=solver.solve(task);}catch{return {status:'blocked',reason:'Baseline threw.'};}
