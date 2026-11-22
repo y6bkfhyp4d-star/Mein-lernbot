@@ -21,3 +21,15 @@ Die ursprünglichen GENESIS-X-Protokolle bleiben unverändert. Die neue SW-Overl
 Erfolgreiche Tests in Linux-WebKit sind kein Nachweis auf einem physischen iPhone mit Safari. Ein Worker ist keine starke Sicherheits-Sandbox für unzuverlässigen Same-Origin-Code. Die interne `review_required`-Rückmeldung prüft nur Konsistenz auf begrenzten öffentlichen Aufgaben, nicht faktische Richtigkeit.
 
 **Kein Merge nach main, kein Vercel-Production-Deployment, keine automatisch aktivierte Forschungsfunktion.** Das Speicherformat `meinLernBot.v1` und der vorhandene Browser-/PWA-Speicher bleiben unverändert.
+
+## Tatsächlich ausgeführte Tests – 22.11.2026
+
+[GitHub Actions #45014921669](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45014921669) **erfolgreich, 4/4 Jobs grün**.
+
+- Komplette Node-Regression **620/620 bestanden**, 0 Fehler.
+- **Chromium und Linux WebKit** bestanden jeweils beide Offline-Testfälle nach physischem Abschalten des Testservers.
+- **Alle Dateien verfügbar:** 42 NERYX-Startressourcen plus 16 optionale Forschungsdateien = **58 gecachte Dateien**. Nach dem Offline-Neustart blieben NERYX-Chat/Senden verfügbar. Der neue Forschungs-Worker lieferte weiterhin `review_required` sowie `ambiguous`, ausschließlich mit `publishable:false`.
+- **Ein optionales Modul fehlt:** 42 NERYX-Startressourcen, **0** Forschungsskripte im Cache. Der Hauptchat blieb beim Offline-Neustart funktionsfähig.
+- In beiden Browsern **0 neue Serveranfragen nach dem Shutdown**. Bestehende Live-Dateien, `sw.js`, Frozen, Worker-Protokolle und Browser-Datenspeicher wurden durch diese Änderung nicht überschrieben.
+
+**Keine Releasefreigabe:** Nur ein temporäres In-Memory-SW-Overlay und Linux-Browser-Smokes. Ein physischer iPhone-Safari-Test und ein kontrollierter Integrations-Preview fehlen noch.
