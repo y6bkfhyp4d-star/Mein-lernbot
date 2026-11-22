@@ -85,7 +85,7 @@ test('E / characterization: float eq shares strict equality in chain and verifie
  assert.equal(discrepant.status,'blocked');
  assert.equal(discrepant.reason,'reference_mismatch');
 });
-test('H / RED: verifier must bind exact candidate identity across router calls',()=>{
+test('H / FIXED: verifier checks the exact candidate from first router selection',()=>{
  const w=lab();assertCandidate(w);
  const real=w.NERYXGenesisXRouter.solve;let numericCalls=0;
  w.NERYXGenesisXRouter={version:'0.4',solve:(input)=>{
@@ -98,9 +98,31 @@ test('H / RED: verifier must bind exact candidate identity across router calls',
   return r;
  }};
  const r=w.NERYXGenesisXVerifiedChain.solve(task());
- assert.equal(numericCalls,2);
- assert.notEqual(r.status,'execution_checked',
-  'Different valid programs can agree on all checked values yet have different provenance');
+ assert.equal(numericCalls,1,'Verifier must not reselect an alternate candidate');
+ assert.equal(r.status,'execution_checked');
+});
+test('H / FIXED: captured program changed after evaluation fails independent audit',()=>{
+ const w=lab(),original=w.NERYXGenesisXChain;
+ w.NERYXGenesisXChain={version:'0.5',solve(t){
+  const result=original.solve(t);
+  result.artifacts.program=[{op:'add',c:3}];
+  return result;
+ }};
+ const r=w.NERYXGenesisXVerifiedChain.solve(task());
+ assert.equal(r.status,'blocked');
+ assert.equal(r.reason,'mismatch');
+ assert.equal(r.faultStage,'numeric');
+});
+test('H / FIXED: missing candidate artifacts fail closed',()=>{
+ const w=lab(),original=w.NERYXGenesisXChain;
+ w.NERYXGenesisXChain={version:'0.5',solve(t){
+  const result=original.solve(t);
+  delete result.artifacts;
+  return result;
+ }};
+ const r=w.NERYXGenesisXVerifiedChain.solve(task());
+ assert.equal(r.status,'blocked');
+ assert.equal(r.stage,'artifact-missing');
 });
 test('F / characterization: final audit excludes overlapping numeric x values',()=>{
  const w=lab(),t=task(5);
