@@ -28,3 +28,15 @@ Alle Forschungsausgaben sind **nur Prüfmetriken**, `publishable:false`. Die Que
 ## Freigabegrenze
 
 **Selbst vollständig erfolgreiche Tests erlauben keine Live-Veröffentlichung.** `main`, Produkt-`app.js`, `index.html`, `sw.js`, GENESIS-X-Module und Frozen bleiben unverändert. Kein Zugriff auf iPhone-Speicher, kein Vercel-Deployment, keine Verknüpfung zum Live-Chat.
+
+## Tatsächliche CI-Ergebnisse (22.11.2026)
+
+[GitHub Actions #45014000273](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45014000273) — **alle drei Jobs erfolgreich**.
+
+- **Vier verschiedene Rechenregeln erkannt:** `x+2`, `3*x`, `x*x` und `-x`, jeweils **3/3** bisher nicht als Trainings-/Validierungsbeispiele verwendete Proben korrekt. Insgesamt **12/12** Probe-Ausgaben passend.
+- **Zwei Nichtwissen-Fälle korrekt behandelt:** kubische Regel bei auf einen Einzelschritt begrenzten Operatoren und widersprüchliche Validierungsdaten; jeweils `unconfirmed` und kein ausgewählter Kandidat.
+- Wiederholung der PR-#50-Gegenproben: **30/30** passend.
+- Gesamter Node-Regressionstestbestand: **610/610** bestanden, keine Fehlschläge.
+- Geschützte produktive Dateien und Forschungs-Module unverändert.
+
+**Grenze:** Dies ist eine synthetische, öffentlich bekannte Ein-Schritt-Aufgabenfamilie, keine unabhängige versteckte Blindprüfung. Es wurde kein generelles eigenständiges Entdecken völlig neuer Operatoren und keine offene Problemlösefähigkeit nachgewiesen.
