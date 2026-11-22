@@ -40,7 +40,9 @@ run.addEventListener('click',()=>action(async()=>{
  output.textContent='Qwen prüft nur deine Absicht; GENESIS X bekommt ausschließlich die originalen Zahlen.';
  const r=await window.NERYXGenesisXQwenIntent?.inspect?.(question.value,{useQwen:true});
  output.textContent=r?.reviewOnly===true&&r?.publishable===false?
-  labels[r.status]||labels.blocked:labels.blocked;
+  (labels[r.status]||labels.blocked)+(r.modelDisagreed===true?
+   '\\nHinweis: Qwen hat die Absicht falsch eingestuft. Dein ausdrücklicher Prüfauftrag und die Originalzahlen waren ausschlaggebend.':''):
+  labels.blocked;
 }));
 direct.addEventListener('click',()=>action(async()=>{
  output.textContent='GENESIS X prüft nur die vorhandenen Zahlen; kein Qwen-Aufruf.';
