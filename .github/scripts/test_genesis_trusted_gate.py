@@ -13,9 +13,11 @@ def file(name, previous=None):
     return out
 
 
-def review(name="reviewer", state="APPROVED", sha=SHA, kind="User"):
+def review(name="reviewer", state="APPROVED", sha=SHA, kind="User",
+           association="COLLABORATOR"):
     return {"user": {"login": name, "type": kind},
-            "state": state, "commit_id": sha}
+            "state": state, "commit_id": sha,
+            "author_association": association}
 
 
 def check(paths, ref="fix/change", reviews=None):
@@ -37,6 +39,16 @@ class GateTests(unittest.TestCase):
             ("fix/change", [file("app.js")], [], False),
             ("fix/change", [file(".github/workflows/gate.yml")], [], False),
             ("fix/change", [file("modules/core.js")], [review()], True),
+            ("fix/change", [file("eval/browser-offline-smoke.mjs")], [], False),
+            ("fix/change", [file("new-unknown-path.js")], [], False),
+            ("fix/change", [file("evolution/safe-looking.json")], [], False),
+            ("fix/change", [file("package-lock.json")], [], False),
+            ("fix/change", [file("sw.js")],
+             [review(association="NONE")], False),
+            ("fix/change", [file("sw.js")],
+             [review(association="FIRST_TIME_CONTRIBUTOR")], False),
+            ("fix/change", [file("sw.js")],
+             [review("AUTHOR")], False),
             ("fix/change", [file("sw.js")], [review("author")], False),
             ("fix/change", [file("sw.js")], [review(sha=OTHER)], False),
             ("fix/change", [file("sw.js")], [review(kind="Bot")], False),
@@ -51,6 +63,13 @@ class GateTests(unittest.TestCase):
             for repeat in range(2):
                 with self.subTest(ref=ref, paths=paths, repeat=repeat):
                     self.assertEqual(check(paths, ref, reviews)[0], expected)
+
+    def test_regular_docs_and_candidates_only_exempt(self):
+        self.assertEqual(check([file("docs/guide.md")])[0], True)
+        self.assertEqual(check([file("candidates/idea.json")])[0], True)
+        self.assertEqual(check([file("eval/candidates/idea.json")])[0], True)
+        self.assertEqual(check([file("docs/guide.md", "new-build.js")])[0], False)
+        self.assertEqual(check([file("docs/guide.md", "app.js")])[0], False)
 
     def test_untrusted_names_and_renames_fail_closed(self):
         bad = ("../app.js", "candidates/../app.js", "/app.js",
