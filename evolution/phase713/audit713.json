@@ -1,12 +1,12 @@
 {
   "schema": 713,
-  "generated_at": "2026-11-21T05:03:44+00:00",
+  "generated_at": "2026-11-22T05:06:44+00:00",
   "phase7_closure": "technisch_abgeschlossen_mit_offenen_wahrheitsfragen",
   "status_explanation": "Phase-7-Pipeline vorhanden und automatisierte Strukturtests dokumentiert. Keine unabhängige Sachverifikation.",
   "source_schema": 711,
-  "source_records": 40,
+  "source_records": 46,
   "audit": {
-    "checked": 17,
+    "checked": 18,
     "rows": [
       {
         "topic": "(136199) Eris",
@@ -30,6 +30,15 @@
         "topic": "2,6-Diaminopurin",
         "statement": "2,6-Diaminopurin ist eine heterocyclische organische Verbindung mit einem Puringrundgerüst.",
         "source": "https://de.wikipedia.org/?curid=7946097",
+        "flags": [],
+        "risk": "keine_strukturhinweise",
+        "independent_verified": false,
+        "auto_corrected": false
+      },
+      {
+        "topic": "Absorptionsspektrum",
+        "statement": "Ein Absorptionsspektrum ist ein elektromagnetisches Spektrum, das dunkle Spektrallinien enthält.",
+        "source": "https://de.wikipedia.org/?curid=159818",
         "flags": [],
         "risk": "keine_strukturhinweise",
         "independent_verified": false,
