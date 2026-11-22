@@ -14,13 +14,14 @@ function valid(task){
   if(!Array.isArray(block.training)||block.training.length<required||block.training.length>max||
      !Array.isArray(block.validation)||block.validation.length<minValid||block.validation.length>max)return false;
   for(const row of [...block.training,...block.validation]){
-   if(!obj(row))return false;
+   if(!obj(row)||own(row,'truth'))return false;
    if(type==='numeric'&&!finite(row.x)||type==='numeric'&&!finite(row.y)||
       type==='logic'&&(!finite(row.a)||!finite(row.b)||typeof row.expected!=='boolean'))
     return false;
   }
  }
- if(task.cases.some(c=>!obj(c)||!finite(c.x)||!finite(c.b)))return false;
+ // Selection input cannot carry evaluation reference labels. Audit truth belongs only in 0.9's held-out verification path.
+ if(Array.from(task.cases,c=>!obj(c)||own(c,'truth')||!finite(c.x)||!finite(c.b)).some(Boolean))return false;
  if(own(task.numeric,'constants')&&
    (!Array.isArray(task.numeric.constants)||task.numeric.constants.length<1||
      task.numeric.constants.length>8||task.numeric.constants.some(c=>!finite(c)||Math.abs(c)>1000)))return false;
