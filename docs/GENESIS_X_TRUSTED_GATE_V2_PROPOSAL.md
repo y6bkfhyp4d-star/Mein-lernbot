@@ -44,3 +44,17 @@ Der Trusted-Base-Workflow läuft derzeit über `pull_request_target` für `opene
 Ein naiv hinzugefügter `pull_request_review`-Trigger wäre als Ersatz nicht automatisch vertrauenswürdig: GitHub weist auf unterschiedliche Ausführungskontexte für Review-Ereignisse hin; es wäre zunächst zu prüfen, dass Workflow-Code **nicht aus dem PR-Merge-Commit** ausgeführt wird. Das Aktivierungskriterium verlangt ein **automatisch oder verlässlich erneut ausgelöstes und nach Widerruf blockierendes** Check-Gate. Bis zum Nachweis ist der Lebenszyklus **nicht abgeschlossen**, auch wenn alle Offline-Policy-Tests bestehen.
 
 **Keine Aktivierung, kein Merge, keine Änderung an `main`.** Entwurf und Tests dienen ausschließlich der Sicherheitsvorbereitung.
+
+## Review-Lifecycle: native GitHub-Erzwingung als zwingende Vorbedingung
+
+Eine genehmigte Review darf einen sensiblen PR **nur dann** im Trusted-Base-Gate passieren lassen, wenn das aktive GitHub-Ruleset die Zustimmung **selbst am Merge-Zeitpunkt erzwingt**. Der Python-Checker verlangt nun das originale Repository-Ruleset `27848423` per lesendem GitHub-API-Aufruf. Vor jedem sensitiven PASS sind nachzuweisen:
+
+- `enforcement:active`, Branch-Target, `~DEFAULT_BRANCH`, keine ausgeschlossenen Referenzen und **keine Bypass-Akteure**;
+- `required_approving_review_count >= 1` und `dismiss_stale_reviews_on_push: true`;
+- weiterhin der verpflichtende, an GitHub Actions gebundene Statuscheck `genesis-candidate-paths-trusted`.
+
+Ist die Ruleset-API nicht erreichbar, ist die Antwort unvollständig, fehlt eine dieser Voraussetzungen oder bleibt die aktuelle Konfiguration bei `required_approving_review_count:0`, lautet das Ergebnis **DENY** – auch dann, wenn ein anderer Benutzer laut Review-API bereits `APPROVED` hat. Der native GitHub-Merge-Schutz muss Review-Widerrufe und neue Commits dynamisch behandeln; ein alter grüner CI-Status allein darf nie hinreichend sein.
+
+**Tatsächlicher Stand:** Das aktuelle GitHub-Ruleset besitzt **0** erforderliche genehmigende Reviews und `dismiss_stale_reviews_on_push:false`. Somit würde der neue Checker nach Aktivierung sensible PRs **absichtlich blockieren**. Nicht mergen, solange die zweite Reviewer-Person und das Umstellen des Rulesets nicht vorbereitet und in einem isolierten Test-Repo bestätigt sind.
+
+Die neuen Offline-Negativtests simulieren sowohl das aktuelle nicht ausreichende Ruleset als auch die beabsichtigte gehärtete Konfiguration – das ist weiterhin **kein echter Test der GitHub-Server-Erzwingung**. Ein `pull_request_review`-Workflow-Trigger wird nicht hinzugefügt; der Native-Ruleset-Mechanismus soll der vertrauenswürdige dynamische Kontrollpunkt sein. Danach ist eine separate Live-Abnahme nötig.
