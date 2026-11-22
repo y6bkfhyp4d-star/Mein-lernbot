@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 51,
+  "cursor": 56,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -573,6 +573,62 @@
       "title": "Abgeschlossenes System",
       "wikidata_id": "Q320388",
       "wikidata_url": "https://www.wikidata.org/wiki/Q320388"
+    },
+    {
+      "checked_at": "2026-11-22T03:13:53+00:00",
+      "classes": [
+        "chemischer Stoff"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abfallprodukt",
+      "wikidata_id": "Q319936",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q319936"
+    },
+    {
+      "checked_at": "2026-11-22T03:13:53+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Absorption (Physik)",
+      "wikidata_id": "Q897136",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q897136"
+    },
+    {
+      "checked_at": "2026-11-22T03:13:53+00:00",
+      "classes": [
+        "Plutoid",
+        "Asteroid",
+        "klassisches Kuipergürtel-Objekt",
+        "Zwergplanet"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(136472) Makemake",
+      "wikidata_id": "Q604",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q604"
+    },
+    {
+      "checked_at": "2026-11-22T03:13:53+00:00",
+      "classes": [
+        "Asteroid"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(2) Pallas",
+      "wikidata_id": "Q3002",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q3002"
+    },
+    {
+      "checked_at": "2026-11-22T03:13:53+00:00",
+      "classes": [
+        "astronomische Objektklasse"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "AGB-Stern",
+      "wikidata_id": "Q50089",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q50089"
     }
   ],
   "runs": [
@@ -715,17 +771,27 @@
       "error_count": 1,
       "known_sources": 76,
       "source_changes": 0
+    },
+    {
+      "at": "2026-11-22T03:13:53+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 79,
+      "source_changes": 0
     }
   ],
   "schema": 76,
   "snapshots": {
     "(1) Ceres": "8fc7675545628d1537f1",
     "(10199) Chariklo": "b9a15e211f3ec4009619",
+    "(120178) 2003 OP32": "4c24213b7d4e03775ef0",
+    "(120347) Salacia": "b09f7e7860bf3cb1c95a",
     "(136108) Haumea": "f8fcbc1149b86c8ce345",
     "(136199) Eris": "40aab008cc318d0c072d",
     "(136472) Makemake": "72e50ba196bcfe8839c1",
     "(2) Pallas": "8f71b0dd701c9170fc69",
     "(2+2)-Cycloaddition": "32734726679ee9b7cd5a",
+    "(225088) Gonggong": "f8d525a5c88b3ca52468",
     "-genese": "c2d8453aacac20d43ac6",
     "1,2-Propandiol": "c5f3e389010b220964cd",
     "18. Oktober": "f86e5368d33bf440e3cc",
