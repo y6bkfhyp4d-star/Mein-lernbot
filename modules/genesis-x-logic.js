@@ -24,7 +24,8 @@ function value(rule,point){
  if(rule.kind==='or')return value(rule.left,point)||value(rule.right,point);
  return false;
 }
-function learn({training,validation,constants=[0,1,2,3,5,10]}={}){
+function learn(request){
+ const {training,validation,constants=[0,1,2,3,5,10]}=request&&typeof request==='object'&&!Array.isArray(request)?request:{};
  const train=parse(training,4),check=parse(validation,2);
  if(!train||!check||check.some(p=>train.some(q=>q.key===p.key))||
  !Array.isArray(constants)||constants.length<1||constants.length>10||

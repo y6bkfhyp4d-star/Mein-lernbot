@@ -53,12 +53,13 @@ function decide(r,a,b,depth=0){
  }
  return null;
 }
-function verify({program,rule,cases,claims}={}){
+function verify(request){
+ const {program,rule,cases,claims}=obj(request)?request:{};
  if(!Array.isArray(cases)||cases.length<1||cases.length>20||
     !Array.isArray(claims)||claims.length!==cases.length||
-    cases.some(c=>!obj(c)||!num(c.x)||!num(c.b))||
-    claims.some(c=>!obj(c)||!own(c,'value')||!own(c,'decision')||
-     typeof c.value!=='number'||!Number.isFinite(c.value)||typeof c.decision!=='boolean'))
+    Array.from(cases,c=>!obj(c)||!num(c.x)||!num(c.b)).some(Boolean)||
+    Array.from(claims,c=>!obj(c)||!own(c,'value')||!own(c,'decision')||
+     typeof c.value!=='number'||!Number.isFinite(c.value)||typeof c.decision!=='boolean').some(Boolean))
   return {status:'invalid',reason:'Invalid cases or claims.'};
  const checked=[];
  for(let i=0;i<cases.length;i++){

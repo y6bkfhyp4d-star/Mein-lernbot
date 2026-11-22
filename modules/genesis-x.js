@@ -30,7 +30,8 @@ function quadratic(training){
  const predict=x=>(aa*x+bb)*x+cc;
  return training.every(p=>close(predict(p.x),p.y))?{name:'quadratisch',parameters:{a:aa,b:bb,c:cc},predict}:null;
 }
-function compare({training,holdout}={}){
+function compare(request){
+ const {training,holdout}=request&&typeof request==='object'&&!Array.isArray(request)?request:{};
  const learn=points(training,3,20),test=points(holdout,2,30);
  if(!learn||!test||test.some(p=>learn.some(q=>q.x===p.x)))
   return {status:'invalid',reason:'Nur endliche, eindeutige Werte und getrennte Trainings-/Prüfwerte erlaubt.'};

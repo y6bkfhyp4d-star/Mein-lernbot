@@ -114,7 +114,7 @@ test('AUDIT: no user-data or self-deployment interface exposed',()=>{
  assert.equal(api.executeCode,undefined);
  assert.ok(Object.isFrozen(api));
 });
-test('AUDIT FINDING: null research request currently throws (not yet fixed)',()=>{
+test('AUDIT FIXED: null research request safely returns invalid',()=>{
  const w=lab();
- assert.throws(()=>w.NERYXGenesisXResearch.run(null),/Cannot destructure/);
+ assert.doesNotThrow(()=>assert.equal(w.NERYXGenesisXResearch.run(null).status,'invalid'));
 });

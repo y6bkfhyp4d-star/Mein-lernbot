@@ -33,7 +33,8 @@ function run(program,x){
  }
  return v;
 }
-function compose({training,holdout,constants=[0,1,2,3],maxSteps=2}={}){
+function compose(request){
+ const {training,holdout,constants=[0,1,2,3],maxSteps=2}=request&&typeof request==='object'&&!Array.isArray(request)?request:{};
  const learn=pairs(training,3),verify=pairs(holdout,2);
  if(!learn||!verify||verify.some(p=>learn.some(q=>q.x===p.x))||
  !Array.isArray(constants)||constants.length>8||constants.length<1||
