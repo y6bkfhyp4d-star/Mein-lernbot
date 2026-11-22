@@ -23,3 +23,15 @@ The output is only **aggregated audit statistics**. The test protocol stays `pub
 This is a fixed public holdout, **not sealed independent validation**. It measures robustness on this *known task family* rather than proof of generalized reasoning or skill with novel operators. Boundary values are chosen from an explicitly known formula and can still share specification errors with the implementation. No real iPhone browser test or Vercel preview is implied.
 
 A failure is recorded rather than modifying the fixture to force a green result. Product integration and live release remain blocked.
+
+## Verified CI results (2026-11-22)
+
+[GitHub Actions #45013701653](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45013701653): **3/3 green jobs**.
+
+- New adversarial public holdouts: **30/30 correct** (10/10 comparison boundaries; 10/10 signed fractions; 10/10 large input distribution-shift); **30/30 numeric values** and **30/30 Boolean decisions** matched the independent deterministic specification.
+- Each cohort's intentionally wrong numeric value and flipped Boolean claim produced a **reference mismatch** rather than an accepted result.
+- Re-run of #49's earlier public oracle test: **12/12 matched**.
+- Complete Node regression corpus: **605/605 passed**, 0 failures.
+- Production and research engine protection check: passed. All outputs retain `publishable:false`.
+
+**Interpretation:** Robust on these 30 *public, finite, formula-known* cases. Still not a blind sealed test or generalization to new reasoning domains. No changes to `main`, the live app, or the iPhone's data.
