@@ -2,7 +2,7 @@
 // Uses OS temporary files; never executes fixture code or writes into the repository.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -72,4 +72,22 @@ test('external CLI: refuses malformed JSON',()=>withTemp(dir=>{
   assert.equal(result.status,2);
   assert.equal(result.stdout,'');
   assert.match(result.stderr,/external evaluation failed/);
+}));
+
+test('Claude audit B4: CLI reached through symlink emits a real report',()=>withTemp(dir=>{
+  const wrapper=join(dir,'genesis-alias.mjs');
+  const file=join(dir,'corpus.json');
+  symlinkSync(cli,wrapper);
+  writeFileSync(file,JSON.stringify({schema:1,cases:[
+    {id:'ok',expected:'eligible',source:'function identity(x){return x;}'}
+  ]}));
+  const result=spawnSync(process.execPath,[wrapper,file],{
+    encoding:'utf8',timeout:15000,maxBuffer:1024*1024
+  });
+  assert.equal(result.status,0,result.stderr);
+  assert.notEqual(result.stdout.trim(),'');
+  const report=JSON.parse(result.stdout);
+  assert.equal(report.evaluated,1);
+  assert.equal(report.complete,true);
+  assert.deepEqual(report.confusion,{TP:1,FP:0,TN:0,FN:0});
 }));
