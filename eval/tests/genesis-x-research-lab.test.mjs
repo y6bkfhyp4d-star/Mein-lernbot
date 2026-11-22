@@ -40,7 +40,11 @@ test('strategy, numeric, and logic research modes route correctly',()=>{
 test('router, chain, verifier and checked chain work through same interface',()=>{
  const x=lab().NERYXGenesisXResearchLab;
  assert.equal(x.run({mode:'routing',input:{...numeric,type:'numeric'}}).status,'candidate');
- assert.equal(x.run({mode:'chain',input:task}).status,'candidate');
+ const chain=x.run({mode:'chain',input:task});
+ assert.equal(chain.status,'exploration_only');
+ assert.equal(chain.candidateStatus,'candidate');
+ assert.equal(chain.publishable,false);
+ assert.equal(chain.report,undefined);
  assert.equal(x.run({mode:'audit',input:audit}).status,'execution_matched');
  assert.equal(x.run({mode:'checked',input:task}).status,'execution_checked');
 });

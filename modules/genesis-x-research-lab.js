@@ -1,4 +1,4 @@
-/* GENESIS X 1.0: read-only integration facade for nine isolated research stages. */
+/* GENESIS X 1.0 experimental research facade; never a production answer API. */
 (() => {
 'use strict';
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
@@ -13,10 +13,17 @@ const engines=Object.freeze({
  diagnosis:Object.freeze({key:'NERYXGenesisXDiagnostics',method:'diagnose',version:'0.8'}),
  research:Object.freeze({key:'NERYXGenesisXResearch',method:'run',version:'0.9'})
 });
-const permitted=new Set(['candidate','unconfirmed','invalid','unavailable','blocked',
- 'classified','mismatch','reference_mismatch','execution_matched','reference_matched',
- 'execution_checked','no_change','needs_input','proposal','no_evidence','rejected',
- 'no_improvement','inconclusive','coverage_gain_observed']);
+const statuses=Object.freeze({
+ strategy:Object.freeze(['candidate','unconfirmed','invalid']),
+ numeric:Object.freeze(['candidate','unconfirmed','invalid']),
+ logic:Object.freeze(['candidate','unconfirmed','invalid']),
+ routing:Object.freeze(['candidate','unconfirmed','invalid','unavailable']),
+ chain:Object.freeze(['candidate','unconfirmed','invalid','unavailable']),
+ audit:Object.freeze(['execution_matched','reference_matched','mismatch','reference_mismatch','invalid']),
+ checked:Object.freeze(['execution_checked','unconfirmed','invalid','unavailable','blocked']),
+ diagnosis:Object.freeze(['no_change','proposal','blocked','needs_input','unconfirmed','invalid','unavailable']),
+ research:Object.freeze(['coverage_gain_observed','no_improvement','rejected','inconclusive','no_change','no_evidence','blocked','invalid','unavailable'])
+});
 function capabilities(){
  return Object.freeze(Object.entries(engines).map(([name,config])=>{
   const engine=window[config.key];
@@ -31,15 +38,20 @@ function run(request){
   return {status:'invalid',reason:'A supported mode and structured input are required.'};
  const config=engines[mode],engine=window[config.key];
  if(!engine||engine.version!==config.version||typeof engine[config.method]!=='function')
-  return {status:'unavailable',mode,reason:'Required research module missing or version mismatch.'};
+  return {status:'unavailable',mode,reason:'Required research module missing or version mismatch.',publishable:false};
  try{
   const report=engine[config.method](input);
-  if(!object(report)||typeof report.status!=='string'||!permitted.has(report.status))
-   return {status:'blocked',mode,reason:'Malformed or unrecognized engine result.'};
+  if(!object(report)||typeof report.status!=='string'||!statuses[mode].includes(report.status))
+   return {status:'blocked',mode,reason:'Status is not permitted for this research mode.',publishable:false};
+  // Chain 0.5 is deliberately unverified. Never return its case predictions via this facade.
+  if(mode==='chain')return {status:'exploration_only',mode,candidateStatus:report.status,
+   publishable:false,note:'The unchecked chain is accessible for research only; its predictions are not exposed.'};
   return {status:report.status,mode,engineVersion:config.version,
-   report,
-   note:'Experimental output only. Candidate and execution_checked do not prove real-world correctness or novelty.'};
- }catch{return {status:'blocked',mode,reason:'Engine threw; no output accepted.'};}
+   report,publishable:false,
+   note:'Research only. Even execution_checked does not establish real-world correctness or authorize publication.'};
+ }catch{return {status:'blocked',mode,reason:'Engine threw; no output accepted.',publishable:false};}
 }
-window.NERYXGenesisXResearchLab=Object.freeze({version:'1.0',modes:Object.freeze(Object.keys(engines)),capabilities,run});
+window.NERYXGenesisXResearchLab=Object.freeze({
+ version:'1.0',modes:Object.freeze(Object.keys(engines)),capabilities,run
+});
 })();
