@@ -1,9 +1,9 @@
 {
   "independent_confirmations": 0,
   "last_batch": [
-    "(136472) Makemake",
-    "A priori",
-    "A*-Algorithmus"
+    "(120178) 2003 OP32",
+    "(120347) Salacia",
+    "(225088) Gonggong"
   ],
   "questions": [
     {
@@ -44,6 +44,26 @@
       "source": "https://de.wikipedia.org/wiki/%2810199%29_Chariklo",
       "status": "keine_treffer",
       "topic": "(10199) Chariklo"
+    },
+    {
+      "checked_at": "2026-11-22T03:28:35+00:00",
+      "hits": [],
+      "independent_confirmation": false,
+      "question": "Was ist (120178) 2003 OP32 und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%28120178%29_2003_OP32",
+      "status": "keine_treffer",
+      "topic": "(120178) 2003 OP32"
+    },
+    {
+      "checked_at": "2026-11-22T03:28:35+00:00",
+      "hits": [],
+      "independent_confirmation": false,
+      "question": "Was ist (120347) Salacia und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%28120347%29_Salacia",
+      "status": "keine_treffer",
+      "topic": "(120347) Salacia"
     },
     {
       "checked_at": "2026-11-18T09:36:16+00:00",
@@ -146,6 +166,16 @@
       "source": "https://de.wikipedia.org/wiki/%282%2B2%29-Cycloaddition",
       "status": "suchtreffer",
       "topic": "(2+2)-Cycloaddition"
+    },
+    {
+      "checked_at": "2026-11-22T03:28:35+00:00",
+      "hits": [],
+      "independent_confirmation": false,
+      "question": "Was ist (225088) Gonggong und wie wird es eingeordnet?",
+      "reason": "klassifikation_offen",
+      "source": "https://de.wikipedia.org/wiki/%28225088%29_Gonggong",
+      "status": "keine_treffer",
+      "topic": "(225088) Gonggong"
     },
     {
       "checked_at": "2026-11-19T21:27:26+00:00",
@@ -1449,6 +1479,14 @@
       "open_gaps": 76,
       "searched": 3,
       "with_results": 2
+    },
+    {
+      "at": "2026-11-22T03:28:35+00:00",
+      "errors": 0,
+      "no_results": 3,
+      "open_gaps": 79,
+      "searched": 3,
+      "with_results": 0
     }
   ],
   "schema": 77,
