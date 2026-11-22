@@ -24,7 +24,49 @@ def sensitive(path):
     return not any(path.startswith(prefix) for prefix in REVIEW_FREE)
 
 
-def decide(head_ref, files, reviews, author, head_sha):
+def native_review_enforced(ruleset, repository):
+    """Confirm GitHub itself enforces the live review state at merge time."""
+    if not isinstance(ruleset, dict) or ruleset.get("enforcement") != "active":
+        return False
+    if ruleset.get("source") != repository or ruleset.get("target") != "branch":
+        return False
+    if ruleset.get("bypass_actors") != []:
+        return False
+    conditions = ruleset.get("conditions")
+    if not isinstance(conditions, dict):
+        return False
+    names = conditions.get("ref_name")
+    if not isinstance(names, dict) or "~DEFAULT_BRANCH" not in names.get("include", []):
+        return False
+    if names.get("exclude"):
+        return False
+    review_policy = None
+    status_policy = None
+    for rule in ruleset.get("rules", []):
+        if not isinstance(rule, dict):
+            return False
+        if rule.get("type") == "pull_request":
+            review_policy = rule.get("parameters")
+        if rule.get("type") == "required_status_checks":
+            status_policy = rule.get("parameters")
+    if not isinstance(review_policy, dict) or not isinstance(status_policy, dict):
+        return False
+    count = review_policy.get("required_approving_review_count")
+    if type(count) is not int or count < 1:
+        return False
+    if review_policy.get("dismiss_stale_reviews_on_push") is not True:
+        return False
+    checks = status_policy.get("required_status_checks")
+    if not isinstance(checks, list) or not any(
+        isinstance(item, dict) and item.get("context") == "genesis-candidate-paths-trusted"
+        and item.get("integration_id") == 15368 for item in checks
+    ):
+        return False
+    return True
+
+
+def decide(head_ref, files, reviews, author, head_sha,
+           native_review_protected=False):
     """Return (allowed, reason); fail closed on invalid GitHub API data."""
     if not isinstance(head_ref, str) or not head_ref:
         raise ValueError("Missing branch")
@@ -58,6 +100,8 @@ def decide(head_ref, files, reviews, author, head_sha):
     protected = [p for p in paths if sensitive(p)]
     if not protected:
         return True, "no-sensitive-path"
+    if native_review_protected is not True:
+        return False, "native-review-enforcement-not-proven"
     # GitHub reviews are grouped by reviewer. The latest non-COMMENTED
     # decision must be APPROVED on this exact head commit.
     decisions = {}
@@ -108,6 +152,19 @@ def get_pages(api, token, suffix):
     raise ValueError("API results exceed hard pagination limit")
 
 
+def get_ruleset(api, token, repository):
+    # Fail closed if native merge-time review settings are unavailable.
+    url = f"{api}/repos/{repository}/rulesets/27848423"
+    request = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "GENESIS-X-readonly-ruleset-gate",
+    })
+    with urllib.request.urlopen(request, timeout=15) as response:
+        return json.load(response)
+
+
 def main():
     api = os.environ["API_URL"].rstrip("/")
     repository = os.environ["REPOSITORY"]
@@ -122,7 +179,11 @@ def main():
     files = get_pages(api, token, prefix + "/files")
     # Read only reviews; do not trust PR-controlled code, labels or comments.
     reviews = get_pages(api, token, prefix + "/reviews")
-    ok, reason = decide(head, files, reviews, author, head_sha)
+    # Native GitHub protection is a prerequisite for any sensitive-source PASS.
+    # GitHub, not a potentially stale CI status, must enforce review revocations.
+    rule = get_ruleset(api, token, repository)
+    protected = native_review_enforced(rule, repository)
+    ok, reason = decide(head, files, reviews, author, head_sha, protected)
     print(f"GENESIS trusted policy: {'PASS' if ok else 'DENY'} ({reason})")
     if not ok:
         raise SystemExit(1)
