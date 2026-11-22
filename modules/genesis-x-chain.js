@@ -51,30 +51,37 @@ function boolean(rule,a,b,depth=0){
  }
  return null;
 }
-function solve(task){
+function solve(task, selected){
  if(!record(task)||!record(task.numeric)||!record(task.logic)||
     !Array.isArray(task.cases)||task.cases.length<1||task.cases.length>20||
     Array.from(task.cases,c=>!record(c)||!finite(c.x)||!finite(c.b)).some(Boolean))
   return {status:'invalid',reason:'Chain requires numeric, logic and up to 20 bounded cases.'};
- const router=window.NERYXGenesisXRouter;
- if(!router||router.version!=='0.4'||typeof router.solve!=='function')
-  return {status:'unavailable',reason:'Typed router missing.'};
- let first,second;
- try{
-  first=router.solve({...task.numeric,type:'numeric'});
-  if(!record(first)||first.status!=='candidate')
-   return {status:first?.status==='invalid'?'invalid':'unconfirmed',stage:'numeric'};
-  second=router.solve({...task.logic,type:'logic'});
-  if(!record(second)||second.status!=='candidate')
-   return {status:second?.status==='invalid'?'invalid':'unconfirmed',stage:'logic'};
- }catch{return {status:'unconfirmed',reason:'The chain stopped safely.'};}
- // Capture the exact selected artifacts before evaluating cases; no second router call.
- // JSON cloning prevents upstream changes from mutating the program during evaluation.
+ // An explicit selection is supplied only by the checked orchestrator.
+ // Direct solve(task) remains an unverified research convenience.
  let program,rule;
- try{
-  program=JSON.parse(JSON.stringify(first.result?.selected?.program));
-  rule=JSON.parse(JSON.stringify(second.result?.rule));
- }catch{return {status:'unconfirmed',stage:'artifact-capture'};}
+ if(selected!==undefined){
+  if(!record(selected)||!Array.isArray(selected.program)||!record(selected.rule))
+   return {status:'invalid',stage:'artifact-selection'};
+  try{
+   program=JSON.parse(JSON.stringify(selected.program));
+   rule=JSON.parse(JSON.stringify(selected.rule));
+  }catch{return {status:'invalid',stage:'artifact-selection'};}
+ }else{
+  const router=window.NERYXGenesisXRouter;
+  if(!router||router.version!=='0.4'||typeof router.solve!=='function')
+   return {status:'unavailable',reason:'Typed router missing.'};
+  let first,second;
+  try{
+   first=router.solve({...task.numeric,type:'numeric'});
+   if(!record(first)||first.status!=='candidate')
+    return {status:first?.status==='invalid'?'invalid':'unconfirmed',stage:'numeric'};
+   second=router.solve({...task.logic,type:'logic'});
+   if(!record(second)||second.status!=='candidate')
+    return {status:second?.status==='invalid'?'invalid':'unconfirmed',stage:'logic'};
+   program=JSON.parse(JSON.stringify(first.result?.selected?.program));
+   rule=JSON.parse(JSON.stringify(second.result?.rule));
+  }catch{return {status:'unconfirmed',reason:'The chain stopped safely.'};}
+ }
  const out=[];
  for(const c of task.cases){
   const value=numeric(program,c.x);
