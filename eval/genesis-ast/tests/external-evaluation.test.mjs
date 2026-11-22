@@ -1,0 +1,54 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {evaluateCorpus,validateCorpus} from '../evaluate-external.mjs';
+
+const pass={schema:1,cases:[
+  {id:'p1',expected:'eligible',source:'function simple(value){return value;}'},
+  {id:'n1',expected:'review',source:'function risk(input){return this.value;}'}
+]};
+test('external benchmark: fixed labels and expected confusion matrix',()=>{
+  const result=evaluateCorpus(pass);
+  assert.deepEqual(result.confusion,{TP:1,FP:0,TN:1,FN:0});
+  assert.equal(result.precision,1);
+  assert.equal(result.eligibleRecall,1);
+  assert.equal(result.reviewRecall,1);
+  assert.equal(result.accuracy,1);
+});
+test('external benchmark: no source execution',()=>{
+  globalThis.__externalProbe=0;
+  const r=evaluateCorpus({schema:1,cases:[{
+    id:'probe',expected:'review',
+    source:'function unsafe(){globalThis.__externalProbe=99;return this.value;}'
+  }]});
+  assert.equal(r.confusion.TN,1);
+  assert.equal(globalThis.__externalProbe,0);
+  delete globalThis.__externalProbe;
+});
+test('external benchmark: parse failure remains review, with error report',()=>{
+  const result=evaluateCorpus({schema:1,cases:[
+    {id:'bad',expected:'review',source:'function broken( {'}
+  ]});
+  assert.equal(result.confusion.TN,1);
+  assert.deepEqual(result.errors,[{id:'bad',reason:'parse-error'}]);
+});
+test('external benchmark: wrong label does not silently change',()=>{
+  const result=evaluateCorpus({schema:1,cases:[
+    {id:'badlabel',expected:'review',source:'function f(x){return x;}'}
+  ]});
+  assert.equal(result.confusion.FP,1);
+  assert.equal(result.accuracy,0);
+});
+test('external benchmark: schema, duplicate IDs and unexpected fields rejected',()=>{
+  for(const value of [
+    {schema:2,cases:pass.cases},
+    {schema:1,cases:[]},
+    {schema:1,cases:[pass.cases[0],pass.cases[0]]},
+    {schema:1,cases:[{...pass.cases[0],expected:'maybe'}]},
+    {schema:1,cases:[{...pass.cases[0],evil:true}]},
+    {schema:1,cases:[{...pass.cases[0],source:''}]}
+  ])assert.throws(()=>validateCorpus(value));
+});
+test('external benchmark: no full input source in the summary',()=>{
+  const result=evaluateCorpus(pass);
+  assert.ok(!JSON.stringify(result).includes('function simple'));
+});
