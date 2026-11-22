@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>NERYX · GENESIS X #60 – Forschungs-Router</title>
+<style>
+:root{color-scheme:dark;background:#11111a;color:#f5f3ff;font:16px/1.5 system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}body{margin:0;padding:max(24px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+main{max-width:680px;margin:auto}.top{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px;align-items:center}a{color:#c4b5fd}
+article{padding:18px;background:#20202e;border:1px solid #4d426c;border-radius:18px}h1{font-size:1.55rem;margin:0 0 10px}
+.notice{padding:12px;border-radius:10px;border-left:3px solid #a78bfa;background:#2a2140}
+label{display:block;font-weight:700;margin:18px 0 8px}textarea{width:100%;min-height:165px;padding:12px;border-radius:12px;border:1px solid #786b95;background:#11111a;color:white;font:16px/1.6 ui-monospace,monospace;resize:vertical}
+button{width:100%;min-height:48px;border:0;border-radius:12px;background:#8b5cf6;color:white;font:inherit;font-weight:700;padding:12px;margin-top:14px}button:disabled{opacity:.5}output{display:block;margin-top:18px;min-height:96px;background:#151321;border:1px solid #4d426c;border-radius:12px;padding:14px;white-space:pre-wrap}
+small{display:block;color:#bfb4d8;margin-top:12px}:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+</style></head><body><main>
+<div class="top"><strong>NERYX <span style="color:#c4b5fd">× GENESIS X #60</span></strong><a href="../index.html">Zur Haupt-App</a></div>
+<article>
+<h1>Forschungs-Router testen</h1>
+<p class="notice"><strong>Experimentell, nur nach Klick:</strong> Der vorhandene NERYX-Orchestrator prüft das Aufgabenformat. GENESIS X untersucht anschließend Zahlenregeln. Es wird niemals ein Ergebnis als geprüfte Chat-Antwort freigegeben.</p>
+<p>Schreibe mindestens fünf bekannte Zahlenpaare und genau eine zusätzliche Eingabe. Die ersten drei Paare dienen dem Training, alle weiteren sind getrennte Kontrollbeispiele.</p>
+<form id="routed-form">
+<label for="routed-question">Forschungsfrage</label>
+<textarea id="routed-question" maxlength="1500" required spellcheck="false">GENESIS prüfen: 0=2, 1=3, 2=4, 4=6, 7=9; 10</textarea>
+<button id="routed-submit" type="submit">Forschungsprüfung starten</button>
+</form>
+<output id="routed-result" role="status" aria-live="polite">Noch keine Prüfung gestartet.</output>
+<small>Nur Zahlenpaare „x=y“ mit Komma als Trenner, am Ende „; x“. Dezimalpunkt statt Dezimalkomma. Fünf bis dreizehn Beispiele, unterschiedliche x-Werte, Zahlen bis ±1.000.000 (Ergebnisse bis ±1.000.000.000.000). Keine persönlichen Daten, keine Modell-Downloads, keine Speicherung, keine Änderung des NERYX-Chats. Ein interner Treffer ist kein unabhängiger Wahrheitsbeweis.</small>
+</article></main>
+<script src="../modules/orchestrator.js"></script>
+<script src="../modules/genesis-x-ambiguity-client.js"></script>
+<script src="../modules/neryx-genesis-x-research-bridge.js"></script>
+<script src="neryx-genesis-x-routed-research.js"></script>
+<script src="neryx-genesis-x-routed-ui.js"></script>
+</body></html>
