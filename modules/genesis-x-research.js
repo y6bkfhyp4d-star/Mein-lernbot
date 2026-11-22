@@ -4,7 +4,8 @@
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const finite=x=>typeof x==='number'&&Number.isFinite(x)&&Math.abs(x)<=1e6;
 const close=(a,b)=>Math.abs(a-b)<=1e-8*Math.max(1,Math.abs(a),Math.abs(b));
-function run({task,audit}={}){
+function run(request){
+ const {task,audit}=object(request)?request:{};
  if(!object(task)||!object(task.numeric)||!object(task.logic)||
   !Array.isArray(task.numeric.training)||!Array.isArray(task.numeric.validation)||
   !Array.isArray(task.cases)||!Array.isArray(audit)||audit.length<3||audit.length>20)
