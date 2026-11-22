@@ -27,3 +27,13 @@ Die Ausführung benötigt Git im Node-Laufzeitumfeld. Dieser Git-Reader bleibt i
 Testen: reproduzierbare Berichte für echte temporäre Git-Commits, unveränderte Quellbytes, deterministische Zuordnung über verschobene Zeilen, Ablehnung ungültiger SHAs/Pfade, kein Working-Tree-Schreiben und keine Ausführung des untersuchten Codes.
 
 **Weiterhin offen für Phase 2:** unabhängiger Fehler-Benchmark mit >=90%-Kriterium, dokumentierte False-Positive-Rate, mehr Quelltypen und Datei-Änderungstypen, vollständige Metadaten und separater GitHub-Schutz-Nachweis. Claudes bereits untersuchter Korpus darf nicht als neuer blinder Holdout gelten.
+
+## Zusätzlicher Abschlusscheck: gleiche SHA, identisches JSON
+
+`tests/git-finding-diff.test.mjs` prüft seit dem nächsten Commit explizit, dass bei `baseSha===headSha` zwei aufeinanderfolgende `JSON.stringify(compareGitFindings(...))`-Ergebnisse **byteidentisch** sind. Die Prüfung validiert außerdem unveränderte Git-Commit-IDs, identische SHA-256 der Quelltexte, keinen neu hinzugekommenen/entfallenen Befund sowie unveränderten Working-Tree-Inhalt und Git-Status.
+
+**Aussagegrenze:** Das gilt für das festgelegte lokale Test-Repository mit den definierten Dateien. Es belegt noch keine automatische Reproduzierbarkeit in beliebigen Umgebungen, mit abweichenden Node-/Acorn-Versionen oder zusätzlichen Dateien.
+
+## Phase-1-Schutz: gesonderter Nachweis erforderlich
+
+GitHub-Repo-Metadaten zeigen `main` als Standardbranch und `allow_auto_merge:false`. Daraus folgt **nicht**, dass `main` geschützt ist. Der wirksame Schutz gegen direkte Pushes, Force-Pushes, Umgehung von Pflichtchecks und Bot-Selbstfreigabe ist weiterhin **nicht bestätigt**. Bis ein getrenntes negatives Schutztestprotokoll existiert, darf Phase 1 nicht als abgeschlossen oder die spätere Selbstentwicklung als freigegeben gelten.
