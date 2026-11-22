@@ -64,3 +64,38 @@ Die neuen Offline-Negativtests simulieren sowohl das aktuelle nicht ausreichende
 Die bisherige Verzeichnis-Allowlist (`candidates/*` und `eval/candidates/*`) akzeptierte auch `.js`, `.mjs` und `.html`. Das ist für ein autonomes Vorschlagsformat zu weit. **Im Entwurf des geschützten Trusted-Base-Gates** gilt jetzt für `neryx/auto/*` ausschließlich `candidates/**/*.json` und `eval/candidates/**/*.json`. Auch bei gewöhnlichen PRs sind nur diese JSON-Daten und `docs/**/*.md` ohne zusätzlichen Review zulässig. Ausführbare bzw. unbekannte Endungen sowie umbenannte Quelldateien benötigen eine unabhängige Review oder werden bei Auto-Kandidaten abgelehnt.
 
 **Grenze:** Ein `.json`-Suffix bedeutet noch nicht, dass Inhalt sicher, gültiges JSON oder nicht ausführbar ist. Der Vorschlags-Inhalt muss separat hinsichtlich Schema/Größe und der **späteren Behandlung durch Verbraucher** geprüft werden; keinerlei automatisches `eval`, `import`, Dynamic Function oder Merge. Der bisherige zusätzliche `pull_request`-Pfadworkflow akzeptiert weiterhin beliebige Kandidaten-Dateiendungen, wird aber durch das neue Trusted-Gate auf `main` **erst nach dessen Aktivierung** ergänzt. Die Policy bleibt ein Draft, kein aktueller Schutz.
+
+## Kandidateninhalte: bewusst enges JSON-v1-Vertragsformat
+
+Das Trusted-Base-Gate prüft jetzt bei **jeder** vorgeschlagenen Datei unter `candidates/**/*.json` und `eval/candidates/**/*.json`:
+
+- **Maximal 20 JSON-Kandidaten je PR**, jeder höchstens **32.768 Byte**. Nur neu hinzugefügte oder geänderte Dateien; Löschen und Rename werden vor der Inhaltsprüfung abgelehnt.
+- Abruf der **festen HEAD-Commit-SHA** über die GitHub-Contents-API (rein lesend), mit Vergleich der dortigen Blob-SHA zu der Blob-SHA aus der PR-Dateiliste. Kein Checkout, Import oder Ausführen von Kandidateninhalten.
+- UTF-8, syntaktisch gültiges JSON, **keine doppelten Schlüsselnamen**, keine nichtstandardkonformen `NaN`/`Infinity`-Werte, genau die Felder `schemaVersion`, `kind`, `id`, `baseSha`, `summary`, `rationale`, `risk`, `evidence`, `proposedChange`.
+- `schemaVersion:1`, `kind:"genesis-x-candidate"`, `id` mit 1–64 ASCII-Zeichen (Buchstaben, Ziffern, `_`, `-`), `baseSha` als 40-stellige SHA exakt gleich dem Basis-Commit des PR, kurze `summary` (bis 200 Zeichen), `rationale` (bis 2000), `risk` nur `low`/`medium`/`high` und `proposedChange` als **reiner Vorschlagstext** bis 8000 Zeichen.
+- `evidence`: 1–8 Objekte genau mit `ruleId` (`AST###`/`SEC###`), `sourceSha256` (64 Hex-Zeichen) und `note` (bis 500 Zeichen). Beweismittel sind Claims für manuelle Prüfung, **keine bestätigten Sicherheitsbefunde**.
+- Fehler beim Abruf, SHA-Unstimmigkeiten, falsche Baseline und ungültiges JSON führen zu **DENY**.
+
+Beispiel eines inert gespeicherten Kandidaten:
+
+```json
+{
+  "schemaVersion": 1,
+  "kind": "genesis-x-candidate",
+  "id": "proposal_001",
+  "baseSha": "80a43dd77e338d005b88c7b2a918193886cb55ab",
+  "summary": "Manuelle Prüfung eines eval-Aufrufs",
+  "rationale": "Der AST-Analyzer weist auf eine dynamische Ausführung hin.",
+  "risk": "high",
+  "evidence": [{
+    "ruleId": "AST001",
+    "sourceSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "note": "Beispiel-Fingerprint, nicht verifiziert"
+  }],
+  "proposedChange": "Bitte den Aufruf manuell untersuchen und eine statische Alternative vorschlagen."
+}
+```
+
+**Abgrenzung:** Dies ist zunächst ein neues, ausdrücklich versioniertes, sehr kleines **Vorschlagsformat**; keine bereits vorhandenen Kandidatenformate wurden im gesichteten `main`-Tree gefunden. Die JSON-Datei wird nie als Code ausgeführt. JSON-Inhalte können trotzdem schädliche Anweisungen enthalten, wenn sie später ungeprüft interpretiert werden. Für zukünftige Verbraucher braucht es strikte sichere Darstellung, Kontextprüfung, Provenienz und eine eigene Human-Review-Schranke. Das Gate implementiert ausdrücklich **keine** automatischen Patches.
+
+**Nicht aktiviert:** Alle Änderungen bleiben in Draft-PR #90. Das bislang aktive Trusted-Base-Gate auf `main` führt diese neuen Inhaltsprüfungen noch nicht aus.
