@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>NERYX – GENESIS X Forschungs-Vorschau</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,-apple-system,sans-serif;background:#11111a;color:#f5f3ff}
+*{box-sizing:border-box}
+body{margin:0;padding:max(22px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+main{max-width:590px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}
+a{color:#c4b5fd;text-decoration:none}
+h1{font-size:1.65rem;margin:6px 0 8px}
+p{line-height:1.5}
+.panel{border:1px solid #4b3c69;border-radius:18px;background:#20202e;padding:22px}
+label{display:block;font-weight:650;margin:20px 0 8px}
+select{width:100%;font:inherit;padding:13px;border:1px solid #766295;color:#fff;background:#11111a;border-radius:12px}
+button{font:inherit;background:#8b5cf6;color:white;border:0;border-radius:12px;padding:13px 18px;min-height:48px;width:100%;margin-top:18px;font-weight:700}
+button:disabled{opacity:.5}
+output{display:block;min-height:100px;margin-top:18px;padding:15px;background:#141321;border:1px solid #4b3c69;border-radius:12px;white-space:pre-wrap;line-height:1.55}
+.muted{color:#b9b2ce;font-size:.9rem}
+.note{border-left:3px solid #a78bfa;padding:9px 12px;background:#251e37;border-radius:6px}
+a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<header><strong>NERYX <span style="color:#c4b5fd">/ FORSCHUNG</span></strong><a href="../index.html">Zur Haupt-App</a></header>
+<section class="panel" aria-labelledby="title">
+<h1 id="title">GENESIS X – sichere Vorschau</h1>
+<p>Wähle eine künstliche Rechenaufgabe und überprüfe, ob GENESIS X mehrere passende Regeln unterscheidet.</p>
+<p class="note"><strong>Kein Live-KI-Modus.</strong> Es werden weder Antworten in deinen NERYX-Chat übertragen noch Fakten gespeichert. Alle Ergebnisse benötigen eine weitere Prüfung.</p>
+<form id="research-form">
+<label for="scenario">Testfall</label>
+<select id="scenario">
+<option value="unique">Zwei-Schritt-Regel: x² + 2</option>
+<option value="ambiguous">Mehrdeutige Daten: mehrere Regeln passen</option>
+<option value="contradictory">Widersprüchliche Daten: keine Regel bestätigt</option>
+</select>
+<button id="check" type="submit">Forschungsprüfung starten</button>
+</form>
+<output id="result" role="status" aria-live="polite">Noch kein Test gestartet.</output>
+<p class="muted">Nur begrenzte, bekannte Rechenoperationen. Die Vorschau zeigt keine vorhergesagten Zahlen, Programme oder freigegebenen Antworten.</p>
+</section>
+</main>
+<script src="../modules/genesis-x-ambiguity-client.js"></script>
+<script src="genesis-x-ambiguity-preview-ui.js"></script>
+</body>
+</html>
