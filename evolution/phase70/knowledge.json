@@ -1,11 +1,5 @@
 {
   "discovered_queue": [
-    "Albert Einstein",
-    "Allgemeine Relativitätstheorie",
-    "(9936) Al-Biruni",
-    "1048",
-    "Aeronomie",
-    "Altgriechisch",
     "Abgas",
     "Aerodynamischer Durchmesser",
     "ATPasen",
@@ -89,7 +83,13 @@
     "Abstandsquadratgesetz",
     "Antennendiagramm",
     "Absolute Temperatur",
-    "Adiabatenexponent"
+    "Adiabatenexponent",
+    "(2001) Einstein",
+    "14. März",
+    "(1566) Icarus",
+    "Abraham Pais",
+    "(9935) 1986 CP1",
+    "(9937) Triceratops"
   ],
   "entries": [
     {
@@ -951,6 +951,36 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Adiabatische Zustandsänderung"
+    },
+    {
+      "collected_at": "2026-11-22T19:42:22+00:00",
+      "excerpt": "Albert Einstein (* 14. März 1879 in Ulm; † 18. April 1955 in Princeton, New Jersey) war ein theoretischer Physiker. Er gilt als einer der bedeutendsten Physiker der Wissenschaftsgeschichte und weltweit als einer der bekanntesten Wissenschaftler der Neuzeit. Seine Forschungen zur Struktur von Materie, Raum und Zeit sowie zum Wesen der Gravitation veränderten maßgeblich das zuvor geltende newtonsche Weltbild. 1999 wurde Albert Einstein in einer durch die Fachzeitschrift Physics World durchgeführten Umfrage unter führenden Physikern vor Isaac Newton, James Clerk Maxwell, Niels Bohr und Werner Heisenberg zum bedeutendsten Physiker aller Zeiten gewählt. Einsteins Hauptwerk, die Relativitätstheorie, machte ihn weltweit bekannt. Im Jahr 1905 erschien seine Arbeit mit dem Titel Zur Elektrodynamik bewegter Körper, deren Inhalt heute als Spezielle",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Albert_Einstein",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Albert Einstein"
+    },
+    {
+      "collected_at": "2026-11-22T19:42:22+00:00",
+      "excerpt": "Die allgemeine Relativitätstheorie (; kurz ART) beschreibt die Wechselwirkung zwischen Materie (einschließlich Feldern), Raum und Zeit. Sie deutet Gravitation als geometrische Eigenschaft der gekrümmten vierdimensionalen Raumzeit. Die Grundlagen der Theorie wurden maßgeblich von Albert Einstein entwickelt, der den Kern der Theorie am 25. November 1915 der Preußischen Akademie der Wissenschaften vortrug. Zur Beschreibung der gekrümmten Raumzeit bediente er sich der Differentialgeometrie. Die allgemeine Relativitätstheorie erweitert die spezielle Relativitätstheorie und das Newtonsche Gravitationsgesetz und geht bei hinreichend kleinen Raumzeitgebieten bzw. Massedichten und Geschwindigkeiten in diese über. In zahlreichen Tests der allgemeinen Relativitätstheorie wurde sie experimentell bestätigt und gilt in der von Einstein formulierten For",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Allgemeine_Relativit%C3%A4tstheorie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Allgemeine Relativitätstheorie"
+    },
+    {
+      "collected_at": "2026-11-22T19:42:22+00:00",
+      "excerpt": "(9936) Al-Biruni ist ein Asteroid des äußeren Hauptgürtels. Der Himmelskörper wurde am 8. August 1986 vom belgischen Astronomen Eric Walter Elst und seiner bulgarischen Kollegin Wioleta Iwanowa am Nazionalna astronomitscheska obserwatorija – Roschen (IAU-Code 071) südöstlich der Stadt Tschepelare in Bulgarien entdeckt. Der Himmelskörper wurde am 26. September 2007 nach dem choresmischen Universalgelehrten aus der Blütezeit des Islam Al-Bīrūnī (973–1048) benannt, der in Physik, Mathematik, Astronomie und den Naturwissenschaften bewandert war und sich darüber hinaus als Historiker, Chronologe und Sprachwissenschaftler hervortat.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%289936%29_Al-Biruni",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(9936) Al-Biruni"
     }
   ],
   "failed_titles": [
@@ -958,7 +988,8 @@
     "Adalbert W. A. Pauldrach",
     "1,3-Dipole",
     "(145453) 2005 RR43",
-    "Akkumulator (Begriffsklärung)"
+    "Akkumulator (Begriffsklärung)",
+    "1048"
   ],
   "runs": [
     {
@@ -1281,6 +1312,20 @@
         "Adiabatische Zustandsänderung"
       ],
       "time": "2026-11-22T15:02:09+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [
+        "1048: kein geeigneter Artikel"
+      ],
+      "errors": 1,
+      "new_titles": [
+        "Albert Einstein",
+        "Allgemeine Relativitätstheorie",
+        "(9936) Al-Biruni"
+      ],
+      "time": "2026-11-22T19:42:22+00:00"
     }
   ],
   "schema": 1
