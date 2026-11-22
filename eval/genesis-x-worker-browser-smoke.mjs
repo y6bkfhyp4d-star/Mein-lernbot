@@ -73,7 +73,7 @@ try{
  assert.equal(result.ok.referenceCases,0);
  assert.equal(result.ok.cases,undefined);
  assert.equal(result.invalid.status,'invalid');
- assert.equal(result.broken.status,'blocked'); // Sparse array may be rejected by worker after cloning.
+ assert.equal(result.broken.status,'invalid'); // Sparse arrays are rejected by the preview validator.
  assert.equal(result.mismatch.status,'blocked');
  assert.equal(result.matched.status,'review_required');
  assert.equal(result.matched.referenceCases,2);
