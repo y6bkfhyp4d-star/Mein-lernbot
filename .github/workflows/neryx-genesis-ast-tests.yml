@@ -1,0 +1,28 @@
+name: GENESIS X AST Analyzer 2.1 tests
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  genesis-ast:
+    name: genesis-ast
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install isolated pinned AST parser (no scripts)
+        working-directory: eval/genesis-ast
+        run: npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Test AST analysis in read-only mode
+        working-directory: eval/genesis-ast
+        run: npm test
+      - name: AST smoke on existing source (no writeback)
+        working-directory: eval/genesis-ast
+        run: node analyzer.mjs ../../modules/code-diagnose.js > /dev/null
