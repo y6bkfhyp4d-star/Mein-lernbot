@@ -1,0 +1,59 @@
+name: NERYX GENESIS X worker cold-offline cache audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-worker-boundary]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cold-offline-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install temporary Playwright browser
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install test-only offline cache and cold-restart worker with origin down
+        env:
+          NERYX_BROWSER: ${{ matrix.browser }}
+        run: node eval/genesis-x-worker-offline-restart.mjs
+  node-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run NERYX and Genesis X regression corpus
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Ensure app and Frozen are unchanged
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json)$' /tmp/changed.txt; then
+            echo 'Protected file changed'; exit 1
+          fi
