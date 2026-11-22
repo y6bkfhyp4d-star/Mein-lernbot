@@ -248,12 +248,12 @@ def validate_candidate_files(api, token, repository, head_sha, base_sha, files):
             raise ValueError("Candidate JSON body too large")
         try:
             # GitHub wraps base64 in line breaks; strip only legal wrapping.
-            compact = encoded.replace("\\n", "").replace("\\r", "")
+            compact = encoded.replace("\n", "").replace("\r", "")
             raw = base64.b64decode(compact, validate=True)
         except (ValueError, binascii.Error) as exc:
             raise ValueError("Invalid candidate base64") from exc
         # Independently compute Git's blob SHA-1 from the actual received bytes.
-        identity = b"blob " + str(len(raw)).encode("ascii") + b"\\0" + raw
+        identity = b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw
         actual_sha = hashlib.sha1(identity).hexdigest()
         if actual_sha != blob_sha:
             raise ValueError("Candidate raw bytes do not match Git blob SHA")
