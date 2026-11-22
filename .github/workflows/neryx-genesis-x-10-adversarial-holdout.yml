@@ -1,0 +1,49 @@
+name: GENESIS X adversarial unseen holdout audit
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-independent-oracle-audit]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  adversarial-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check three public adversarial holdout cohorts against independent oracle
+        run: node eval/genesis-x-adversarial-holdout.mjs
+      - name: Independently rerun the previous oracle audit
+        run: node eval/genesis-x-reference-audit.mjs
+  regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run all existing and new regression tests
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify only evaluation files added; no production or research engine modification
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|eval/frozen\.seal\.json|modules/)' /tmp/changed.txt; then
+            echo "Protected application or research module changed"; exit 1
+          fi
