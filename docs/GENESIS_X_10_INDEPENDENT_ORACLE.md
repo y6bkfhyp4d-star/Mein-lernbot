@@ -27,3 +27,14 @@ Die Tests können nach einem Fehler **keine Nutzerantwort freigeben**. Die beste
 ## Entscheidungskriterium
 
 Erst bei erfolgreichem isoliertem Referenztest, bestandenen manipulierten Gegenproben und der vollständigen Regression kann dieser Forschungs-Schritt als technisch bestanden gelten. Das schafft noch **keine** Produktfreigabe.
+
+## Tatsächliche CI-Ergebnisse – 22.11.2026
+
+[GitHub Actions #45013411719](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45013411719): **3/3 Jobs erfolgreich**.
+
+- Externer deterministischer Sollwertvergleich: **12/12 Holdout-Fälle passend**, 0 Abweichungen; Werte **12/12**, boolesche Entscheidungen **12/12**. Der geprüfte GENESIS-X-Ausführungsschritt selbst berichtete **0 Referenzen**, während der separate Oracle-Vergleich anschließend 12/12 ergab.
+- Sechs absichtlich negative/positive Oracle-Unit-Tests: **6/6 bestanden** (einschließlich geänderter Kandidatenwerte, falscher Entscheidungen, umsortierter und defekter Einträge).
+- Gesamte NERYX-/GENESIS-X-Regression nach Hinzufügen dieser Tests: **601/601 bestanden**.
+- Prüfung der geschützten Produkt-, Worker- und Frozen-Dateien: bestanden.
+
+**Präzisierung:** Der öffentliche Oracle-Test prüft nur die bekannte Rechenfunktion und logische Bedingung. Er ist kein unabhängiger, blinder oder geheim gehaltener wissenschaftlicher Benchmark und keine Freigabe zur Veröffentlichung von KI-Antworten.
