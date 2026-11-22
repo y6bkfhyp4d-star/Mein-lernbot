@@ -4,9 +4,9 @@
 
 ## Vorab festgelegte Messung
 
-`eval/genesis-ast/tests/quality-benchmark.test.mjs` enthält **25 feste, vor der Testausführung beschriftete Einzelfälle**:
+`eval/genesis-ast/tests/quality-benchmark.test.mjs` enthält **30 feste, vor der Testausführung beschriftete Einzelfälle**:
 - 8 Fälle `eligible`: syntaktisch einfache Rückgaben/Variablen ohne Aufruf, Zweig oder unbekannten Empfänger.
-- 17 Fälle `review`: unter anderem `this`, `new.target`, Default-Parameter, Destructuring, Rest, Aufrufe, unbekannte Werte, Schleifen, Property-Getter/Proxy-Risiko, Mutationen und `await`.
+- 22 Fälle `review`: unter anderem `this`, `new.target`, Default-Parameter, Destructuring, Rest, Aufrufe, unbekannte Werte, Schleifen, Property-Getter/Proxy-Risiko, Mutationen und `await`, ternäre/kurzschließende Ausdrücke sowie Async-/Generator-Funktionen.
 
 Der Evaluator berechnet TP, FP, TN, FN und berichtet Precision, Recall der eingeschränkt berichtsfähigen Fälle sowie die Erkennung manuell prüfpflichtiger Fälle. **FP = gefährlich optimistischer Bericht**: Ein vorher als `review` markierter Fall erhält unberechtigt den Status `eligible-for-limited-report`.
 
@@ -14,7 +14,7 @@ Die beiden Test-Schranken sind `FP = 0` für diese Beispiele und `TP >= 7` von 8
 
 ## Wesentliche Grenzen
 
-**Dies ist ausdrücklich KEIN unabhängiger oder geheimer Holdout.** Die Beispiele wurden für den bekannten Analysten von derselben Entwicklungsrunde verfasst. 25 kurze künstliche Fälle beweisen weder echte Codequalität noch Security, generelle Wahrheitsprüfung oder die im Masterplan geforderte >=90%-Erkennung eines unabhängig kuratierten realen Seed-Fehlerkorpus. Die Ausgabe `eligible` ist lediglich ein begrenzter Provenienz-Bericht, niemals ein Garant für reine oder sichere Ausführung.
+**Dies ist ausdrücklich KEIN unabhängiger oder geheimer Holdout.** Die Beispiele wurden für den bekannten Analysten von derselben Entwicklungsrunde verfasst. 30 kurze künstliche Fälle beweisen weder echte Codequalität noch Security, generelle Wahrheitsprüfung oder die im Masterplan geforderte >=90%-Erkennung eines unabhängig kuratierten realen Seed-Fehlerkorpus. Die Ausgabe `eligible` ist lediglich ein begrenzter Provenienz-Bericht, niemals ein Garant für reine oder sichere Ausführung.
 
 Der festgelegte Korpus lässt sich anhand des Git-Commits reproduzieren. Für eine unabhängige Abnahme muss eine dritte Partei reale Fehlerfälle vorab kennzeichnen und sie ohne nachträgliche Schwellenanpassung auswerten. Bis dahin bleibt **Phase 2 offen**.
 
