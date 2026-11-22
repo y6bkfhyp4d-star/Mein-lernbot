@@ -1,63 +1,38 @@
-
-name: LernBot 7.0 - Phase 7 Abschlusspruefung 7.13
-
+name: LernBot 7.0 – Phase 7 Abschlusspruefung 7.13 (Review-Branch)
 on:
   workflow_dispatch: {}
   schedule:
     - cron: "17 4 * * *"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/lernbot-phase713.yml"
-
 permissions:
   contents: write
-
 concurrency:
   group: lernbot-phase713
   cancel-in-progress: false
-
 jobs:
   finish-phase7:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-
+    env:
+      REPORT_BRANCH: neryx/research-phase713
+      REPORT_FILES: evolution/phase713/audit713.json,evolution/phase713/research711.json
     steps:
-      - name: Code laden
+      - name: Geprueften Code aus main laden
         uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
-
+          fetch-depth: 0
       - name: Python einrichten
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
+      - name: Nur zugelassene JSON-Daten aus Review-Branch einlesen
+        run: bash .github/scripts/research-review-branch.sh prepare
       - name: Synthetische Testfaelle pruefen
         run: python3 -m unittest discover -s evolution/phase713 -p 'test_audit713.py' -v
-
-      - name: Bericht aus Phase 7.11 uebernehmen
-        run: |
-          if [ ! -f evolution/phase711/research711.json ]; then
-            echo "ERROR: Phase 7.11 report missing" >&2
-            exit 1
-          fi
-          cp evolution/phase711/research711.json evolution/phase713/research711.json
-
+      - name: Phase 7.11-Bericht uebernehmen
+        run: test -f evolution/phase711/research711.json && cp evolution/phase711/research711.json evolution/phase713/research711.json
       - name: Phase 7 abschliessend pruefen
         run: python3 evolution/phase713/audit713.py
-
-      - name: Nur geaenderte Ergebnisse versionieren
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add evolution/phase713/audit713.json evolution/phase713/research711.json
-
-          if ! git diff --cached --quiet; then
-            git commit -m "LernBot 7.13: Abschlusspruefung und Bericht"
-            git pull --rebase
-            git push
-          else
-            echo "Keine Aenderung. Abschlussbericht aktuell."
-          fi
+      - name: Nur erlaubte JSON-Berichte auf Review-Branch schreiben
+        run: bash .github/scripts/research-review-branch.sh publish
