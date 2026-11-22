@@ -58,12 +58,17 @@ test('real-source baseline: five files are readable without source execution',()
 test('real-source control/dataflow remains explicitly limited',()=>{
   const before=Object.fromEntries(samples.map(p=>[p,digest(p)]));
   const measurements=[];
+  let graphCount=0, dataCount=0, declaredFunctions=0;
   for(const path of samples){
     const source=read(path);
+    const ast=analyzeAST(path,source);
     const cfg=analyzeControlFlow(path,source);
     const data=analyzeDataFlow(path,source);
     const correlation=correlateFlows(path,source);
     assert.equal(cfg.mode,'read-only');
+    assert.equal(cfg.graphs.length,ast.functions.length,'Every discovered real named function must have a CFG');
+    assert.equal(data.functions.length,ast.functions.length,'Every discovered real named function must have dataflow coverage');
+    graphCount+=cfg.graphs.length;dataCount+=data.functions.length;declaredFunctions+=ast.functions.length;
     assert.equal(data.mode,'read-only');
     assert.equal(correlation.mode,'read-only');
     assert.equal(cfg.changesApplied,false);
@@ -81,6 +86,9 @@ test('real-source control/dataflow remains explicitly limited',()=>{
       manual:correlation.functions.filter(f=>f.status==='manual-review-required').length
     });
   }
+  assert.ok(declaredFunctions>0,'Zero named functions is unacceptable');
+  assert.equal(graphCount,declaredFunctions);
+  assert.equal(dataCount,declaredFunctions);
   assert.deepEqual(Object.fromEntries(samples.map(p=>[p,digest(p)])),before);
   console.log('GENESIS REAL-SOURCE FLOW BASELINE '+JSON.stringify({measurements}));
 });

@@ -1,7 +1,7 @@
 // GENESIS X CodeAnalyzer 2.4 – conservative intraprocedural dataflow prototype.
 // Only top-level named functions with straight-line statements. No source execution.
 // Not a taint/security verdict; a potential provenance map for human review.
-import {parse} from 'acorn';
+import {collectNamedFunctions} from './function-discovery.mjs';
 
 const location=n=>({line:n.loc.start.line,column:n.loc.start.column+1});
 function identifiers(pattern,out=[]){
@@ -83,24 +83,13 @@ function analyzeFunction(node){
 }
 export function analyzeDataFlow(file,source){
   if(typeof file!=='string'||typeof source!=='string')throw new TypeError('Strings erforderlich');
-  let ast,parseError=null;
-  try{ast=parse(source,{ecmaVersion:'latest',sourceType:file.endsWith('.cjs')?'script':'module',locations:true,allowHashBang:true});}
-  catch(error){
-    if(file.endsWith('.js'))try{ast=parse(source,{ecmaVersion:'latest',sourceType:'script',locations:true,allowHashBang:true});}
-    catch(e){parseError=e;}
-    else parseError=error;
-  }
-  if(parseError)return {version:'2.4-prototype',file,parsed:false,error:{message:parseError.message,line:parseError.loc?.line??1,column:(parseError.loc?.column??0)+1},functions:[],mode:'read-only',changesApplied:false};
-  const functions=[],untracked=[];
-  for(const declaration of ast.body){
-    const node=declaration.type==='ExportNamedDeclaration'||declaration.type==='ExportDefaultDeclaration'?declaration.declaration:declaration;
-    if(node?.type==='FunctionDeclaration'&&node.id?.name){
-      functions.push(analyzeFunction(node));
-    }else if(node?.type==='VariableDeclaration'){
-      for(const d of node.declarations)if(d.init?.type==='ArrowFunctionExpression'||d.init?.type==='FunctionExpression')
-        untracked.push({name:d.id?.name??null,reason:'assigned-function-not-tracked',...location(d)});
-    }
-  }
+  const discovered=collectNamedFunctions(file,source);
+  if(!discovered.parsed)return {version:'2.4-prototype',file,parsed:false,
+    error:discovered.error,functions:[],untracked:[],mode:'read-only',changesApplied:false};
+  const functions=discovered.functions.map(item=>({
+    ...analyzeFunction(item.node),functionId:item.id,depth:item.depth
+  }));
+  const untracked=discovered.assigned.map(a=>({...a,reason:'assigned-function-not-tracked'}));
   return {version:'2.4-prototype',file,parsed:true,mode:'read-only',analysis:'conservative-straight-line',
     functions,untracked,limitations:[
       'Not a full control-flow or taint analysis',
