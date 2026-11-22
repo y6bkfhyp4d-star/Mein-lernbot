@@ -71,7 +71,7 @@ test('Qwen narrative is explicitly unverified even if fluent and confident',asyn
 test('incomplete narrative retries once; still unacceptable response is withheld',async()=>{
  const h=harness({replies:['Suche selbst nach Fakten.','Frage einen Experten.']});
  const out=await h.solve('Erkläre den Begriff Fugenfüllung ausführlich.');
- assert.match(out,/ANWORTKONTROLLE/);
+ assert.match(out,/ANTWORTKONTROLLE/);
  assert.match(out,/keine offensichtlich unvollständige Antwort/);
  assert.equal(h.calls.ask,2);
 });
