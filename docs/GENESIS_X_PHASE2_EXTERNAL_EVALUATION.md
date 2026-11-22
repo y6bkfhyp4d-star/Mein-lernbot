@@ -28,7 +28,7 @@ Ausführung im Klon des Projekts (nach Installieren der isolierten Abhängigkeit
 node eval/genesis-ast/evaluate-external.mjs /absolute/path/to/external-benchmark.json
 ```
 
-Die Datei wird nur gelesen; ihr SHA-256-Hash wird zur Auswertung geschrieben. Der Runner gibt lediglich zusammengefasste Kennzahlen und IDs von Parse-/Analyseproblemen aus; den Quelltext druckt er nicht. Parse-/Analysefehler werden vorsichtshalber als `review` gezählt **und separat dokumentiert**. Für unabhängige Abnahme muss eine ausreichend große Zahl valider Fälle vorliegen; fehlerhafte Eingaben sind nicht als Sicherheitsleistung zu zählen.
+Die Datei wird nur gelesen; ihr SHA-256-Hash wird zur Auswertung geschrieben. Der Runner gibt lediglich zusammengefasste Kennzahlen und IDs von Parse-/Analyseproblemen aus; den Quelltext druckt er nicht. Parse-/Analysefehler werden **aus der Konfusionsmatrix und der Qualitätsquote ausgeschlossen**, in `excluded` separat gezählt und mit `complete:false` markiert. Wenn Fälle ausgeschlossen sind, darf keine vollständige Abnahme behauptet werden. Für unabhängige Abnahme muss eine ausreichend große Zahl valider Fälle vorliegen; fehlerhafte Eingaben sind nicht als Sicherheitsleistung zu zählen.
 
 ## Unabhängigkeitsregeln und Freigabegrenzen
 
