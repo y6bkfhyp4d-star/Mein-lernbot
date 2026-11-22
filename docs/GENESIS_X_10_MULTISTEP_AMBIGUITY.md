@@ -26,3 +26,15 @@ Dies misst **begrenzte zweistufige Rechenprogramme**, nicht freie Problemfindung
 Eine spätere reale Integration sollte ein echtes Nichtwissen-Statussignal in einer vereinheitlichten, geprüften Schnittstelle einbauen, bevor irgendwelche Kandidatendaten veröffentlicht werden. Dazu wären zusätzliche Sicherheits-/iPhone-Tests nötig.
 
 **Nicht nach `main` mergen, keine produktive Vercel-Veröffentlichung ohne ausdrückliche Nutzerfreigabe.**
+
+## CI-Nachweis vom 22.11.2026
+
+[GitHub Actions #45014370044](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45014370044) hat **alle drei Jobs erfolgreich abgeschlossen**.
+
+- Zwei zusammengesetzte Regeln (`x²+2` und `3x+2`) wurden als Programme mit **exakt zwei Schritten** ausgewählt und auf **6/6 bislang nicht vorgelegten Probe-Eingaben** unabhängig nachgerechnet.
+- Der absichtlich unterbestimmte Datensatz führte beim bisherigen GENESIS-X-Composer zu `candidate`, beim separaten Ambiguitäts-Gate dagegen zu **`ambiguous`**: **21** passende Programme, die auf den Probe-Eingaben **8** verschiedene Ergebnisverläufe erzeugten. Keine Freigabe (`publishable:false`).
+- Vorheriger Regel-Unterscheidungstest (#51) erneut erfolgreich.
+- Vollständige NERYX-/GENESIS-X-Node-Regression **616/616 bestanden**.
+- App-, Forschungsmodul-, Service-Worker- und Frozen-Schutzprüfung bestanden.
+
+**Grenze:** Die entscheidende Mehrdeutigkeitsbehandlung existiert derzeit nur im **externen Test-Gate**. Sie ist noch nicht in die reguläre GENESIS-X-Worker-Schnittstelle oder den NERYX-Live-Chat integriert. Die Probe-Eingaben sind öffentliche künstliche Aufgaben, keine unabhängige Sealed-Evaluation.
