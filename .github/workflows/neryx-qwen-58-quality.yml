@@ -1,0 +1,47 @@
+name: NERYX Qwen #58 independent quality benchmark
+on:
+  pull_request:
+    branches: [neryx/genesis-x-10-custom-research-inputs]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run real-module adversarial model quality bench
+        run: node --test eval/tests/qwen-58-independent-quality.test.mjs
+  all-regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run full existing Node suite
+        run: node --test eval/tests/*.test.mjs eval/tests/corpus/*.test.mjs tests/*.test.mjs
+  protected:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Confirm no production or model module changes
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | tee /tmp/changed.txt
+          if grep -E '^(app\.js|index\.html|sw\.js|manifest\.webmanifest|vercel\.json|eval/frozen\.seal\.json|modules/|evolution/neryx/)' /tmp/changed.txt; then
+            echo 'Existing app or model changed'; exit 1
+          fi
