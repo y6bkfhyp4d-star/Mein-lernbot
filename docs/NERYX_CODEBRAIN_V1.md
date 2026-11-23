@@ -30,3 +30,12 @@ Gemini bleibt ein unabhängiger optionaler Workflow. Ein HTTP-503 bei Gemini än
 2. Reproduzierbare Acorn-Abhängigkeit über geprüftes Lockfile vorbereiten.
 3. AST-Adapter, Syntaxdiagnose, abgesichertes Berichtsformat und typbasierte Prüfungen getrennt integrieren.
 4. Eine spätere Aktivierung als erforderlicher Statuscheck nur nach ausdrücklicher Freigabe.
+
+## Erweiterung 1.1 im selben Draft-PR
+- Im **manuellen GitHub-Workflow** wird `analyzeAST(file, source)` aus dem vorhandenen Acorn-Analyzer für JS/MJS/CJS verwendet. Das Ergebnis unterscheidet bestätigte Parserfehler (`AST000`) von heuristischen AST-Sicherheitswarnungen. Kein gescannter Code wird ausgeführt.
+- JSON-Dateien werden mit `JSON.parse` syntaktisch geprüft, ohne Inhalt zu protokollieren.
+- YAML-Dateien erhalten ausschließlich **heuristische** Trigger-/Berechtigungswarnungen. Es findet bewusst **keine vollständige YAML-Syntaxvalidierung** statt; die Report-Zeile lautet `yaml-heuristic-no-parse`.
+- Andere Dateitypen bleiben übersprungen und verhindern eine vollständige Freigabe.
+- Die Standard-Integrationstests nutzen beim direkten Funktionsaufruf weiterhin die optionale Heuristik-Variante, während ein separater Test im `eval/genesis-ast/tests/` den **echten AST-Adapter** nach installierter Parser-Abhängigkeit prüft.
+- Die AST-Abhängigkeit wird aktuell wie im bereits bestehenden AST-Workflow mit dem fest eingetragenen Paket `acorn@8.15.0` und `npm install --ignore-scripts --no-audit --no-fund --package-lock=false` installiert. **Das ist noch kein durch Lockfile gesicherter, vollständig reproduzierbarer Installationsprozess.**
+- Der manuelle Workflow steht erst nach späterer Freigabe und Merge auf dem Default-Branch zur Verfügung; dieser Draft-PR stellt **keinen nachgewiesenen Live-GitHub-API-Lauf** dar.
