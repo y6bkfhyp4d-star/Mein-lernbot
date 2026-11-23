@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {runInNewContext} from 'node:vm';
 import {mkdtempSync,writeFileSync,symlinkSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -986,4 +987,43 @@ test('C15 adjacent conditional stages preserve safety across unrelated pure bran
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[8]);
  // The preceding doc.write invocation can alter storage methods as well.
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[7]);
+});
+
+test('C16 trusted runtime oracle: every observed original-method invocation has an AST warning',()=>{
+ // Fixed fixtures only: never execute scanned repository files or untrusted code.
+ // The runtime oracle is independent of analyzer state and records actual calls.
+ const fixtures=[
+  {name:'direct',lines:['const doc=globalThis.document;','doc.write("a");']},
+  {name:'replaced',lines:['const doc=globalThis.document;','doc.write=()=>{};','doc.write("a");']},
+  {name:'one-arm',lines:['const doc=globalThis.document;','if(flag)doc.write=()=>{};','doc.write("a");']},
+  {name:'both-arms',lines:['const doc=globalThis.document;','if(flag)doc.write=()=>{};else doc.write=function(){};','doc.write("a");']},
+  {name:'delete',lines:['const doc=globalThis.document;','doc.write=()=>{};','delete doc.write;','doc.write("a");']},
+  {name:'restored',lines:['const doc=globalThis.document;','const original=doc.write;','doc.write=()=>{};','doc.write=original;','doc.write("a");']},
+  {name:'unknown-callback',lines:['const doc=globalThis.document;','doc.write=()=>{};','restore();','doc.write("a");']},
+  {name:'effectful-branch',lines:['const doc=globalThis.document;','doc.write=()=>{};','if(flag)restore();','doc.write("a");']},
+  {name:'sequential-branches',lines:['const doc=globalThis.document;','if(flag)doc.write=()=>{};','if(other)doc.write=()=>{};else doc.write=function(){};','doc.write("a");']},
+  {name:'unrelated-branch',lines:['const doc=globalThis.document;','const store=globalThis.localStorage;','doc.write=()=>{};','if(flag)store.clear=()=>{};','doc.write("a");']},
+  {name:'nested-callback',lines:['const doc=globalThis.document;','doc.write=()=>{};','if(flag){restore();if(other)doc.write=()=>{};}','doc.write("a");']},
+  {name:'multi-steps',lines:['const doc=globalThis.document;','doc.write("a");','doc.write=()=>{};','if(flag)restore();','doc.write("b");','restore();','doc.write("c");']}
+ ];
+ for(const fixture of fixtures){
+  const source=fixture.lines.join('\n');
+  const report=analyzeAST('oracle-'+fixture.name+'.mjs',source);
+  assert.equal(report.parsed,true,fixture.name);
+  const warningLines=new Set(has(report,'AST005').map(x=>x.line));
+  for(const flag of [false,true])for(const other of [false,true]){
+   const called=[];
+   const original=function(value){called.push(value);};
+   const document={write:original};
+   const sandbox={document,flag,other,localStorage:{clear(){}},
+    restore(){document.write=original;}};
+   runInNewContext(source,sandbox,{timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+   for(const marker of called){
+    const line=fixture.lines.findIndex(text=>text.includes('doc.write("'+marker+'")'))+1;
+    assert.ok(line>0,fixture.name+' runtime marker');
+    assert.ok(warningLines.has(line),
+      fixture.name+' flags '+flag+'/'+other+': actual original call '+marker+' at line '+line+' must be reported');
+   }
+  }
+ }
 });
