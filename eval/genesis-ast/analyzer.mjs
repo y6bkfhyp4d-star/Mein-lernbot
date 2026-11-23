@@ -120,7 +120,7 @@ function aliasAt(name,scope,position){
  for(let current=scope;current;current=current.parent){
   if(current.bindings?.has(name)){
    const alias=current.aliases?.get(name);
-   return alias&&position>=alias.after?alias:null;
+   return alias&&position>=alias.after&&(alias.invalidAfter===undefined||position<alias.invalidAfter)?alias:null;
   }
  }
  return null;
@@ -195,6 +195,16 @@ export function analyzeAST(file,source){
       if(scope?.functions.has(name))report('AST006','low',node,'Funktion im selben Block mehrfach deklariert: '+name,
         'Erneute Deklaration im gleichen Block prüfen.','medium');
       scope?.functions.add(name);
+    }
+    // C1: a written method is no longer a confirmed known builtin on that alias.
+    // This is intentionally an order-local, conservative check; not control-flow proof.
+    if(node.type==='AssignmentExpression'&&node.left?.type==='MemberExpression'&&
+       node.left.object?.type==='Identifier'&&
+       ['write','clear'].some(p=>staticProperty(node.left,p))){
+      const alias=aliasAt(node.left.object.name,scope,node.start);
+      if(alias&&((alias.origin==='document'&&staticProperty(node.left,'write'))||
+                 (alias.origin==='localStorage'&&staticProperty(node.left,'clear'))))
+        alias.invalidAfter=Math.min(alias.invalidAfter??Infinity,node.end);
     }
     if(node.type==='CallExpression'){
       const name=describeCall(node.callee);
