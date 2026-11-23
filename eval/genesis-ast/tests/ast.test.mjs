@@ -831,3 +831,48 @@ test('C12 possible branch state affects confidence without claiming replacement'
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[3]);
  assert.equal(has(r,'AST004')[0].confidence,'medium');
 });
+
+test('C13 pure branch replacing storage does not disturb proven document replacement',()=>{
+ const r=analyzeAST('separate-branch-state.mjs',[
+  'const doc=globalThis.document;',
+  'const store=globalThis.localStorage;',
+  'doc.write=()=>{};',
+  'if(flag){store.clear=()=>{};}',
+  'doc.write("still replaced");',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[6]);
+});
+test('C13 one-arm fresh replacement preserves existing proven method state',()=>{
+ const r=analyzeAST('preserve-branch-replacement.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'if(flag){doc.write=()=>{};}',
+  'doc.write("replaced on both paths");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
+test('C13 unsafe branch with callback still invalidates all prior certainty',()=>{
+ const r=analyzeAST('side-effect-branch.mjs',[
+  'const doc=globalThis.document;',
+  'const store=globalThis.localStorage;',
+  'doc.write=()=>{};',
+  'if(flag){store.clear=()=>{}; unknownCallback();}',
+  'doc.write("may be restored");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[5]);
+});
+test('C13 unknown one-arm write cannot preserve previous proven replacement',()=>{
+ const r=analyzeAST('unknown-branch.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'if(flag) doc.write=unknown;',
+  'doc.write("not proven");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
