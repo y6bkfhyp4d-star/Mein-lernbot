@@ -79,9 +79,9 @@ test('snapshot refuses green status when AST findings exceed the reporting cap',
  assert.equal(snapshotPasses(data.result),false);
 });
 test('snapshot accepts supported clean scans but rejects undisclosed analysis skips',()=>{
- const base={checked:1,blocking:false,rows:[{status:'checked',reason:'ast'}]};
+ const base={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
  assert.equal(snapshotPasses(base),true);
- assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotPasses({...base,complete:false,rows:[...base.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'size-or-encoding'}]}),false);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),false);
 });
@@ -92,4 +92,16 @@ test('snapshot outcome distinguishes full, intentional partial and broken scans'
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'unsupported-type'}]}),'PARTIAL_UNSUPPORTED');
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'findings-truncated'}]}),'INCOMPLETE');
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),'INCOMPLETE');
+});
+
+test('snapshot result counters, completeness and statuses must agree before passing',()=>{
+ const good={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
+ assert.equal(snapshotPasses(good),true);
+ assert.equal(snapshotPasses({...good,checked:2}),false);
+ assert.equal(snapshotPasses({...good,complete:false}),false);
+ assert.equal(snapshotPasses({...good,rows:[...good.rows,{status:'pending',reason:'unknown'}]}),false);
+ assert.equal(snapshotPasses({...good,rows:[...good.rows,{status:'skipped',reason:'unsupported-type'}]}),false);
+ assert.equal(snapshotPasses({...good,complete:false,rows:[...good.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotOutcome({...good,checked:2}),'INCOMPLETE');
+ assert.equal(snapshotPasses(null),false);
 });
