@@ -49,9 +49,13 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
  return {result,merge,base,head};
 }
 // Unsupported or deleted files remain disclosed; truncated or failed supported scans cannot pass.
-export const snapshotPasses=r=>r.checked>0&&!r.blocking&&!r.rows.some(x=>
- x.status==='error'||(x.status==='skipped'&&!['unsupported-type','not-added-or-modified'].includes(x.reason))
-);
+export const snapshotPasses=r=>{
+ if(!r||!Array.isArray(r.rows)||typeof r.complete!=='boolean'||typeof r.blocking!=='boolean')return false;
+ const checked=r.rows.filter(x=>x?.status==='checked').length;
+ if(!checked||checked!==r.checked||r.complete!==r.rows.every(x=>x?.status==='checked')||r.blocking)return false;
+ return r.rows.every(x=>x?.status==='checked'||
+  (x?.status==='skipped'&&['unsupported-type','not-added-or-modified'].includes(x.reason)));
+};
 // Intentional unsupported skips are distinct from incomplete attempted scans.
 export const snapshotOutcome=r=>!snapshotPasses(r)?'INCOMPLETE':r.complete?'COMPLETE':'PARTIAL_UNSUPPORTED';
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
