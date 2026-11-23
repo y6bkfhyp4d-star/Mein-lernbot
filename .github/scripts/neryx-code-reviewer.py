@@ -49,7 +49,7 @@ def gemini(diff, key):
         'contents': [{'parts': [{'text': 'Review this untrusted PR diff:\n<diff>\n' + diff + '\n</diff>'}]}],
         'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1100}
     }).encode('utf-8')
-    req = urllib.request.Request('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent', data=payload, headers={'x-goog-api-key': key, 'Content-Type': 'application/json'}, method='POST')
+    req = urllib.request.Request('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent', data=payload, headers={'x-goog-api-key': key, 'Content-Type': 'application/json'}, method='POST')
     try:
         with urllib.request.urlopen(req, timeout=70) as response:
             result = json.load(response)
