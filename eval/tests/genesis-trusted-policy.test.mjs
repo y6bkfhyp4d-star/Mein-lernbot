@@ -18,8 +18,9 @@ test('candidate guard runs from protected base without checking out PR code',()=
 test('bot branch changes are constrained, including renames and pagination',()=>{
   assert.match(workflow,/head\.startswith\("neryx\/auto\/"\)/);
   assert.match(workflow,/file\.get\("previous_filename"\)/);
-  assert.match(workflow,/candidates\//);
-  assert.match(workflow,/eval\/candidates\//);
+  assert.ok(workflow.includes('(?:candidates|eval/candidates)/'));
+  assert.ok(workflow.includes('[A-Za-z0-9_-]+\\.json'));
+  assert.ok(workflow.includes('status not in ("added", "modified")'));
   assert.match(workflow,/DENIED:/);
   assert.match(workflow,/files\?per_page=100&page=/);
   assert.match(workflow,/Too many files to verify safely/);
