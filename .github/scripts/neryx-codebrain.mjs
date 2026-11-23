@@ -4,9 +4,10 @@ import {appendFileSync} from 'node:fs';
 // PR contents are fetched as inert blobs, never checked out or executed.
 const okPath=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
 const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
+const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
-export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource}){
+export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!Number.isInteger(number)||number<1||number>1000000||!token)throw Error('Ungültiger Auftrag');
  const base='https://api.github.com/repos/'+repo;
  const get=async path=>{
@@ -26,7 +27,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
   rows.push(row);
   if(!okPath(path)){row.reason='invalid-path';continue;}
   if(!['added','modified'].includes(f.status)){row.reason='not-added-or-modified';continue;}
-  if(!/\.(js|mjs|cjs)$/.test(path)){row.reason='unsupported-type';continue;}
+  if(!/\.(js|mjs|cjs|json|yml|yaml)$/.test(path)){row.reason='unsupported-type';continue;}
   if(!/^[a-f0-9]{40}$/i.test(f.sha||'')){row.reason='invalid-sha';continue;}
   try{
    const blob=await get('/git/blobs/'+f.sha);
@@ -36,10 +37,29 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
    const source=bytes.toString('utf8');
    if(!Buffer.from(source,'utf8').equals(bytes))throw Error('Invalid UTF8');
    used+=bytes.length;
-   // Ignore JS000: vm.Script does not parse ESM. Syntax will be added via Acorn in phase 2.
-   const matches=analyze(path,source).filter(v=>v.rule!=='JS000');
-   row.status='checked';row.reason='heuristic-only';
-   row.findings=matches.slice(0,40).map(v=>({rule:v.rule,line:v.line,label:labels[v.rule]||'Heuristischer Hinweis'}));
+   let matches=[];
+   if(/\.json$/.test(path)){
+    try{JSON.parse(source);}catch{
+     matches=[{rule:'JSON000',line:1,label:'JSON-Syntaxfehler',kind:'confirmed'}];
+    }
+    row.reason='json-parse';
+   }else if(/\.ya?ml$/.test(path)){
+    // YAML is intentionally NOT parsed: only known high-risk workflow strings are flagged.
+    const markers=[[/pull_request_target\s*:/,'CI-Trigger pull_request_target'],[/\b(?:contents|actions|pull-requests)\s*:\s*write\b/,'CI-Schreibrechte'],[/\$\{\{[^\n]*github\.event\./,'Unvertrauenswürdiger Event-Ausdruck']];
+    for(const [re,label] of markers)if(re.test(source))matches.push({rule:'YAML-WARN',line:1,label,kind:'heuristic'});
+    row.reason='yaml-heuristic-no-parse';
+   }else if(ast){
+    const data=ast(path,source);
+    if(!data||!Array.isArray(data.findings)||typeof data.parsed!=='boolean')throw Error('Bad AST result');
+    matches=data.findings.map(v=>({rule:v.rule,line:v.line,label:astLabels[v.rule]||'AST-Hinweis',kind:v.rule==='AST000'?'confirmed':'heuristic'}));
+    row.reason=data.parsed?'ast':'ast-syntax-error';
+   }else{
+    // JS000 from vm.Script is unreliable for ESM; never report it as confirmed syntax.
+    matches=analyze(path,source).filter(v=>v.rule!=='JS000').map(v=>({rule:v.rule,line:v.line,label:labels[v.rule]||'Heuristischer Hinweis',kind:'heuristic'}));
+    row.reason='heuristic-only';
+   }
+   row.status='checked';
+   row.findings=matches.slice(0,40).map(v=>({rule:v.rule,line:v.line,label:v.label,kind:v.kind}));
    if(matches.length>40){row.status='skipped';row.reason='findings-truncated';}
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
  }
@@ -49,14 +69,15 @@ export function render(r){
  const lines=['# NERYX CodeBrain 1.0','','Keine API-KI. Nur heuristische Hinweise; keine bestätigte vollständige Codeprüfung.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'vollständig für unterstützte Heuristik':'UNVOLLSTÄNDIG')+'**','','| Datei | Status | Hinweise |','|---|---|---|'];
  for(const x of r.rows){
   lines.push('| '+clean(x.file)+' | '+clean(x.status)+' ('+clean(x.reason)+') | '+x.findings.length+' |');
-  for(const v of x.findings)lines.push('- '+clean(v.rule)+' in Zeile '+Number(v.line||0)+': '+clean(v.label)+' (unbestätigt)');
+  for(const v of x.findings)lines.push('- '+clean(v.rule)+' in Zeile '+Number(v.line||0)+': '+clean(v.label)+' ('+(v.kind==='confirmed'?'bestätigter Syntaxfehler':'heuristische Warnung')+')');
  }
  lines.push('','Ein grüner Lauf garantiert weder Korrektheit noch Sicherheit.');
  return lines.join('\n')+'\n';
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
-  const r=await inspect({repo:process.env.GITHUB_REPOSITORY,number:Number(process.env.PR_NUMBER),token:process.env.GH_TOKEN});
+  const {analyzeAST}=await import('../../eval/genesis-ast/analyzer.mjs');
+  const r=await inspect({repo:process.env.GITHUB_REPOSITORY,number:Number(process.env.PR_NUMBER),token:process.env.GH_TOKEN,ast:analyzeAST});
   const summary=render(r);
   if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary);
   else console.log(summary);
