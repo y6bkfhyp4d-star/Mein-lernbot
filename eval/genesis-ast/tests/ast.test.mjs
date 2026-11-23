@@ -193,3 +193,40 @@ test('B3 never treats a shadowed globalThis object as the real global object',()
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[5]);
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[6]);
 });
+
+test('B3 immutable direct aliases of global document and storage are detected',()=>{
+ const r=analyzeAST('aliases.mjs',[
+  'const doc = globalThis.document;',
+  'const store = localStorage;',
+  'doc.write("global");',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+});
+test('B3 aliases are not inferred from shadowed origins or mutable bindings',()=>{
+ const r=analyzeAST('non-aliases.mjs',[
+  'function f(globalThis, document){',
+  ' const doc = globalThis.document;',
+  ' const other = document;',
+  ' let mutable = globalThis.document;',
+  ' doc.write("not verified global");',
+  ' other.write("not verified global");',
+  ' mutable.write("not verified global");',
+  '}'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
+test('B3 alias resolution respects shadowing and declaration order',()=>{
+ const r=analyzeAST('alias-order.mjs',[
+  'doc.write("before declaration");',
+  'const doc = globalThis.document;',
+  'doc.write("after declaration");',
+  '{ const doc = {write(){}}; doc.write("local"); }',
+  'doc.write("outer alias");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3,5]);
+});
