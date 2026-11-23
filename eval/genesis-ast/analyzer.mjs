@@ -217,6 +217,13 @@ export function analyzeAST(file,source){
     if(alias?.origin==='localStorage'&&staticProperty(expr.left,'clear'))return 'localStorage';
     return null;
   };
+  // C13: only side-effect-free, direct replacement arms can be merged by origin.
+  // Any unsupported arm or effectful test falls back to C11's conservative barrier.
+  const pureReplacementArm=(arm,scope)=>{
+    if(!arm)return true;
+    if(arm.type==='BlockStatement'&&arm.body.length===0)return true;
+    return simpleArmWrite(arm,scope)!==null;
+  };
   // C8: arguments and computed callee parts are evaluated before invoking a call.
   // Only traverse expressions executed now: a function body passed as a value is deferred.
   const eagerEffects=node=>{
@@ -251,10 +258,12 @@ export function analyzeAST(file,source){
     // C11 audit: a branch/loop/try may run code that restores an earlier method.
     // Revoke stale certainty at the join, then allow a proven two-arm replacement
     // below to establish a new one. Deferred function definitions are not executed.
+    const safeIf=!uncertain&&node.type==='IfStatement'&&!eagerEffects(node.test)&&
+      pureReplacementArm(node.consequent,scope)&&pureReplacementArm(node.alternate,scope);
     if(!uncertain&&['IfStatement','ConditionalExpression','LogicalExpression',
        'SwitchStatement','ForStatement','ForInStatement','ForOfStatement',
        'WhileStatement','DoWhileStatement','TryStatement'].includes(node.type)&&
-       eagerEffects(node))invalidateAll();
+       eagerEffects(node)&&!safeIf)invalidateAll();
     // Join only the supported two-arm shape; a missing arm is merely possible.
     if(!uncertain&&node.type==='IfStatement'){
       const yes=simpleArmWrite(node.consequent,scope);
@@ -262,7 +271,10 @@ export function analyzeAST(file,source){
       if(yes&&yes===no)
         replace(yes,node.end);
       else for(const origin of new Set([yes,no].filter(Boolean)))
-        possible(origin,node.end);
+        // If this origin was already certainly replaced and both arms only
+        // preserve or replace it with a fresh function, certainty is retained.
+        if(!safeIf||state(origin).kind!=='replaced')
+          possible(origin,node.end);
     }
     // C1: a written method is no longer a confirmed known builtin on that alias.
     // This is intentionally an order-local, conservative check; not control-flow proof.
