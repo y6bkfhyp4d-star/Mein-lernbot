@@ -7,11 +7,11 @@ const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
 const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
-export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null}){
- if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!Number.isInteger(number)||number<1||number>1000000||!token)throw Error('Ungültiger Auftrag');
+export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null,anonymous=false}){
+ if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!Number.isInteger(number)||number<1||number>1000000||(!anonymous&&!token))throw Error('Ungültiger Auftrag');
  const base='https://api.github.com/repos/'+repo;
  const get=async path=>{
-  const response=await request(base+path,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'}});
+  const response=await request(base+path,{headers:{...(anonymous?{}:{Authorization:'Bearer '+token}),Accept:'application/vnd.github+json'}});
   if(!response.ok)throw Error('GitHub HTTP '+response.status);
   return response.json();
  };
