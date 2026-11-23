@@ -27,6 +27,21 @@ function describeCall(node){
   return null;
 }
 function loc(node){return {line:node.loc.start.line,column:node.loc.start.column+1};}
+// B1: resolve function-parameter bindings before attributing global member calls.
+function patternNames(node,names){
+ if(!node)return;
+ if(node.type==='Identifier')names.add(node.name);
+ else if(node.type==='RestElement')patternNames(node.argument,names);
+ else if(node.type==='AssignmentPattern')patternNames(node.left,names);
+ else if(node.type==='ArrayPattern')for(const item of node.elements)patternNames(item,names);
+ else if(node.type==='ObjectPattern')for(const item of node.properties)
+  patternNames(item.type==='RestElement'?item.argument:item.value,names);
+}
+function shadowedByParameter(name,scope){
+ for(let current=scope;current;current=current.parent)
+  if(current.parameters?.has(name))return true;
+ return false;
+}
 function walk(node,visit,parent=null,scope=null){
   if(!node || typeof node!=='object')return;
   if(Array.isArray(node)){
@@ -37,10 +52,16 @@ function walk(node,visit,parent=null,scope=null){
   const ownScope=['Program','BlockStatement','StaticBlock','CatchClause'].includes(node.type)
     ?{functions:new Set(),parent:scope}:scope;
   visit(node,parent,ownScope);
+  let childScope=ownScope;
+  if(['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node.type)){
+    const parameters=new Set();
+    for(const param of node.params)patternNames(param,parameters);
+    childScope={functions:new Set(),parameters,parent:ownScope};
+  }
   for(const key of Object.keys(node)){
     if(['loc','start','end','range','parent'].includes(key))continue;
     const value=node[key];
-    if(value && typeof value==='object')walk(value,visit,node,ownScope);
+    if(value && typeof value==='object')walk(value,visit,node,childScope);
   }
 }
 function syntaxError(file,source,error){
@@ -86,8 +107,8 @@ export function analyzeAST(file,source){
       if(name)calls.push({name,...loc(node)});
       if(identifier(node.callee,'Function'))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if(identifier(node.callee,'eval'))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
-      if(member(node.callee,'localStorage','clear'))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
-      if(member(node.callee,'document','write'))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
+      if(member(node.callee,'localStorage','clear')&&!shadowedByParameter('localStorage',scope))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
+      if(member(node.callee,'document','write')&&!shadowedByParameter('document',scope))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&identifier(node.callee,'Function'))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
