@@ -193,8 +193,15 @@ export function analyzeAST(file,source){
   const states=new Map(['document','localStorage'].map(name=>
     [name,{kind:'original',at:0,possibleAt:Infinity}]));
   const state=origin=>states.get(origin);
-  const replace=(origin,at)=>{const s=state(origin);s.kind='replaced';s.at=at;};
-  const invalidate=origin=>{const s=state(origin);s.kind='unknown';s.at=0;};
+  // C14: each definitive state transition starts a fresh confidence epoch.
+  // A prior maybe-write cannot keep lowering confidence after a full replacement
+  // or an unknown call has invalidated that earlier branch history.
+  const replace=(origin,at)=>{
+    const s=state(origin);s.kind='replaced';s.at=at;s.possibleAt=Infinity;
+  };
+  const invalidate=origin=>{
+    const s=state(origin);s.kind='unknown';s.at=0;s.possibleAt=Infinity;
+  };
   const invalidateAll=()=>{for(const name of states.keys())invalidate(name);};
   const possible=(origin,at)=>{const s=state(origin);s.possibleAt=Math.min(s.possibleAt,at);};
   const stillKnown=(origin,pos,uncertain)=>{
