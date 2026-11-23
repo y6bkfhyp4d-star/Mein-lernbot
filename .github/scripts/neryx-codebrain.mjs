@@ -37,7 +37,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!Number.isInteger(number)||number<1||number>1000000||(!anonymous&&!token))throw Error('Ungültiger Auftrag');
  const base='https://api.github.com/repos/'+repo;
  const get=async path=>{
-  const response=await request(base+path,{headers:{...(anonymous?{}:{Authorization:'Bearer '+token}),Accept:'application/vnd.github+json'}});
+  const response=await request(base+path,{headers:{...(anonymous?{}:{Authorization:'Bearer '+token}),Accept:'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error('GitHub HTTP '+response.status);
   // GitHub file-list responses include patches; bound transport bytes before JSON.parse.
   // Limits: PR metadata 64 KiB, file list 4 MiB, individual blobs 96 KiB.
@@ -128,7 +128,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
 }
 export function render(r){
- const lines=['# NERYX CodeBrain 1.0','','Keine API-KI. Syntaxprüfung für JS, Python, JSON und YAML; Sicherheitswarnungen bleiben heuristisch. Keine vollständige Codefreigabe.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'alle unterstützten Dateitypen geprüft':'UNVOLLSTÄNDIG')+'**',r.blocking?'**Bestätigte Syntaxfehler gefunden: Prüfung nicht bestanden.**':'**Keine bestätigten Syntaxfehler in unterstützten Prüfungen festgestellt.**','','| Datei | Status | Hinweise |','|---|---|---|'];
+ const lines=['# NERYX CodeBrain 1.4','','Keine API-KI. Syntaxprüfung für JS, Python, JSON und YAML; Sicherheitswarnungen bleiben heuristisch. Keine vollständige Codefreigabe.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'alle unterstützten Dateitypen geprüft':'UNVOLLSTÄNDIG')+'**',r.blocking?'**Bestätigte Syntaxfehler gefunden: Prüfung nicht bestanden.**':'**Keine bestätigten Syntaxfehler in unterstützten Prüfungen festgestellt.**','','| Datei | Status | Hinweise |','|---|---|---|'];
  for(const x of r.rows){
   lines.push('| '+clean(x.file)+' | '+clean(x.status)+' ('+clean(x.reason)+') | '+x.findings.length+' |');
   for(const v of x.findings)lines.push('- '+clean(v.rule)+' in Zeile '+Number(v.line||0)+': '+clean(v.label)+' ('+(v.kind==='confirmed'?'bestätigter Syntaxfehler':'heuristische Warnung')+')');
