@@ -166,3 +166,30 @@ test('B2 for-loop bindings remain local while var is function hoisted',()=>{
  assert.deepEqual(has(r,'AST005').map(f=>f.line),[2]);
  assert.equal(has(r,'AST004').length,0);
 });
+
+test('B3 explicit globalThis members survive shadowing of shorter global names',()=>{
+ const r=analyzeAST('explicit.mjs',[
+  'function f(document, localStorage){',
+  ' document.write("local");',
+  ' localStorage.clear();',
+  ' globalThis.document.write("global");',
+  ' globalThis["localStorage"]["clear"]();',
+  '}'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[5]);
+});
+test('B3 never treats a shadowed globalThis object as the real global object',()=>{
+ const r=analyzeAST('fake-global.mjs',[
+  'function f(globalThis){',
+  ' globalThis.document.write("local");',
+  ' globalThis.localStorage.clear();',
+  '}',
+  'globalThis.document.write("global");',
+  'globalThis.localStorage.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[5]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[6]);
+});
