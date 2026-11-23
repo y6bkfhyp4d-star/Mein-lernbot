@@ -94,3 +94,19 @@ Die absichtlich ungültigen SHA-Werte sind eine zusätzliche Sicherung gegen tat
 **Aussage:** Ein `neryx/auto/*`-PR mit nur einer unerlaubten `docs/`-Datei wird im echten Repository von **beiden** bestehenden Candidate-Sicherheitschecks erkannt, und sein Merge war blockiert. Dies ist **ein** echter Negativfall, noch keine vollständige zweifache Cloud-Abnahme sämtlicher Umgehungen. Ein anders benannter Branch oder ein kompromittierter `contents:write`-Token ist dadurch nicht geprüft. Insbesondere bleibt die Frage einer Identitätsbindung für alle Auto-Agenten offen. Kein Auto-Merge/Production-Deploy erlaubt.
 
 **Wichtiger Unterschied zur früheren Aussage „keine Cloud-Tests“:** Diese ist inzwischen überholt: Ein leseberechtigter PR-Token wurde zweimal per GitHub-API negativ getestet (Branch-Erstellung und Dateiänderung je HTTP 403), und ein echter Auto-Branch-Dateipfadverstoß wurde durch zwei GitHub-CI-Gates verweigert. Die **vollständige** Cloud-Rechte- und Ruleset-Abnahme bleibt dennoch offen.
+
+## 9. Sicherheitslücke entdeckt: Kandidatenordner erlaubte `.js`; Draft-Fix getestet
+
+**Negativer GitHub-Live-Test:** [Draft-PR #93](https://github.com/y6bkfhyp4d-star/Mein-lernbot/pull/93) auf `neryx/auto/solo-extension-negative-20261123`, SHA `06bf9023b5a5a1199ef1ec06ff721ba47fd7015a`. Er enthielt nur eine harmlose Kommentar-Datei `candidates/GENESIS_X_EXTENSION_NEGATIVE_PROBE_20261123.js`.
+
+**Beobachtetes Ergebnis der bestehenden `main`-Gates:** [Candidate policy 45116307098](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45116307098) und [Trusted-base policy 45116307208](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45116307208) wurden **beide erfolgreich** abgeschlossen. Das ist in diesem Negativtest eine **Sicherheitslücke**, weil die Checks nur `candidates/` bzw. `eval/candidates/` als Präfix zuließen, ohne auf `.json` und Dateistatus zu prüfen. Der GitHub-PR-Zustand `mergeable_state: blocked` entstand bei einem Draft-PR und darf **nicht** als Beweis für einen File-Type-Check gelten. PR #93 wurde **geschlossen, nicht gemergt**.
+
+**Korrektur ausschließlich im Draft-PR #91 vorgeschlagen:**
+- `.github/workflows/neryx-genesis-candidate-policy.yml`: liest `git diff --name-status -z --no-renames` und akzeptiert nur neue/geänderte Dateien (`A`/`M`) mit strengem Pfad `candidates/**/*.json` oder `eval/candidates/**/*.json`. Dateiendungen `.js`, Umbenennung/Löschung, versteckte oder sonstige Pfade werden abgewiesen.
+- `.github/workflows/neryx-genesis-candidate-trusted.yml`: read-only GitHub-PR-Dateiliste lässt nur Status `added`/`modified` und denselben JSON-only-Pfad zu; Umbenennungen werden abgewiesen. Weiterhin **kein** Checkout/Execute des PR-HEADs.
+- `eval/tests/genesis-candidate-json-only.test.mjs`: acht zusätzliche lokale Git-Diff-Szenarien, darunter positive JSON-Pfade und negative JS-/Fake-JSON-/Delete-Fälle.
+- `eval/tests/genesis-trusted-policy.test.mjs`: Regressionen an die verschärfte Trusted-Policy angepasst.
+
+**CI-Beleg:** [Integration 45116637985](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45116637985) des Test-Commits `ad405ee093467508dd7a2a2d1134a647b06b4435`: **387/387 bestanden**. Dies belegt den lokalen vorgeschlagenen Policy-Code, **nicht** eine bereits live wirksame Trusted-Base-Änderung.
+
+**Wichtig:** `pull_request_target` liest seinen Workflow aus `main`; das verschärfte Trusted-Gate in Draft #91 **wird erst wirksam, wenn der geänderte Workflow nach menschlicher Freigabe auf `main` gelangt**. Bis dahin besteht die im Live-Test #93 beobachtete JSON-only-Lücke im tatsächlichen Trusted-Check weiter. **Kein eigenmächtiger Merge, kein automatisches Deploy und keine Behauptung einer schon behobenen Produktionslücke.** Es fehlen weiter eine vollumfängliche GitHub-Token-/Ruleset-Abnahme und die Verifikation der Vercel-Publishing-Kopplung.
