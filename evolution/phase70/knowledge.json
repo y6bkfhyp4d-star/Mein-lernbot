@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Absorberkammer",
-    "Absorption (Chemie)",
-    "Adrastea (Mond)",
-    "Aegaeon (Mond)",
-    "(4) Vesta",
-    "Aphel",
-    "Affinität (Chemie)",
-    "ArXiv",
     "(433) Eros",
     "(90377) Sedna",
     "20. Jahrhundert",
@@ -89,7 +81,15 @@
     "Absolutadjektiv",
     "Adjektivierung",
     "Aufmerksamkeit",
-    "Emotion"
+    "Emotion",
+    "EMV-Prüfung",
+    "Elektromagnetische Welle",
+    "Adsorption",
+    "Adsorptionskältemaschine",
+    "Adrasteia (Mythologie)",
+    "Aegir (Mond)",
+    "15. August",
+    "2008"
   ],
   "entries": [
     {
@@ -1061,6 +1061,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Aktualgenese"
+    },
+    {
+      "collected_at": "2026-11-23T09:41:54+00:00",
+      "excerpt": "Eine Absorberkammer ist in der EMV-Prüftechnik eine definierte Umgebung, an deren metallischen, elektrisch leitfähigen Wänden innen Absorber für elektromagnetische Wellen angebracht sind. Die Absorberkammer unterscheidet sich von den in der Akustik üblichen reflexionsarmen Räumen dadurch, dass die Absorber an ihren Wänden in der Lage sind, elektromagnetische Wellen und nicht Schallwellen zu absorbieren.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absorberkammer",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absorberkammer"
+    },
+    {
+      "collected_at": "2026-11-23T09:41:54+00:00",
+      "excerpt": "Chemische Absorption beschreibt die Aufnahme von Stoffen in das freie Volumen einer kondensierten Phase oder eines porösen Festkörpers. Ein aufgenommener Stoff wird dabei als Absorbat, das aufnehmende Medium als Absorbent oder Absorbens bezeichnet. Absorption ist von Adsorption, der Anreicherung von Stoffen an Grenzflächen kondensierter Phasen, zu unterscheiden. Absorption und Adsorption gehören jedoch beide zu den sogenannten Sorptionsprozessen. Weiterhin ist Absorption im hier diskutierten Sinne von der Absorption von Strahlung zu unterscheiden. Chemische Absorption wird heute unter anderem zur Reinigung von Industrieabluft eingesetzt, etwa bei Abluft von Galvanikanlagen oder zur Beseitigung von Gerüchen. Durch die gesetzlichen Vorgaben der Grenzwerte (etwa TA Luft) für bestimmte Stoffe, welche wiederholt verschärft wurden, wird die Abs",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absorption_%28Chemie%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absorption (Chemie)"
+    },
+    {
+      "collected_at": "2026-11-23T09:41:54+00:00",
+      "excerpt": "Vorlage:Infobox Mond/Wartung/A_Fallen Adrastea (auch Jupiter XV) ist der zweitinnerste bekannte Jupitermond und der kleinste der Amalthea-Gruppe.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adrastea_%28Mond%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adrastea (Mond)"
+    },
+    {
+      "collected_at": "2026-11-23T09:41:54+00:00",
+      "excerpt": "Vorlage:Infobox Mond/Wartung/!A_Fallen Aegaeon (auch Saturn LIII) ist der neunte und einer der kleinsten inneren der 293 bekannten Monde des Planeten Saturn. Er ist der einzige bislang bekannte Mond von Saturns G-Ring.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aegaeon_%28Mond%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aegaeon (Mond)"
     }
   ],
   "failed_titles": [
@@ -1432,6 +1472,19 @@
         "Aktualgenese"
       ],
       "time": "2026-11-23T03:14:44+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Absorberkammer",
+        "Absorption (Chemie)",
+        "Adrastea (Mond)",
+        "Aegaeon (Mond)"
+      ],
+      "time": "2026-11-23T09:41:54+00:00"
     }
   ],
   "schema": 1
