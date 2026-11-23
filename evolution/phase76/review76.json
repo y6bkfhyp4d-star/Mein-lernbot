@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 76,
+  "cursor": 81,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -853,6 +853,66 @@
       "title": "Aktienmarkt",
       "wikidata_id": "Q475000",
       "wikidata_url": "https://www.wikidata.org/wiki/Q475000"
+    },
+    {
+      "checked_at": "2026-11-23T03:22:13+00:00",
+      "classes": [
+        "Asteroid",
+        "Zwergplanetenkandidat",
+        "transneptunisches Objekt"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(120178) 2003 OP32",
+      "wikidata_id": "Q1944739",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q1944739"
+    },
+    {
+      "checked_at": "2026-11-23T03:22:13+00:00",
+      "classes": [
+        "transneptunisches Objekt",
+        "Asteroid",
+        "Zwergplanet"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(120347) Salacia",
+      "wikidata_id": "Q136964",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q136964"
+    },
+    {
+      "checked_at": "2026-11-23T03:22:13+00:00",
+      "classes": [
+        "bahnresonantes transneptunisches Objekt",
+        "Zwergplanet"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(225088) Gonggong",
+      "wikidata_id": "Q6587",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q6587"
+    },
+    {
+      "checked_at": "2026-11-23T03:22:13+00:00",
+      "classes": [
+        "Art der chemische Gruppe"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Acetylgruppe",
+      "wikidata_id": "Q481808",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q481808"
+    },
+    {
+      "checked_at": "2026-11-23T03:22:13+00:00",
+      "classes": [
+        "definierte chemische Substanz"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Bempedoinsäure",
+      "wikidata_id": "Q27075007",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q27075007"
     }
   ],
   "runs": [
@@ -1026,6 +1086,13 @@
     },
     {
       "at": "2026-11-22T21:08:24+00:00",
+      "checked": 5,
+      "error_count": 1,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-23T03:22:13+00:00",
       "checked": 5,
       "error_count": 1,
       "known_sources": 89,
