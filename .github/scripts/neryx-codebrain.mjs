@@ -22,6 +22,7 @@ const yamlSyntaxDefault=source=>{
  if(typeof parsed.parsed!=='boolean')throw Error('invalid YAML result');
  return parsed;
 };
+// Shared isolated AST parser for trusted manual and unprivileged snapshot scanning.
 export const astWorkerDefault=(path,source)=>{
  const helper=fileURLToPath(new URL('../../eval/genesis-ast/codebrain-worker.mjs',import.meta.url));
  const output=execFileSync(process.execPath,['--max-old-space-size=128',helper],{
