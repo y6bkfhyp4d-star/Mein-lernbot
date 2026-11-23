@@ -39,3 +39,8 @@ Gemini bleibt ein unabhängiger optionaler Workflow. Ein HTTP-503 bei Gemini än
 - Die Standard-Integrationstests nutzen beim direkten Funktionsaufruf weiterhin die optionale Heuristik-Variante, während ein separater Test im `eval/genesis-ast/tests/` den **echten AST-Adapter** nach installierter Parser-Abhängigkeit prüft.
 - Die AST-Abhängigkeit wird aktuell wie im bereits bestehenden AST-Workflow mit dem fest eingetragenen Paket `acorn@8.15.0` und `npm install --ignore-scripts --no-audit --no-fund --package-lock=false` installiert. **Das ist noch kein durch Lockfile gesicherter, vollständig reproduzierbarer Installationsprozess.**
 - Der manuelle Workflow steht erst nach späterer Freigabe und Merge auf dem Default-Branch zur Verfügung; dieser Draft-PR stellt **keinen nachgewiesenen Live-GitHub-API-Lauf** dar.
+
+## Sicherheitskorrektur der Abdeckungs-/Freigabelogik
+- YAML wird ohne vollständigen Parser immer als `partial` ausgewiesen, auch wenn kein Warnmuster gefunden wird; der Workflow bleibt entsprechend unvollständig und liefert Exit-Code 1.
+- Auch bei vollständiger Dateiabdeckung führt ein **bestätigter** AST-/JSON-Syntaxfehler zum Fehlerstatus. `complete` beschreibt ausschließlich die Abdeckung; `blocking` beschreibt bestätigte Syntaxprobleme. Ein grüner Workflow setzt `complete && !blocking` voraus.
+- Diese Schutzbedingungen werden durch zusätzliche Regressionstests abgedeckt. Bereits vorhandene Sicherheitshinweise anderer Art bleiben heuristische Warnungen, keine automatische Korrektur oder Freigabe.
