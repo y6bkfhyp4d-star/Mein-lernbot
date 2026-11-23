@@ -295,3 +295,44 @@ test('B5 shadowed globalThis does not impersonate the global eval or Function',(
  assert.deepEqual(has(r,'AST001').map(x=>x.line),[6]);
  assert.deepEqual(has(r,'AST002').map(x=>x.line),[7]);
 });
+
+test('B6 immutable aliases resolve exactly one additional hop',()=>{
+ const r=analyzeAST('alias-chain.mjs',[
+  'const first = globalThis.document;',
+  'const second = first;',
+  'second.write("known origin");',
+  'const store = globalThis.localStorage;',
+  'const next = store;',
+  'next.clear();',
+  'const third = second;',
+  'third.write("too deep to confirm");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[6]);
+});
+test('B6 never infers chains through mutable or shadowed sources',()=>{
+ const r=analyzeAST('unknown-chain.mjs',[
+  'let mutable = globalThis.document;',
+  'const alias = mutable;',
+  'alias.write("unknown");',
+  'function f(globalThis){',
+  ' const one = globalThis.document;',
+  ' const two = one;',
+  ' two.write("local");',
+  '}'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
+test('B6 alias chains respect declaration order and lexical shadowing',()=>{
+ const r=analyzeAST('ordered-chain.mjs',[
+  'const first = globalThis.document;',
+  'second.write("before declaration");',
+  'const second = first;',
+  'second.write("after declaration");',
+  '{const second = {write(){}}; second.write("local");}'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
