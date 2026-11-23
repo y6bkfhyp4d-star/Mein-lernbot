@@ -42,9 +42,9 @@ test('replay stable PR #97 file subset with captured Git blob hashes, without cr
  };
  const report=await inspect({repo:'y6bkfhyp4d-star/Mein-lernbot',number:97,token:'REPLAY-ONLY-NOT-A-KEY',request,ast:analyzeAST});
  assert.equal(report.rows.length,3);
- assert.equal(report.rows.filter(x=>x.status==='partial').length,1,'YAML is heuristic only');
+ assert.equal(report.rows.filter(x=>x.status==='partial').length,0,'YAML is now parsed syntactically');
  assert.equal(report.rows.filter(x=>x.status==='skipped').length,1,'Markdown is unsupported');
- assert.equal(report.rows.filter(x=>x.status==='checked').length,1,'One historical JS test module checked by AST');
+ assert.equal(report.rows.filter(x=>x.status==='checked').length,2,'One JS test module and one YAML file checked for syntax');
  assert.equal(report.complete,false,'Partial coverage must fail closed');
  assert.equal(calls,4,'Metadata, changed-file list and two supported blob fetches');
  const summary=render(report);
