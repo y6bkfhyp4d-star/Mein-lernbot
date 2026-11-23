@@ -68,3 +68,16 @@ Da kein neues Repository mit den vorhandenen GitHub-Tools angelegt werden kann, 
 **Aussage:** Der Token **dieses** gesonderten PR-Jobs durfte zur Laufzeit keine Git-Referenz erstellen. GitHub hat dies mit HTTP 403 abgelehnt. Das ist eine echte Cloud-Antwort und nicht bloß ein Offline-Mock.
 
 **Grenze:** Für die neun bestehenden Forschungsworkflows mit `contents:write`, für die GitHub-Administratorverbindung, für künftige Agentenidentitäten, native GitHub-Branchschutzregeln oder das erforderliche Merge-Blocking wurde **keine** entsprechende Live-Berechtigungsabnahme durchgeführt. Die Token-Prüfung ersetzt nicht die geplante isolierte Test-Repository-Abnahme. **Auto-Code-Merge und Production-Deploy bleiben NO-GO.**
+
+## 7. GitHub-Live-Negativprobe erweitert: Dateiänderung ebenfalls gesperrt
+
+**Test-Commit:** `1458f8a1c0676abf7bc7345418d37f214d135668`; [GitHub Actions 45115811513](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45115811513), Job `solo-token-readonly-negative`: **success**.
+
+Der auf Draft-PR #91 beschränkte `pull_request`-Job mit `permissions: contents: read` hat nun **zwei echte, unabhängige GitHub-API-Schreiboperationen** negativ getestet:
+
+1. `POST /repos/{repo}/git/refs` zum Anlegen eines Branches mit ungültiger Objekt-SHA: **HTTP 403**.
+2. `PUT /repos/{repo}/contents/docs/GENESIS_X_SOLO_OWNER_MODE.md` auf dem PR-Branch mit einer absichtlich falschen aktuellen Blob-SHA: **HTTP 403**.
+
+Die absichtlich ungültigen SHA-Werte sind eine zusätzliche Sicherung gegen tatsächliche Schreibänderungen. Die *Interpretation* des Tests beruht jedoch ausschließlich auf **HTTP 403**, nicht auf dem ungültigen Wert; HTTP 409/422 wäre als nicht bewiesene Rechteverweigerung gescheitert.
+
+**Grenze unverändert:** Dies gilt nur für den explizit leseberechtigten PR-Token, nicht für die neun `contents: write`-Forschungstokens, Owner-App-Rechte oder native Ruleset-Bypass-Sicherheit. Deshalb weiterhin **NO-GO** für autonome Codeänderungen, Merges und Production-Deployments. Es wurden kein Branch, keine Datei auf `main`, kein Ruleset und keine Vercel-Produktionskonfiguration geändert.
