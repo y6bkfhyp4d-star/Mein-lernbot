@@ -10,6 +10,8 @@ on:
       - 'eval/tests/codebrain-rate-limit-diagnostics.test.mjs'
       - 'eval/tests/codebrain-rate-limit-retry.mjs'
       - 'eval/tests/codebrain-rate-limit-retry.test.mjs'
+      - 'eval/tests/codebrain-git-snapshot.mjs'
+      - 'eval/tests/codebrain-git-snapshot.test.mjs'
       - '.github/workflows/neryx-codebrain-public-smoke.yml'
 permissions: {}
 concurrency:
@@ -35,3 +37,23 @@ jobs:
           CODEBRAIN_LIVE_PUBLIC: '1'
           CODEBRAIN_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: node --test eval/tests/codebrain-live-public.test.mjs
+  codebrain-snapshot-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR synthetic merge with both parents
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Use pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Verify offline snapshot adapter contract
+        run: node --test eval/tests/codebrain-git-snapshot.test.mjs
+      - name: Inspect local PR merge snapshot without any GitHub API
+        env:
+          CODEBRAIN_PR_NUMBER: ${{ github.event.pull_request.number }}
+          CODEBRAIN_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node eval/tests/codebrain-git-snapshot.mjs
