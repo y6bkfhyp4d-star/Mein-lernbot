@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectGitSnapshot,snapshotPasses} from './codebrain-git-snapshot.mjs';
+import {inspectGitSnapshot,snapshotPasses,snapshotOutcome} from './codebrain-git-snapshot.mjs';
 const HEAD='a'.repeat(40), BASE='b'.repeat(40), MERGE='c'.repeat(40), BLOB='d'.repeat(40);
 function fixture({status='M',path='safe.js',source='const ok = 1;',head=HEAD}={}){
  const calls=[];
@@ -84,4 +84,12 @@ test('snapshot accepts supported clean scans but rejects undisclosed analysis sk
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'size-or-encoding'}]}),false);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),false);
+});
+
+test('snapshot outcome distinguishes full, intentional partial and broken scans',()=>{
+ const ok={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
+ assert.equal(snapshotOutcome(ok),'COMPLETE');
+ assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'unsupported-type'}]}),'PARTIAL_UNSUPPORTED');
+ assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'findings-truncated'}]}),'INCOMPLETE');
+ assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),'INCOMPLETE');
 });
