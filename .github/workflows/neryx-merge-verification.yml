@@ -77,6 +77,7 @@ jobs:
           API_URL: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         shell: bash
         run: |
           set -euo pipefail
@@ -112,4 +113,31 @@ jobs:
               if exc.code != 403:
                   raise RuntimeError("Permission denial not proven") from exc
               print("PASS: GitHub refused Git-ref creation by read-only Actions token")
+          # Also probe the Contents write API on this draft branch. Bogus
+          # current file SHA ensures GitHub cannot accept an update,
+          # even if unexpectedly granted write privileges.
+          import base64, urllib.parse
+          file_path = "docs/GENESIS_X_SOLO_OWNER_MODE.md"
+          target = (
+              f"{api}/repos/{repo}/contents/"
+              + urllib.parse.quote(file_path, safe="/")
+          )
+          payload = json.dumps({
+              "message": "never accepted: read-only permissions test",
+              "content": base64.b64encode(b"unreachable\n").decode("ascii"),
+              "sha": "0" * 40,
+              "branch": os.environ["PR_HEAD_REF"],
+          }).encode()
+          request = urllib.request.Request(
+              target, data=payload,
+              headers={**headers, "Content-Type": "application/json"},
+              method="PUT")
+          try:
+              with urllib.request.urlopen(request, timeout=15):
+                  raise RuntimeError("Contents write unexpectedly accepted")
+          except urllib.error.HTTPError as exc:
+              print("Read-only Actions token contents probe HTTP", exc.code)
+              if exc.code != 403:
+                  raise RuntimeError("Contents permission denial not proven") from exc
+              print("PASS: GitHub refused file update by read-only Actions token")
           PY
