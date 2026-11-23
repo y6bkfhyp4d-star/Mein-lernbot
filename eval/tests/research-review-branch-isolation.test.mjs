@@ -11,6 +11,6 @@ test('research publisher rejects unsafe writes in isolated Git sandbox', () => {
     env:{PATH:process.env.PATH,HOME:process.env.HOME}
   });
   assert.equal(result.status,0,(result.stdout||'')+'\n'+(result.stderr||''));
-  assert.match(result.stderr,/Ran 7 tests/);
+  assert.match(result.stderr,/Ran 8 tests/);
   assert.match(result.stderr,/OK/);
 });
