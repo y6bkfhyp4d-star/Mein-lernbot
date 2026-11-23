@@ -94,11 +94,11 @@ test('valid JSON is checked and invalid JSON is reported as confirmed syntax',as
  assert.equal(broken.blocking,true);
  assert.doesNotMatch(render(broken),/\{"ok"/);
 });
-test('YAML mode makes warnings but does not pretend to parse YAML',async()=>{
- const r=await inspect(mock([entry('ci.yml')],{[SHA]:'on: pull_request_target:\npermissions:\n  contents: write'}));
- assert.equal(r.rows[0].reason,'yaml-heuristic-no-parse');
- assert.equal(r.rows[0].status,'partial');
- assert.equal(r.complete,false);
+test('YAML syntax is parsed and security warnings remain heuristic',async()=>{
+ const r=await inspect(mock([entry('ci.yml')],{[SHA]:'on:\n  pull_request_target:\npermissions:\n  contents: write'}));
+ assert.equal(r.rows[0].reason,'yaml-ast-parse');
+ assert.equal(r.rows[0].status,'checked');
+ assert.equal(r.complete,true);
  assert.equal(r.rows[0].findings.length,2);
  assert.match(render(r),/heuristische Warnung/);
 });
@@ -122,11 +122,11 @@ test('a real syntax error is a blocking result even when file coverage is comple
  assert.equal(r.blocking,true);
  assert.match(render(r),/Prüfung nicht bestanden/);
 });
-test('YAML without recognized risk is still only a partial review',async()=>{
+test('valid YAML without known risk is syntax-checked but not security-certified',async()=>{
  const r=await inspect(mock([entry('safe.yml')],{[SHA]:'name: example\njobs: {}'}));
  assert.equal(r.rows[0].findings.length,0);
- assert.equal(r.rows[0].status,'partial');
- assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'checked');
+ assert.equal(r.complete,true);
 });
 
 test('anonymous public mode never sends an Authorization header',async()=>{
@@ -179,4 +179,25 @@ test('real isolated Python AST parsing catches malformed code',async()=>{
  assert.equal(result.complete,true);
  assert.equal(result.blocking,true);
  assert.equal(result.rows[0].findings[0].rule,'PY000');
+});
+
+test('real YAML parser confirms malformed syntax without disclosing source',async()=>{
+ const r=await inspect(mock([entry('broken.yaml')],{[SHA]:'name: [never-closed\nSECRET-NEVER-SHOWN: yes'}));
+ assert.equal(r.complete,true);
+ assert.equal(r.blocking,true);
+ assert.equal(r.rows[0].findings[0].rule,'YAML000');
+ assert.equal(r.rows[0].findings[0].kind,'confirmed');
+ assert.doesNotMatch(render(r),/SECRET-NEVER-SHOWN/);
+});
+test('YAML tags are never deserialized into Ruby objects',async()=>{
+ const r=await inspect(mock([entry('tagged.yml')],{[SHA]:'--- !ruby/object:Exploit\nfield: unsafe\n'}));
+ assert.equal(r.complete,true);
+ assert.equal(r.rows[0].status,'checked');
+ assert.equal(r.blocking,false);
+});
+test('YAML parser crash fails closed with no exception leakage',async()=>{
+ const r=await inspect({...mock([entry('a.yaml')]),yamlSyntax:()=>{throw Error('DO-NOT-LOG-YAML-SECRET')}});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.doesNotMatch(render(r),/DO-NOT-LOG-YAML-SECRET/);
 });
