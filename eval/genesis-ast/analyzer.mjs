@@ -107,8 +107,12 @@ function collectAliases(statements,scope){
   for(const decl of stmt.declarations){
    if(decl.id?.type!=='Identifier')continue;
    // The initializer is evaluated before the binding can be used.
-   const origin=aliasOrigin(decl.init,scope);
-   if(origin)scope.aliases.set(decl.id.name,{origin,after:decl.end});
+   // One immutable hop is allowed; unknown or mutable predecessors never qualify.
+   const direct=aliasOrigin(decl.init,scope);
+   const prior=decl.init?.type==='Identifier'?aliasAt(decl.init.name,scope,decl.start):null;
+   const origin=direct||prior?.origin;
+   const depth=direct?0:(prior?.depth??0)+1;
+   if(origin&&depth<=1)scope.aliases.set(decl.id.name,{origin,depth,after:decl.end});
   }
  }
 }
@@ -116,7 +120,7 @@ function aliasAt(name,scope,position){
  for(let current=scope;current;current=current.parent){
   if(current.bindings?.has(name)){
    const alias=current.aliases?.get(name);
-   return alias&&position>=alias.after?alias.origin:null;
+   return alias&&position>=alias.after?alias:null;
   }
  }
  return null;
@@ -200,12 +204,12 @@ export function analyzeAST(file,source){
       if((member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))||
         explicitGlobal(node.callee,'localStorage','clear',scope)||
         (staticProperty(node.callee,'clear')&&node.callee.object?.type==='Identifier'&&
-         aliasAt(node.callee.object.name,scope,node.start)==='localStorage'))
+         aliasAt(node.callee.object.name,scope,node.start)?.origin==='localStorage'))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
       if((member(node.callee,'document','write')&&!shadowed('document',scope))||
         explicitGlobal(node.callee,'document','write',scope)||
         (staticProperty(node.callee,'write')&&node.callee.object?.type==='Identifier'&&
-         aliasAt(node.callee.object.name,scope,node.start)==='document'))
+         aliasAt(node.callee.object.name,scope,node.start)?.origin==='document'))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
