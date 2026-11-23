@@ -17,7 +17,7 @@ test('manual CodeBrain workflow stays read-only, default-branch gated, secret-fr
  assert.match(text,/github\.ref == 'refs\/heads\/main'/);
  assert.match(text,/^\s+ref: main$/m);
  assert.match(text,/persist-credentials: false/);
- assert.match(text,/npm install --ignore-scripts/);
+ assert.match(text,/npm ci --ignore-scripts/);
  assert.doesNotMatch(text,/npm (?:install|ci)(?![^\n]*--ignore-scripts)/);
  assert.doesNotMatch(text,/pull_request_target|sudo |curl .*\|.*sh|eval\s+/);
  assert.match(text,/timeout-minutes:/);
