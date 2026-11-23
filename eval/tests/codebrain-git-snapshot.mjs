@@ -4,7 +4,6 @@ import {execFileSync} from 'node:child_process';
 import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
 const SHA=/^[a-f0-9]{40}$/i;
 const run=(args,maxBuffer=131072)=>execFileSync('git',args,{encoding:'buffer',maxBuffer,timeout:8000,stdio:['ignore','pipe','pipe']});
-const gitText=(args)=>run(args).toString('utf8').trim();
 const safeFile=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
 export async function inspectGitSnapshot({repo,number,expectedHead,git=run}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1||!SHA.test(expectedHead||''))throw Error('Invalid snapshot context');
@@ -35,9 +34,9 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run}){
  const request=async(url,options)=>{
   if(url===prefix+'/pulls/'+number)return new Response(JSON.stringify(pr));
   if(url===prefix+'/pulls/'+number+'/files?per_page=100')return new Response(JSON.stringify(files));
-  const match=url.match(new RegExp('^'+prefix.replace(/[.*+?^$()|[\]{}\\]/g,'\\$&')+'/git/blobs/([a-f0-9]{40})$','i'));
-  if(!match)throw Error('Unexpected snapshot transport request');
-  const sha=match[1];
+  if(!url.startsWith(prefix+'/git/blobs/'))throw Error('Unexpected snapshot transport request');
+  const sha=url.slice((prefix+'/git/blobs/').length);
+  if(!SHA.test(sha))throw Error('Invalid snapshot blob ID');
   if(!files.some(f=>f.sha===sha))throw Error('Blob not in changed file list');
   const size=Number(txt(['cat-file','-s',sha]));
   if(!Number.isSafeInteger(size)||size<0)throw Error('Invalid git blob size');
