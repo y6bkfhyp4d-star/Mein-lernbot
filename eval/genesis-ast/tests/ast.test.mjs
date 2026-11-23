@@ -805,8 +805,9 @@ test('C12 original, replaced and uncertain states remain separate per object ori
   'store.clear();'
  ].join('\n'));
  assert.equal(r.parsed,true);
- assert.deepEqual(has(r,'AST005').map(x=>x.line),[8]);
- assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+ // Calling store.clear() is itself a C6 side-effect barrier for both origins.
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[5,8]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4,9]);
 });
 test('C12 subsequent proven replacement restores certainty after unknown mutation',()=>{
  const r=analyzeAST('state-reestablish.mjs',[
