@@ -9,10 +9,15 @@ const ranks={critical:0,high:1,medium:2,low:3,info:4};
 const maxBytes=2_000_000;
 const extensions=new Set(['.js','.mjs','.cjs']);
 
+function staticProperty(node,property){
+  return node?.type==='MemberExpression' && (
+    (!node.computed && node.property?.type==='Identifier' && node.property.name===property) ||
+    (node.computed && node.property?.type==='Literal' && node.property.value===property)
+  );
+}
 function member(node,object,property){
-  return node?.type==='MemberExpression' && !node.computed &&
-    node.object?.type==='Identifier' && node.object.name===object &&
-    node.property?.type==='Identifier' && node.property.name===property;
+  return staticProperty(node,property) &&
+    node.object?.type==='Identifier' && node.object.name===object;
 }
 function identifier(node,name){return node?.type==='Identifier' && node.name===name;}
 function describeCall(node){
@@ -79,14 +84,14 @@ export function analyzeAST(file,source){
     if(node.type==='CallExpression'){
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
+      if(identifier(node.callee,'Function'))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if(identifier(node.callee,'eval'))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
       if(member(node.callee,'localStorage','clear'))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
       if(member(node.callee,'document','write'))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&identifier(node.callee,'Function'))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
-    if(node.type==='AssignmentExpression'&&node.left?.type==='MemberExpression'&&
-      !node.left.computed&&identifier(node.left.property,'innerHTML'))
+    if(node.type==='AssignmentExpression'&&staticProperty(node.left,'innerHTML'))
       report('AST003','medium',node,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
     // Reference scans the actual original text, including strings, below.
   });
