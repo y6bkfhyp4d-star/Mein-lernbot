@@ -10,14 +10,14 @@ export const parserEnv=()=>({PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-
 const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
 const pythonSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-python-syntax.py',import.meta.url));
- const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
+ const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:5000,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
  const parsed=JSON.parse(output.toString('utf8'));
  if(typeof parsed.parsed!=='boolean')throw Error('invalid python result');
  return parsed;
 };
 const yamlSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-yaml-syntax.rb',import.meta.url));
- const output=execFileSync('ruby',['-W0',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
+ const output=execFileSync('ruby',['-W0',helper],{input:source,timeout:5000,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
  const parsed=JSON.parse(output.toString('utf8'));
  if(typeof parsed.parsed!=='boolean')throw Error('invalid YAML result');
  return parsed;
