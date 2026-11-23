@@ -28,7 +28,10 @@ test('public smoke workflow has no token permissions, secrets, or privileged tri
  assert.match(text,/^\s*pull_request:/m);
  assert.doesNotMatch(text,/^\s*pull_request_target:/m);
  assert.doesNotMatch(text,/secrets\s*\.|github\.token|GH_TOKEN|GITHUB_TOKEN/);
- assert.doesNotMatch(text,/npm install|npm ci/);
+ assert.doesNotMatch(text,/npm install/);
+ assert.doesNotMatch(text,/npm ci(?![^\n]*--ignore-scripts)/);
+ assert.match(text,/working-directory: eval\/genesis-ast/);
+ assert.match(text,/npm ci --ignore-scripts --no-audit --no-fund/);
  assert.match(text,/persist-credentials: false/);
  assert.match(text,/timeout-minutes:/);
  assert.match(text,/CODEBRAIN_LIVE_PUBLIC: '1'/);
