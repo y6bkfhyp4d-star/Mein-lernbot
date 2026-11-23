@@ -315,3 +315,31 @@ test('every GitHub API request carries a finite 15-second abort signal',async()=
  assert.equal(new Set(signals).size,4);
  assert.match(render(r),/# NERYX CodeBrain 1\.4/);
 });
+
+test('AST result contract rejects malformed, unknown and contradictory findings',async()=>{
+ const invalid=[
+  {parsed:true,findings:[{rule:'AST001',line:0}]},
+  {parsed:true,findings:[{rule:'AST001',line:'1'}]},
+  {parsed:true,findings:[{rule:'AST999',line:1}]},
+  {parsed:true,findings:[{rule:'AST000',line:1}]},
+  {parsed:false,findings:[{rule:'AST001',line:1}]},
+  {parsed:false,findings:[{rule:'AST000',line:1},{rule:'AST001',line:1}]},
+  {parsed:true,findings:Array.from({length:42},()=>({rule:'AST001',line:1}))}
+ ];
+ for(const data of invalid){
+  const r=await inspect({...mock([entry('invalid.mjs')]),ast:()=>data});
+  assert.equal(r.complete,false);
+  assert.equal(r.rows[0].status,'error');
+  assert.equal(r.rows[0].reason,'fetch-or-analyzer-error');
+ }
+});
+test('AST result contract retains valid findings and overflow sentinel',async()=>{
+ const r=await inspect({...mock([entry('many.mjs')]),ast:()=>({
+  parsed:true,findings:Array.from({length:41},(_,i)=>({rule:'AST001',line:i+1}))
+ })});
+ assert.equal(r.rows[0].reason,'findings-truncated');
+ assert.equal(r.complete,false);
+ const clean=await inspect({...mock([entry('valid.mjs')]),ast:()=>({parsed:true,findings:[{rule:'AST003',line:1}]})});
+ assert.equal(clean.complete,true);
+ assert.equal(clean.rows[0].findings[0].kind,'heuristic');
+});
