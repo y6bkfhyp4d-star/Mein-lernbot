@@ -83,3 +83,31 @@ test('empty PR file lists do not produce successful reviews',async()=>{
  const opts=mock([]);
  await assert.rejects(()=>inspect(opts),/Leere oder zu große/);
 });
+
+test('valid JSON is checked and invalid JSON is reported as confirmed syntax',async()=>{
+ const valid=await inspect(mock([entry('data.json')],{[SHA]:'{"ok":true}'}));
+ assert.equal(valid.complete,true);
+ assert.equal(valid.rows[0].findings.length,0);
+ const broken=await inspect(mock([entry('data.json')],{[SHA]:'{"ok":'}));
+ assert.equal(broken.rows[0].findings[0].rule,'JSON000');
+ assert.equal(broken.rows[0].findings[0].kind,'confirmed');
+ assert.doesNotMatch(render(broken),/\{"ok"/);
+});
+test('YAML mode makes warnings but does not pretend to parse YAML',async()=>{
+ const r=await inspect(mock([entry('ci.yml')],{[SHA]:'on: pull_request_target:\npermissions:\n  contents: write'}));
+ assert.equal(r.rows[0].reason,'yaml-heuristic-no-parse');
+ assert.equal(r.rows[0].findings.length,2);
+ assert.match(render(r),/heuristische Warnung/);
+});
+test('AST adapter produces confirmed parse errors without echoing untrusted source',async()=>{
+ const r=await inspect({...mock([entry('broken.mjs')]),ast:()=>({parsed:false,findings:[{rule:'AST000',line:2,message:'API-KEY-SHOULD-NOT-PRINT'}]})});
+ assert.equal(r.rows[0].findings[0].kind,'confirmed');
+ assert.match(render(r),/bestätigter Syntaxfehler/);
+ assert.doesNotMatch(render(r),/API-KEY-SHOULD-NOT-PRINT/);
+});
+test('AST exceptions fail closed',async()=>{
+ const r=await inspect({...mock([entry('broken.mjs')]),ast:()=>{throw Error('SECRET-NEVER-ECHO')}});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.doesNotMatch(render(r),/SECRET-NEVER-ECHO/);
+});
