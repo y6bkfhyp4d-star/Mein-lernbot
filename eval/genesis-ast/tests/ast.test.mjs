@@ -577,3 +577,44 @@ test('C6 unknown calls before a proven replacement do not invalidate its later e
  assert.equal(r.parsed,true);
  assert.equal(has(r,'AST005').length,0);
 });
+
+test('C7 top-level await revokes previous method replacement certainty',()=>{
+ const r=analyzeAST('await-state.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'await pending;',
+  'doc.write("could be restored during suspension");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C7 await before a fresh method replacement does not cancel later certainty',()=>{
+ const r=analyzeAST('await-then-replace.mjs',[
+  'const store = globalThis.localStorage;',
+  'await pending;',
+  'store.clear = () => {};',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST004').length,0);
+});
+test('C7 top-level await in a separate block revokes outer known-method state',()=>{
+ const r=analyzeAST('await-block.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  '{ await pending; }',
+  'doc.write("possibly restored");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C7 inert async function declaration does not suspend the enclosing execution',()=>{
+ const r=analyzeAST('deferred-await.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'async function later(){ await pending; }',
+  'doc.write("still replaced without calling later");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
