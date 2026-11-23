@@ -62,7 +62,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
   console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete+' outcome='+snapshotOutcome(data.result));
   if(process.env.GITHUB_STEP_SUMMARY){
    const {appendFileSync}=await import('node:fs');
-   appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n+'**Snapshot-Abdeckung: '+snapshotOutcome(data.result)+'** (COMPLETE=alle geprüft; PARTIAL_UNSUPPORTED=nur ausdrücklich ausgelassene Dateien; INCOMPLETE=Scanfehler oder Abbruch).\\n\\n'+render(data.result));
+   appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n'+'**Snapshot-Abdeckung: '+snapshotOutcome(data.result)+'** (COMPLETE=alle geprüft; PARTIAL_UNSUPPORTED=nur ausdrücklich ausgelassene Dateien; INCOMPLETE=Scanfehler oder Abbruch).\n\n'+render(data.result));
   }
   if(!snapshotPasses(data.result))process.exitCode=1;
  }catch{
