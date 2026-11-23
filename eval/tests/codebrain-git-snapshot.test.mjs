@@ -47,3 +47,24 @@ test('unsafe filenames stop snapshot parsing before reading blobs',async()=>{
  await assert.rejects(()=>inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git}),/Unsupported git diff entry/);
  assert.ok(!f.calls.some(x=>x[0]==='cat-file'));
 });
+
+test('snapshot uses AST syntax results and blocks malformed JavaScript',async()=>{
+ const f=fixture({path:'broken.mjs',source:'export const broken = ;'});
+ let called=0;
+ const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,ast:(file,source)=>{
+  called++;
+  assert.equal(file,'broken.mjs');
+  assert.match(source,/broken/);
+  return {parsed:false,findings:[{rule:'AST000',line:1}]};
+ }});
+ assert.equal(called,1);
+ assert.equal(data.result.rows[0].reason,'ast-syntax-error');
+ assert.equal(data.result.rows[0].findings[0].kind,'confirmed');
+ assert.equal(data.result.blocking,true);
+});
+test('snapshot AST worker errors cannot be reported as successful checks',async()=>{
+ const f=fixture();
+ const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,ast:()=>{throw Error('worker unavailable');}});
+ assert.equal(data.result.complete,false);
+ assert.equal(data.result.rows[0].status,'error');
+});
