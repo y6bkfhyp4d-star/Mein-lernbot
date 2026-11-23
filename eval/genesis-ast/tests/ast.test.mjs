@@ -535,3 +535,44 @@ test('C5 proven fresh function assignments still invalidate in straight line and
  assert.equal(joined.parsed,true);
  assert.equal(has(joined,'AST005').length,0);
 });
+
+test('C6 intervening unknown call revokes prior method replacement certainty',()=>{
+ const r=analyzeAST('call-barrier.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'unknownCallback();',
+  'doc.write("could be restored");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C6 constructor side effects revoke method replacement certainty',()=>{
+ const r=analyzeAST('constructor-barrier.mjs',[
+  'const store = globalThis.localStorage;',
+  'store.clear = () => {};',
+  'new UnknownClass();',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+});
+test('C6 mere function declaration does not revoke straight-line replacement',()=>{
+ const r=analyzeAST('deferred-barrier.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'function later(){ unknownCallback(); }',
+  'doc.write("still locally replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
+test('C6 unknown calls before a proven replacement do not invalidate its later effect',()=>{
+ const r=analyzeAST('barrier-order.mjs',[
+  'const doc = globalThis.document;',
+  'unknownCallback();',
+  'doc.write = () => {};',
+  'doc.write("replaced afterward");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
