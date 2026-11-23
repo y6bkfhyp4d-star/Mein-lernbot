@@ -48,6 +48,10 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
  const result=await inspect({repo,number,anonymous:true,request,ast});
  return {result,merge,base,head};
 }
+// Unsupported or deleted files remain disclosed; truncated or failed supported scans cannot pass.
+export const snapshotPasses=r=>r.checked>0&&!r.blocking&&!r.rows.some(x=>
+ x.status==='error'||(x.status==='skipped'&&!['unsupported-type','not-added-or-modified'].includes(x.reason))
+);
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
   const number=Number(process.env.CODEBRAIN_PR_NUMBER);
@@ -58,7 +62,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
    const {appendFileSync}=await import('node:fs');
    appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n'+render(data.result));
   }
-  if(data.result.checked<1||data.result.blocking||data.result.rows.some(x=>x.status==='error'))process.exitCode=1;
+  if(!snapshotPasses(data.result))process.exitCode=1;
  }catch{
   console.error('NERYX SNAPSHOT: verification incomplete');
   process.exitCode=1;
