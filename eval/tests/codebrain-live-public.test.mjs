@@ -19,7 +19,7 @@ test('anonymously scan actual open PR #97 via public GitHub REST API', {skip:pro
  });
  assert.ok(result.rows.length>=5,'Expect real PR files, not an empty synthetic response');
  assert.ok(result.rows.some(x=>x.file==='.github/scripts/neryx-codebrain.mjs'&&x.status==='checked'));
- assert.ok(result.rows.some(x=>x.file==='.github/workflows/neryx-codebrain.yml'&&x.status==='partial'));
+ assert.ok(result.rows.some(x=>x.file==='.github/workflows/neryx-codebrain.yml'&&x.status==='checked'&&x.reason==='yaml-ast-parse'));
  assert.ok(result.rows.some(x=>x.file==='docs/NERYX_CODEBRAIN_V1.md'&&x.status==='skipped'));
  assert.equal(result.complete,false,'Unsupported Markdown and partial YAML must not pass');
  assert.ok(headers.some(u=>u.includes('/pulls/97/files?per_page=100')));
