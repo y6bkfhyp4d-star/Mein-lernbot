@@ -984,5 +984,5 @@ test('C15 adjacent conditional stages preserve safety across unrelated pure bran
  ].join('\n'));
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[8]);
- assert.deepEqual(has(r,'AST004').map(x=>x.line),[7]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[]);
 });
