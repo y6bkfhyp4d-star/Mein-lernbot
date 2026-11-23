@@ -32,6 +32,8 @@ test('public smoke workflow has no token permissions, secrets, or privileged tri
  assert.match(text,/persist-credentials: false/);
  assert.match(text,/timeout-minutes:/);
  assert.match(text,/CODEBRAIN_LIVE_PUBLIC: '1'/);
+ assert.match(text,/CODEBRAIN_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}/);
+ assert.doesNotMatch(text,/open PR 97/);
 });
 test('Python and YAML parser helpers do not run or deserialize analyzed source',()=>{
  const py=read('.github/scripts/neryx-python-syntax.py');
