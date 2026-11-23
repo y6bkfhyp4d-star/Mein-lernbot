@@ -300,3 +300,18 @@ test('oversized declared Content-Length fails before accessing API JSON',async()
   return opts.request(u,o);
  }}),/GitHub response too large/);
 });
+
+test('every GitHub API request carries a finite 15-second abort signal',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const signals=[];
+ const r=await inspect({...opts,request:async(url,options)=>{
+  assert.ok(options.signal instanceof AbortSignal);
+  assert.equal(options.signal.aborted,false);
+  signals.push(options.signal);
+  return opts.request(url,options);
+ }});
+ assert.equal(r.complete,true);
+ assert.equal(signals.length,4);
+ assert.equal(new Set(signals).size,4);
+ assert.match(render(r),/# NERYX CodeBrain 1\.4/);
+});
