@@ -1,0 +1,29 @@
+name: NERYX CodeBrain public API smoke (no secrets)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/scripts/neryx-codebrain.mjs'
+      - 'eval/tests/codebrain-live-public.test.mjs'
+      - 'eval/tests/codebrain.test.mjs'
+      - '.github/workflows/neryx-codebrain-public-smoke.yml'
+permissions: {}
+jobs:
+  codebrain-public-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - name: Checkout PR merge for unprivileged smoke test
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Use pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Verify scanner safeguards offline first
+        run: node --test eval/tests/codebrain.test.mjs
+      - name: Public API smoke against open PR 97 (no tokens or secrets)
+        env:
+          CODEBRAIN_LIVE_PUBLIC: '1'
+        run: node --test eval/tests/codebrain-live-public.test.mjs
