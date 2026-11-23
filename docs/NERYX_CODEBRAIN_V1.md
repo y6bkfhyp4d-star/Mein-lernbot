@@ -51,7 +51,7 @@ Der öffentliche Smoke-Test verwendet bei JavaScript die heuristische Variante, 
 ## Isolierung und Reproduzierbarkeit
 
 - JavaScript-Worker: eigener Node-Prozess, `--max-old-space-size=128`, 2,5 Sekunden Timeout und begrenzte Rückgabe. Die Quelle bleibt Dateninhalt; Import der geprüften Datei ist ausgeschlossen.
-- Python- und YAML-Parser: eigene Prozesse, 2,5 Sekunden Timeout, begrenzte Ausgabe, kein Python-`exec` und keine YAML-Objektdeserialisierung.
+- Python- und YAML-Parser: eigene Prozesse, 5 Sekunden Timeout (gegen CI-Startverzögerungen), begrenzte Ausgabe, kein Python-`exec` und keine YAML-Objektdeserialisierung.
 - Acorn: `eval/genesis-ast/package-lock.json`, `npm ci --ignore-scripts`; Installation und AST-Tests wurden in GitHub Actions erfolgreich ausgeführt.
 
 ## Nachweise und offene Freigabeschritte
