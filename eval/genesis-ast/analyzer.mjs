@@ -144,7 +144,9 @@ function walk(node,visit,parent=null,scope=null,uncertain=false){
  if(typeof node.type!=='string')return;
  const scoped=['Program','BlockStatement','StaticBlock','CatchClause','SwitchStatement','ForStatement','ForInStatement','ForOfStatement'].includes(node.type);
  const ownScope=scoped?createScope(node,scope):scope;
- visit(node,parent,ownScope,uncertain);
+ // C9: writes and branch joins take effect after their operand/branch evaluation.
+ const postVisit=node.type==='AssignmentExpression'||node.type==='IfStatement';
+ if(!postVisit)visit(node,parent,ownScope,uncertain);
  let childScope=ownScope;
  if(isFunction(node)){
   childScope={functions:new Set(),bindings:new Set(),aliases:new Map(),parent:ownScope};
@@ -162,6 +164,7 @@ function walk(node,visit,parent=null,scope=null,uncertain=false){
   const value=node[key];
   if(value&&typeof value==='object')walk(value,visit,node,childScope,uncertainChildren);
  }
+ if(postVisit)visit(node,parent,ownScope,uncertain);
 }
 function syntaxError(file,source,error){
   const line=error.loc?.line??1,column=(error.loc?.column??0)+1;
