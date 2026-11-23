@@ -266,3 +266,32 @@ test('B4 global eval and Function remain detected when only unrelated names are 
  assert.deepEqual(has(r,'AST001').map(x=>x.line),[2]);
  assert.deepEqual(has(r,'AST002').map(x=>x.line),[3,4]);
 });
+
+test('B5 explicit globalThis eval and Function calls remain detected despite shadowed short names',()=>{
+ const r=analyzeAST('global-builtins.mjs',[
+  'function local(eval, Function){',
+  ' eval("local");',
+  ' Function("local");',
+  ' globalThis.eval("global");',
+  ' globalThis["Function"]("return 1");',
+  ' new globalThis.Function("return 2");',
+  '}'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST001').map(x=>x.line),[4]);
+ assert.deepEqual(has(r,'AST002').map(x=>x.line),[5,6]);
+});
+test('B5 shadowed globalThis does not impersonate the global eval or Function',()=>{
+ const r=analyzeAST('local-builtins.mjs',[
+  'function local(globalThis){',
+  ' globalThis.eval("local");',
+  ' globalThis.Function("local");',
+  ' new globalThis.Function("local");',
+  '}',
+  'globalThis.eval("global");',
+  'new globalThis.Function("global");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST001').map(x=>x.line),[6]);
+ assert.deepEqual(has(r,'AST002').map(x=>x.line),[7]);
+});
