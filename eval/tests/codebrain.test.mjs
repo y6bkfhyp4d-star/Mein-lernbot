@@ -91,17 +91,21 @@ test('valid JSON is checked and invalid JSON is reported as confirmed syntax',as
  const broken=await inspect(mock([entry('data.json')],{[SHA]:'{"ok":'}));
  assert.equal(broken.rows[0].findings[0].rule,'JSON000');
  assert.equal(broken.rows[0].findings[0].kind,'confirmed');
+ assert.equal(broken.blocking,true);
  assert.doesNotMatch(render(broken),/\{"ok"/);
 });
 test('YAML mode makes warnings but does not pretend to parse YAML',async()=>{
  const r=await inspect(mock([entry('ci.yml')],{[SHA]:'on: pull_request_target:\npermissions:\n  contents: write'}));
  assert.equal(r.rows[0].reason,'yaml-heuristic-no-parse');
+ assert.equal(r.rows[0].status,'partial');
+ assert.equal(r.complete,false);
  assert.equal(r.rows[0].findings.length,2);
  assert.match(render(r),/heuristische Warnung/);
 });
 test('AST adapter produces confirmed parse errors without echoing untrusted source',async()=>{
  const r=await inspect({...mock([entry('broken.mjs')]),ast:()=>({parsed:false,findings:[{rule:'AST000',line:2,message:'API-KEY-SHOULD-NOT-PRINT'}]})});
  assert.equal(r.rows[0].findings[0].kind,'confirmed');
+ assert.equal(r.blocking,true);
  assert.match(render(r),/bestätigter Syntaxfehler/);
  assert.doesNotMatch(render(r),/API-KEY-SHOULD-NOT-PRINT/);
 });
@@ -110,4 +114,17 @@ test('AST exceptions fail closed',async()=>{
  assert.equal(r.complete,false);
  assert.equal(r.rows[0].status,'error');
  assert.doesNotMatch(render(r),/SECRET-NEVER-ECHO/);
+});
+
+test('a real syntax error is a blocking result even when file coverage is complete',async()=>{
+ const r=await inspect({...mock([entry('invalid.mjs')]),ast:()=>({parsed:false,findings:[{rule:'AST000',line:1}]})});
+ assert.equal(r.complete,true);
+ assert.equal(r.blocking,true);
+ assert.match(render(r),/Prüfung nicht bestanden/);
+});
+test('YAML without recognized risk is still only a partial review',async()=>{
+ const r=await inspect(mock([entry('safe.yml')],{[SHA]:'name: example\njobs: {}'}));
+ assert.equal(r.rows[0].findings.length,0);
+ assert.equal(r.rows[0].status,'partial');
+ assert.equal(r.complete,false);
 });
