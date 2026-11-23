@@ -32,6 +32,10 @@ test('public smoke workflow has no token permissions, secrets, or privileged tri
  assert.match(text,/persist-credentials: false/);
  assert.match(text,/timeout-minutes:/);
  assert.match(text,/CODEBRAIN_LIVE_PUBLIC: '1'/);
+ assert.match(text,/cancel-in-progress: true/);
+ assert.match(text,/codebrain-rate-limit-retry\.test\.mjs/);
+ assert.match(text,/codebrain-rate-limit-diagnostics\.test\.mjs/);
+ assert.match(text,/timeout-minutes: 5/);
  assert.match(text,/CODEBRAIN_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}/);
  assert.doesNotMatch(text,/open PR 97/);
 });
