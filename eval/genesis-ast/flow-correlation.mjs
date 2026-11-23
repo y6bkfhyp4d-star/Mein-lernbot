@@ -15,13 +15,13 @@ export function correlateFlows(file,source){
     version:'2.6-correlation',file,parsed:false,mode:'read-only',changesApplied:false,
     status:'unavailable',reason:'parse-error',functions:[],errors:[control.error,data.error].filter(Boolean)
   };
-  const graphs=new Map(control.graphs.map(g=>[g.name,g]));
+  const graphs=new Map(control.graphs.map(g=>[g.functionId,g]));
   const nameCounts=new Map();
   for(const fn of data.functions)nameCounts.set(fn.name,(nameCounts.get(fn.name)||0)+1);
   const graphCounts=new Map();
   for(const g of control.graphs)graphCounts.set(g.name,(graphCounts.get(g.name)||0)+1);
   const functions=data.functions.map(fn=>{
-    const cfg=graphs.get(fn.name);
+    const cfg=graphs.get(fn.functionId);
     const reasons=[];
     if((nameCounts.get(fn.name)||0)!==1||(graphCounts.get(fn.name)||0)!==1)
       reasons.push('nonunique-function-identity');
