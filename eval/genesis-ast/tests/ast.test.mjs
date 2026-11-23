@@ -737,3 +737,57 @@ test('C10 unrelated mutations do not revoke confirmed method replacement',()=>{
  assert.equal(r.parsed,true);
  assert.equal(has(r,'AST005').length,0);
 });
+
+test('C11 effectful optional if path revokes earlier known replacement',()=>{
+ const r=analyzeAST('audit-if.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'if(flag){unknownCallback();}',
+  'doc.write("possibly restored");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C11 loops and try paths cannot retain stale replacement certainty',()=>{
+ const r=analyzeAST('audit-loops.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'while(flag){unknownCallback();}',
+  'doc.write("possibly restored");',
+  'doc.write=()=>{};',
+  'try{unknownCallback();}catch(err){}',
+  'doc.write("possibly restored again");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4,7]);
+});
+test('C11 logical short circuit may execute state-changing callback',()=>{
+ const r=analyzeAST('audit-short-circuit.mjs',[
+  'const store=globalThis.localStorage;',
+  'store.clear=()=>{};',
+  'flag && unknownCallback();',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+});
+test('C11 inert branch and deferred closure leave proven state unchanged',()=>{
+ const r=analyzeAST('audit-inert.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'if(flag){const noop=()=>unknownCallback();}',
+  'doc.write("still replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
+test('C11 two proven branch replacements still establish state after a side effect',()=>{
+ const r=analyzeAST('audit-rejoin.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'if(unknownCallback()){doc.write=()=>{};}else{doc.write=function(){}}',
+  'doc.write("replaced on both paths");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
