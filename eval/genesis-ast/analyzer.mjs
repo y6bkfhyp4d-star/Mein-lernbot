@@ -62,19 +62,23 @@ function hoistedVars(node,names){
  }
 }
 function createScope(node,parent){
- const scope={functions:new Set(),bindings:new Set(),parent};
+ const scope={functions:new Set(),bindings:new Set(),aliases:new Map(),parent};
  if(node.type==='Program'){
   directBindings(node.body,scope.bindings);
   hoistedVars(node.body,scope.bindings);
+  collectAliases(node.body,scope);
  }else if(node.type==='BlockStatement'){
   directBindings(node.body,scope.bindings);
+  collectAliases(node.body,scope);
  }else if(node.type==='StaticBlock'){
   directBindings(node.body,scope.bindings);
   hoistedVars(node.body,scope.bindings);
+  collectAliases(node.body,scope);
  }else if(node.type==='CatchClause'){
   patternNames(node.param,scope.bindings);
  }else if(node.type==='SwitchStatement'){
   for(const branch of node.cases)directBindings(branch.consequent,scope.bindings);
+  for(const branch of node.cases)collectAliases(branch.consequent,scope);
  }else if(['ForStatement','ForInStatement','ForOfStatement'].includes(node.type)){
   const declaration=node.type==='ForStatement'?node.init:node.left;
   if(declaration?.type==='VariableDeclaration'&&declaration.kind!=='var')
@@ -86,6 +90,36 @@ function shadowed(name,scope){
  for(let current=scope;current;current=current.parent)
   if(current.bindings?.has(name))return true;
  return false;
+}
+// Only immutable aliases with a statically identifiable global origin are followed.
+function aliasOrigin(node,scope){
+ if(!node)return null;
+ if(identifier(node,'document')&&!shadowed('document',scope))return 'document';
+ if(identifier(node,'localStorage')&&!shadowed('localStorage',scope))return 'localStorage';
+ for(const name of ['document','localStorage'])
+  if(staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope))
+   return name;
+ return null;
+}
+function collectAliases(statements,scope){
+ for(const stmt of statements||[]){
+  if(stmt?.type!=='VariableDeclaration'||stmt.kind!=='const')continue;
+  for(const decl of stmt.declarations){
+   if(decl.id?.type!=='Identifier')continue;
+   // The initializer is evaluated before the binding can be used.
+   const origin=aliasOrigin(decl.init,scope);
+   if(origin)scope.aliases.set(decl.id.name,{origin,after:decl.end});
+  }
+ }
+}
+function aliasAt(name,scope,position){
+ for(let current=scope;current;current=current.parent){
+  if(current.bindings?.has(name)){
+   const alias=current.aliases?.get(name);
+   return alias&&position>=alias.after?alias.origin:null;
+  }
+ }
+ return null;
 }
 // Explicit globalThis members bypass a shadowed document/localStorage name,
  // but only if globalThis itself resolves to the global binding.
@@ -105,7 +139,7 @@ function walk(node,visit,parent=null,scope=null){
  visit(node,parent,ownScope);
  let childScope=ownScope;
  if(isFunction(node)){
-  childScope={functions:new Set(),bindings:new Set(),parent:ownScope};
+  childScope={functions:new Set(),bindings:new Set(),aliases:new Map(),parent:ownScope};
   for(const param of node.params)patternNames(param,childScope.bindings);
   if(node.type==='FunctionExpression'&&node.id)childScope.bindings.add(node.id.name);
   hoistedVars(node.body,childScope.bindings);
@@ -160,10 +194,14 @@ export function analyzeAST(file,source){
       if(identifier(node.callee,'Function'))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if(identifier(node.callee,'eval'))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
       if((member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))||
-        explicitGlobal(node.callee,'localStorage','clear',scope))
+        explicitGlobal(node.callee,'localStorage','clear',scope)||
+        (staticProperty(node.callee,'clear')&&node.callee.object?.type==='Identifier'&&
+         aliasAt(node.callee.object.name,scope,node.start)==='localStorage'))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
       if((member(node.callee,'document','write')&&!shadowed('document',scope))||
-        explicitGlobal(node.callee,'document','write',scope))
+        explicitGlobal(node.callee,'document','write',scope)||
+        (staticProperty(node.callee,'write')&&node.callee.object?.type==='Identifier'&&
+         aliasAt(node.callee.object.name,scope,node.start)==='document'))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&identifier(node.callee,'Function'))
