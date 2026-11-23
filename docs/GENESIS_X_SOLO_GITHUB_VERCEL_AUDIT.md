@@ -65,3 +65,18 @@ Tests gegen das unveränderte Hauptbranch-Skript `.github/scripts/research-revie
 **CI-Nachweis:** Integration [Workflow 45114086081](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45114086081): **367/367 bestanden**, einschließlich der neuen lokalen Git-Testgruppe; GENESIS-X-AST und Kandidatenpfadpolicy ebenfalls erfolgreich. Chromium und WebKit waren beim Abruf noch aktiv.
 
 **Keine Freigabe zur Automatisierung:** Es bleibt erforderlich, den Fall einer kompromittierten Write-Token-Identität separat zu betrachten. Die Tests beweisen das Verhalten **dieses Skripts** mit einem lokalen Remote, nicht GitHubs effektive App-/Tokenrechte, die GitHub-Ruleset-Erzwingung oder vollständige Unveränderlichkeit von `main` in der Cloud. Eine zweifache echte GitHub-Negativabnahme und eine Rechteeinschränkung liegen weiterhin nicht vor.
+
+## Erweiterte Negativtests: vergiftete ältere Forschungsbranches
+
+**Teststand:** `7498d747a726542235daf083332338922199d5bc`.
+
+Die unveränderte `main`-Version von `.github/scripts/research-review-branch.sh` wurde zusätzlich mit einem **absichtlich manipulierten, älteren lokalen Forschungsbranch** getestet. Dieser enthielt einen erlaubten JSON-Bericht, aber auch eine gefälschte Änderung an `app.js` sowie eine zusätzliche `.github/workflows/backdoor.yml`.
+
+- `prepare` darf lediglich den erlaubten JSON-Bericht übernehmen; die manipulierte `app.js` und der eingefügte Workflow bleiben ausgeschlossen. Der erlaubte Vorgang wurde zweimal geprüft.
+- `publish` muss selbst bei einem bereits vorhandenen kompromittierten Forschungsbranch einen neuen Review-Commit nur aus dem `main`-Baum und dem zugelassenen JSON-Bericht erzeugen. Remote-`main` und die ursprüngliche `app.js` bleiben gleich.
+- Liegt auf dem alten Forschungsbranch kaputtes JSON oder ein Report über 2 MB, muss `prepare` scheitern. Jeder Negativfall wird zweimal ausgeführt.
+- Alle Git-Remote-Operationen einschließlich Branch-Löschen erfolgten ausschließlich gegen neu angelegte **lokale Bare-Repositories**. Kein Remote zeigt auf GitHub.
+
+**Ergebnis:** GitHub-Actions-Integration-Run [45114332992](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45114332992), **367/367 erfolgreich** (darin sieben Python-Testgruppen des lokalen Git-Publishers). AST und Browserjobs hatten bei der letzten Abfrage noch nicht alle abgeschlossen. Die erste Version der neuen Test-Fixtures schlug wegen falsch escapeter Zeilenumbrüche und eines lokal nicht gelöschten Testbranches fehl; die Test-Fixtures wurden korrigiert und der erfolgreiche Lauf ist der maßgebliche Nachweis.
+
+**Offene Grenze:** Dies beweist weder, dass ein entwendeter `contents:write`-Token keine anderen Branches beschreiben könnte, noch dass GitHub den Schutz in einem echten Cloud-Lauf erzwingt. Für diese Ebene bleibt eine isolierte GitHub-Test-Repository-Abnahme erforderlich.
