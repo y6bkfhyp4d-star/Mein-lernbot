@@ -254,6 +254,22 @@ export function analyzeAST(file,source){
                  (alias.origin==='localStorage'&&staticProperty(node.left,'clear'))))
         methodWrites.set(alias.origin,Math.min(methodWrites.get(alias.origin)??Infinity,node.end));
     }
+    // C10: deleting, updating or assigning an unknown value ends a confirmed
+    // method-replacement state. A newly created function remains a proven replacement.
+    const mutation=node.type==='AssignmentExpression'&&node.left?.type==='MemberExpression'
+      ?node.left
+      :node.type==='UpdateExpression'&&node.argument?.type==='MemberExpression'
+        ?node.argument
+        :node.type==='UnaryExpression'&&node.operator==='delete'&&
+          node.argument?.type==='MemberExpression'?node.argument:null;
+    if(!uncertain&&mutation?.object?.type==='Identifier'&&
+       !(node.type==='AssignmentExpression'&&provenReplacement(node))){
+      const alias=aliasAt(mutation.object.name,scope,node.start);
+      if(alias?.origin==='document'&&staticProperty(mutation,'write'))
+        methodWrites.delete('document');
+      if(alias?.origin==='localStorage'&&staticProperty(mutation,'clear'))
+        methodWrites.delete('localStorage');
+    }
     if(node.type==='CallExpression'){
       // C8: child expressions can mutate the known method before the outer call.
       if(!uncertain&&(eagerEffects(node.arguments)||
