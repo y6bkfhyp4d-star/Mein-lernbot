@@ -1,6 +1,6 @@
 // GENESIS X CodeAnalyzer 2.5 — conservative read-only AST control-flow graph.
 // Not a proof of runtime behavior, reachability, safety, or complete JS semantics.
-import {parse} from 'acorn';
+import {collectNamedFunctions} from './function-discovery.mjs';
 const position=n=>({line:n.loc?.start.line??1,column:(n.loc?.start.column??0)+1});
 function graph(fn){
   let serial=0;
@@ -56,30 +56,23 @@ function graph(fn){
 }
 export function analyzeControlFlow(file,source){
   if(typeof file!=='string'||typeof source!=='string')throw new TypeError('Strings erforderlich');
-  let ast,error;
-  try{ast=parse(source,{ecmaVersion:'latest',sourceType:file.endsWith('.cjs')?'script':'module',locations:true,allowHashBang:true});}
-  catch(e){
-    if(file.endsWith('.js')){
-      try{ast=parse(source,{ecmaVersion:'latest',sourceType:'script',locations:true,allowHashBang:true});}catch(second){error=second;}
-    }else error=e;
-  }
-  if(error)return {version:'2.5-control-flow',file,parsed:false,
-    error:{message:error.message,...{line:error.loc?.line??1,column:(error.loc?.column??0)+1}},
-    graphs:[],mode:'read-only',changesApplied:false};
-  const graphs=[],untracked=[];
-  for(const stmt of ast.body){
-    const node=stmt.type==='ExportNamedDeclaration'||stmt.type==='ExportDefaultDeclaration'?stmt.declaration:stmt;
-    if(node?.type==='FunctionDeclaration'&&node.id?.name){
-      try{graphs.push(graph(node));}catch(e){
-        untracked.push({name:node.id.name,reason:String(e.message),...position(node)});
-      }
-    }else if(node?.type==='VariableDeclaration'){
-      for(const item of node.declarations)if(['FunctionExpression','ArrowFunctionExpression'].includes(item.init?.type))
-        untracked.push({name:item.id?.name??null,reason:'assigned-function-not-expanded',...position(item)});
+  const discovered=collectNamedFunctions(file,source);
+  if(!discovered.parsed)return {version:'2.5-control-flow',file,parsed:false,
+    error:discovered.error,graphs:[],mode:'read-only',changesApplied:false};
+  const graphs=[],untracked=discovered.assigned.map(a=>({...a,reason:'assigned-function-not-expanded'}));
+  for(const item of discovered.functions){
+    try{
+      const g=graph(item.node);
+      g.functionId=item.id;
+      g.depth=item.depth;
+      graphs.push(g);
+    }catch(e){
+      untracked.push({name:item.name,functionId:item.id,reason:String(e.message),
+        line:item.line,column:item.column});
     }
   }
   return {version:'2.5-control-flow',file,parsed:true,mode:'read-only',graphs,untracked,
-    limitations:['Only named top-level functions','No runtime reachability proof',
+    limitations:['Only named function declarations, not anonymous/assigned functions','No runtime reachability proof',
       'Unsupported control-flow is left disconnected, not guessed',
       'No side-effect, async, callback or cross-function semantics'],
     changesApplied:false};
