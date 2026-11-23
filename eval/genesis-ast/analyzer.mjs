@@ -258,6 +258,12 @@ export function analyzeAST(file,source){
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.',
           possibleWrites.has('document')&&node.start>=possibleWrites.get('document')?'medium':'high');
     }
+    // C6: unknown straight-line calls/constructors may restore built-in methods.
+    // Invalidate only future certainty. Deferred bodies and uncertain paths do
+    // not execute at declaration time, so they must not invalidate outer state.
+    if(!uncertain&&(node.type==='CallExpression'||node.type==='NewExpression')){
+      methodWrites.clear();
+    }
     if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
     if(node.type==='AssignmentExpression'&&staticProperty(node.left,'innerHTML'))
