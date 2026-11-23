@@ -234,3 +234,32 @@ test('AST parse failure without diagnostic cannot count as checked',async()=>{
  assert.equal(r.rows[0].status,'error');
  assert.equal(r.complete,false);
 });
+
+test('malformed base64 does not silently decode as verified Git content',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({encoding:'base64',size:1,content:'YQ==::untrusted'})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.equal(r.rows[0].reason,'fetch-or-analyzer-error');
+});
+test('Git blob response SHA mismatch fails closed',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({sha:'b'.repeat(40),encoding:'base64',size:1,content:'YQ=='})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+});
+test('canonical base64 with Git blob SHA stays supported',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({sha:SHA,encoding:'base64',size:1,content:'YQ==\n'})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,true);
+ assert.equal(r.rows[0].status,'checked');
+});
