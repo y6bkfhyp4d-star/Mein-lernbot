@@ -35,14 +35,25 @@ jobs:
             exit 0
           fi
           echo "Checking proposed generated changes from $HEAD_REF"
-          git diff --name-only --diff-filter=ACDMRT "$BASE_SHA" HEAD > "$RUNNER_TEMP/genesis-files.txt"
-          if [[ ! -s "$RUNNER_TEMP/genesis-files.txt" ]]; then
-            echo "Empty auto-candidate proposal" >&2; exit 1
-          fi
-          while IFS= read -r path; do
-            case "$path" in
-              candidates/*|eval/candidates/*) ;;
-              *) echo "DENIED: prohibited path: $path" >&2; exit 1 ;;
-            esac
-          done < "$RUNNER_TEMP/genesis-files.txt"
-          echo "Paths allowed for storage of candidate text only; NOT permission to execute or merge."
+          python3 - "$BASE_SHA" <<'PY'
+          import pathlib, re, subprocess, sys
+          base = sys.argv[1]
+          if not re.fullmatch(r"[a-f0-9]{40}", base):
+              raise SystemExit("DENIED: invalid base SHA")
+          changes = subprocess.check_output([
+              "git", "diff", "--name-status", "-z", "--no-renames", base, "HEAD"
+          ]).split(b"\0")
+          if changes[-1] != b"":
+              raise SystemExit("DENIED: malformed Git diff")
+          changes.pop()
+          if not changes or len(changes) % 2:
+              raise SystemExit("DENIED: empty/malformed auto-candidate diff")
+          allowed = re.compile(r"(?:candidates|eval/candidates)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.json")
+          for raw_status, raw_path in zip(changes[::2], changes[1::2]):
+              status = raw_status.decode("ascii", "strict")
+              path = raw_path.decode("utf-8", "strict")
+              if status not in ("A", "M") or not allowed.fullmatch(path):
+                  raise SystemExit(f"DENIED: prohibited candidate change: {status} {path!r}")
+          print(f"PASS: {len(changes)//2} candidate JSON paths, no deletes/renames/code")
+          PY
+          echo "Paths allowed for inert JSON storage only; NOT permission to execute or merge."
