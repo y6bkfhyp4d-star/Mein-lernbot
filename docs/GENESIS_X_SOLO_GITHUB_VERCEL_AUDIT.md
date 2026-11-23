@@ -32,3 +32,20 @@
 - **Erlaubt:** Read-only-Audit, Offline-Analyse, noch nicht aktivierte Draft-Änderungen und manuell kontrollierte Planung.
 - **Nicht freigegeben:** automatisierte Code-Patches, eigenständiger Code-PR-Merge, Vercel-Production-Promotion, GitHub/Vercel-Schutzänderungen.
 - **Gate:** `SOLO-PRODUCTION-AUTOMATION = BLOCKED` bis Rechteisolation, verifizierte Deployment-Kopplung und Live-Negativtests vorliegen.
+
+## Nachtrag: Bereits aktive, schreibberechtigte Forschungsworkflows (direkt aus main geprüft)
+
+Die GitHub-Dateien `.github/workflows/lernbot-phase70.yml`, `lernbot-phase76.yml`, `lernbot-phase77.yml`, `lernbot-phase78.yml`, `lernbot-phase79.yml`, `lernbot-phase710.yml`, `lernbot-phase711.yml`, `lernbot-phase712.yml` und `lernbot-phase713.yml` besitzen **`permissions: contents: write`**. Sie sind über `schedule` wiederkehrend sowie über `workflow_dispatch` manuell startbar und verwenden bei `actions/checkout` `ref: main`, `persist-credentials: true`. Diese Automationen sind damit **nicht read-only**.
+
+Die geprüften neun Workflows schreiben über `.github/scripts/research-review-branch.sh`. Die aktuelle `main`-Version des Skripts hat eine **exakte Paar-Allowlist** aus `REPORT_BRANCH` und `REPORT_FILES`, beispielsweise `neryx/research-phase70|evolution/phase70/knowledge.json` und `neryx/research-phase79|evolution/phase79/research79.json`. Vor der Veröffentlichung werden Report-Dateien auf maximal **2.000.000 Bytes** und syntaktisch gültiges JSON geprüft. Beim Publizieren wird der Arbeitsbaum auf den verifizierten `main`-SHA zurückgesetzt, ausschließlich die erlaubten Berichte gestaged und ein Commit zum definierten `neryx/research-phase*`-Branch gepusht; **kein Force-Push und kein Push auf `main`** sind im geprüften Skript vorgesehen. Der Logik zufolge wird ein zusätzlicher Commit mit Eltern `old report` und `main` erstellt.
+
+**Begrenzung dieser Feststellung:** Das ist eine statische Codeprüfung, **kein Nachweis**, dass ein kompromittierter Workflow, Token oder Generatorprozess nicht anders schreiben könnte. Die Jobs erhalten real `contents: write` auf Repository-Ebene, nicht ausschließlich auf erlaubte Branches. Die Berechtigung ist breiter als der Aufrufpfad des Skripts. Ein unter falschen Bedingungen ausgeführter beliebiger Git-/API-Befehl in einem solchen Job könnte versuchen, andere Branches zu verändern; GitHubs aktives Ruleset sollte `main` blockieren, doch Live-Negativtests stehen aus. Auch die importierten JSON-Berichte können problematische Inhalte enthalten; ein JSON-Syntaxcheck beweist keine Vertrauenswürdigkeit.
+
+**Wichtige Korrektur:** Nicht schreiben „NERYX kann aktuell keine automatischen Repository-Schreibaktionen ausführen“. Stattdessen: „Aktive Forschungsworkflows besitzen Write-Tokens, verwenden aber in ihrem geprüften Code eine beschränkte JSON-Review-Branch-Publishing-Logik.“ GENESIS X selbst darf diese Tokens **nicht** übernehmen; eine Isolation der Schreibidentitäten ist noch nicht bewiesen.
+
+### Vor Einführung neuer Solo-Automation
+
+1. Vorhandene `contents:write`-Workflows beibehalten oder reduzieren **nur nach gesonderter Eigentümerentscheidung**. Nicht pauschal deaktivieren: Sie sind Teil der laufenden Forschungsabläufe.
+2. Für neue GENESIS-X-Candidate-Jobs zunächst `contents:read` und reine lokale Reports ohne PR-Erstellung. Sollte später ein automatischer Branch-/PR-Writer erforderlich sein, **getrennte kontrollierte Identität**, Repository-Branch-/Pfadgates und dokumentierte Berechtigungen.
+3. Negative Testfälle: manipulierte `REPORT_BRANCH`/`REPORT_FILES`-Paare, zusätzliche Stage-Dateien, fremde `main`-SHA und parallele Branch-Updates. Dafür isolierte Offline-/Git-Testumgebung, kein destruktiver Push auf echte `main`.
+4. Vollständige GitHub-Actions-Repo-/App-/PAT-Berechtigungen waren in dieser Sitzung nicht abrufbar; GitHubs allgemeiner Actions-Permissions-Endpunkt wurde vom verfügbaren Lesezugang abgewiesen. **Keine Aussage über einen vollständigen Rechtebestand.**
