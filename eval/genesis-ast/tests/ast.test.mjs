@@ -230,3 +230,39 @@ test('B3 alias resolution respects shadowing and declaration order',()=>{
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[3,5]);
 });
+
+test('B4 local Function bindings suppress only locally shadowed dynamic-compilation alerts',()=>{
+ const r=analyzeAST('shadow-function.mjs',[
+  '{',
+  ' const Function = class LocalCompiler {};',
+  ' Function("local");',
+  ' new Function("local");',
+  '}',
+  'Function("global");',
+  'new Function("global");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST002').map(x=>x.line),[6,7]);
+});
+test('B4 non-strict script eval parameters shadow the global builtin in nested calls',()=>{
+ const r=analyzeAST('shadow-eval.cjs',[
+  'function outer(eval){',
+  ' eval("local");',
+  ' function inner(){ eval("also local"); }',
+  '}',
+  'eval("global");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST001').map(x=>x.line),[5]);
+});
+test('B4 global eval and Function remain detected when only unrelated names are bound',()=>{
+ const r=analyzeAST('global-execution.mjs',[
+  'const unrelated = 1;',
+  'eval("global");',
+  'Function("return 1");',
+  'new Function("return 2");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST001').map(x=>x.line),[2]);
+ assert.deepEqual(has(r,'AST002').map(x=>x.line),[3,4]);
+});
