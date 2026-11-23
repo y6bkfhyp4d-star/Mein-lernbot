@@ -135,16 +135,16 @@ function explicitGlobal(node,object,property,scope){
 function globalBuiltin(node,name,scope){
  return staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope);
 }
-function walk(node,visit,parent=null,scope=null){
+function walk(node,visit,parent=null,scope=null,uncertain=false){
  if(!node||typeof node!=='object')return;
  if(Array.isArray(node)){
-  for(const child of node)walk(child,visit,parent,scope);
+  for(const child of node)walk(child,visit,parent,scope,uncertain);
   return;
  }
  if(typeof node.type!=='string')return;
  const scoped=['Program','BlockStatement','StaticBlock','CatchClause','SwitchStatement','ForStatement','ForInStatement','ForOfStatement'].includes(node.type);
  const ownScope=scoped?createScope(node,scope):scope;
- visit(node,parent,ownScope);
+ visit(node,parent,ownScope,uncertain);
  let childScope=ownScope;
  if(isFunction(node)){
   childScope={functions:new Set(),bindings:new Set(),aliases:new Map(),parent:ownScope};
@@ -152,10 +152,15 @@ function walk(node,visit,parent=null,scope=null){
   if(node.type==='FunctionExpression'&&node.id)childScope.bindings.add(node.id.name);
   hoistedVars(node.body,childScope.bindings);
  }
+ // Branches, loops, exception paths and uninvoked function bodies are not guaranteed to run.
+ const uncertainChildren=uncertain||isFunction(node)||
+  ['IfStatement','ConditionalExpression','LogicalExpression','SwitchStatement',
+   'ForStatement','ForInStatement','ForOfStatement','WhileStatement','DoWhileStatement',
+   'TryStatement','CatchClause'].includes(node.type);
  for(const key of Object.keys(node)){
   if(['loc','start','end','range','parent'].includes(key))continue;
   const value=node[key];
-  if(value&&typeof value==='object')walk(value,visit,node,childScope);
+  if(value&&typeof value==='object')walk(value,visit,node,childScope,uncertainChildren);
  }
 }
 function syntaxError(file,source,error){
@@ -181,7 +186,7 @@ export function analyzeAST(file,source){
   const report=(rule,severity,node,message,suggestion,confidence='high')=>{
     findings.push({rule,severity,file,...loc(node),message,suggestion,confidence});
   };
-  walk(tree,(node,parent,scope)=>{
+  walk(tree,(node,parent,scope,uncertain)=>{
     if(node.type==='ImportDeclaration'){
       imports.push({specifier:node.source.value,kind:'static',...loc(node)});
     }else if(node.type==='ImportExpression'){
@@ -198,7 +203,7 @@ export function analyzeAST(file,source){
     }
     // C1: a written method is no longer a confirmed known builtin on that alias.
     // This is intentionally an order-local, conservative check; not control-flow proof.
-    if(node.type==='AssignmentExpression'&&node.left?.type==='MemberExpression'&&
+    if(!uncertain&&node.type==='AssignmentExpression'&&node.left?.type==='MemberExpression'&&
        node.left.object?.type==='Identifier'&&
        ['write','clear'].some(p=>staticProperty(node.left,p))){
       const alias=aliasAt(node.left.object.name,scope,node.start);
