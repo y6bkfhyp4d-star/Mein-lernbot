@@ -81,3 +81,16 @@ Der auf Draft-PR #91 beschränkte `pull_request`-Job mit `permissions: contents:
 Die absichtlich ungültigen SHA-Werte sind eine zusätzliche Sicherung gegen tatsächliche Schreibänderungen. Die *Interpretation* des Tests beruht jedoch ausschließlich auf **HTTP 403**, nicht auf dem ungültigen Wert; HTTP 409/422 wäre als nicht bewiesene Rechteverweigerung gescheitert.
 
 **Grenze unverändert:** Dies gilt nur für den explizit leseberechtigten PR-Token, nicht für die neun `contents: write`-Forschungstokens, Owner-App-Rechte oder native Ruleset-Bypass-Sicherheit. Deshalb weiterhin **NO-GO** für autonome Codeänderungen, Merges und Production-Deployments. Es wurden kein Branch, keine Datei auf `main`, kein Ruleset und keine Vercel-Produktionskonfiguration geändert.
+
+## 8. GitHub-Live-Negativtest: verbotener Auto-Kandidatenpfad
+
+**Datum:** 2026-11-23. **Testbranch:** `neryx/auto/solo-path-negative-20261123`, SHA `34f1c7a830906351d024ee5cf745f2f76eec82df`. **Test-PR:** [#92](https://github.com/y6bkfhyp4d-star/Mein-lernbot/pull/92), ausschließlich eine ungefährliche Dokumentationsdatei `docs/GENESIS_X_SECURITY_NEGATIVE_PROBE_20261123.md` außerhalb der zulässigen `candidates/`-Pfade. Keine Code-/Workflow-Änderung.
+
+**Tatsächliche GitHub-Ergebnisse:**
+- [Candidate-policy Run 45116045773](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45116045773): `genesis-candidate-paths` scheiterte **erwartet** mit `DENIED: prohibited path: docs/GENESIS_X_SECURITY_NEGATIVE_PROBE_20261123.md`.
+- [Trusted-base Run 45116045762](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45116045762), Ereignis `pull_request_target` aus `main`: `genesis-candidate-paths-trusted` scheiterte **erwartet** mit `DENIED: auto-candidate attempted disallowed path` für dieselbe Datei. Keine Ausführung von PR-HEAD-Code.
+- GitHub meldete für PR #92 `mergeable_state: blocked`. **Der PR wurde anschließend geschlossen, `merged:false`**. `main` blieb unverändert.
+
+**Aussage:** Ein `neryx/auto/*`-PR mit nur einer unerlaubten `docs/`-Datei wird im echten Repository von **beiden** bestehenden Candidate-Sicherheitschecks erkannt, und sein Merge war blockiert. Dies ist **ein** echter Negativfall, noch keine vollständige zweifache Cloud-Abnahme sämtlicher Umgehungen. Ein anders benannter Branch oder ein kompromittierter `contents:write`-Token ist dadurch nicht geprüft. Insbesondere bleibt die Frage einer Identitätsbindung für alle Auto-Agenten offen. Kein Auto-Merge/Production-Deploy erlaubt.
+
+**Wichtiger Unterschied zur früheren Aussage „keine Cloud-Tests“:** Diese ist inzwischen überholt: Ein leseberechtigter PR-Token wurde zweimal per GitHub-API negativ getestet (Branch-Erstellung und Dateiänderung je HTTP 403), und ein echter Auto-Branch-Dateipfadverstoß wurde durch zwei GitHub-CI-Gates verweigert. Die **vollständige** Cloud-Rechte- und Ruleset-Abnahme bleibt dennoch offen.
