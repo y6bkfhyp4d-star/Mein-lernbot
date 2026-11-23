@@ -37,32 +37,78 @@ function patternNames(node,names){
  else if(node.type==='ObjectPattern')for(const item of node.properties)
   patternNames(item.type==='RestElement'?item.argument:item.value,names);
 }
-function shadowedByParameter(name,scope){
+// Declarations are collected before visiting references (var hoisting and lexical TDZ).
+const isFunction=node=>['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node?.type);
+function directBindings(statements,names){
+ for(const stmt of statements||[]){
+  if(!stmt)continue;
+  if(stmt.type==='VariableDeclaration'&&stmt.kind!=='var')
+   for(const decl of stmt.declarations)patternNames(decl.id,names);
+  else if(['FunctionDeclaration','ClassDeclaration'].includes(stmt.type)&&stmt.id)
+   names.add(stmt.id.name);
+  else if(stmt.type==='ImportDeclaration')
+   for(const spec of stmt.specifiers)names.add(spec.local.name);
+ }
+}
+function hoistedVars(node,names){
+ if(!node||typeof node!=='object'||isFunction(node)||node.type==='StaticBlock')return;
+ if(Array.isArray(node)){for(const item of node)hoistedVars(item,names);return;}
+ if(node.type==='VariableDeclaration'&&node.kind==='var')
+  for(const decl of node.declarations)patternNames(decl.id,names);
+ for(const key of Object.keys(node)){
+  if(['loc','start','end','range','parent'].includes(key))continue;
+  const value=node[key];
+  if(value&&typeof value==='object')hoistedVars(value,names);
+ }
+}
+function createScope(node,parent){
+ const scope={functions:new Set(),bindings:new Set(),parent};
+ if(node.type==='Program'){
+  directBindings(node.body,scope.bindings);
+  hoistedVars(node.body,scope.bindings);
+ }else if(node.type==='BlockStatement'){
+  directBindings(node.body,scope.bindings);
+ }else if(node.type==='StaticBlock'){
+  directBindings(node.body,scope.bindings);
+  hoistedVars(node.body,scope.bindings);
+ }else if(node.type==='CatchClause'){
+  patternNames(node.param,scope.bindings);
+ }else if(node.type==='SwitchStatement'){
+  for(const branch of node.cases)directBindings(branch.consequent,scope.bindings);
+ }else if(['ForStatement','ForInStatement','ForOfStatement'].includes(node.type)){
+  const declaration=node.type==='ForStatement'?node.init:node.left;
+  if(declaration?.type==='VariableDeclaration'&&declaration.kind!=='var')
+   for(const decl of declaration.declarations)patternNames(decl.id,scope.bindings);
+ }
+ return scope;
+}
+function shadowed(name,scope){
  for(let current=scope;current;current=current.parent)
-  if(current.parameters?.has(name))return true;
+  if(current.bindings?.has(name))return true;
  return false;
 }
 function walk(node,visit,parent=null,scope=null){
-  if(!node || typeof node!=='object')return;
-  if(Array.isArray(node)){
-    for(const child of node)walk(child,visit,parent,scope);
-    return;
-  }
-  if(typeof node.type!=='string')return;
-  const ownScope=['Program','BlockStatement','StaticBlock','CatchClause'].includes(node.type)
-    ?{functions:new Set(),parent:scope}:scope;
-  visit(node,parent,ownScope);
-  let childScope=ownScope;
-  if(['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node.type)){
-    const parameters=new Set();
-    for(const param of node.params)patternNames(param,parameters);
-    childScope={functions:new Set(),parameters,parent:ownScope};
-  }
-  for(const key of Object.keys(node)){
-    if(['loc','start','end','range','parent'].includes(key))continue;
-    const value=node[key];
-    if(value && typeof value==='object')walk(value,visit,node,childScope);
-  }
+ if(!node||typeof node!=='object')return;
+ if(Array.isArray(node)){
+  for(const child of node)walk(child,visit,parent,scope);
+  return;
+ }
+ if(typeof node.type!=='string')return;
+ const scoped=['Program','BlockStatement','StaticBlock','CatchClause','SwitchStatement','ForStatement','ForInStatement','ForOfStatement'].includes(node.type);
+ const ownScope=scoped?createScope(node,scope):scope;
+ visit(node,parent,ownScope);
+ let childScope=ownScope;
+ if(isFunction(node)){
+  childScope={functions:new Set(),bindings:new Set(),parent:ownScope};
+  for(const param of node.params)patternNames(param,childScope.bindings);
+  if(node.type==='FunctionExpression'&&node.id)childScope.bindings.add(node.id.name);
+  hoistedVars(node.body,childScope.bindings);
+ }
+ for(const key of Object.keys(node)){
+  if(['loc','start','end','range','parent'].includes(key))continue;
+  const value=node[key];
+  if(value&&typeof value==='object')walk(value,visit,node,childScope);
+ }
 }
 function syntaxError(file,source,error){
   const line=error.loc?.line??1,column=(error.loc?.column??0)+1;
@@ -107,8 +153,8 @@ export function analyzeAST(file,source){
       if(name)calls.push({name,...loc(node)});
       if(identifier(node.callee,'Function'))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if(identifier(node.callee,'eval'))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
-      if(member(node.callee,'localStorage','clear')&&!shadowedByParameter('localStorage',scope))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
-      if(member(node.callee,'document','write')&&!shadowedByParameter('document',scope))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
+      if(member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
+      if(member(node.callee,'document','write')&&!shadowed('document',scope))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&identifier(node.callee,'Function'))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
