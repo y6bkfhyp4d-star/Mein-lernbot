@@ -52,15 +52,17 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
 export const snapshotPasses=r=>r.checked>0&&!r.blocking&&!r.rows.some(x=>
  x.status==='error'||(x.status==='skipped'&&!['unsupported-type','not-added-or-modified'].includes(x.reason))
 );
+// Intentional unsupported skips are distinct from incomplete attempted scans.
+export const snapshotOutcome=r=>!snapshotPasses(r)?'INCOMPLETE':r.complete?'COMPLETE':'PARTIAL_UNSUPPORTED';
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
   const number=Number(process.env.CODEBRAIN_PR_NUMBER);
   const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,ast:astWorkerDefault});
   console.log('NERYX SNAPSHOT: isolated Acorn AST active for JS/MJS/CJS');
-  console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete);
+  console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete+' outcome='+snapshotOutcome(data.result));
   if(process.env.GITHUB_STEP_SUMMARY){
    const {appendFileSync}=await import('node:fs');
-   appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n'+render(data.result));
+   appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n+'**Snapshot-Abdeckung: '+snapshotOutcome(data.result)+'** (COMPLETE=alle geprüft; PARTIAL_UNSUPPORTED=nur ausdrücklich ausgelassene Dateien; INCOMPLETE=Scanfehler oder Abbruch).\\n\\n'+render(data.result));
   }
   if(!snapshotPasses(data.result))process.exitCode=1;
  }catch{
