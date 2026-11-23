@@ -120,7 +120,7 @@ function aliasAt(name,scope,position){
  for(let current=scope;current;current=current.parent){
   if(current.bindings?.has(name)){
    const alias=current.aliases?.get(name);
-   return alias&&position>=alias.after&&(alias.invalidAfter===undefined||position<alias.invalidAfter)?alias:null;
+   return alias&&position>=alias.after?alias:null;
   }
  }
  return null;
@@ -183,6 +183,9 @@ export function analyzeAST(file,source){
     }else return {file,parser:'acorn-ast',findings:[syntaxError(file,source,error)],imports:[],functions:[],calls:[],parsed:false};
   }
   const findings=[],imports=[],functions=[],calls=[];
+  // Conservative straight-line writes shared by aliases with the same known global origin.
+  const methodWrites=new Map();
+  const stillKnown=(origin,pos,uncertain)=>uncertain||pos<(methodWrites.get(origin)??Infinity);
   const report=(rule,severity,node,message,suggestion,confidence='high')=>{
     findings.push({rule,severity,file,...loc(node),message,suggestion,confidence});
   };
@@ -209,7 +212,7 @@ export function analyzeAST(file,source){
       const alias=aliasAt(node.left.object.name,scope,node.start);
       if(alias&&((alias.origin==='document'&&staticProperty(node.left,'write'))||
                  (alias.origin==='localStorage'&&staticProperty(node.left,'clear'))))
-        alias.invalidAfter=Math.min(alias.invalidAfter??Infinity,node.end);
+        methodWrites.set(alias.origin,Math.min(methodWrites.get(alias.origin)??Infinity,node.end));
     }
     if(node.type==='CallExpression'){
       const name=describeCall(node.callee);
@@ -219,12 +222,14 @@ export function analyzeAST(file,source){
       if((member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))||
         explicitGlobal(node.callee,'localStorage','clear',scope)||
         (staticProperty(node.callee,'clear')&&node.callee.object?.type==='Identifier'&&
-         aliasAt(node.callee.object.name,scope,node.start)?.origin==='localStorage'))
+         aliasAt(node.callee.object.name,scope,node.start)?.origin==='localStorage'&&
+         stillKnown('localStorage',node.start,uncertain)))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
       if((member(node.callee,'document','write')&&!shadowed('document',scope))||
         explicitGlobal(node.callee,'document','write',scope)||
         (staticProperty(node.callee,'write')&&node.callee.object?.type==='Identifier'&&
-         aliasAt(node.callee.object.name,scope,node.start)?.origin==='document'))
+         aliasAt(node.callee.object.name,scope,node.start)?.origin==='document'&&
+         stillKnown('document',node.start,uncertain)))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
