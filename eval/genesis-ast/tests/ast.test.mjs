@@ -111,3 +111,58 @@ test('B1 handles shadowing only inside the parameter scope and nested functions'
  assert.equal(has(r,'AST005').length,1);
  assert.equal(has(r,'AST005')[0].line,4);
 });
+
+test('B2 lexical declarations shadow only inside their blocks, including before initialization',()=>{
+ const source=[
+  '{',
+  ' document.write("tdz");',
+  ' let document = {write(){}};',
+  ' const localStorage = {clear(){}};',
+  ' localStorage.clear();',
+  '}',
+  'document.write("global");',
+  'localStorage.clear();'
+ ].join('\n');
+ const r=analyzeAST('blocks.mjs',source);
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(f=>f.line),[7]);
+ assert.deepEqual(has(r,'AST004').map(f=>f.line),[8]);
+});
+test('B2 var hoists through nested blocks but stops at function boundaries',()=>{
+ const source=[
+  'function local(){',
+  ' document.write("hoisted");',
+  ' if(true){var document = {write(){}};}',
+  '}',
+  'document.write("global");'
+ ].join('\n');
+ const r=analyzeAST('hoist.mjs',source);
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(f=>f.line),[5]);
+});
+test('B2 imports and catch parameters shadow globals only in their own scopes',()=>{
+ const module=analyzeAST('imports.mjs','import {document} from "./mock.mjs"; document.write("local");');
+ assert.equal(module.parsed,true);
+ assert.equal(has(module,'AST005').length,0);
+ const source=[
+  'try { throw Error("x"); } catch ({document}) { document.write("local"); }',
+  'document.write("global");'
+ ].join('\n');
+ const r=analyzeAST('catch.mjs',source);
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(f=>f.line),[2]);
+});
+test('B2 for-loop bindings remain local while var is function hoisted',()=>{
+ const source=[
+  'for (let document of [{write(){}}]) document.write("local");',
+  'document.write("global");',
+  'function f(){',
+  ' localStorage.clear();',
+  ' for(var localStorage of [{clear(){}}]) {}',
+  '}'
+ ].join('\n');
+ const r=analyzeAST('loops.mjs',source);
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(f=>f.line),[2]);
+ assert.equal(has(r,'AST004').length,0);
+});
