@@ -791,3 +791,42 @@ test('C11 two proven branch replacements still establish state after a side effe
  assert.equal(r.parsed,true);
  assert.equal(has(r,'AST005').length,0);
 });
+
+test('C12 original, replaced and uncertain states remain separate per object origin',()=>{
+ const r=analyzeAST('state-per-origin.mjs',[
+  'const doc=globalThis.document;',
+  'const store=globalThis.localStorage;',
+  'doc.write=()=>{};',
+  'store.clear();',
+  'doc.write("still replaced");',
+  'store.clear=()=>{};',
+  'doc.write=unknown;',
+  'doc.write("uncertain");',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[8]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+});
+test('C12 subsequent proven replacement restores certainty after unknown mutation',()=>{
+ const r=analyzeAST('state-reestablish.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'delete doc.write;',
+  'doc.write("unknown");',
+  'doc.write=()=>{};',
+  'doc.write("replaced again");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C12 possible branch state affects confidence without claiming replacement',()=>{
+ const r=analyzeAST('state-possible.mjs',[
+  'const store=globalThis.localStorage;',
+  'if(flag) store.clear=()=>{};',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[3]);
+ assert.equal(has(r,'AST004')[0].confidence,'medium');
+});
