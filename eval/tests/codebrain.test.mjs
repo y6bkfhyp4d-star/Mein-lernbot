@@ -201,3 +201,22 @@ test('YAML parser crash fails closed with no exception leakage',async()=>{
  assert.equal(r.rows[0].status,'error');
  assert.doesNotMatch(render(r),/DO-NOT-LOG-YAML-SECRET/);
 });
+
+test('PR head changed during review must be rejected',async()=>{
+ const opts=mock([entry('safe.js')]);
+ let calls=0;
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  if(u.endsWith('/pulls/94')&&++calls===2)
+   return {ok:true,json:async()=>({state:'open',base:{ref:'main'},head:{sha:'b'.repeat(40)},changed_files:1})};
+  return opts.request(u,o);
+ }}),/PR changed during review/);
+});
+test('oversized encoded Git blob is skipped before decoding',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({encoding:'base64',size:100,content:'A'.repeat(85001)})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].reason,'size-or-encoding');
+});
