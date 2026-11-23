@@ -144,3 +144,25 @@ test('no-token requests remain rejected without explicit anonymous mode',async()
  const opts=mock([entry('public.js')]);
  await assert.rejects(()=>inspect({...opts,token:undefined}),/Ungültiger Auftrag/);
 });
+
+test('Python syntax checker labels confirmed syntax errors without source leakage',async()=>{
+ const src='def f(:\n SECRET_IN_PYTHON = "hide"';
+ const result=await inspect({...mock([entry('broken.py')],{[SHA]:src}),pythonSyntax:()=>({parsed:false,line:1})});
+ assert.equal(result.complete,true);
+ assert.equal(result.blocking,true);
+ assert.equal(result.rows[0].findings[0].rule,'PY000');
+ assert.equal(result.rows[0].findings[0].kind,'confirmed');
+ assert.doesNotMatch(render(result),/SECRET_IN_PYTHON/);
+});
+test('Python valid parse is a checked file, never a code execution',async()=>{
+ const result=await inspect({...mock([entry('safe.py')],{[SHA]:'open("unsafe-file","w").write("NO")'}),pythonSyntax:()=>({parsed:true,line:null})});
+ assert.equal(result.complete,true);
+ assert.equal(result.rows[0].reason,'python-ast-parse');
+ assert.equal(result.rows[0].findings.length,0);
+});
+test('Python checker failures remain non-green and do not leak exception text',async()=>{
+ const result=await inspect({...mock([entry('safe.py')]),pythonSyntax:()=>{throw Error('FAKE-SECRET')}});
+ assert.equal(result.complete,false);
+ assert.equal(result.rows[0].status,'error');
+ assert.doesNotMatch(render(result),/FAKE-SECRET/);
+});
