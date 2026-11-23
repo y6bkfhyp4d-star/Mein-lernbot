@@ -4,7 +4,7 @@
 Zwei getrennte Prüfwege, ohne bezahlte Abhängigkeiten oder automatische Änderungen:
 
 1. **Statischer GitHub-Actions-Check:** Läuft für neue Pull Requests auf `main` automatisch. Keine KI und kein API-Schlüssel notwendig. Auswertung in GitHub Actions → Job Summary. Die Heuristiken geben nur Hinweise; grüne Tests ersetzen keine Codeprüfung.
-2. **Gemini-KI-Prüfung:** Nur nach **manuellem** `workflow_dispatch` auf **`main`**. Erfordert das GitHub-Repository-Secret `GEMINI_API_KEY`. Die KI wird nicht ohne Schlüssel aufgerufen. Das Modell ist `gemini-2.5-flash-lite` über die Gemini Developer API; kostenlos nur innerhalb des tatsächlich verfügbaren Free-Tier-Kontingents. Keine kostenpflichtige Ersatz-API, kein automatischer Retry.
+2. **Gemini-KI-Prüfung:** Nur nach **manuellem** `workflow_dispatch` auf **`main`**. Erfordert das GitHub-Repository-Secret `GEMINI_API_KEY`. Die KI wird nicht ohne Schlüssel aufgerufen. Das Modell ist `gemini-3.5-flash-lite` über die Gemini Developer API; kostenlos nur innerhalb des tatsächlich verfügbaren Free-Tier-Kontingents. Keine kostenpflichtige Ersatz-API, kein automatischer Retry.
 
 ## Einrichtung – erst nach geprüfter Übernahme dieses Workflows in main
 1. Unter [Google AI Studio](https://aistudio.google.com/apikey) einen Gemini-API-Key für ein **Free-Tier-Projekt ohne aktivierte kostenpflichtige Abrechnung** erstellen. Vor Nutzung das [offizielle Preismodell](https://ai.google.dev/gemini-api/docs/pricing) kontrollieren; Free-Tier-Modelle, Quotas und regionale Verfügbarkeit können sich ändern.
@@ -27,3 +27,7 @@ Zwei getrennte Prüfwege, ohne bezahlte Abhängigkeiten oder automatische Änder
 `python3 -m unittest discover -s eval/tests -p 'test_neryx_code_reviewer.py' -v`
 
 Die Tests benötigen keine Google-API, kein Internet und keine Abrechnung.
+
+## November 2026: Gemini-Modell aktualisiert
+
+Der manuelle API-Test lieferte HTTP 404 für `gemini-2.5-flash-lite`; für neu eingerichtete Projekte ist dieses Modell nicht zuverlässig nutzbar. Der Reviewer nutzt jetzt `gemini-3.5-flash-lite`, das Google als Free-Tier-Modell listet. Dies ist zunächst eine Code-/CI-Korrektur; ein erfolgreicher Live-Aufruf mit dem im GitHub-Secret gespeicherten Schlüssel muss anschließend **einmal manuell** belegt werden. Keine automatische kostenpflichtige Ausweichroute oder Wiederholung.
