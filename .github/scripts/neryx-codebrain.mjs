@@ -47,7 +47,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
   if(!/^[a-f0-9]{40}$/i.test(f.sha||'')){row.reason='invalid-sha';continue;}
   try{
    const blob=await get('/git/blobs/'+f.sha);
-   if(blob.encoding!=='base64'||typeof blob.content!=='string'||!Number.isInteger(blob.size)||blob.size>60000||used+blob.size>400000){row.reason='size-or-encoding';continue;}
+   if(blob.encoding!=='base64'||typeof blob.content!=='string'||blob.content.length>85000||!Number.isInteger(blob.size)||blob.size<0||blob.size>60000||used+blob.size>400000){row.reason='size-or-encoding';continue;}
    const bytes=Buffer.from(blob.content.replace(/\s/g,''),'base64');
    if(bytes.length!==blob.size||bytes.includes(0))throw Error('Invalid bytes');
    const source=bytes.toString('utf8');
@@ -87,6 +87,8 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
    if(matches.length>40){row.status='skipped';row.reason='findings-truncated';}
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
  }
+ const fresh=await get('/pulls/'+number);
+ if(fresh?.head?.sha!==pr.head.sha||fresh?.state!=='open'||fresh?.base?.ref!=='main')throw Error('PR changed during review');
  return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
 }
 export function render(r){
