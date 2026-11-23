@@ -188,9 +188,20 @@ export function analyzeAST(file,source){
     }else return {file,parser:'acorn-ast',findings:[syntaxError(file,source,error)],imports:[],functions:[],calls:[],parsed:false};
   }
   const findings=[],imports=[],functions=[],calls=[];
-  // Conservative straight-line writes shared by aliases with the same known global origin.
-  const methodWrites=new Map(),possibleWrites=new Map();
-  const stillKnown=(origin,pos,uncertain)=>uncertain||pos<(methodWrites.get(origin)??Infinity);
+  // C12: explicit per-origin states. Only a proven straight-line replacement
+  // suppresses a finding; unknown flow keeps the potentially original method.
+  const states=new Map(['document','localStorage'].map(name=>
+    [name,{kind:'original',at:0,possibleAt:Infinity}]));
+  const state=origin=>states.get(origin);
+  const replace=(origin,at)=>{const s=state(origin);s.kind='replaced';s.at=at;};
+  const invalidate=origin=>{const s=state(origin);s.kind='unknown';s.at=0;};
+  const invalidateAll=()=>{for(const name of states.keys())invalidate(name);};
+  const possible=(origin,at)=>{const s=state(origin);s.possibleAt=Math.min(s.possibleAt,at);};
+  const stillKnown=(origin,pos,uncertain)=>{
+    const s=state(origin);
+    return uncertain||s.kind!=='replaced'||pos<s.at;
+  };
+  const confidenceFor=(origin,pos)=>pos>=state(origin).possibleAt?'medium':'high';
   // C5: only a freshly created function proves replacement; self-assignments,
   // unknown values and calls cannot justify suppressing a later warning.
   const provenReplacement=node=>node?.type==='AssignmentExpression'&&node.operator==='='&&
@@ -243,15 +254,15 @@ export function analyzeAST(file,source){
     if(!uncertain&&['IfStatement','ConditionalExpression','LogicalExpression',
        'SwitchStatement','ForStatement','ForInStatement','ForOfStatement',
        'WhileStatement','DoWhileStatement','TryStatement'].includes(node.type)&&
-       eagerEffects(node))methodWrites.clear();
+       eagerEffects(node))invalidateAll();
     // Join only the supported two-arm shape; a missing arm is merely possible.
     if(!uncertain&&node.type==='IfStatement'){
       const yes=simpleArmWrite(node.consequent,scope);
       const no=simpleArmWrite(node.alternate,scope);
       if(yes&&yes===no)
-        methodWrites.set(yes,Math.min(methodWrites.get(yes)??Infinity,node.end));
+        replace(yes,node.end);
       else for(const origin of new Set([yes,no].filter(Boolean)))
-        possibleWrites.set(origin,Math.min(possibleWrites.get(origin)??Infinity,node.end));
+        possible(origin,node.end);
     }
     // C1: a written method is no longer a confirmed known builtin on that alias.
     // This is intentionally an order-local, conservative check; not control-flow proof.
@@ -261,7 +272,7 @@ export function analyzeAST(file,source){
       const alias=aliasAt(node.left.object.name,scope,node.start);
       if(alias&&((alias.origin==='document'&&staticProperty(node.left,'write'))||
                  (alias.origin==='localStorage'&&staticProperty(node.left,'clear'))))
-        methodWrites.set(alias.origin,Math.min(methodWrites.get(alias.origin)??Infinity,node.end));
+        replace(alias.origin,node.end);
     }
     // C10: deleting, updating or assigning an unknown value ends a confirmed
     // method-replacement state. A newly created function remains a proven replacement.
@@ -275,15 +286,15 @@ export function analyzeAST(file,source){
        !(node.type==='AssignmentExpression'&&provenReplacement(node))){
       const alias=aliasAt(mutation.object.name,scope,node.start);
       if(alias?.origin==='document'&&staticProperty(mutation,'write'))
-        methodWrites.delete('document');
+        invalidate('document');
       if(alias?.origin==='localStorage'&&staticProperty(mutation,'clear'))
-        methodWrites.delete('localStorage');
+        invalidate('localStorage');
     }
     if(node.type==='CallExpression'){
       // C8: child expressions can mutate the known method before the outer call.
       if(!uncertain&&(eagerEffects(node.arguments)||
           (node.callee?.type==='MemberExpression'&&node.callee.computed&&
-           eagerEffects(node.callee.property))))methodWrites.clear();
+           eagerEffects(node.callee.property))))invalidateAll();
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
       if((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
@@ -294,19 +305,19 @@ export function analyzeAST(file,source){
          aliasAt(node.callee.object.name,scope,node.start)?.origin==='localStorage'&&
          stillKnown('localStorage',node.start,uncertain)))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.',
-          possibleWrites.has('localStorage')&&node.start>=possibleWrites.get('localStorage')?'medium':'high');
+          confidenceFor('localStorage',node.start));
       if((member(node.callee,'document','write')&&!shadowed('document',scope))||
         explicitGlobal(node.callee,'document','write',scope)||
         (staticProperty(node.callee,'write')&&node.callee.object?.type==='Identifier'&&
          aliasAt(node.callee.object.name,scope,node.start)?.origin==='document'&&
          stillKnown('document',node.start,uncertain)))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.',
-          possibleWrites.has('document')&&node.start>=possibleWrites.get('document')?'medium':'high');
+          confidenceFor('document',node.start));
     }
     // C6/C7: calls, constructors and suspension points may change shared methods.
     // Deferred bodies and uncertain paths must not change the outer scan state.
     if(!uncertain&&['CallExpression','NewExpression','AwaitExpression','YieldExpression'].includes(node.type)){
-      methodWrites.clear();
+      invalidateAll();
     }
     if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
