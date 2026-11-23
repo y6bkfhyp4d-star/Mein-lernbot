@@ -145,7 +145,9 @@ function walk(node,visit,parent=null,scope=null,uncertain=false){
  const scoped=['Program','BlockStatement','StaticBlock','CatchClause','SwitchStatement','ForStatement','ForInStatement','ForOfStatement'].includes(node.type);
  const ownScope=scoped?createScope(node,scope):scope;
  // C9: writes and branch joins take effect after their operand/branch evaluation.
- const postVisit=node.type==='AssignmentExpression'||node.type==='IfStatement';
+ const postVisit=['AssignmentExpression','IfStatement','ConditionalExpression',
+  'LogicalExpression','SwitchStatement','ForStatement','ForInStatement','ForOfStatement',
+  'WhileStatement','DoWhileStatement','TryStatement'].includes(node.type);
  if(!postVisit)visit(node,parent,ownScope,uncertain);
  let childScope=ownScope;
  if(isFunction(node)){
@@ -235,6 +237,13 @@ export function analyzeAST(file,source){
         'Erneute Deklaration im gleichen Block prüfen.','medium');
       scope?.functions.add(name);
     }
+    // C11 audit: a branch/loop/try may run code that restores an earlier method.
+    // Revoke stale certainty at the join, then allow a proven two-arm replacement
+    // below to establish a new one. Deferred function definitions are not executed.
+    if(!uncertain&&['IfStatement','ConditionalExpression','LogicalExpression',
+       'SwitchStatement','ForStatement','ForInStatement','ForOfStatement',
+       'WhileStatement','DoWhileStatement','TryStatement'].includes(node.type)&&
+       eagerEffects(node))methodWrites.clear();
     // Join only the supported two-arm shape; a missing arm is merely possible.
     if(!uncertain&&node.type==='IfStatement'){
       const yes=simpleArmWrite(node.consequent,scope);
