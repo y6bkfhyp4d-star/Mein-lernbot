@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 2,
+  "cursor": 7,
   "entities": [
     {
       "checked_at": "2026-11-23T15:30:30+00:00",
@@ -26,7 +26,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q111"
     },
     {
-      "checked_at": "2026-11-19T15:21:12+00:00",
+      "checked_at": "2026-11-23T21:15:06+00:00",
       "classes": [
         "biologischer Vorgang"
       ],
@@ -37,7 +37,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q11982"
     },
     {
-      "checked_at": "2026-11-19T15:21:12+00:00",
+      "checked_at": "2026-11-23T21:15:06+00:00",
       "classes": [
         "Taxon"
       ],
@@ -48,7 +48,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q82037"
     },
     {
-      "checked_at": "2026-11-19T15:21:12+00:00",
+      "checked_at": "2026-11-23T21:15:06+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -57,7 +57,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q12725"
     },
     {
-      "checked_at": "2026-11-19T15:21:12+00:00",
+      "checked_at": "2026-11-23T21:15:06+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -66,7 +66,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q11461"
     },
     {
-      "checked_at": "2026-11-19T21:15:05+00:00",
+      "checked_at": "2026-11-23T21:15:06+00:00",
       "classes": [
         "fundamentale Wechselwirkung",
         "physikalisches Phänomen",
@@ -1192,6 +1192,13 @@
     },
     {
       "at": "2026-11-23T15:30:30+00:00",
+      "checked": 5,
+      "error_count": 3,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-23T21:15:06+00:00",
       "checked": 5,
       "error_count": 3,
       "known_sources": 89,
