@@ -80,3 +80,19 @@ Die unveränderte `main`-Version von `.github/scripts/research-review-branch.sh`
 **Ergebnis:** GitHub-Actions-Integration-Run [45114332992](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45114332992), **367/367 erfolgreich** (darin sieben Python-Testgruppen des lokalen Git-Publishers). AST und Browserjobs hatten bei der letzten Abfrage noch nicht alle abgeschlossen. Die erste Version der neuen Test-Fixtures schlug wegen falsch escapeter Zeilenumbrüche und eines lokal nicht gelöschten Testbranches fehl; die Test-Fixtures wurden korrigiert und der erfolgreiche Lauf ist der maßgebliche Nachweis.
 
 **Offene Grenze:** Dies beweist weder, dass ein entwendeter `contents:write`-Token keine anderen Branches beschreiben könnte, noch dass GitHub den Schutz in einem echten Cloud-Lauf erzwingt. Für diese Ebene bleibt eine isolierte GitHub-Test-Repository-Abnahme erforderlich.
+
+## GitHub-Identitäten: effektive Rollen und Gegenprobe
+
+Am 23.11.2026 ergaben die lesenden GitHub-Connector-Aufrufe:
+
+- `get_repo` für `y6bkfhyp4d-star/Mein-lernbot`: der **verbundene GitHub-Zugang** besitzt `admin:true`, `push:true`, `pull:true` und `maintain:true`. `get_repo_collaborator_permission` bestätigte für `y6bkfhyp4d-star` die Repository-Rolle `admin`.
+- Die GitHub-Verbindung meldete die für diese Sitzung sichtbare Installation `183198037`, `repository_selection: all`; in der über diese Installation abgefragten Repository-Liste war das Projekt enthalten. **Die Installation beschreibt den verbundenen GitHub-App-Zugang, nicht automatisch einen GENESIS-X-Bot-Token oder ein `GITHUB_TOKEN` einer Action.**
+- Repository-Metadaten: `allow_auto_merge: false`; das deaktiviert das Repository-Merkmal Auto-Merge, garantiert aber **nicht**, dass keine andere API-Identität eine bewusste Merge-Aktion auslösen könnte.
+- Die tatsächlich aus `main` gelesenen neun Forschungsworkflows verwenden als Job-Token `contents: write` mit dem konkreten, geprüften Publish-Skript. Der Trusted-Base-Workflow verwendet ausdrücklich `contents:read` und `pull-requests:read`.
+- **Nicht verfügbar/nicht bewiesen:** Vollständige GitHub-App-Installationsberechtigungen, PATs, alle externen Tokens, Live-Ruleset-Wirksamkeit, tatsächliche Berechtigung einer späteren separaten GENESIS-X-Agentenidentität. Ein bereits vorhandener administrativer Connector darf **nicht** als Beleg für die sichere Isolation künftiger Automationen gewertet werden.
+
+### Zusätzliche statische Berechtigungsregression
+
+`eval/tests/genesis-solo-permission-boundary.test.mjs` prüft im Draft-PR #91 konkret die neun Phase-7-Forschungsworkflows auf `contents:write`, einen fest zugewiesenen Report-Branch und Report-Pfad, das gemeinsame Publishing-Skript ohne direkte PR-/Deploy-Aktion sowie den nur lesenden `pull_request_target`-Trusted-Check. Die Solo-Anweisungen müssen ausdrücklich auf einen menschlichen GitHub-Merge und das Verbot von Bot-Merges verweisen.
+
+**Testgrenze:** Das sind statische Regressionen gegen den eingecheckten Workflow-Code. Sie verhindern nicht den Missbrauch eines gestohlenen oder anderweitig erreichbaren Write-Tokens. **Keine Konfiguration geändert.**
