@@ -14,9 +14,16 @@ const pythonSyntaxDefault=source=>{
  if(typeof parsed.parsed!=='boolean')throw Error('invalid python result');
  return parsed;
 };
+const yamlSyntaxDefault=source=>{
+ const helper=fileURLToPath(new URL('./neryx-yaml-syntax.rb',import.meta.url));
+ const output=execFileSync('ruby',['-W0',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe']});
+ const parsed=JSON.parse(output.toString('utf8'));
+ if(typeof parsed.parsed!=='boolean')throw Error('invalid YAML result');
+ return parsed;
+};
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
-export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null,anonymous=false,pythonSyntax=pythonSyntaxDefault}){
+export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null,anonymous=false,pythonSyntax=pythonSyntaxDefault,yamlSyntax=yamlSyntaxDefault}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!Number.isInteger(number)||number<1||number>1000000||(!anonymous&&!token))throw Error('Ungültiger Auftrag');
  const base='https://api.github.com/repos/'+repo;
  const get=async path=>{
@@ -58,10 +65,13 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
     }
     row.reason='json-parse';
    }else if(/\.ya?ml$/.test(path)){
-    // YAML is intentionally NOT parsed: only known high-risk workflow strings are flagged.
+    // Psych.parse_stream creates an AST only: no YAML object deserialization.
+    const parsed=yamlSyntax(source);
+    if(!parsed||typeof parsed.parsed!=='boolean')throw Error('invalid YAML syntax result');
+    if(!parsed.parsed)matches.push({rule:'YAML000',line:Number.isInteger(parsed.line)&&parsed.line>0?parsed.line:1,label:'YAML-Syntaxfehler',kind:'confirmed'});
     const markers=[[/pull_request_target\s*:/,'CI-Trigger pull_request_target'],[/\b(?:contents|actions|pull-requests)\s*:\s*write\b/,'CI-Schreibrechte'],[/\$\{\{[^\n]*github\.event\./,'Unvertrauenswürdiger Event-Ausdruck']];
     for(const [re,label] of markers)if(re.test(source))matches.push({rule:'YAML-WARN',line:1,label,kind:'heuristic'});
-    row.reason='yaml-heuristic-no-parse';
+    row.reason='yaml-ast-parse';
    }else if(ast){
     const data=ast(path,source);
     if(!data||!Array.isArray(data.findings)||typeof data.parsed!=='boolean')throw Error('Bad AST result');
@@ -72,7 +82,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
     matches=analyze(path,source).filter(v=>v.rule!=='JS000').map(v=>({rule:v.rule,line:v.line,label:labels[v.rule]||'Heuristischer Hinweis',kind:'heuristic'}));
     row.reason='heuristic-only';
    }
-   row.status=row.reason==='yaml-heuristic-no-parse'?'partial':'checked';
+   row.status='checked';
    row.findings=matches.slice(0,40).map(v=>({rule:v.rule,line:v.line,label:v.label,kind:v.kind}));
    if(matches.length>40){row.status='skipped';row.reason='findings-truncated';}
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
