@@ -56,6 +56,11 @@ class ReviewerTests(unittest.TestCase):
                  if __import__("re").search(rule, "+eval(text)", __import__("re").M)]
         self.assertIn("Dynamische Codeausführung", found)
 
+    def test_free_tier_model_is_current(self):
+        source = PATH.read_text(encoding="utf-8")
+        self.assertIn("models/gemini-3.5-flash-lite:generateContent", source)
+        self.assertNotIn("models/gemini-2.5-flash-lite:generateContent", source)
+
 
 if __name__ == "__main__":
     unittest.main()
