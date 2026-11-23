@@ -30,7 +30,7 @@ jobs:
           node-version: '22'
       - name: Install pinned Acorn on trusted main (no lifecycle scripts)
         working-directory: eval/genesis-ast
-        run: npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test existing AST adapter on trusted source
         working-directory: eval/genesis-ast
         run: npm test
