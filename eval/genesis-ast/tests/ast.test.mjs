@@ -618,3 +618,40 @@ test('C7 inert async function declaration does not suspend the enclosing executi
  assert.equal(r.parsed,true);
  assert.equal(has(r,'AST005').length,0);
 });
+
+test('C8 side-effecting argument executes before the outer aliased method',()=>{
+ const r=analyzeAST('argument-order.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'doc.write(unknownCallback());'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
+test('C8 nested argument expressions may restore storage method before invocation',()=>{
+ const r=analyzeAST('nested-argument.mjs',[
+  'const store = globalThis.localStorage;',
+  'store.clear = () => {};',
+  'store.clear([0, sideEffect()].length);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[3]);
+});
+test('C8 passing an inert closure must not imply executing its body',()=>{
+ const r=analyzeAST('closure-argument.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'doc.write(() => unknownCallback());'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
+test('C8 simple pure arguments retain the straight-line replacement result',()=>{
+ const r=analyzeAST('pure-arguments.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = () => {};',
+  'doc.write(1, "hello", true);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
