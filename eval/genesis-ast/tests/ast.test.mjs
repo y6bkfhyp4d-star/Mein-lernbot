@@ -491,3 +491,47 @@ test('C4 complex branch bodies are not treated as proven writes',()=>{
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
 });
+
+test('C5 self-assignment must not suppress subsequent document warning',()=>{
+ const r=analyzeAST('self.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = doc.write;',
+  'doc.write("still original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
+test('C5 unknown assignment origin cannot prove method replacement',()=>{
+ const r=analyzeAST('unknown-replacement.mjs',[
+  'const store = globalThis.localStorage;',
+  'store.clear = maybeMethod;',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[3]);
+});
+test('C5 both if arms must prove a fresh replacement before joining',()=>{
+ const r=analyzeAST('nonproof-join.mjs',[
+  'const doc = globalThis.document;',
+  'if(flag) doc.write = doc.write; else doc.write = () => {};',
+  'doc.write("could still be original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
+test('C5 proven fresh function assignments still invalidate in straight line and both arms',()=>{
+ const straight=analyzeAST('fresh.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write = function(){};',
+  'doc.write("replaced");'
+ ].join('\n'));
+ assert.equal(straight.parsed,true);
+ assert.equal(has(straight,'AST005').length,0);
+ const joined=analyzeAST('fresh-join.mjs',[
+  'const doc=globalThis.document;',
+  'if(flag){doc.write=()=>{};}else{doc.write=function(){};}',
+  'doc.write("replaced");'
+ ].join('\n'));
+ assert.equal(joined.parsed,true);
+ assert.equal(has(joined,'AST005').length,0);
+});
