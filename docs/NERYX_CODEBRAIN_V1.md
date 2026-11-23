@@ -44,3 +44,10 @@ Gemini bleibt ein unabhängiger optionaler Workflow. Ein HTTP-503 bei Gemini än
 - YAML wird ohne vollständigen Parser immer als `partial` ausgewiesen, auch wenn kein Warnmuster gefunden wird; der Workflow bleibt entsprechend unvollständig und liefert Exit-Code 1.
 - Auch bei vollständiger Dateiabdeckung führt ein **bestätigter** AST-/JSON-Syntaxfehler zum Fehlerstatus. `complete` beschreibt ausschließlich die Abdeckung; `blocking` beschreibt bestätigte Syntaxprobleme. Ein grüner Workflow setzt `complete && !blocking` voraus.
 - Diese Schutzbedingungen werden durch zusätzliche Regressionstests abgedeckt. Bereits vorhandene Sicherheitshinweise anderer Art bleiben heuristische Warnungen, keine automatische Korrektur oder Freigabe.
+
+## Python-Syntaxprüfung (noch im Draft)
+- `.py`-Dateien werden über `.github/scripts/neryx-python-syntax.py` durch einen separaten, auf 2,5 Sekunden begrenzten Python-Prozess geprüft.
+- Der geprüfte Quelltext wird ausschließlich als Standard-Eingabe an den vertrauenswürdigen Helfer übergeben. `python3 -I -S` und `ast.parse()` parsen die Syntax; `exec`, `import` des PR-Quelltexts oder `pytest` auf PR-Dateien finden nicht statt.
+- Fehler werden nur als `PY000`, Zeilennummer und festes Label ausgegeben; kein Einfügen von Quelltext, Fehlermeldungen oder Secrets in GitHub-Berichte.
+- Ein Timeout, Ausführungsproblem oder ungültiges Parser-Ergebnis wird als `error` markiert und verhindert ein grünes Ergebnis.
+- YAML bleibt bis zur reproduzierbaren und abgesicherten Parser-Integration **partiell geprüft**. Eine Heuristik ist kein YAML-Parser.
