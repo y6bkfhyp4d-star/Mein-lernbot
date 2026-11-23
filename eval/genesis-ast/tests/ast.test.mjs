@@ -415,7 +415,8 @@ test('C3 direct method write invalidates sibling aliases of the same known objec
   'second.write("replaced");'
  ].join('\n'));
  assert.equal(r.parsed,true);
- assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+ // The first call to the replacement may itself restore a built-in method.
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3,6]);
 });
 test('C3 storage method mutation propagates across distinct direct aliases',()=>{
  const r=analyzeAST('storage-aliases.mjs',[
