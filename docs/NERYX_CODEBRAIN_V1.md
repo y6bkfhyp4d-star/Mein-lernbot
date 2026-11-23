@@ -23,7 +23,8 @@ Datei: `.github/workflows/neryx-codebrain-public-smoke.yml`.
 - `permissions: {}`, keine übergebenen Secrets, `persist-credentials: false`.
 - **Führt Testdateien aus dem PR-Merge-Checkout aus.** Deshalb gilt die Zusage „kein PR-Code wird ausgeführt“ **nicht** für diesen unprivilegierten Smoke-Job.
 - Installiert keine npm-, pip- oder Ruby-Pakete.
-- Führt den anonymen GitHub-API-Test aus. Falls GitHub HTTP 403/429 meldet, **schlägt der Test fehl** und nennt den Lauf unvollständig. Das ist ausdrücklich kein erfolgreicher Live-Scan.
+- Führt den anonymen GitHub-API-Test aus. Bei HTTP 403/429 wird der Rate-Limit-Header geprüft: **Genau ein** automatischer Wiederholungsversuch erfolgt nur, wenn ein belegter Reset oder ein `Retry-After` innerhalb von **20 Sekunden** liegt. Bei längerem oder unbekanntem Limit bleibt das Ergebnis **INCONCLUSIVE und fehlgeschlagen**, niemals grün. GitHub-Header werden ausschließlich als bereinigte Zahlen/Kategorien diagnostiziert; kein Token wird verwendet.
+- Der PR-Smoke-Workflow bricht veraltete Läufe für dieselbe PR per `concurrency` ab, damit neue Commits nicht unnötig parallel anonyme API-Anfragen auslösen. Es gibt **keinen später geplanten automatischen GitHub-Run** für ein Stundenlimit; das würde einen separat genehmigten Workflow benötigen.
 - Dieser Smoke-Test ist kein unabhängiger oder privilegierter Sicherheitsreview.
 
 ## Unterstützte Prüfungen
