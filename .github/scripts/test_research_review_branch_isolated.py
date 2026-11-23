@@ -141,8 +141,8 @@ class IsolatedPublisherTests(unittest.TestCase):
         """Only the disposable local remote gets this adversarial branch."""
         git(self.work, "checkout", "-b", BRANCH)
         write(self.work, REPORT, report_content)
-        write(self.work, "app.js", "export const attacker = true;\\n")
-        write(self.work, ".github/workflows/backdoor.yml", "name: backdoor\\n")
+        write(self.work, "app.js", "export const attacker = true;\n")
+        write(self.work, ".github/workflows/backdoor.yml", "name: backdoor\n")
         git(self.work, "add", ".")
         git(self.work, "commit", "-m", "untrusted old review branch")
         git(self.work, "push", "origin", BRANCH)
@@ -151,15 +151,15 @@ class IsolatedPublisherTests(unittest.TestCase):
         return self.remote_ref(BRANCH)
 
     def test_existing_poisoned_branch_never_imports_executable_paths(self):
-        old = self.create_poisoned_review_branch('{"version":42}\\n')
+        old = self.create_poisoned_review_branch('{"version":42}\n')
         for repeat in range(2):
             with self.subTest(repeat=repeat):
                 response = self.publisher("prepare")
                 self.assertEqual(response.returncode, 0, response.stderr)
                 self.assertEqual((self.work / REPORT).read_text(encoding="utf-8"),
-                                 '{"version":42}\\n')
+                                 '{"version":42}\n')
                 self.assertEqual((self.work / "app.js").read_text(encoding="utf-8"),
-                                 "export const stable = true;\\n")
+                                 "export const stable = true;\n")
                 self.assertFalse((self.work / ".github/workflows/backdoor.yml").exists())
         result = self.publisher("publish")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -186,6 +186,7 @@ class IsolatedPublisherTests(unittest.TestCase):
                     self.assertEqual(self.remote_ref("main"), self.baseline)
                 # Delete the isolated branch before testing another malformed input.
                 git(self.work, "push", "origin", "--delete", BRANCH)
+                git(self.work, "branch", "-D", BRANCH)
 
 
 if __name__ == "__main__":
