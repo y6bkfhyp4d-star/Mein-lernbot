@@ -263,3 +263,40 @@ test('canonical base64 with Git blob SHA stays supported',async()=>{
  assert.equal(r.complete,true);
  assert.equal(r.rows[0].status,'checked');
 });
+
+test('real Response streams are parsed within bounded API body limits',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  const data=await (await opts.request(u,o)).json();
+  return new Response(JSON.stringify(data),{status:200,headers:{'content-type':'application/json'}});
+ }});
+ assert.equal(r.complete,true);
+ assert.equal(r.checked,1);
+});
+test('oversized streamed PR metadata fails closed before JSON parsing',async()=>{
+ const opts=mock([entry('safe.js')]);
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  if(u.endsWith('/pulls/94'))return new Response(' '.repeat(65537),{status:200});
+  return opts.request(u,o);
+ }}),/GitHub response too large/);
+});
+test('oversized streamed blob is marked as an error, never checked',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return new Response(' '.repeat(98305),{status:200});
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+});
+test('oversized declared Content-Length fails before accessing API JSON',async()=>{
+ const opts=mock([entry('safe.js')]);
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  if(u.endsWith('/pulls/94'))return {
+   ok:true,
+   headers:{get:key=>key==='content-length'?'65537':null},
+   json:async()=>{throw Error('Must not parse oversized body');}
+  };
+  return opts.request(u,o);
+ }}),/GitHub response too large/);
+});
