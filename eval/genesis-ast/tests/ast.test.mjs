@@ -448,3 +448,46 @@ test('C3 a different object origin and unrelated property mutation are unaffecte
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
 });
+
+test('C4 both simple if-else arms definitely replace the same method',()=>{
+ const r=analyzeAST('joined.mjs',[
+  'const doc = globalThis.document;',
+  'const copy = doc;',
+  'if (flag) { doc.write = () => {}; } else { copy.write = () => {}; }',
+  'doc.write("replaced on either path");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
+test('C4 one-armed possible overwrite keeps a finding with reduced confidence',()=>{
+ const r=analyzeAST('maybe.mjs',[
+  'const doc = globalThis.document;',
+  'if (flag) doc.write = () => {};',
+  'doc.write("could still be original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+ assert.equal(has(r,'AST005')[0].confidence,'medium');
+});
+test('C4 two distinct targets cannot be merged into a guaranteed overwrite',()=>{
+ const r=analyzeAST('mixed.mjs',[
+  'const doc = globalThis.document;',
+  'const store = globalThis.localStorage;',
+  'if (flag) { doc.write = () => {}; } else { store.clear = () => {}; }',
+  'doc.write("maybe original");',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[5]);
+ assert.equal(has(r,'AST004')[0].confidence,'medium');
+});
+test('C4 complex branch bodies are not treated as proven writes',()=>{
+ const r=analyzeAST('complex.mjs',[
+  'const doc = globalThis.document;',
+  'if(flag){ sideEffect(); doc.write = () => {}; } else { doc.write = () => {}; }',
+  'doc.write("not proven replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
