@@ -1014,7 +1014,8 @@ test('C16 trusted runtime oracle: every observed original-method invocation has 
   for(const flag of [false,true])for(const other of [false,true]){
    const called=[];
    const original=function(value){called.push(value);};
-   const document={write:original};
+   // A prototype method remains available after deleting an own override.
+   const document=Object.create({write:original});
    const sandbox={document,flag,other,localStorage:{clear(){}},
     restore(){document.write=original;}};
    runInNewContext(source,sandbox,{timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
