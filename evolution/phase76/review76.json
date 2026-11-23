@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 81,
+  "cursor": 86,
   "entities": [
     {
       "checked_at": "2026-11-19T09:30:11+00:00",
@@ -913,6 +913,58 @@
       "title": "Bempedoinsäure",
       "wikidata_id": "Q27075007",
       "wikidata_url": "https://www.wikidata.org/wiki/Q27075007"
+    },
+    {
+      "checked_at": "2026-11-23T09:46:20+00:00",
+      "classes": [
+        "Zeitpunkt innerhalb eines wiederkehrenden Zeitrahmens"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "1. Oktober",
+      "wikidata_id": "Q2913",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q2913"
+    },
+    {
+      "checked_at": "2026-11-23T09:46:20+00:00",
+      "classes": [
+        "Zeitpunkt innerhalb eines wiederkehrenden Zeitrahmens"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "10. Oktober",
+      "wikidata_id": "Q2921",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q2921"
+    },
+    {
+      "checked_at": "2026-11-23T09:46:20+00:00",
+      "classes": [],
+      "error": "JSONDecodeError",
+      "source_changed": false,
+      "status": "error",
+      "title": "Airbus",
+      "wikidata_id": null,
+      "wikidata_url": ""
+    },
+    {
+      "checked_at": "2026-11-23T09:46:20+00:00",
+      "classes": [
+        "physikalisches Gesetz"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Abstandsgesetz",
+      "wikidata_id": "Q333094",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q333094"
+    },
+    {
+      "checked_at": "2026-11-23T09:46:20+00:00",
+      "classes": [],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Adiabatische Zustandsänderung",
+      "wikidata_id": "Q182453",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q182453"
     }
   ],
   "runs": [
@@ -1095,6 +1147,13 @@
       "at": "2026-11-23T03:22:13+00:00",
       "checked": 5,
       "error_count": 1,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-23T09:46:20+00:00",
+      "checked": 5,
+      "error_count": 2,
       "known_sources": 89,
       "source_changes": 0
     }
