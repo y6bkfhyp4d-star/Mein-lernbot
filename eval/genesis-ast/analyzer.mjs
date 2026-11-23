@@ -127,6 +127,10 @@ function explicitGlobal(node,object,property,scope){
  return staticProperty(node,property)&&staticProperty(node.object,object)&&
   identifier(node.object.object,'globalThis')&&!shadowed('globalThis',scope);
 }
+// Explicit builtin access is global only when globalThis is not locally bound.
+function globalBuiltin(node,name,scope){
+ return staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope);
+}
 function walk(node,visit,parent=null,scope=null){
  if(!node||typeof node!=='object')return;
  if(Array.isArray(node)){
@@ -191,8 +195,8 @@ export function analyzeAST(file,source){
     if(node.type==='CallExpression'){
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
-      if(identifier(node.callee,'Function')&&!shadowed('Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
-      if(identifier(node.callee,'eval')&&!shadowed('eval',scope))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
+      if((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
+      if((identifier(node.callee,'eval')&&!shadowed('eval',scope))||globalBuiltin(node.callee,'eval',scope))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
       if((member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))||
         explicitGlobal(node.callee,'localStorage','clear',scope)||
         (staticProperty(node.callee,'clear')&&node.callee.object?.type==='Identifier'&&
@@ -204,7 +208,7 @@ export function analyzeAST(file,source){
          aliasAt(node.callee.object.name,scope,node.start)==='document'))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
-    if(node.type==='NewExpression'&&identifier(node.callee,'Function')&&!shadowed('Function',scope))
+    if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
     if(node.type==='AssignmentExpression'&&staticProperty(node.left,'innerHTML'))
       report('AST003','medium',node,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
