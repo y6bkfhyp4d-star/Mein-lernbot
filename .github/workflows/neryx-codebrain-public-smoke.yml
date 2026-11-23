@@ -23,7 +23,8 @@ jobs:
           node-version: '22'
       - name: Verify scanner safeguards offline first
         run: node --test eval/tests/codebrain.test.mjs
-      - name: Public API smoke against open PR 97 (no tokens or secrets)
+      - name: Public API smoke against triggering PR (no tokens or secrets)
         env:
           CODEBRAIN_LIVE_PUBLIC: '1'
+          CODEBRAIN_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: node --test eval/tests/codebrain-live-public.test.mjs
