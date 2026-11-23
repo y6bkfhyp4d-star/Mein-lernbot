@@ -58,3 +58,7 @@ Gemini bleibt ein unabhängiger optionaler Workflow. Ein HTTP-503 bei Gemini än
 - Bei Parserfehler: bestätigter Syntaxbefund `YAML000`, der den Review blockiert. Bei Parserabsturz: `error`, ebenfalls nicht grün. Bei gültiger YAML-Syntax: `checked` mit Grund `yaml-ast-parse`, gegebenenfalls zusätzliche **heuristische** Warnungen für verdächtige GitHub-Actions-Muster.
 - YAML-Syntaxprüfung ist **keine semantische GitHub-Actions-Workflow-Validierung** und kein Sicherheitszertifikat. Nicht unterstütztes Markdown bleibt sichtbar übersprungen.
 - Es werden keine npm/pip/Ruby-Gems installiert und kein Gemini benötigt. Psych ist Bestandteil der bereitgestellten Ubuntu-Runner-Software; Verfügbarkeit wird durch echte GitHub-CI-Läufe nachgewiesen, nicht vorausgesetzt.
+
+## Live-Test und Reproduzierbarkeit
+- Der öffentliche GitHub-API-Smoke-Test prüft nur echte, anonym abrufbare Pull-Request-Daten. Bei HTTP 403 oder 429 meldet er jetzt **INCONCLUSIVE** und wird ausdrücklich als **übersprungen**, nicht als erfolgreich verifizierte Live-Abdeckung gezählt. Andere API-Fehler bleiben echte Testfehler. Ein früherer Live-Lauf für PR #97 wurde tatsächlich erfolgreich ausgeführt.
+- Der zusätzliche Replay-Test verwendet die reale Dateityp-Struktur eines früheren PR-Snapshots, erzeugt seine Git-Blob-SHAs aus den aktuellen lokalen Quelldateien und bleibt damit auch nach reinen Dokumentationsänderungen ausführbar. Er ist ein **lokaler Integrations-/Contract-Test**, kein unabhängiger Live-API-Nachweis.
