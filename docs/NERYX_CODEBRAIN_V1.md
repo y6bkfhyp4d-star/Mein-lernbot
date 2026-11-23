@@ -51,3 +51,10 @@ Gemini bleibt ein unabhängiger optionaler Workflow. Ein HTTP-503 bei Gemini än
 - Fehler werden nur als `PY000`, Zeilennummer und festes Label ausgegeben; kein Einfügen von Quelltext, Fehlermeldungen oder Secrets in GitHub-Berichte.
 - Ein Timeout, Ausführungsproblem oder ungültiges Parser-Ergebnis wird als `error` markiert und verhindert ein grünes Ergebnis.
 - YAML bleibt bis zur reproduzierbaren und abgesicherten Parser-Integration **partiell geprüft**. Eine Heuristik ist kein YAML-Parser.
+
+## YAML-Syntaxprüfung (neu)
+- Der isolierte Ruby-Helfer `.github/scripts/neryx-yaml-syntax.rb` nutzt auf `ubuntu-24.04` den vorhandenen Ruby-Psych-Parser und ausschließlich `Psych.parse_stream(source)`: **nur YAML-AST, keine Objektdeserialisierung**, kein `load` und keine Ausführung des YAML-Inhalts.
+- Der Helfer bekommt maximal 60 KB über stdin; die Ausführung ist auf 2,5 Sekunden begrenzt. Er liefert nur `parsed` und gegebenenfalls eine Zeilennummer. Der Parser kann nicht alle logischen GitHub-Workflow-Fehler erkennen.
+- Bei Parserfehler: bestätigter Syntaxbefund `YAML000`, der den Review blockiert. Bei Parserabsturz: `error`, ebenfalls nicht grün. Bei gültiger YAML-Syntax: `checked` mit Grund `yaml-ast-parse`, gegebenenfalls zusätzliche **heuristische** Warnungen für verdächtige GitHub-Actions-Muster.
+- YAML-Syntaxprüfung ist **keine semantische GitHub-Actions-Workflow-Validierung** und kein Sicherheitszertifikat. Nicht unterstütztes Markdown bleibt sichtbar übersprungen.
+- Es werden keine npm/pip/Ruby-Gems installiert und kein Gemini benötigt. Psych ist Bestandteil der bereitgestellten Ubuntu-Runner-Software; Verfügbarkeit wird durch echte GitHub-CI-Läufe nachgewiesen, nicht vorausgesetzt.
