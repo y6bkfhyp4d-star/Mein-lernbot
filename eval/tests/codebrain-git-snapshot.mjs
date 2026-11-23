@@ -1,0 +1,66 @@
+// Offline verification of the GitHub Actions synthetic merge commit.
+// No GitHub API, no credentials. Never execute inspected source.
+import {execFileSync} from 'node:child_process';
+import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
+const SHA=/^[a-f0-9]{40}$/i;
+const run=(args,maxBuffer=131072)=>execFileSync('git',args,{encoding:'buffer',maxBuffer,timeout:8000,stdio:['ignore','pipe','pipe']});
+const gitText=(args)=>run(args).toString('utf8').trim();
+const safeFile=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
+export async function inspectGitSnapshot({repo,number,expectedHead,git=run}){
+ if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1||!SHA.test(expectedHead||''))throw Error('Invalid snapshot context');
+ const txt=args=>git(args).toString('utf8').trim();
+ const merge=txt(['rev-parse','HEAD']);
+ const base=txt(['rev-parse','HEAD^1']);
+ const head=txt(['rev-parse','HEAD^2']);
+ if(!SHA.test(merge)||!SHA.test(base)||head.toLowerCase()!==expectedHead.toLowerCase())throw Error('PR merge snapshot head mismatch');
+ const diff=git(['diff','--no-ext-diff','--no-textconv','--name-status','-z','--no-renames',base,merge],131072);
+ const entries=diff.toString('utf8').split('\0');
+ if(entries.at(-1)!=='')throw Error('Invalid git diff output');
+ entries.pop();
+ if(entries.length===0||entries.length%2)throw Error('Invalid git diff entries');
+ const files=[];
+ for(let i=0;i<entries.length;i+=2){
+  const [status,path]=[entries[i],entries[i+1]];
+  if(!/^[AMDTCU]$/.test(status)||!safeFile(path))throw Error('Unsupported git diff entry');
+  let sha='0'.repeat(40);
+  if(status==='A'||status==='M'){
+   sha=txt(['rev-parse','--verify',merge+':'+path]);
+   if(!SHA.test(sha))throw Error('Invalid git blob SHA');
+  }
+  files.push({filename:path,status:status==='A'?'added':status==='M'?'modified':'removed',sha});
+ }
+ if(files.length>30)throw Error('Snapshot has too many changes');
+ const pr={state:'open',base:{ref:'main'},head:{sha:head},changed_files:files.length};
+ const prefix='https://api.github.com/repos/'+repo;
+ const request=async(url,options)=>{
+  if(url===prefix+'/pulls/'+number)return new Response(JSON.stringify(pr));
+  if(url===prefix+'/pulls/'+number+'/files?per_page=100')return new Response(JSON.stringify(files));
+  const match=url.match(new RegExp('^'+prefix.replace(/[.*+?^$()|[\]{}\\]/g,'\\$&')+'/git/blobs/([a-f0-9]{40})$','i'));
+  if(!match)throw Error('Unexpected snapshot transport request');
+  const sha=match[1];
+  if(!files.some(f=>f.sha===sha))throw Error('Blob not in changed file list');
+  const size=Number(txt(['cat-file','-s',sha]));
+  if(!Number.isSafeInteger(size)||size<0)throw Error('Invalid git blob size');
+  const bytes=size>60000?Buffer.alloc(0):git(['cat-file','blob',sha],65536);
+  if(size<=60000&&bytes.length!==size)throw Error('Git blob length mismatch');
+  const payload={sha,encoding:'base64',size,content:bytes.toString('base64')};
+  return new Response(JSON.stringify(payload));
+ };
+ const result=await inspect({repo,number,anonymous:true,request});
+ return {result,merge,base,head};
+}
+if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
+ try{
+  const number=Number(process.env.CODEBRAIN_PR_NUMBER);
+  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA});
+  console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete);
+  if(process.env.GITHUB_STEP_SUMMARY){
+   const {appendFileSync}=await import('node:fs');
+   appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n'+render(data.result));
+  }
+  if(data.result.checked<1||data.result.blocking||data.result.rows.some(x=>x.status==='error'))process.exitCode=1;
+ }catch{
+  console.error('NERYX SNAPSHOT: verification incomplete');
+  process.exitCode=1;
+ }
+}
