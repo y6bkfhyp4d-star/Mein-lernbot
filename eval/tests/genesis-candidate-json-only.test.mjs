@@ -74,3 +74,17 @@ test('auto JSON-only policy denies deletion',t=>{
   assert.notEqual(r.status,0);
   assert.match(r.stderr,/DENIED/);
 });
+
+
+test('auto JSON-only policy denies renaming a JSON file',t=>{
+  const {dir}=fixture(t);
+  change(dir,'candidates/old.json','{"safe":true}\\n');
+  exec(dir,'git',['add','.']);
+  exec(dir,'git',['commit','-m','initial']);
+  const base=exec(dir,'git',['rev-parse','HEAD']);
+  exec(dir,'git',['mv','candidates/old.json','candidates/new.json']);
+  exec(dir,'git',['commit','-m','rename']);
+  const r=spawnSync('python3',['-c',python,base],{cwd:dir,encoding:'utf8',timeout:10000});
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/DENIED/);
+});
