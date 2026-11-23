@@ -1,0 +1,53 @@
+name: NERYX free read-only code reviewer
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Open pull request number to review with Gemini'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  static-diff-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out diff reviewer (no persistent credentials)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Unit tests for reviewer filtering and API safeguards
+        run: python3 -m unittest discover -s eval/tests -p 'test_neryx_code_reviewer.py' -v
+      - name: Scan pull request diff without executing PR code
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 .github/scripts/neryx-code-reviewer.py static "$PR_NUMBER"
+
+  gemini-manual-review:
+    # Only reviewed source on the default branch can access the AI key.
+    # Never run on a pull_request event and never check out the PR head.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out reviewed main only
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Unit tests before any external API request
+        run: python3 -m unittest discover -s eval/tests -p 'test_neryx_code_reviewer.py' -v
+      - name: Review bounded public diff with Gemini free-tier key
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: python3 .github/scripts/neryx-code-reviewer.py ai "$PR_NUMBER"
