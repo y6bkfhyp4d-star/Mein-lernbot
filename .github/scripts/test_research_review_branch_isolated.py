@@ -137,5 +137,56 @@ class IsolatedPublisherTests(unittest.TestCase):
                          '{"version":3}\n')
 
 
+    def create_poisoned_review_branch(self, report_content):
+        """Only the disposable local remote gets this adversarial branch."""
+        git(self.work, "checkout", "-b", BRANCH)
+        write(self.work, REPORT, report_content)
+        write(self.work, "app.js", "export const attacker = true;\\n")
+        write(self.work, ".github/workflows/backdoor.yml", "name: backdoor\\n")
+        git(self.work, "add", ".")
+        git(self.work, "commit", "-m", "untrusted old review branch")
+        git(self.work, "push", "origin", BRANCH)
+        git(self.work, "checkout", "main")
+        git(self.work, "reset", "--hard", self.baseline)
+        return self.remote_ref(BRANCH)
+
+    def test_existing_poisoned_branch_never_imports_executable_paths(self):
+        old = self.create_poisoned_review_branch('{"version":42}\\n')
+        for repeat in range(2):
+            with self.subTest(repeat=repeat):
+                response = self.publisher("prepare")
+                self.assertEqual(response.returncode, 0, response.stderr)
+                self.assertEqual((self.work / REPORT).read_text(encoding="utf-8"),
+                                 '{"version":42}\\n')
+                self.assertEqual((self.work / "app.js").read_text(encoding="utf-8"),
+                                 "export const stable = true;\\n")
+                self.assertFalse((self.work / ".github/workflows/backdoor.yml").exists())
+        result = self.publisher("publish")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        new = self.remote_ref(BRANCH)
+        self.assertNotEqual(old, new)
+        self.assertEqual(self.remote_ref("main"), self.baseline)
+        self.assertEqual(git(self.work, "show", new + ":app.js"),
+                         "export const stable = true;")
+        self.assertEqual(git(self.work, "show", new + ":" + REPORT),
+                         '{"version":42}')
+        self.assertNotEqual(run(self.work, "git", "cat-file", "-e",
+                                new + ":.github/workflows/backdoor.yml").returncode, 0)
+
+    def test_prepare_rejects_untrusted_json_from_old_review_branch(self):
+        for payload in ('{"broken":', "x" * 2000001):
+            with self.subTest(size=len(payload)):
+                # A fresh local bare remote per scenario avoids any GitHub writes.
+                original = self.remote_ref(BRANCH)
+                self.assertFalse(original)
+                self.create_poisoned_review_branch(payload)
+                for repeat in range(2):
+                    response = self.publisher("prepare")
+                    self.assertNotEqual(response.returncode, 0)
+                    self.assertEqual(self.remote_ref("main"), self.baseline)
+                # Delete the isolated branch before testing another malformed input.
+                git(self.work, "push", "origin", "--delete", BRANCH)
+
+
 if __name__ == "__main__":
     unittest.main()
