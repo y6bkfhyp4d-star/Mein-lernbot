@@ -929,3 +929,60 @@ test('C14 independent origins retain their own confidence through adjacent pure 
  // Calling doc.write between the branches and the storage call resets uncertainty.
  assert.equal(has(r,'AST004')[0].confidence,'high');
 });
+
+test('C15 deterministic state transition matrix retains expected AST005 warning lines',()=>{
+ const sequences=[
+  {name:'original',steps:['doc.write("one");'],warn:[2]},
+  {name:'replaced',steps:['doc.write=()=>{};','doc.write("one");'],warn:[]},
+  {name:'delete-after-replace',steps:['doc.write=()=>{};','delete doc.write;','doc.write("one");'],warn:[4]},
+  {name:'unknown-after-replace',steps:['doc.write=()=>{};','doc.write=unknown;','doc.write("one");'],warn:[4]},
+  {name:'reestablished',steps:['doc.write=()=>{};','delete doc.write;','doc.write=()=>{};','doc.write("one");'],warn:[]},
+  {name:'call-barrier',steps:['doc.write=()=>{};','sideEffect();','doc.write("one");'],warn:[4]},
+  {name:'await-barrier',steps:['doc.write=()=>{};','await promise;','doc.write("one");'],warn:[4]},
+  {name:'pure-branch-preserves',steps:['doc.write=()=>{};','if(flag) doc.write=()=>{};','doc.write("one");'],warn:[]},
+  {name:'unsafe-branch',steps:['doc.write=()=>{};','if(flag) sideEffect();','doc.write("one");'],warn:[4]},
+  {name:'both-arms-replace',steps:['if(flag) doc.write=()=>{}; else doc.write=function(){};','doc.write("one");'],warn:[]},
+  {name:'one-arm-replace',steps:['if(flag) doc.write=()=>{};','doc.write("one");'],warn:[3]},
+  {name:'later-unsafe-branch',steps:['if(flag) doc.write=()=>{}; else doc.write=function(){};','if(other) doc.write=unknown;','doc.write("one");'],warn:[4]}
+ ];
+ for(const scenario of sequences){
+  const r=analyzeAST('matrix-'+scenario.name+'.mjs',[
+   'const doc=globalThis.document;',...scenario.steps
+  ].join('\n'));
+  assert.equal(r.parsed,true,scenario.name);
+  assert.deepEqual(has(r,'AST005').map(x=>x.line),scenario.warn,scenario.name);
+ }
+});
+test('C15 independent state matrices for two builtin origins',()=>{
+ const sequences=[
+  {name:'both-replaced',steps:['doc.write=()=>{};','store.clear=()=>{};','doc.write("one");'],doc:[],storage:[]},
+  {name:'store-branch',steps:['doc.write=()=>{};','if(flag)store.clear=()=>{};','doc.write("one");'],doc:[],storage:[]},
+  {name:'document-branch',steps:['store.clear=()=>{};','if(flag)doc.write=()=>{};','store.clear();'],doc:[],storage:[]},
+  {name:'unknown-call-between',steps:['doc.write=()=>{};','store.clear=()=>{};','sideEffect();','doc.write("one");'],doc:[5],storage:[]},
+  {name:'store-branch-then-doc-call',steps:['doc.write=()=>{};','if(flag)store.clear=()=>{};','doc.write("one");','store.clear();'],doc:[],storage:[5]}
+ ];
+ for(const scenario of sequences){
+  const r=analyzeAST('origins-'+scenario.name+'.mjs',[
+   'const doc=globalThis.document;',
+   'const store=globalThis.localStorage;',...scenario.steps
+  ].join('\n'));
+  assert.equal(r.parsed,true,scenario.name);
+  assert.deepEqual(has(r,'AST005').map(x=>x.line),scenario.doc,scenario.name+' document');
+  assert.deepEqual(has(r,'AST004').map(x=>x.line),scenario.storage,scenario.name+' storage');
+ }
+});
+test('C15 adjacent conditional stages preserve safety across unrelated pure branches',()=>{
+ const r=analyzeAST('adjacent-control.mjs',[
+  'const doc=globalThis.document;',
+  'const store=globalThis.localStorage;',
+  'doc.write=()=>{};',
+  'if(a)store.clear=()=>{};',
+  'if(b)store.clear=()=>{};else store.clear=function(){};',
+  'doc.write("safe to classify as replaced");',
+  'store.clear();',
+  'doc.write("uncertain after invoking storage");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[8]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[7]);
+});
