@@ -6,17 +6,18 @@ import {fileURLToPath} from 'node:url';
 // PR contents are fetched as inert blobs, never checked out or executed.
 const okPath=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
 const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
+export const parserEnv=()=>({PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-8'});
 const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
 const pythonSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-python-syntax.py',import.meta.url));
- const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe']});
+ const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
  const parsed=JSON.parse(output.toString('utf8'));
  if(typeof parsed.parsed!=='boolean')throw Error('invalid python result');
  return parsed;
 };
 const yamlSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-yaml-syntax.rb',import.meta.url));
- const output=execFileSync('ruby',['-W0',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe']});
+ const output=execFileSync('ruby',['-W0',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
  const parsed=JSON.parse(output.toString('utf8'));
  if(typeof parsed.parsed!=='boolean')throw Error('invalid YAML result');
  return parsed;
@@ -24,7 +25,7 @@ const yamlSyntaxDefault=source=>{
 export const astWorkerDefault=(path,source)=>{
  const helper=fileURLToPath(new URL('../../eval/genesis-ast/codebrain-worker.mjs',import.meta.url));
  const output=execFileSync(process.execPath,['--max-old-space-size=128',helper],{
-  input:JSON.stringify({path,source}),timeout:2500,maxBuffer:16384,windowsHide:true,stdio:['pipe','pipe','pipe']
+  input:JSON.stringify({path,source}),timeout:2500,maxBuffer:16384,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()
  });
  const result=JSON.parse(output.toString('utf8'));
  if(!result||typeof result.parsed!=='boolean'||!Array.isArray(result.findings))throw Error('invalid AST worker result');
@@ -83,7 +84,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
     row.reason='yaml-ast-parse';
    }else if(ast){
     const data=ast(path,source);
-    if(!data||!Array.isArray(data.findings)||typeof data.parsed!=='boolean')throw Error('Bad AST result');
+    if(!data||!Array.isArray(data.findings)||typeof data.parsed!=='boolean'||(!data.parsed&&!data.findings.some(v=>v?.rule==='AST000')))throw Error('Bad AST result');
     matches=data.findings.map(v=>({rule:v.rule,line:v.line,label:astLabels[v.rule]||'AST-Hinweis',kind:v.rule==='AST000'?'confirmed':'heuristic'}));
     row.reason=data.parsed?'ast':'ast-syntax-error';
    }else{
