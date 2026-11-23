@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
+import {inspect,render,parserEnv} from '../../.github/scripts/neryx-codebrain.mjs';
 
 const SHA='a'.repeat(40);
 function mock(files,contents={},changed=files.length){
@@ -219,4 +219,18 @@ test('oversized encoded Git blob is skipped before decoding',async()=>{
  }});
  assert.equal(r.complete,false);
  assert.equal(r.rows[0].reason,'size-or-encoding');
+});
+
+test('parser subprocess environment excludes GitHub credentials',()=>{
+ const env=parserEnv();
+ assert.deepEqual(Object.keys(env).sort(),['LANG','PATH']);
+ assert.equal(Object.hasOwn(env,'GH_TOKEN'),false);
+ assert.equal(Object.hasOwn(env,'GITHUB_TOKEN'),false);
+ assert.equal(Object.hasOwn(env,'NODE_OPTIONS'),false);
+});
+test('AST parse failure without diagnostic cannot count as checked',async()=>{
+ const opts=mock([entry('malformed.mjs')]);
+ const r=await inspect({...opts,ast:()=>({parsed:false,findings:[]})});
+ assert.equal(r.rows[0].status,'error');
+ assert.equal(r.complete,false);
 });
