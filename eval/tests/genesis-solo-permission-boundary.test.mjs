@@ -55,5 +55,6 @@ test('solo mode is documented as a manual non-autonomous approval',()=>{
   const doc=read('docs/GENESIS_X_SOLO_OWNER_MODE.md');
   assert.match(doc,/keine autonomen Codeänderungen|weder.*selbstständig.*Code/i);
   assert.match(doc,/keine unabhängige Zweitprüfung|keine unabhängige Zweitreview/i);
-  assert.match(doc,/kein automatischer Merge|Keine.*autonom.*Merge/i);
+  assert.match(doc,/Eigentümer persönlich in GitHub/);
+  assert.match(doc,/Bot-Merges/);
 });
