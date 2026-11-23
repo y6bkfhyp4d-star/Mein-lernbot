@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectGitSnapshot} from './codebrain-git-snapshot.mjs';
+import {inspectGitSnapshot,snapshotPasses} from './codebrain-git-snapshot.mjs';
 const HEAD='a'.repeat(40), BASE='b'.repeat(40), MERGE='c'.repeat(40), BLOB='d'.repeat(40);
 function fixture({status='M',path='safe.js',source='const ok = 1;',head=HEAD}={}){
  const calls=[];
@@ -67,4 +67,21 @@ test('snapshot AST worker errors cannot be reported as successful checks',async(
  const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,ast:()=>{throw Error('worker unavailable');}});
  assert.equal(data.result.complete,false);
  assert.equal(data.result.rows[0].status,'error');
+});
+
+test('snapshot refuses green status when AST findings exceed the reporting cap',async()=>{
+ const f=fixture();
+ const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,ast:()=>({
+  parsed:true,findings:Array.from({length:41},(_,i)=>({rule:'AST001',line:i+1}))
+ })});
+ assert.equal(data.result.rows[0].reason,'findings-truncated');
+ assert.equal(data.result.complete,false);
+ assert.equal(snapshotPasses(data.result),false);
+});
+test('snapshot accepts supported clean scans but rejects undisclosed analysis skips',()=>{
+ const base={checked:1,blocking:false,rows:[{status:'checked',reason:'ast'}]};
+ assert.equal(snapshotPasses(base),true);
+ assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'size-or-encoding'}]}),false);
+ assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),false);
 });
