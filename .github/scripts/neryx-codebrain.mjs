@@ -39,6 +39,28 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  const get=async path=>{
   const response=await request(base+path,{headers:{...(anonymous?{}:{Authorization:'Bearer '+token}),Accept:'application/vnd.github+json'}});
   if(!response.ok)throw Error('GitHub HTTP '+response.status);
+  // GitHub file-list responses include patches; bound transport bytes before JSON.parse.
+  // Limits: PR metadata 64 KiB, file list 4 MiB, individual blobs 96 KiB.
+  const limit=path.includes('/git/blobs/')?98304:path.includes('/files?')?4194304:65536;
+  if(response.headers?.get){
+   const length=Number(response.headers.get('content-length'));
+   if(Number.isFinite(length)&&length>limit)throw Error('GitHub response too large');
+  }
+  if(response.body?.getReader){
+   const reader=response.body.getReader();
+   const chunks=[];let total=0;
+   try{
+    while(true){
+     const {done,value}=await reader.read();
+     if(done)break;
+     total+=value.byteLength;
+     if(total>limit)throw Error('GitHub response too large');
+     chunks.push(value);
+    }
+   }catch(e){await reader.cancel().catch(()=>{});throw e;}
+   return JSON.parse(Buffer.concat(chunks,total).toString('utf8'));
+  }
+  // Compatibility with in-memory mock responses used by offline contract tests.
   return response.json();
  };
  const pr=await get('/pulls/'+number);
