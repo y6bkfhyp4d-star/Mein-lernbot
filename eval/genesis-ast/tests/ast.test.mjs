@@ -268,7 +268,7 @@ test('B4 global eval and Function remain detected when only unrelated names are 
 });
 
 test('B5 explicit globalThis eval and Function calls remain detected despite shadowed short names',()=>{
- const r=analyzeAST('global-builtins.mjs',[
+ const r=analyzeAST('global-builtins.cjs',[
   'function local(eval, Function){',
   ' eval("local");',
   ' Function("local");',
