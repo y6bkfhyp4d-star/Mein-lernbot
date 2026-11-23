@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
 import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic} from './codebrain-rate-limit-diagnostics.mjs';
+import {requestWithRateLimitRetry} from './codebrain-rate-limit-retry.mjs';
 
 test('anonymously inspect triggering public PR via GitHub REST API', {skip:process.env.CODEBRAIN_LIVE_PUBLIC!=='1'}, async()=>{
  const repo=process.env.GITHUB_REPOSITORY;
@@ -16,7 +17,10 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
   assert.ok(url.startsWith('https://api.github.com/repos/'+repo+'/'));
   assert.ok(!Object.hasOwn(options.headers,'Authorization'),'Anonymous smoke must not send bearer tokens');
   headers.push(url);
-  const response=await fetch(url,{headers:{...options.headers,'User-Agent':'NERYX-CodeBrain-public-smoke'},signal:AbortSignal.timeout(15000)});
+  const response=await requestWithRateLimitRetry(
+   ()=>fetch(url,{headers:{...options.headers,'User-Agent':'NERYX-CodeBrain-public-smoke'},signal:AbortSignal.timeout(15000)}),
+   {onRetry:ms=>console.log('NERYX public API: one bounded retry after '+ms+' ms')}
+  );
   if(response.status===403||response.status===429)denial=githubRateLimitDiagnostic(response);
   return response;
  };
