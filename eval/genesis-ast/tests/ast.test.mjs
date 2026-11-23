@@ -1028,3 +1028,52 @@ test('C16 trusted runtime oracle: every observed original-method invocation has 
   }
  }
 });
+
+test('C17 generated bounded runtime counterexamples must never hide original-method calls',()=>{
+ // Independent oracle. Generate solely from this audited fixed instruction alphabet.
+ // Do not evaluate arbitrary source files, user inputs or fetched repository content.
+ const actions=[
+  'doc.write=()=>{};',
+  'doc.write=original;',
+  'delete doc.write;',
+  'if(flag)doc.write=()=>{};',
+  'if(flag)doc.write=original;',
+  'restore();',
+  'doc.write("probe");'
+ ];
+ const stages=3;
+ let checked=0;
+ const total=actions.length**stages;
+ for(let sequence=0;sequence<total;sequence++){
+  let value=sequence;
+  const chosen=[];
+  for(let i=0;i<stages;i++){chosen.push(actions[value%actions.length]);value=Math.floor(value/actions.length);}
+  const lines=['const doc=globalThis.document;','const original=doc.write;',...chosen,'doc.write("end");'];
+  const source=lines.join('\n');
+  const ast=analyzeAST('generated-'+sequence+'.mjs',source);
+  assert.equal(ast.parsed,true,'generated '+sequence);
+  const warnings=new Set(has(ast,'AST005').map(f=>f.line));
+  for(const flag of [false,true]){
+   const originalCalls=[];
+   const original=function(value){originalCalls.push(value);};
+   const document=Object.create({write:original});
+   const sandbox={document,flag,restore(){document.write=original;}};
+   runInNewContext(source,sandbox,{timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+   for(const marker of originalCalls){
+    // A repeated probe marker can occur at multiple source lines. Every runtime
+    // invocation must have at least one corresponding AST warning; unique end
+    // markers allow us to check the final (most important) join precisely.
+    if(marker==='end')
+      assert.ok(warnings.has(lines.length),
+        'C17 missed original call after sequence '+sequence+' flag='+flag+
+        ' code='+JSON.stringify(chosen));
+    else
+      assert.ok(chosen.some((step,i)=>step==='doc.write("probe");'&&warnings.has(i+3)),
+        'C17 missed probe after sequence '+sequence+' flag='+flag+
+        ' code='+JSON.stringify(chosen));
+   }
+   checked++;
+  }
+ }
+ assert.equal(checked,total*2);
+});
