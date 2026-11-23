@@ -193,7 +193,7 @@ class IsolatedPublisherTests(unittest.TestCase):
     def test_concurrent_branch_update_blocks_non_fast_forward_push_twice(self):
         """A competing report branch push just before our push must win safely."""
         git(self.work, "checkout", "-b", BRANCH)
-        write(self.work, REPORT, '{"version":2}\\n')
+        write(self.work, REPORT, '{"version":2}\n')
         git(self.work, "add", REPORT)
         git(self.work, "commit", "-m", "old remote review report")
         git(self.work, "push", "origin", BRANCH)
@@ -209,20 +209,20 @@ class IsolatedPublisherTests(unittest.TestCase):
         # Git calls this hook immediately before the actual remote push;
         # it advances the LOCAL disposable bare remote from another clone.
         hook = self.work / ".git/hooks/pre-push"
-        hook.write_text("#!/bin/sh\\nset -eu\\ngit -C " +
+        hook.write_text("#!/bin/sh\nset -eu\ngit -C " +
                         shlex.quote(str(competitor)) + " push origin " +
-                        shlex.quote(BRANCH) + "\\n", encoding="utf-8")
+                        shlex.quote(BRANCH) + "\n", encoding="utf-8")
         hook.chmod(0o700)
 
         for repeat in range(2):
             with self.subTest(repeat=repeat):
                 write(competitor, REPORT,
-                      '{"competitor":' + str(repeat) + '}\\n')
+                      '{"competitor":' + str(repeat) + '}\n')
                 git(competitor, "add", REPORT)
                 git(competitor, "commit", "-m", "concurrent update")
                 competing_sha = git(competitor, "rev-parse", "HEAD")
                 write(self.work, REPORT,
-                      '{"publisher":' + str(repeat) + '}\\n')
+                      '{"publisher":' + str(repeat) + '}\n')
                 result = self.publisher("publish")
                 self.assertNotEqual(result.returncode, 0, result.stdout +
                                     result.stderr)
