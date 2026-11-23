@@ -87,6 +87,12 @@ function shadowed(name,scope){
   if(current.bindings?.has(name))return true;
  return false;
 }
+// Explicit globalThis members bypass a shadowed document/localStorage name,
+ // but only if globalThis itself resolves to the global binding.
+function explicitGlobal(node,object,property,scope){
+ return staticProperty(node,property)&&staticProperty(node.object,object)&&
+  identifier(node.object.object,'globalThis')&&!shadowed('globalThis',scope);
+}
 function walk(node,visit,parent=null,scope=null){
  if(!node||typeof node!=='object')return;
  if(Array.isArray(node)){
@@ -153,8 +159,12 @@ export function analyzeAST(file,source){
       if(name)calls.push({name,...loc(node)});
       if(identifier(node.callee,'Function'))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if(identifier(node.callee,'eval'))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
-      if(member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
-      if(member(node.callee,'document','write')&&!shadowed('document',scope))report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
+      if((member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))||
+        explicitGlobal(node.callee,'localStorage','clear',scope))
+        report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
+      if((member(node.callee,'document','write')&&!shadowed('document',scope))||
+        explicitGlobal(node.callee,'document','write',scope))
+        report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
     }
     if(node.type==='NewExpression'&&identifier(node.callee,'Function'))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
