@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Abwasser (Album)",
-    "Abwasserabgabengesetz",
-    "Adjektiv",
-    "Aktualgenese",
-    "Adiabatisch",
-    "Arbeit (Physik)",
-    "Abfallentsorgung",
-    "Achsteile",
     "Absorberkammer",
     "Absorption (Chemie)",
     "Adrastea (Mond)",
@@ -89,7 +81,15 @@
     "Adenosintriphosphat",
     "Dynein",
     "Adenosin",
-    "Adenosinmonophosphat"
+    "Adenosinmonophosphat",
+    "Anarchie und Alltag",
+    "Antilopen Gang",
+    "Abgabe",
+    "Abwasserabgabe",
+    "Absolutadjektiv",
+    "Adjektivierung",
+    "Aufmerksamkeit",
+    "Emotion"
   ],
   "entries": [
     {
@@ -1021,6 +1021,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Adenosindiphosphat"
+    },
+    {
+      "collected_at": "2026-11-23T03:14:44+00:00",
+      "excerpt": "Abwasser ist ein Mixtape des deutschen Hip-Hop-Trios Antilopen Gang. Es erschien am 12. November 2015 als kostenloser Download über das Label JKP.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abwasser_%28Album%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abwasser (Album)"
+    },
+    {
+      "collected_at": "2026-11-23T03:14:44+00:00",
+      "excerpt": "Das Abwasserabgabengesetz regelt die Pflicht, für das Einleiten von Abwasser (Schmutzwasser, Niederschlagswasser) in Gewässer Abgaben zu zahlen. Die Höhe der Abwasserabgabe richtet sich dabei gem. § 3 Abs. 1 AbwAG nach der Schädlichkeit des Abwassers. Das Gesetz enthält an mehreren Stellen Ermächtigungen für Detailbestimmungen durch die Länder. Daher haben die Länder Ausführungsgesetze erlassen. Es ist das erste Gesetz in Deutschland, das die Erhebung einer zweckgebundenen Abgabe für eine mögliche Umweltbeeinträchtigung ermöglicht. Die Zweckbindung ist in § 13 Abs. 1 Satz 1 AbwAG beschrieben.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abwasserabgabengesetz",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abwasserabgabengesetz"
+    },
+    {
+      "collected_at": "2026-11-23T03:14:44+00:00",
+      "excerpt": "Ein Adjektiv oder Eigenschaftswort ist ein Wort, das ohne weiteres ein Substantiv modifizieren, d. h. als Attribut fungieren kann, unbeschadet der Möglichkeit, dass es noch andere Funktionen im Satz wahrnehmen kann. Typische Adjektive bezeichnen Eigenschaften wie ‚gut‘ und Zustände wie ‚nass‘. Den Adjektiven vieler Sprachen sind folgende Funktionen gemeinsam: Sie verbinden sich definitionsgemäß mit einem appellativen Substantiv zu einer endozentrischen Konstruktion, wie in schneller Gepard. Das Adjektiv fungiert hier als Attribut. Sie bilden, oft mithilfe einer Kopula, das Prädikat eines Satzes, wie in der Gepard ist schnell. Das Adjektiv fungiert hier als Prädikatsnomen. Sie modifizieren ein Verb, wie in der Gepard läuft schnell. Das Adjektiv fungiert hier als adverbiale Bestimmung. In einer allgemeinen Systematik der Wortarten kann das",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adjektiv",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adjektiv"
+    },
+    {
+      "collected_at": "2026-11-23T03:14:44+00:00",
+      "excerpt": "Aktualgenese (spätlat. actualis „tätig“, „wirksam“ und -genese) ist ein aus der Gestaltpsychologie stammender Begriff. Dieser bezeichnet das Entstehen einer Wahrnehmung aus komplexeren, ganzheitlichen Vorgestalten bzw. den Prozess der Ausdifferenzierung von Wahrnehmungsinhalten. Beschränkt man den Begriff auf die menschliche Wahrnehmung, beschreibt die Aktualgenese, dass man ein komplexes Objekt (oder Reiz) nicht sofort vollständig erfasst, sondern in einem Prozess in einzelnen Schritten erfasst. Diese Schritte finden nicht bewusst statt. In einem weiteren Sinne kann man ebenso andere psychologische Vorgänge auf diese Weise beschreiben. Zum Beispiel die Entstehung von Gefühlsregungen: vom ersten Eindruck einer Situation werden mehrere Schritte durchlaufen, bis man sich des vollen Erlebnisses (Wahrnehmung der eigenen Gefühle, die die Situa",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aktualgenese",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aktualgenese"
     }
   ],
   "failed_titles": [
@@ -1379,6 +1419,19 @@
         "Adenosindiphosphat"
       ],
       "time": "2026-11-22T20:59:18+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Abwasser (Album)",
+        "Abwasserabgabengesetz",
+        "Adjektiv",
+        "Aktualgenese"
+      ],
+      "time": "2026-11-23T03:14:44+00:00"
     }
   ],
   "schema": 1
