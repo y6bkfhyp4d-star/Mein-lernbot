@@ -8,6 +8,16 @@ const okPath=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&
 const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
 export const parserEnv=()=>({PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-8'});
 const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
+// The same bounded AST contract applies to real workers and injected test adapters.
+export function validateAstResult(data){
+ if(!data||typeof data!=='object'||typeof data.parsed!=='boolean'||!Array.isArray(data.findings)||data.findings.length>41)throw Error('Bad AST result');
+ for(const finding of data.findings){
+  if(!finding||typeof finding!=='object'||!Object.hasOwn(astLabels,finding.rule)||!Number.isSafeInteger(finding.line)||finding.line<1)throw Error('Bad AST finding');
+ }
+ const syntax=data.findings.filter(f=>f.rule==='AST000').length;
+ if((data.parsed&&syntax!==0)||(!data.parsed&&(syntax!==1||data.findings.length!==1)))throw Error('Inconsistent AST parse result');
+ return data;
+}
 const pythonSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-python-syntax.py',import.meta.url));
  const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:5000,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
@@ -29,8 +39,7 @@ export const astWorkerDefault=(path,source)=>{
   input:JSON.stringify({path,source}),timeout:2500,maxBuffer:16384,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()
  });
  const result=JSON.parse(output.toString('utf8'));
- if(!result||typeof result.parsed!=='boolean'||!Array.isArray(result.findings))throw Error('invalid AST worker result');
- return result;
+ return validateAstResult(result);
 };
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
@@ -110,8 +119,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
     for(const [re,label] of markers)if(re.test(source))matches.push({rule:'YAML-WARN',line:1,label,kind:'heuristic'});
     row.reason='yaml-ast-parse';
    }else if(ast){
-    const data=ast(path,source);
-    if(!data||!Array.isArray(data.findings)||typeof data.parsed!=='boolean'||(!data.parsed&&!data.findings.some(v=>v?.rule==='AST000')))throw Error('Bad AST result');
+    const data=validateAstResult(ast(path,source));
     matches=data.findings.map(v=>({rule:v.rule,line:v.line,label:astLabels[v.rule]||'AST-Hinweis',kind:v.rule==='AST000'?'confirmed':'heuristic'}));
     row.reason=data.parsed?'ast':'ast-syntax-error';
    }else{
