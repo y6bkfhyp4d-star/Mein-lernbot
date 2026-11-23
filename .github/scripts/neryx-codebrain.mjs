@@ -1,13 +1,22 @@
 import {analyzeSource} from '../../eval/genesis/code-analyzer.mjs';
 import {appendFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 
 // PR contents are fetched as inert blobs, never checked out or executed.
 const okPath=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
 const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
 const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
+const pythonSyntaxDefault=source=>{
+ const helper=fileURLToPath(new URL('./neryx-python-syntax.py',import.meta.url));
+ const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:2500,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe']});
+ const parsed=JSON.parse(output.toString('utf8'));
+ if(typeof parsed.parsed!=='boolean')throw Error('invalid python result');
+ return parsed;
+};
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
-export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null,anonymous=false}){
+export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null,anonymous=false,pythonSyntax=pythonSyntaxDefault}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!Number.isInteger(number)||number<1||number>1000000||(!anonymous&&!token))throw Error('Ungültiger Auftrag');
  const base='https://api.github.com/repos/'+repo;
  const get=async path=>{
@@ -27,7 +36,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
   rows.push(row);
   if(!okPath(path)){row.reason='invalid-path';continue;}
   if(!['added','modified'].includes(f.status)){row.reason='not-added-or-modified';continue;}
-  if(!/\.(js|mjs|cjs|json|yml|yaml)$/.test(path)){row.reason='unsupported-type';continue;}
+  if(!/\.(js|mjs|cjs|json|yml|yaml|py)$/.test(path)){row.reason='unsupported-type';continue;}
   if(!/^[a-f0-9]{40}$/i.test(f.sha||'')){row.reason='invalid-sha';continue;}
   try{
    const blob=await get('/git/blobs/'+f.sha);
@@ -38,7 +47,12 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
    if(!Buffer.from(source,'utf8').equals(bytes))throw Error('Invalid UTF8');
    used+=bytes.length;
    let matches=[];
-   if(/\.json$/.test(path)){
+   if(/\.py$/.test(path)){
+    const parsed=pythonSyntax(source);
+    if(!parsed||typeof parsed.parsed!=='boolean')throw Error('invalid python syntax result');
+    if(!parsed.parsed)matches=[{rule:'PY000',line:Number.isInteger(parsed.line)&&parsed.line>0?parsed.line:1,label:'Python-Syntaxfehler',kind:'confirmed'}];
+    row.reason='python-ast-parse';
+   }else if(/\.json$/.test(path)){
     try{JSON.parse(source);}catch{
      matches=[{rule:'JSON000',line:1,label:'JSON-Syntaxfehler',kind:'confirmed'}];
     }
