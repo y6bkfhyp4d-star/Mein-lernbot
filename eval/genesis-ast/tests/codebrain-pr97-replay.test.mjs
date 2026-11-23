@@ -46,7 +46,7 @@ test('replay stable PR #97 file subset with captured Git blob hashes, without cr
  assert.equal(report.rows.filter(x=>x.status==='skipped').length,1,'Markdown is unsupported');
  assert.equal(report.rows.filter(x=>x.status==='checked').length,1,'One historical JS test module checked by AST');
  assert.equal(report.complete,false,'Partial coverage must fail closed');
- assert.ok(calls>=5);
+ assert.equal(calls,4,'Metadata, changed-file list and two supported blob fetches');
  const summary=render(report);
  assert.match(summary,/UNVOLLSTÄNDIG/);
  assert.doesNotMatch(summary,/REPLAY-ONLY-NOT-A-KEY/);
