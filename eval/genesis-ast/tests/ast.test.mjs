@@ -404,3 +404,47 @@ test('C2 straight-line reassignment still invalidates known alias calls',()=>{
  assert.equal(r.parsed,true);
  assert.equal(has(r,'AST005').length,0);
 });
+
+test('C3 direct method write invalidates sibling aliases of the same known object',()=>{
+ const r=analyzeAST('sibling-aliases.mjs',[
+  'const first = globalThis.document;',
+  'const second = first;',
+  'first.write("original");',
+  'second.write = () => {};',
+  'first.write("replaced");',
+  'second.write("replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
+test('C3 storage method mutation propagates across distinct direct aliases',()=>{
+ const r=analyzeAST('storage-aliases.mjs',[
+  'const first = globalThis.localStorage;',
+  'const second = localStorage;',
+  'first.clear();',
+  'second.clear = () => {};',
+  'first.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[3]);
+});
+test('C3 uncertain branch mutations preserve possible findings across aliases',()=>{
+ const r=analyzeAST('branch-aliases.mjs',[
+  'const first = globalThis.document;',
+  'const second = first;',
+  'if (unknown) second.write = () => {};',
+  'first.write("possibly original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C3 a different object origin and unrelated property mutation are unaffected',()=>{
+ const r=analyzeAST('separate-origins.mjs',[
+  'const doc = globalThis.document;',
+  'const store = globalThis.localStorage;',
+  'doc.write = () => {};',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+});
