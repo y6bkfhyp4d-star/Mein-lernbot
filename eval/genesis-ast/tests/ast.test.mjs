@@ -876,3 +876,54 @@ test('C13 unknown one-arm write cannot preserve previous proven replacement',()=
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
 });
+
+test('C14 successive possible branches keep uncertainty until a definitive join',()=>{
+ const r=analyzeAST('successive-possible.mjs',[
+  'const store=globalThis.localStorage;',
+  'if(first) store.clear=()=>{};',
+  'if(second) store.clear=()=>{};',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+ assert.equal(has(r,'AST004')[0].confidence,'medium');
+});
+test('C14 a guaranteed second join ends earlier possible-branch history',()=>{
+ const r=analyzeAST('successive-guaranteed.mjs',[
+  'const store=globalThis.localStorage;',
+  'if(first) store.clear=()=>{};',
+  'if(second) store.clear=()=>{}; else store.clear=function(){};',
+  'store.clear();',
+  'unknownCallback();',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[6]);
+ assert.equal(has(r,'AST004')[0].confidence,'high');
+});
+test('C14 an unknown call clears obsolete possible-branch confidence',()=>{
+ const r=analyzeAST('successive-barrier.mjs',[
+  'const store=globalThis.localStorage;',
+  'if(first) store.clear=()=>{};',
+  'unknownCallback();',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+ assert.equal(has(r,'AST004')[0].confidence,'high');
+});
+test('C14 independent origins retain their own confidence through adjacent pure joins',()=>{
+ const r=analyzeAST('successive-independent.mjs',[
+  'const doc=globalThis.document;',
+  'const store=globalThis.localStorage;',
+  'doc.write=()=>{};',
+  'if(first) store.clear=()=>{};',
+  'if(second) store.clear=()=>{};',
+  'doc.write("still replaced");',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[7]);
+ assert.equal(has(r,'AST004')[0].confidence,'medium');
+});
