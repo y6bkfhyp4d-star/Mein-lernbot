@@ -4,24 +4,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
+import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic} from './codebrain-rate-limit-diagnostics.mjs';
 
 test('anonymously inspect triggering public PR via GitHub REST API', {skip:process.env.CODEBRAIN_LIVE_PUBLIC!=='1'}, async()=>{
  const repo=process.env.GITHUB_REPOSITORY;
  const number=Number(process.env.CODEBRAIN_PR_NUMBER);
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1)throw Error('Invalid triggering PR context');
  const headers=[];
+ let denial=null;
  const request=async(url,options)=>{
   assert.ok(url.startsWith('https://api.github.com/repos/'+repo+'/'));
   assert.ok(!Object.hasOwn(options.headers,'Authorization'),'Anonymous smoke must not send bearer tokens');
   headers.push(url);
-  return fetch(url,{headers:{...options.headers,'User-Agent':'NERYX-CodeBrain-public-smoke'},signal:AbortSignal.timeout(15000)});
+  const response=await fetch(url,{headers:{...options.headers,'User-Agent':'NERYX-CodeBrain-public-smoke'},signal:AbortSignal.timeout(15000)});
+  if(response.status===403||response.status===429)denial=githubRateLimitDiagnostic(response);
+  return response;
  };
  let result;
  try{
   result=await inspect({repo,number,anonymous:true,request});
  }catch(err){
   if(/^GitHub HTTP (?:403|429)$/.test(String(err?.message))){
-   throw new Error('NERYX PUBLIC API SMOKE: INCONCLUSIVE - anonymous GitHub API HTTP 403/429; live verification was not completed');
+   console.error('NERYX PUBLIC API RATE LIMIT: '+formatGithubRateLimitDiagnostic(denial));
+   throw new Error('NERYX PUBLIC API SMOKE: INCONCLUSIVE - HTTP 403/429; live verification was not completed');
   }
   throw err;
  }
