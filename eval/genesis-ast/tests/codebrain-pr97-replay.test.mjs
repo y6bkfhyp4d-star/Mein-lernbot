@@ -46,7 +46,7 @@ test('replay PR #97 file patterns with actual checkout blob content, without cre
  assert.equal(report.rows.filter(x=>x.status==='skipped').length,1,'Markdown is unsupported');
  assert.equal(report.rows.filter(x=>x.status==='checked').length,2,'One JS test module and one YAML file checked for syntax');
  assert.equal(report.complete,false,'Partial coverage must fail closed');
- assert.equal(calls,4,'Metadata, changed-file list and two supported blob fetches');
+ assert.equal(calls,5,'Initial and final PR metadata, file list and two blob fetches');
  const summary=render(report);
  assert.match(summary,/UNVOLLSTÄNDIG/);
  assert.doesNotMatch(summary,/REPLAY-ONLY-NOT-A-KEY/);
