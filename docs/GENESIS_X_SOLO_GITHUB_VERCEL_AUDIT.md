@@ -49,3 +49,19 @@ Die geprüften neun Workflows schreiben über `.github/scripts/research-review-b
 2. Für neue GENESIS-X-Candidate-Jobs zunächst `contents:read` und reine lokale Reports ohne PR-Erstellung. Sollte später ein automatischer Branch-/PR-Writer erforderlich sein, **getrennte kontrollierte Identität**, Repository-Branch-/Pfadgates und dokumentierte Berechtigungen.
 3. Negative Testfälle: manipulierte `REPORT_BRANCH`/`REPORT_FILES`-Paare, zusätzliche Stage-Dateien, fremde `main`-SHA und parallele Branch-Updates. Dafür isolierte Offline-/Git-Testumgebung, kein destruktiver Push auf echte `main`.
 4. Vollständige GitHub-Actions-Repo-/App-/PAT-Berechtigungen waren in dieser Sitzung nicht abrufbar; GitHubs allgemeiner Actions-Permissions-Endpunkt wurde vom verfügbaren Lesezugang abgewiesen. **Keine Aussage über einen vollständigen Rechtebestand.**
+
+## Offline-Git-Negativtests: realer lokaler Remote (keine GitHub-Schreibzugriffe)
+
+**Teststand:** Commit `9729ab2bf7a9cb746b7e48bfdec169c2a4566dea`, `eval/tests/research-review-branch-isolation.test.mjs` ruft `.github/scripts/test_research_review_branch_isolated.py` auf. Das Python-Skript erzeugt für jede Testgruppe ein temporäres **lokales Bare-Git-Repository** und einen separaten Arbeitsbaum. Alle `git push`-Aufrufe verwenden ausschließlich dieses lokal konfigurierte `origin`. Keine echten GitHub-Repositories oder produktiven Branches werden verändert.
+
+Tests gegen das unveränderte Hauptbranch-Skript `.github/scripts/research-review-branch.sh`:
+
+1. Falscher Report-Branch, Branch/File-Mismatch, Codepfad und Zusatzdateien werden **zweimal je Variante** vor einem Push abgelehnt.
+2. Positiver Forschungsbericht: Der erlaubte JSON-Report erreicht ausschließlich `neryx/research-phase70`. Ein absichtlich lokal verändertes `app.js` sowie ein zusätzlicher unversionierter Workflow werden **nicht** in den veröffentlichten Git-Baum übernommen; Remote-`main` bleibt bytegenau bei seiner Basis-SHA.
+3. Beschädigtes und übergroßes JSON erreicht keinen Bericht-Branch.
+4. Wenn `main` auf dem lokalen Bare-Remote in der Zwischenzeit weitergewandert ist, verweigert das Skript den Publish mit der vorhandenen **stale-main**-Prüfung.
+5. `prepare` verwirft ungültige Dateizuordnung und verwahrt neuere, auf `main` bereits geprüfte Berichtsinhalte vor Überschreibung.
+
+**CI-Nachweis:** Integration [Workflow 45114086081](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45114086081): **367/367 bestanden**, einschließlich der neuen lokalen Git-Testgruppe; GENESIS-X-AST und Kandidatenpfadpolicy ebenfalls erfolgreich. Chromium und WebKit waren beim Abruf noch aktiv.
+
+**Keine Freigabe zur Automatisierung:** Es bleibt erforderlich, den Fall einer kompromittierten Write-Token-Identität separat zu betrachten. Die Tests beweisen das Verhalten **dieses Skripts** mit einem lokalen Remote, nicht GitHubs effektive App-/Tokenrechte, die GitHub-Ruleset-Erzwingung oder vollständige Unveränderlichkeit von `main` in der Cloud. Eine zweifache echte GitHub-Negativabnahme und eine Rechteeinschränkung liegen weiterhin nicht vor.
