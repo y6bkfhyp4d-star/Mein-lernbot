@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
 
-test('anonymously inspect triggering public PR via GitHub REST API', {skip:process.env.CODEBRAIN_LIVE_PUBLIC!=='1'}, async(t)=>{
+test('anonymously inspect triggering public PR via GitHub REST API', {skip:process.env.CODEBRAIN_LIVE_PUBLIC!=='1'}, async()=>{
  const repo=process.env.GITHUB_REPOSITORY;
  const number=Number(process.env.CODEBRAIN_PR_NUMBER);
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1)throw Error('Invalid triggering PR context');
@@ -21,9 +21,7 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
   result=await inspect({repo,number,anonymous:true,request});
  }catch(err){
   if(/^GitHub HTTP (?:403|429)$/.test(String(err?.message))){
-   console.log('NERYX PUBLIC API SMOKE: INCONCLUSIVE; unauthenticated API access denied or rate-limited');
-   t.skip('Anonymous GitHub API returned HTTP 403/429; no live scan verified');
-   return;
+   throw new Error('NERYX PUBLIC API SMOKE: INCONCLUSIVE - anonymous GitHub API HTTP 403/429; live verification was not completed');
   }
   throw err;
  }
