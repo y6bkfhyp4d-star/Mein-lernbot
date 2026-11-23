@@ -336,3 +336,33 @@ test('B6 alias chains respect declaration order and lexical shadowing',()=>{
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
 });
+
+test('C1 explicit method reassignment invalidates later known document alias calls',()=>{
+ const r=analyzeAST('mutated-document.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write("known original method");',
+  'doc.write = () => {};',
+  'doc.write("method changed");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2]);
+});
+test('C1 explicit storage clear reassignment stops confirmed alias-method warning',()=>{
+ const r=analyzeAST('mutated-storage.mjs',[
+  'const store = globalThis.localStorage;',
+  'store.clear();',
+  'store["clear"] = () => {};',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[2]);
+});
+test('C1 unrelated property writes do not invalidate a known alias method',()=>{
+ const r=analyzeAST('unrelated-property.mjs',[
+  'const doc = globalThis.document;',
+  'doc.title = "changed";',
+  'doc.write("still considered known");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
