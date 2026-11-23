@@ -695,3 +695,45 @@ test('C9 straightforward statement order remains intact across multiple replacem
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[2,6]);
 });
+
+test('C10 delete revokes a previously confirmed method replacement',()=>{
+ const r=analyzeAST('deleted-method.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'delete doc.write;',
+  'doc.write("may resolve differently");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C10 unknown replacement value invalidates earlier certainty',()=>{
+ const r=analyzeAST('unknown-value.mjs',[
+  'const store=globalThis.localStorage;',
+  'store.clear=()=>{};',
+  'store.clear=maybeClear;',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4]);
+});
+test('C10 compound or update writes invalidate known methods across aliases',()=>{
+ const r=analyzeAST('compound-update.mjs',[
+  'const doc=globalThis.document;',
+  'const copy=doc;',
+  'copy.write=()=>{};',
+  'doc.write+=suffix;',
+  'copy.write("maybe changed");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[5]);
+});
+test('C10 unrelated mutations do not revoke confirmed method replacement',()=>{
+ const r=analyzeAST('unrelated-mutation.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'delete doc.title;',
+  'doc.write("known replacement");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
