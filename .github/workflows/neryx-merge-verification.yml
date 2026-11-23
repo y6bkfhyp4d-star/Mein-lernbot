@@ -62,3 +62,54 @@ jobs:
         env:
           NERYX_BROWSER: ${{ matrix.browser }}
         run: node eval/browser-offline-smoke.mjs
+
+  solo-token-readonly-negative:
+    # Only PR #91; no checkout, no write token, no secret or token output.
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 91
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - name: Confirm read-only Actions token cannot create Git ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API_URL: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.error, urllib.request
+          api = os.environ["API_URL"].rstrip("/")
+          repo = os.environ["REPOSITORY"]
+          token = os.environ["GH_TOKEN"]
+          headers = {
+              "Authorization": "Bearer " + token,
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "GENESIS-X-solo-readonly-permission-negative",
+          }
+          with urllib.request.urlopen(urllib.request.Request(
+              f"{api}/repos/{repo}", headers=headers), timeout=15) as response:
+              assert response.status == 200, "API authentication unavailable"
+          # Impossible Git object SHA: even a mistakenly writable token
+          # cannot actually create this branch.
+          payload = json.dumps({
+              "ref": "refs/heads/neryx/solo-permission-probe-" + os.environ["RUN_ID"],
+              "sha": "0" * 40,
+          }).encode()
+          request = urllib.request.Request(
+              f"{api}/repos/{repo}/git/refs", data=payload,
+              headers={**headers, "Content-Type": "application/json"},
+              method="POST")
+          try:
+              with urllib.request.urlopen(request, timeout=15):
+                  raise RuntimeError("Write unexpectedly accepted")
+          except urllib.error.HTTPError as exc:
+              print("Read-only Actions token write probe HTTP", exc.code)
+              if exc.code != 403:
+                  raise RuntimeError("Permission denial not proven") from exc
+              print("PASS: GitHub refused Git-ref creation by read-only Actions token")
+          PY
