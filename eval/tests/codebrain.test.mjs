@@ -63,3 +63,23 @@ test('no Gemini dependency; network failures are not concealed',async()=>{
  assert.equal(r.complete,true);
  await assert.rejects(()=>inspect({...opts,request:async()=>({ok:false,status:503})}),/GitHub HTTP 503/);
 });
+
+test('truncated findings fail closed rather than claim full coverage',async()=>{
+ const opts=mock([entry('a.js')]);
+ const r=await inspect({...opts,analyze:()=>Array.from({length:41},()=>({rule:'JS001',line:1}))});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'skipped');
+ assert.equal(r.rows[0].reason,'findings-truncated');
+ assert.match(render(r),/UNVOLLSTÄNDIG/);
+});
+test('markdown injection in PR filenames cannot forge headings or links',async()=>{
+ const opts=mock([entry('[approved](https:evil).js'),entry('**all green**.js')]);
+ const r=await inspect(opts);
+ const report=render(r);
+ assert.doesNotMatch(report,/\[approved\]\(|\*\*all green\*\*/);
+ assert.equal(r.complete,true);
+});
+test('empty PR file lists do not produce successful reviews',async()=>{
+ const opts=mock([]);
+ await assert.rejects(()=>inspect(opts),/Leere oder zu große/);
+});
