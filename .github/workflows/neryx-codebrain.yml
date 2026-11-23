@@ -24,6 +24,16 @@ jobs:
           persist-credentials: false
       - name: Test trusted scanner without external API
         run: node --test eval/tests/codebrain.test.mjs
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install pinned Acorn on trusted main (no lifecycle scripts)
+        working-directory: eval/genesis-ast
+        run: npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Test existing AST adapter on trusted source
+        working-directory: eval/genesis-ast
+        run: npm test
       - name: Scan PR source as inert Git blobs
         env:
           GH_TOKEN: ${{ github.token }}
