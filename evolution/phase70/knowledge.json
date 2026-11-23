@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "(433) Eros",
-    "(90377) Sedna",
-    "20. Jahrhundert",
-    "A Greek-English Lexicon",
-    "Aeonium",
-    "Afrikanische Große Seen",
-    "ADULT.",
-    "Erwachsener",
     "1,3-Propandiol",
     "Abkalben",
     "Adenin",
@@ -89,7 +81,15 @@
     "Adrasteia (Mythologie)",
     "Aegir (Mond)",
     "15. August",
-    "2008"
+    "2008",
+    "(162173) Ryugu",
+    "(243) Ida",
+    "(5145) Pholus",
+    "Alpha-Centauri",
+    "1000dokumente.de",
+    "100 Wörter des Jahrhunderts",
+    "A Latin Dictionary",
+    "Anastatischer Druck"
   ],
   "entries": [
     {
@@ -1101,6 +1101,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Aegaeon (Mond)"
+    },
+    {
+      "collected_at": "2026-11-23T15:26:01+00:00",
+      "excerpt": "(433) Eros ist ein Asteroid vom Amor-I-Typ, der am 13. August 1898 vom deutschen Astronomen Gustav Witt und seinem Assistenten Felix Linke (1879–1959) an der Sternwarte der Urania in Berlin bei einer Helligkeit von 11 mag entdeckt wurde. Es war Witts zweite und letzte Asteroidenentdeckung. Auch Auguste Charlois am Observatoire de Nice hatte den Asteroiden in der gleichen Nacht sogar bereits etwa eine Stunde vor Witt fotografiert, die Entdeckung wurde aber erst drei Tage später bekanntgegeben. Charlois wurde nie als Entdecker anerkannt, im Gegenteil wurde er beschuldigt, die Ehre dieser wichtigen Entdeckung verpasst zu haben, weil er die Fotoplatte mit dem Asteroiden an den Tagen unmittelbar nach der Entdeckung, einem Sonntag bzw. einem Feiertag, nicht analysiert hatte. Möglicherweise erkannte Charlois (433) Eros auf seiner Fotoplatte aber",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28433%29_Eros",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(433) Eros"
+    },
+    {
+      "collected_at": "2026-11-23T15:26:01+00:00",
+      "excerpt": "(90377) Sedna ist ein großes transneptunisches Objekt (TNO) jenseits des Kuipergürtels; es gehört aufgrund seiner Größe und Masse höchstwahrscheinlich zu den Zwergplaneten. Aufgrund des Perihels von 76 Astronomischen Einheiten (AE) kann es kein von Neptun gestreutes Objekt des Kuipergürtels (KBO) sein und wird von Mike Brown in die neue Klasse der „distant detached objects“ (DDOs, deutsch etwa „entfernte losgelöste Objekte“) eingeordnet.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%2890377%29_Sedna",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(90377) Sedna"
+    },
+    {
+      "collected_at": "2026-11-23T15:26:01+00:00",
+      "excerpt": "Das 20. Jahrhundert begann am 1. Januar 1901 und endete mit dem 31. Dezember 2000. Das 20. Jahrhundert zählt zur Epoche der Neuzeit und war besonders durch den Imperialismus und die beiden Weltkriege sowie den daraus erwachsenden Niedergang der europäischen Kolonialreiche und den Kalten Krieg geprägt, ebenso von der exponentiellen Zunahme der Weltbevölkerung, der Automatisierung und der Digitalisierung von Wirtschaftsprozessen sowie der Polarisierung zwischen der Ersten und der Dritten Welt. Wichtige Technologien wie Kunststoffe, Elektronik, Raumfahrt und Antibiotika veränderten die Welt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/20._Jahrhundert",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "20. Jahrhundert"
+    },
+    {
+      "collected_at": "2026-11-23T15:26:01+00:00",
+      "excerpt": "A Greek-English Lexicon (zu Deutsch: ‚Ein griechisch-englisches Lexikon‘) ist ein altgriechisch-englisches Wörterbuch, das nicht nur im englischsprachigen Raum als das Standardwerk schlechthin seiner Art gilt. Nach seinen Begründern, den britischen Altphilologen Henry George Liddell und Robert Scott, und dem Nachbearbeiter Henry Stuart Jones wird es von Altphilologen kurz „Liddell-Scott-Jones“ oder „LSJ“ genannt (früher „Liddell & Scott“) und auch so in der Fachliteratur zitiert.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/A_Greek-English_Lexicon",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "A Greek-English Lexicon"
     }
   ],
   "failed_titles": [
@@ -1485,6 +1525,19 @@
         "Aegaeon (Mond)"
       ],
       "time": "2026-11-23T09:41:54+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "(433) Eros",
+        "(90377) Sedna",
+        "20. Jahrhundert",
+        "A Greek-English Lexicon"
+      ],
+      "time": "2026-11-23T15:26:01+00:00"
     }
   ],
   "schema": 1
