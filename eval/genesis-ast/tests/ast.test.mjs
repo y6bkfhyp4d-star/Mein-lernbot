@@ -655,3 +655,43 @@ test('C8 simple pure arguments retain the straight-line replacement result',()=>
  assert.equal(r.parsed,true);
  assert.equal(has(r,'AST005').length,0);
 });
+
+test('C9 condition is evaluated before a two-arm method replacement is joined',()=>{
+ const r=analyzeAST('join-order.mjs',[
+  'const doc = globalThis.document;',
+  'if(doc.write("condition")) doc.write = () => {}; else doc.write = () => {};',
+  'doc.write("method replaced after condition");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2]);
+});
+test('C9 nested right-hand call occurs before the assignment takes effect',()=>{
+ const r=analyzeAST('assignment-order.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write = (doc.write("original"), () => {});',
+  'doc.write("unproven replacement");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2,3]);
+});
+test('C9 side-effectful branch condition does not undo certain assignments in both arms',()=>{
+ const r=analyzeAST('conditional-effects.mjs',[
+  'const store = globalThis.localStorage;',
+  'if(unknownCallback()) store.clear = () => {}; else store.clear = function(){};',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST004').length,0);
+});
+test('C9 straightforward statement order remains intact across multiple replacements',()=>{
+ const r=analyzeAST('sequential.mjs',[
+  'const doc = globalThis.document;',
+  'doc.write("original");',
+  'doc.write = () => {};',
+  'doc.write("replaced");',
+  'unknownCallback();',
+  'doc.write("possibly restored");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2,6]);
+});
