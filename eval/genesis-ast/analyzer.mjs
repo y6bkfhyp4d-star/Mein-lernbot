@@ -184,8 +184,19 @@ export function analyzeAST(file,source){
   }
   const findings=[],imports=[],functions=[],calls=[];
   // Conservative straight-line writes shared by aliases with the same known global origin.
-  const methodWrites=new Map();
+  const methodWrites=new Map(),possibleWrites=new Map();
   const stillKnown=(origin,pos,uncertain)=>uncertain||pos<(methodWrites.get(origin)??Infinity);
+  // C4: only a direct, unconditional assignment in EACH arm proves a join-point write.
+  const simpleArmWrite=(arm,scope)=>{
+    const stmt=arm?.type==='BlockStatement'&&arm.body.length===1?arm.body[0]:arm;
+    const expr=stmt?.type==='ExpressionStatement'?stmt.expression:null;
+    if(expr?.type!=='AssignmentExpression'||expr.operator!=='='||
+       expr.left?.type!=='MemberExpression'||expr.left.object?.type!=='Identifier')return null;
+    const name=expr.left.object.name,alias=aliasAt(name,scope,expr.start);
+    if(alias?.origin==='document'&&staticProperty(expr.left,'write'))return 'document';
+    if(alias?.origin==='localStorage'&&staticProperty(expr.left,'clear'))return 'localStorage';
+    return null;
+  };
   const report=(rule,severity,node,message,suggestion,confidence='high')=>{
     findings.push({rule,severity,file,...loc(node),message,suggestion,confidence});
   };
@@ -203,6 +214,15 @@ export function analyzeAST(file,source){
       if(scope?.functions.has(name))report('AST006','low',node,'Funktion im selben Block mehrfach deklariert: '+name,
         'Erneute Deklaration im gleichen Block prüfen.','medium');
       scope?.functions.add(name);
+    }
+    // Join only the supported two-arm shape; a missing arm is merely possible.
+    if(!uncertain&&node.type==='IfStatement'){
+      const yes=simpleArmWrite(node.consequent,scope);
+      const no=simpleArmWrite(node.alternate,scope);
+      if(yes&&yes===no)
+        methodWrites.set(yes,Math.min(methodWrites.get(yes)??Infinity,node.end));
+      else for(const origin of new Set([yes,no].filter(Boolean)))
+        possibleWrites.set(origin,Math.min(possibleWrites.get(origin)??Infinity,node.end));
     }
     // C1: a written method is no longer a confirmed known builtin on that alias.
     // This is intentionally an order-local, conservative check; not control-flow proof.
@@ -224,13 +244,15 @@ export function analyzeAST(file,source){
         (staticProperty(node.callee,'clear')&&node.callee.object?.type==='Identifier'&&
          aliasAt(node.callee.object.name,scope,node.start)?.origin==='localStorage'&&
          stillKnown('localStorage',node.start,uncertain)))
-        report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.');
+        report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.',
+          possibleWrites.has('localStorage')&&node.start>=possibleWrites.get('localStorage')?'medium':'high');
       if((member(node.callee,'document','write')&&!shadowed('document',scope))||
         explicitGlobal(node.callee,'document','write',scope)||
         (staticProperty(node.callee,'write')&&node.callee.object?.type==='Identifier'&&
          aliasAt(node.callee.object.name,scope,node.start)?.origin==='document'&&
          stillKnown('document',node.start,uncertain)))
-        report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.');
+        report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.',
+          possibleWrites.has('document')&&node.start>=possibleWrites.get('document')?'medium':'high');
     }
     if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
