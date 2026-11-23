@@ -366,3 +366,41 @@ test('C1 unrelated property writes do not invalidate a known alias method',()=>{
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
 });
+
+test('C2 conditional mutation cannot erase the potential warning after a branch',()=>{
+ const r=analyzeAST('branch.mjs',[
+  'const doc = globalThis.document;',
+  'if (unknown) { doc.write = () => {}; }',
+  'doc.write("may still be original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
+test('C2 loop and exception-path writes do not globally invalidate alias origin',()=>{
+ const r=analyzeAST('paths.mjs',[
+  'const doc = globalThis.document;',
+  'while (unknown) { doc.write = () => {}; }',
+  'try { doc.write = () => {}; } catch(error) {}',
+  'doc.write("possible original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C2 defining a function does not execute its alias mutation',()=>{
+ const r=analyzeAST('deferred.mjs',[
+  'const store = globalThis.localStorage;',
+  'function later() { store.clear = () => {}; }',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[3]);
+});
+test('C2 straight-line reassignment still invalidates known alias calls',()=>{
+ const r=analyzeAST('straight.mjs',[
+  'const doc = globalThis.document;',
+  '{ doc.write = () => {}; }',
+  'doc.write("changed");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,0);
+});
