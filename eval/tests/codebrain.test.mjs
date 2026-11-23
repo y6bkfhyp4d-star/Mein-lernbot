@@ -166,3 +166,17 @@ test('Python checker failures remain non-green and do not leak exception text',a
  assert.equal(result.rows[0].status,'error');
  assert.doesNotMatch(render(result),/FAKE-SECRET/);
 });
+
+test('real isolated Python AST parsing does not execute the submitted script',async()=>{
+ const source='raise RuntimeError("THIS MUST NEVER EXECUTE")\n';
+ const result=await inspect(mock([entry('real.py')],{[SHA]:source}));
+ assert.equal(result.complete,true);
+ assert.equal(result.blocking,false);
+ assert.equal(result.rows[0].findings.length,0);
+});
+test('real isolated Python AST parsing catches malformed code',async()=>{
+ const result=await inspect(mock([entry('real.py')],{[SHA]:'def invalid(:\n pass'}));
+ assert.equal(result.complete,true);
+ assert.equal(result.blocking,true);
+ assert.equal(result.rows[0].findings[0].rule,'PY000');
+});
