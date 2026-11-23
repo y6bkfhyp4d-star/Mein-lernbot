@@ -19,7 +19,7 @@ jobs:
           node-version: '22'
       - name: Install isolated pinned AST parser (no scripts)
         working-directory: eval/genesis-ast
-        run: npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Test AST analysis in read-only mode
         working-directory: eval/genesis-ast
         run: npm test
