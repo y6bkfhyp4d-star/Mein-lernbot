@@ -481,7 +481,8 @@ test('C4 two distinct targets cannot be merged into a guaranteed overwrite',()=>
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[5]);
- assert.equal(has(r,'AST004')[0].confidence,'medium');
+ // The prior document.write call is a C6 state barrier.
+ assert.equal(has(r,'AST004')[0].confidence,'high');
 });
 test('C4 complex branch bodies are not treated as proven writes',()=>{
  const r=analyzeAST('complex.mjs',[
@@ -925,5 +926,6 @@ test('C14 independent origins retain their own confidence through adjacent pure 
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[7]);
- assert.equal(has(r,'AST004')[0].confidence,'medium');
+ // Calling doc.write between the branches and the storage call resets uncertainty.
+ assert.equal(has(r,'AST004')[0].confidence,'high');
 });
