@@ -128,3 +128,19 @@ test('YAML without recognized risk is still only a partial review',async()=>{
  assert.equal(r.rows[0].status,'partial');
  assert.equal(r.complete,false);
 });
+
+test('anonymous public mode never sends an Authorization header',async()=>{
+ const headers=[];
+ const opts=mock([entry('public.js')]);
+ const r=await inspect({...opts,token:undefined,anonymous:true,request:async(url,options)=>{
+  headers.push(options.headers);
+  return opts.request(url,options);
+ }});
+ assert.equal(r.complete,true);
+ assert.ok(headers.length>=3);
+ assert.ok(headers.every(h=>!Object.hasOwn(h,'Authorization')));
+});
+test('no-token requests remain rejected without explicit anonymous mode',async()=>{
+ const opts=mock([entry('public.js')]);
+ await assert.rejects(()=>inspect({...opts,token:undefined}),/Ungültiger Auftrag/);
+});
