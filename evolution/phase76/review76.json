@@ -1,9 +1,9 @@
 {
   "changes": [],
-  "cursor": 86,
+  "cursor": 2,
   "entities": [
     {
-      "checked_at": "2026-11-19T09:30:11+00:00",
+      "checked_at": "2026-11-23T15:30:30+00:00",
       "classes": [
         "Planetensystem"
       ],
@@ -14,7 +14,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q544"
     },
     {
-      "checked_at": "2026-11-19T15:21:12+00:00",
+      "checked_at": "2026-11-23T15:30:30+00:00",
       "classes": [
         "innerer Planet",
         "oberer Planet"
@@ -965,6 +965,39 @@
       "title": "Adiabatische Zustandsänderung",
       "wikidata_id": "Q182453",
       "wikidata_url": "https://www.wikidata.org/wiki/Q182453"
+    },
+    {
+      "checked_at": "2026-11-23T15:30:30+00:00",
+      "classes": [],
+      "error": "JSONDecodeError",
+      "source_changed": false,
+      "status": "error",
+      "title": "Albert Einstein",
+      "wikidata_id": null,
+      "wikidata_url": ""
+    },
+    {
+      "checked_at": "2026-11-23T15:30:30+00:00",
+      "classes": [
+        "wissenschaftliche Theorie",
+        "physikalisches Gesetz"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "Allgemeine Relativitätstheorie",
+      "wikidata_id": "Q11452",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q11452"
+    },
+    {
+      "checked_at": "2026-11-23T15:30:30+00:00",
+      "classes": [
+        "Asteroid"
+      ],
+      "source_changed": false,
+      "status": "ok",
+      "title": "(9936) Al-Biruni",
+      "wikidata_id": "Q540984",
+      "wikidata_url": "https://www.wikidata.org/wiki/Q540984"
     }
   ],
   "runs": [
@@ -1154,6 +1187,13 @@
       "at": "2026-11-23T09:46:20+00:00",
       "checked": 5,
       "error_count": 2,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-23T15:30:30+00:00",
+      "checked": 5,
+      "error_count": 3,
       "known_sources": 89,
       "source_changes": 0
     }
