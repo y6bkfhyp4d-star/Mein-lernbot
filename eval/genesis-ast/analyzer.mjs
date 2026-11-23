@@ -201,6 +201,19 @@ export function analyzeAST(file,source){
     if(alias?.origin==='localStorage'&&staticProperty(expr.left,'clear'))return 'localStorage';
     return null;
   };
+  // C8: arguments and computed callee parts are evaluated before invoking a call.
+  // Only traverse expressions executed now: a function body passed as a value is deferred.
+  const eagerEffects=node=>{
+    if(!node||typeof node!=='object')return false;
+    if(Array.isArray(node))return node.some(eagerEffects);
+    if(isFunction(node)||node.type==='ClassExpression')return false;
+    if(['CallExpression','NewExpression','AwaitExpression','YieldExpression',
+        'AssignmentExpression','UpdateExpression','TaggedTemplateExpression',
+        'ImportExpression'].includes(node.type))return true;
+    return Object.entries(node).some(([key,val])=>
+      !['loc','start','end','range','parent'].includes(key)&&
+      val&&typeof val==='object'&&eagerEffects(val));
+  };
   const report=(rule,severity,node,message,suggestion,confidence='high')=>{
     findings.push({rule,severity,file,...loc(node),message,suggestion,confidence});
   };
@@ -239,6 +252,10 @@ export function analyzeAST(file,source){
         methodWrites.set(alias.origin,Math.min(methodWrites.get(alias.origin)??Infinity,node.end));
     }
     if(node.type==='CallExpression'){
+      // C8: child expressions can mutate the known method before the outer call.
+      if(!uncertain&&(eagerEffects(node.arguments)||
+          (node.callee?.type==='MemberExpression'&&node.callee.computed&&
+           eagerEffects(node.callee.property))))methodWrites.clear();
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
       if((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
