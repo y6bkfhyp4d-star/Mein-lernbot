@@ -3,7 +3,7 @@ import {appendFileSync} from 'node:fs';
 
 // PR contents are fetched as inert blobs, never checked out or executed.
 const okPath=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
-const clean=s=>String(s).replace(/[\x00-\x1f\x7f|&<>"'\x60]/g,'_').slice(0,240);
+const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
 export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource}){
@@ -16,7 +16,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  };
  const pr=await get('/pulls/'+number);
  if(pr?.state!=='open'||pr?.base?.ref!=='main'||!/^[a-f0-9]{40}$/i.test(pr?.head?.sha||''))throw Error('PR nicht geeignet');
- if(!Number.isInteger(pr.changed_files)||pr.changed_files>30)throw Error('Zu viele Dateien');
+ if(!Number.isInteger(pr.changed_files)||pr.changed_files<1||pr.changed_files>30)throw Error('Leere oder zu große Dateiliste');
  const files=await get('/pulls/'+number+'/files?per_page=100');
  if(!Array.isArray(files)||files.length!==pr.changed_files)throw Error('Unvollständige Dateiliste');
  const rows=[];let used=0;
@@ -40,7 +40,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
    const matches=analyze(path,source).filter(v=>v.rule!=='JS000');
    row.status='checked';row.reason='heuristic-only';
    row.findings=matches.slice(0,40).map(v=>({rule:v.rule,line:v.line,label:labels[v.rule]||'Heuristischer Hinweis'}));
-   if(matches.length>40)row.reason='findings-truncated';
+   if(matches.length>40){row.status='skipped';row.reason='findings-truncated';}
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
  }
  return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked')};
