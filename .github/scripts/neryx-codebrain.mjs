@@ -21,6 +21,15 @@ const yamlSyntaxDefault=source=>{
  if(typeof parsed.parsed!=='boolean')throw Error('invalid YAML result');
  return parsed;
 };
+export const astWorkerDefault=(path,source)=>{
+ const helper=fileURLToPath(new URL('../../eval/genesis-ast/codebrain-worker.mjs',import.meta.url));
+ const output=execFileSync(process.execPath,['--max-old-space-size=128',helper],{
+  input:JSON.stringify({path,source}),timeout:2500,maxBuffer:16384,windowsHide:true,stdio:['pipe','pipe','pipe']
+ });
+ const result=JSON.parse(output.toString('utf8'));
+ if(!result||typeof result.parsed!=='boolean'||!Array.isArray(result.findings))throw Error('invalid AST worker result');
+ return result;
+};
 const labels={JS001:'Dynamische Ausführung',JS002:'Dynamische Kompilierung',JS003:'HTML-Zuweisung',JS004:'Speicherlöschung',JS005:'document.write',JS006:'Mögliche doppelte Funktion',SEC001:'Möglicher privater Schlüssel'};
 
 export async function inspect({repo,number,token,request=fetch,analyze=analyzeSource,ast=null,anonymous=false,pythonSyntax=pythonSyntaxDefault,yamlSyntax=yamlSyntaxDefault}){
@@ -102,8 +111,7 @@ export function render(r){
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
-  const {analyzeAST}=await import('../../eval/genesis-ast/analyzer.mjs');
-  const r=await inspect({repo:process.env.GITHUB_REPOSITORY,number:Number(process.env.PR_NUMBER),token:process.env.GH_TOKEN,ast:analyzeAST});
+  const r=await inspect({repo:process.env.GITHUB_REPOSITORY,number:Number(process.env.PR_NUMBER),token:process.env.GH_TOKEN,ast:astWorkerDefault});
   const summary=render(r);
   if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary);
   else console.log(summary);
