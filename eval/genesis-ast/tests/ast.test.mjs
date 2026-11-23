@@ -84,3 +84,30 @@ test('dynamic computed properties and inert strings are not treated as known haz
  for(const rule of ['AST002','AST003','AST004','AST005'])
   assert.equal(has(r,rule).length,0,rule);
 });
+
+test('B1 resolves shadowed global members through function parameters',()=>{
+ const source=[
+  'function local(document, localStorage) { document.write("local"); localStorage.clear(); }',
+  'const arrow = (document) => document.write("arrow");',
+  'function destructured({document}) { document.write("destructured"); }',
+  'document.write("global");',
+  'localStorage.clear();'
+ ].join('\n');
+ const r=analyzeAST('bindings.mjs',source);
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,1);
+ assert.equal(has(r,'AST004').length,1);
+ assert.equal(has(r,'AST005')[0].line,4);
+ assert.equal(has(r,'AST004')[0].line,5);
+});
+test('B1 handles shadowing only inside the parameter scope and nested functions',()=>{
+ const r=analyzeAST('nested.mjs',[
+  'function outer(document) {',
+  '  function inner(){ document.write("still local"); }',
+  '}',
+  'function other(){ document.write("global"); }'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.equal(has(r,'AST005').length,1);
+ assert.equal(has(r,'AST005')[0].line,4);
+});
