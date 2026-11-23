@@ -1,11 +1,11 @@
 // Offline verification of the GitHub Actions synthetic merge commit.
 // No GitHub API, no credentials. Never execute inspected source.
 import {execFileSync} from 'node:child_process';
-import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
+import {inspect,render,astWorkerDefault} from '../../.github/scripts/neryx-codebrain.mjs';
 const SHA=/^[a-f0-9]{40}$/i;
 const run=(args,maxBuffer=131072)=>execFileSync('git',args,{encoding:'buffer',maxBuffer,timeout:8000,stdio:['ignore','pipe','pipe']});
 const safeFile=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
-export async function inspectGitSnapshot({repo,number,expectedHead,git=run}){
+export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=null}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1||!SHA.test(expectedHead||''))throw Error('Invalid snapshot context');
  const txt=args=>git(args).toString('utf8').trim();
  const merge=txt(['rev-parse','HEAD']);
@@ -45,13 +45,14 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run}){
   const payload={sha,encoding:'base64',size,content:bytes.toString('base64')};
   return new Response(JSON.stringify(payload));
  };
- const result=await inspect({repo,number,anonymous:true,request});
+ const result=await inspect({repo,number,anonymous:true,request,ast});
  return {result,merge,base,head};
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
   const number=Number(process.env.CODEBRAIN_PR_NUMBER);
-  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA});
+  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,ast:astWorkerDefault});
+  console.log('NERYX SNAPSHOT: isolated Acorn AST active for JS/MJS/CJS');
   console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete);
   if(process.env.GITHUB_STEP_SUMMARY){
    const {appendFileSync}=await import('node:fs');
