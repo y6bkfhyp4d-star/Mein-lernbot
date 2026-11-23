@@ -186,11 +186,15 @@ export function analyzeAST(file,source){
   // Conservative straight-line writes shared by aliases with the same known global origin.
   const methodWrites=new Map(),possibleWrites=new Map();
   const stillKnown=(origin,pos,uncertain)=>uncertain||pos<(methodWrites.get(origin)??Infinity);
+  // C5: only a freshly created function proves replacement; self-assignments,
+  // unknown values and calls cannot justify suppressing a later warning.
+  const provenReplacement=node=>node?.type==='AssignmentExpression'&&node.operator==='='&&
+    ['ArrowFunctionExpression','FunctionExpression'].includes(node.right?.type);
   // C4: only a direct, unconditional assignment in EACH arm proves a join-point write.
   const simpleArmWrite=(arm,scope)=>{
     const stmt=arm?.type==='BlockStatement'&&arm.body.length===1?arm.body[0]:arm;
     const expr=stmt?.type==='ExpressionStatement'?stmt.expression:null;
-    if(expr?.type!=='AssignmentExpression'||expr.operator!=='='||
+    if(!provenReplacement(expr)||
        expr.left?.type!=='MemberExpression'||expr.left.object?.type!=='Identifier')return null;
     const name=expr.left.object.name,alias=aliasAt(name,scope,expr.start);
     if(alias?.origin==='document'&&staticProperty(expr.left,'write'))return 'document';
@@ -226,7 +230,7 @@ export function analyzeAST(file,source){
     }
     // C1: a written method is no longer a confirmed known builtin on that alias.
     // This is intentionally an order-local, conservative check; not control-flow proof.
-    if(!uncertain&&node.type==='AssignmentExpression'&&node.left?.type==='MemberExpression'&&
+    if(!uncertain&&provenReplacement(node)&&node.left?.type==='MemberExpression'&&
        node.left.object?.type==='Identifier'&&
        ['write','clear'].some(p=>staticProperty(node.left,p))){
       const alias=aliasAt(node.left.object.name,scope,node.start);
