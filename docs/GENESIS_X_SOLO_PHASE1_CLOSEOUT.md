@@ -27,7 +27,7 @@
 
 ## 3. Technisch nicht ausführbare Cloud-Abnahme
 
-Der in dieser Sitzung verbundene GitHub-Connector stellt **keine Funktion zum Erstellen eines neuen GitHub-Repositories** bereit und erlaubt **keine Änderung/Erstellung von Rulesets**. Deshalb wurde trotz ausdrücklicher Bitte um Abschluss **kein isoliertes GitHub-Test-Repository angelegt** und kein echter GitHub-Cloud-Negativtest oder Admin-Permissions-Test gestartet. Ein vorhandenes produktives Repository ist **kein** zulässiger Ersatz dafür.
+Der in dieser Sitzung verbundene GitHub-Connector stellt **keine Funktion zum Erstellen eines neuen GitHub-Repositories** bereit und erlaubt **keine Änderung/Erstellung von Rulesets**. Deshalb wurde trotz ausdrücklicher Bitte um Abschluss **kein isoliertes GitHub-Test-Repository angelegt** und keine umfassende isolierte Cloud-/Ruleset-Negativtestserie oder Admin-Permissions-Prüfung gestartet. Ein vorhandenes produktives Repository ist **kein** zulässiger Ersatz dafür.
 
 Nur nach Einrichtung des isolierten Test-Repositorys:
 - Eigene Test-Identität mit minimalen Rechten, **ohne** Zugriff auf das produktive NERYX-Repository; echte GitHub-Token-/Branchrechte separat dokumentieren.
@@ -54,4 +54,17 @@ Nur nach Einrichtung des isolierten Test-Repositorys:
 
 **Phase 1, lokal: ABGESCHLOSSEN. Phase 1, Cloud/Produktions-Sicherheit: BLOCKED.**
 
-Es ist nicht nötig, in dieser Sitzung beliebig weitere Offline-Tests anzuhängen. **Erst** ein wirklich isoliertes GitHub-Test-Repository und die belegten Cloud-Ergebnisse können den verbleibenden Sicherheitsstatus ändern. Keine grüne CI und kein Dokument dürfen diesen fehlenden Nachweis als bestanden umetikettieren. `main`, bestehende produktive GitHub-Rulesets und Vercel bleiben unverändert.
+Es ist nicht nötig, in dieser Sitzung beliebig weitere Offline-Tests anzuhängen. **Erst** ein wirklich isoliertes GitHub-Test-Repository und die belegten vollständigen Cloud-Ergebnisse können den verbleibenden Freigabestatus aufheben. Keine grüne CI und kein Dokument dürfen diesen fehlenden Nachweis als bestanden umetikettieren. `main`, bestehende produktive GitHub-Rulesets und Vercel bleiben unverändert.
+
+## 6. Ergänzung: Echte GitHub-Token-Negativprobe (teilweiser Cloud-Nachweis)
+
+**Datum:** 2026-11-23. **Entwurf-Commit des erstmals geprüften Workflows:** `05a0f1c45db430e6f8386ca2609c16fb8ad2342b`.
+**Live-Run:** [NERYX merge candidate verification #45115396190](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45115396190); Job **`solo-token-readonly-negative` erfolgreich**.
+
+Da kein neues Repository mit den vorhandenen GitHub-Tools angelegt werden kann, wurde **ausschließlich in Draft-PR #91** ein bewusst eingegrenzter `pull_request`-Job ergänzt. Er läuft **nur, wenn PR-Nummer 91** geprüft wird, mit `permissions: contents: read`, ohne Checkout von PR-Code und ohne andere Geheimnisse. Er stellt zunächst einen erfolgreich authentifizierten `GET /repos/{repo}` sicher und sendet dann einen `POST /repos/{repo}/git/refs` für den zufällig laufgebundenen Testbranch. Die angegebene SHA ist `000…000` (40 Nullen) und bezeichnet kein gültiges Git-Objekt; so ist eine echte Branch-Erstellung ausgeschlossen, selbst wenn Schreibberechtigungen unerwartet vorhanden wären.
+
+**Originales GitHub-Actions-Protokoll:** `Read-only Actions token write probe HTTP 403` sowie `PASS: GitHub refused Git-ref creation by read-only Actions token`. Bei HTTP 422 oder jeder anderen Antwort würde der Job absichtlich **FAIL** ausgeben, weil ein bloß ungültiger Payload keine Berechtigungsverweigerung beweist.
+
+**Aussage:** Der Token **dieses** gesonderten PR-Jobs durfte zur Laufzeit keine Git-Referenz erstellen. GitHub hat dies mit HTTP 403 abgelehnt. Das ist eine echte Cloud-Antwort und nicht bloß ein Offline-Mock.
+
+**Grenze:** Für die neun bestehenden Forschungsworkflows mit `contents:write`, für die GitHub-Administratorverbindung, für künftige Agentenidentitäten, native GitHub-Branchschutzregeln oder das erforderliche Merge-Blocking wurde **keine** entsprechende Live-Berechtigungsabnahme durchgeführt. Die Token-Prüfung ersetzt nicht die geplante isolierte Test-Repository-Abnahme. **Auto-Code-Merge und Production-Deploy bleiben NO-GO.**
