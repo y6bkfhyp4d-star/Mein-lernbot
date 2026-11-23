@@ -58,15 +58,15 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
     matches=analyze(path,source).filter(v=>v.rule!=='JS000').map(v=>({rule:v.rule,line:v.line,label:labels[v.rule]||'Heuristischer Hinweis',kind:'heuristic'}));
     row.reason='heuristic-only';
    }
-   row.status='checked';
+   row.status=row.reason==='yaml-heuristic-no-parse'?'partial':'checked';
    row.findings=matches.slice(0,40).map(v=>({rule:v.rule,line:v.line,label:v.label,kind:v.kind}));
    if(matches.length>40){row.status='skipped';row.reason='findings-truncated';}
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
  }
- return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked')};
+ return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
 }
 export function render(r){
- const lines=['# NERYX CodeBrain 1.0','','Keine API-KI. Nur heuristische Hinweise; keine bestätigte vollständige Codeprüfung.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'vollständig für unterstützte Heuristik':'UNVOLLSTÄNDIG')+'**','','| Datei | Status | Hinweise |','|---|---|---|'];
+ const lines=['# NERYX CodeBrain 1.0','','Keine API-KI. Nur heuristische Hinweise; keine bestätigte vollständige Codeprüfung.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'alle unterstützten Dateitypen geprüft':'UNVOLLSTÄNDIG')+'**',r.blocking?'**Bestätigte Syntaxfehler gefunden: Prüfung nicht bestanden.**':'**Keine bestätigten Syntaxfehler in unterstützten Prüfungen festgestellt.**','','| Datei | Status | Hinweise |','|---|---|---|'];
  for(const x of r.rows){
   lines.push('| '+clean(x.file)+' | '+clean(x.status)+' ('+clean(x.reason)+') | '+x.findings.length+' |');
   for(const v of x.findings)lines.push('- '+clean(v.rule)+' in Zeile '+Number(v.line||0)+': '+clean(v.label)+' ('+(v.kind==='confirmed'?'bestätigter Syntaxfehler':'heuristische Warnung')+')');
@@ -82,7 +82,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
   if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary);
   else console.log(summary);
   console.log('NERYX CodeBrain checked='+r.checked+' total='+r.rows.length);
-  if(!r.complete)process.exitCode=1;
+  if(!r.complete||r.blocking)process.exitCode=1;
  }catch(e){
   const detail=/^GitHub HTTP \d{3}$/.test(e.message)?e.message:'Check incomplete';
   console.error('NERYX CodeBrain: '+detail);
