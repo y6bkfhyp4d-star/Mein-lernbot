@@ -57,3 +57,30 @@ test('read-only file access and symlink boundaries',()=>{
     assert.throws(()=>inspectASTFiles(['../outside.mjs'],{root:folder}));
   }finally{rmSync(folder,{recursive:true,force:true});rmSync(other,{recursive:true,force:true});}
 });
+
+test('detects equivalent bracket and bare Function forms without evaluating source',()=>{
+ const r=analyzeAST('hazards.mjs',[
+  'Function("return 1")',
+  'new Function("return 2")',
+  'document["write"]("sample")',
+  'localStorage["clear"]()',
+  'element["innerHTML"] = untrusted',
+ ].join(';\n'));
+ assert.equal(has(r,'AST002').length,2);
+ assert.equal(has(r,'AST003').length,1);
+ assert.equal(has(r,'AST004').length,1);
+ assert.equal(has(r,'AST005').length,1);
+ assert.equal(r.parsed,true);
+});
+test('dynamic computed properties and inert strings are not treated as known hazards',()=>{
+ const r=analyzeAST('safe.mjs',[
+  'const prop = "innerHTML"',
+  'element[prop] = "text"',
+  'localStorage[method]()',
+  'document[action]("sample")',
+  'const message = "Function(\\\"x\\\")"',
+ ].join(';\n'));
+ assert.equal(r.parsed,true);
+ for(const rule of ['AST002','AST003','AST004','AST005'])
+  assert.equal(has(r,rule).length,0,rule);
+});
