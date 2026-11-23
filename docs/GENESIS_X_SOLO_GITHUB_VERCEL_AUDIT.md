@@ -96,3 +96,15 @@ Am 23.11.2026 ergaben die lesenden GitHub-Connector-Aufrufe:
 `eval/tests/genesis-solo-permission-boundary.test.mjs` prüft im Draft-PR #91 konkret die neun Phase-7-Forschungsworkflows auf `contents:write`, einen fest zugewiesenen Report-Branch und Report-Pfad, das gemeinsame Publishing-Skript ohne direkte PR-/Deploy-Aktion sowie den nur lesenden `pull_request_target`-Trusted-Check. Die Solo-Anweisungen müssen ausdrücklich auf einen menschlichen GitHub-Merge und das Verbot von Bot-Merges verweisen.
 
 **Testgrenze:** Das sind statische Regressionen gegen den eingecheckten Workflow-Code. Sie verhindern nicht den Missbrauch eines gestohlenen oder anderweitig erreichbaren Write-Tokens. **Keine Konfiguration geändert.**
+
+## Abschluss der lokalen Publisher-Prüfung: konkurrierende Schreibvorgänge
+
+**Verifizierter Teststand:** `853b472e2415cdc96a5280ec0b7314809b0a2bb6`, [GitHub-Integration-Run 45114882528](https://github.com/y6bkfhyp4d-star/Mein-lernbot/actions/runs/45114882528), **379/379 Node-Integrationstests bestanden**, einschließlich acht Gruppen isolierter Git-Publisher-Tests.
+
+Ein `pre-push`-Hook im **temporären lokalen Repository** löst kurz vor dem Publish des Forschungs-Publishers einen echten konkurrierenden `git push` von einem zweiten lokalen Arbeitsverzeichnis auf denselben Forschungsbranch aus. Der Fall wurde **zweimal** wiederholt. Das aktuelle `research-review-branch.sh` verwendet keinen Force-Push; der veraltete Publish wird mit einem Non-Fast-Forward-Konflikt abgewiesen. Der konkurrierende Commit bleibt im lokalen Remote erhalten und `main` bleibt unverändert.
+
+Die erste Fixture dieses neuen Tests hatte fehlerhafte Zeilenumbrüche im lokalen Hook und konnte die konkurrierende Aktion nicht ausführen; sie ist durch Commit `853b472` korrigiert. **Nur der danach erfolgreiche Integrationslauf gilt als Race-Condition-Nachweis.**
+
+**Lokaler Meilenstein:** Tests für erlaubte Branch-/Datei-Paare, zusätzlich gestagte Code-/Workflow-Dateien, beschädigte/übergroße JSON-Daten, toxische Vorgängerbranches, veraltetes `main` und konkurrierende Branch-Updates sind bestanden. **Keine weiteren Offline-Publisher-Tests als Ersatz für die noch fehlenden GitHub-Live-Nachweise zählen.**
+
+**Verbleibender externer Sicherheitsblocker:** Eine eigens autorisierte, isolierte GitHub-Test-Repository-Umgebung, dort tatsächlich beobachtete Branch-/Token-Sperren, GitHub-App-Schreibrecht-Isolation sowie ein überprüfter menschlicher Release-/Vercel-Prozess. Es wird **kein** neues Repository oder externer Schreibtest ohne ausdrückliche Freigabe des Eigentümers angelegt.
