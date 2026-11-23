@@ -90,7 +90,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
 }
 export function render(r){
- const lines=['# NERYX CodeBrain 1.0','','Keine API-KI. Nur heuristische Hinweise; keine bestätigte vollständige Codeprüfung.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'alle unterstützten Dateitypen geprüft':'UNVOLLSTÄNDIG')+'**',r.blocking?'**Bestätigte Syntaxfehler gefunden: Prüfung nicht bestanden.**':'**Keine bestätigten Syntaxfehler in unterstützten Prüfungen festgestellt.**','','| Datei | Status | Hinweise |','|---|---|---|'];
+ const lines=['# NERYX CodeBrain 1.0','','Keine API-KI. Syntaxprüfung für JS, Python, JSON und YAML; Sicherheitswarnungen bleiben heuristisch. Keine vollständige Codefreigabe.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'alle unterstützten Dateitypen geprüft':'UNVOLLSTÄNDIG')+'**',r.blocking?'**Bestätigte Syntaxfehler gefunden: Prüfung nicht bestanden.**':'**Keine bestätigten Syntaxfehler in unterstützten Prüfungen festgestellt.**','','| Datei | Status | Hinweise |','|---|---|---|'];
  for(const x of r.rows){
   lines.push('| '+clean(x.file)+' | '+clean(x.status)+' ('+clean(x.reason)+') | '+x.findings.length+' |');
   for(const v of x.findings)lines.push('- '+clean(v.rule)+' in Zeile '+Number(v.line||0)+': '+clean(v.label)+' ('+(v.kind==='confirmed'?'bestätigter Syntaxfehler':'heuristische Warnung')+')');
