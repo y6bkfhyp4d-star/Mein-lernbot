@@ -4,10 +4,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
-import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic} from './codebrain-rate-limit-diagnostics.mjs';
+import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic,isPublicApiRateLimit} from './codebrain-rate-limit-diagnostics.mjs';
+import {appendFileSync} from 'node:fs';
 import {requestWithRateLimitRetry} from './codebrain-rate-limit-retry.mjs';
 
-test('anonymously inspect triggering public PR via GitHub REST API', {skip:process.env.CODEBRAIN_LIVE_PUBLIC!=='1'}, async()=>{
+test('anonymously inspect triggering public PR via GitHub REST API', {skip:process.env.CODEBRAIN_LIVE_PUBLIC!=='1'}, async(t)=>{
  const repo=process.env.GITHUB_REPOSITORY;
  const number=Number(process.env.CODEBRAIN_PR_NUMBER);
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1)throw Error('Invalid triggering PR context');
@@ -28,9 +29,17 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
  try{
   result=await inspect({repo,number,anonymous:true,request});
  }catch(err){
-  if(/^GitHub HTTP (?:403|429)$/.test(String(err?.message))){
-   console.error('NERYX PUBLIC API RATE LIMIT: '+formatGithubRateLimitDiagnostic(denial));
-   throw new Error('NERYX PUBLIC API SMOKE: INCONCLUSIVE - HTTP 403/429; live verification was not completed');
+  if(/^GitHub HTTP (?:403|429)$/.test(String(err?.message))&&isPublicApiRateLimit(denial)){
+   // A skipped optional probe is never a verified live result.
+   const detail=formatGithubRateLimitDiagnostic(denial);
+   console.warn('::warning::NERYX PUBLIC API INCONCLUSIVE - anonymous quota exhausted; offline snapshot is a separate gate');
+   console.log('NERYX PUBLIC API RATE LIMIT: '+detail);
+   if(process.env.GITHUB_STEP_SUMMARY)
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+     '## Optional public API probe: INCONCLUSIVE (not verified)\\n\\n'+
+     'Anonymous GitHub throttling prevented live verification. Offline snapshot results are independent.\\n\\n');
+   t.skip('INCONCLUSIVE: evidenced GitHub API rate limit; no live verification');
+   return;
   }
   throw err;
  }
@@ -44,5 +53,9 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
  assert.ok(report.includes('PR #'+number));
  assert.equal(report.includes('UNVOLLSTÄNDIG'),!result.complete);
  assert.doesNotMatch(report,/Bearer |ghp_|github_pat_/);
+ if(process.env.GITHUB_STEP_SUMMARY)
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+   '## Optional public API probe: REACHABLE (not a security approval)\\n\\n'+
+   'The live public API responded; this does not certify source correctness or scanner coverage.\\n\\n');
  console.log('Public API smoke: PR='+number+' real files='+result.rows.length+', checked='+result.checked+', partial='+result.rows.filter(x=>x.status==='partial').length+', skipped='+result.rows.filter(x=>x.status==='skipped').length+', errors='+result.rows.filter(x=>x.status==='error').length+', complete='+result.complete);
 });
