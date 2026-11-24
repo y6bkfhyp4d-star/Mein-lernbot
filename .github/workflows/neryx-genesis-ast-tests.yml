@@ -470,11 +470,11 @@ jobs:
           node --input-type=module <<'JS'
           import {execFileSync} from 'node:child_process';
           import {randomUUID} from 'node:crypto';
-          import {publicGitPlan,verifyPublicGitIdentity} from './eval/tests/codebrain-public-git.mjs';
+          import {publicGitPlan,publicGitCollector,decodePublicGitCollector} from './eval/tests/codebrain-public-git.mjs';
           const plan=publicGitPlan({repo:'y6bkfhyp4d-star/Mein-lernbot',number:Number(process.env.PROBE_PR),head:process.env.PROBE_HEAD,base:process.env.PROBE_BASE});
           const name='neryx-public-git-'+randomUUID();
           const image='buildpack-deps@sha256:7f1df9258f51f0379175ec1c069f66b5b93b4b86c8a2e796a084cfc689262160';
-          const invoke=(args,timeout=60000)=>execFileSync('/usr/bin/docker',args,{encoding:'utf8',timeout,killSignal:'SIGKILL',maxBuffer:65536,stdio:['ignore','pipe','pipe'],env:{PATH:'/usr/bin:/bin',LANG:'C.UTF-8'}});
+          const invoke=(args,timeout=60000)=>execFileSync('/usr/bin/docker',args,{encoding:'utf8',timeout,killSignal:'SIGKILL',maxBuffer:15000000,stdio:['ignore','pipe','pipe'],env:{PATH:'/usr/bin:/bin',LANG:'C.UTF-8'}});
           let verified=false;
           try {
             const script=[
@@ -483,8 +483,7 @@ jobs:
               'cd /tmp/repo.git',
               'git "$@" >&2',
               'git --no-replace-objects fsck --strict --no-reflogs >&2',
-              'git --no-replace-objects rev-parse --verify "refs/neryx/base^{commit}"',
-              'git --no-replace-objects rev-parse --verify "refs/neryx/head^{commit}"'
+              publicGitCollector
             ].join('\n');
             const out=invoke(['run','--name',name,'--pull','never','--platform','linux/amd64',
               '--network','bridge','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges:true',
@@ -492,8 +491,9 @@ jobs:
               '--tmpfs','/tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777','--entrypoint','/usr/bin/env',image,
               '-i','PATH=/usr/bin:/bin','LANG=C.UTF-8','HOME=/tmp/neryx-home',
               'GIT_CONFIG_NOSYSTEM=1','GIT_CONFIG_GLOBAL=/dev/null','GIT_TERMINAL_PROMPT=0',
-              'GIT_NO_REPLACE_OBJECTS=1','GIT_ASKPASS=/bin/false','/bin/sh','-ec',script,'probe',...plan.fetch]);
-            verifyPublicGitIdentity(plan,out.trimEnd().split('\n'));
+              'GIT_NO_REPLACE_OBJECTS=1','GIT_ASKPASS=/bin/false','/bin/bash','-ec',script,'probe',...plan.fetch]);
+            const data=decodePublicGitCollector(plan,out);
+            console.log('NERYX_PUBLIC_GIT_TREE_HANDOFF_OK files='+data.files.length);
             verified=true;
           } catch {
             console.error('NERYX_PUBLIC_GIT_INCOMPLETE: transport, resource or identity check failed');

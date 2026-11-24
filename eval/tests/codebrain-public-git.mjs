@@ -114,3 +114,98 @@ export function verifyPublicGitTreeHandoff(plan,packet,objects){
  }
  return validated;
 }
+
+// Trusted collector script runs inside the disposable Git container. It emits
+// only bounded raw proof objects and changed blobs, not a checkout or archive.
+export const publicGitCollector = [
+ 'set -euo pipefail',
+ 'export LC_ALL=C',
+ 'base=$(git rev-parse --verify refs/neryx/base^{commit})',
+ 'head=$(git rev-parse --verify refs/neryx/head^{commit})',
+ 'printf "I %s %s\\n" "$base" "$head"',
+ 'declare -A seen=()',
+ 'total=0; count=0',
+ 'emit() {',
+ '  local type="$1" oid="$2" limit="$3" size',
+ '  [[ "$oid" =~ ^[0-9a-f]{40}$ ]]',
+ '  size=$(git cat-file -s "$oid")',
+ '  [[ "$size" =~ ^[0-9]+$ ]] && (( size <= limit ))',
+ '  printf "%s %s " "$type" "$oid"',
+ '  git cat-file "$type" "$oid" | base64 -w0',
+ '  printf "\\n"',
+ '}',
+ 'proof() {',
+ '  local type="$1" oid="$2" size',
+ '  [[ "$oid" =~ ^[0-9a-f]{40}$ ]]',
+ '  if [[ -v seen[$oid] ]]; then return; fi',
+ '  seen[$oid]=1',
+ '  size=$(git cat-file -s "$oid")',
+ '  [[ "$size" =~ ^[0-9]+$ ]] && (( size <= 1048576 ))',
+ '  total=$((total+size)); count=$((count+1))',
+ '  (( total <= 8388608 && count <= 4096 ))',
+ '  emit "$type" "$oid" 1048576',
+ '}',
+ 'for commit in "$base" "$head"; do',
+ '  proof commit "$commit"',
+ '  proof tree "$(git rev-parse "$commit^{tree}")"',
+ '  git ls-tree -r -t -z "$commit" > /tmp/neryx-tree-list',
+ '  while IFS= read -r -d "" record; do',
+ '    meta=${record%%$\'\\t\'*}',
+ '    read -r mode type oid <<< "$meta"',
+ '    if [[ "$type" == tree ]]; then proof tree "$oid"; fi',
+ '  done < /tmp/neryx-tree-list',
+ 'done',
+ 'git diff --raw --no-abbrev --no-renames --no-ext-diff --no-textconv -z "$base" "$head" > /tmp/neryx-diff',
+ 'n=0',
+ 'while IFS= read -r -d "" meta && IFS= read -r -d "" path; do',
+ '  n=$((n+1)); (( n <= 30 ))',
+ '  read -r oldmode mode oldoid oid status <<< "${meta#:}"',
+ '  [[ "$status" =~ ^[AMD]$ ]]',
+ '  printf "F %s %s %s " "$status" "$mode" "$oid"',
+ '  printf "%s" "$path" | base64 -w0',
+ '  printf "\\n"',
+ '  if [[ "$status" != D ]]; then',
+ '    [[ "$mode" == 100644 || "$mode" == 100755 ]]',
+ '    emit blob "$oid" 70000',
+ '  fi',
+ 'done < /tmp/neryx-diff',
+ 'printf "END %s\\n" "$n"'
+].join('\n').replaceAll('\\${','${');
+export function decodePublicGitCollector(plan,output){
+ if(typeof output!=='string'||Buffer.byteLength(output)>15000000||!output.endsWith('\n'))throw Error('Invalid collector output');
+ const lines=output.slice(0,-1).split('\n');
+ const identity=lines.shift()?.split(' ');
+ if(identity?.length!==3||identity[0]!=='I')throw Error('Missing collector identity');
+ verifyPublicGitIdentity(plan,identity.slice(1));
+ const objects=[],files=[];
+ let pending=null,ended=false;
+ for(const line of lines){
+  if(ended)throw Error('Trailing collector data');
+  const parts=line.split(' '),[type,sha,content]=parts;
+  if(type==='commit'||type==='tree'){
+   if(pending||parts.length!==3||files.length||objects.length>=4096)throw Error('Invalid collector proof sequence');
+   objects.push({type,sha,content});
+  }else if(type==='F'){
+   if(pending||parts.length!==5||files.length>=30)throw Error('Invalid collector file sequence');
+   const [,status,mode,oid,encodedPath]=parts;
+   const raw=Buffer.from(encodedPath,'base64'),path=raw.toString('utf8');
+   if(raw.toString('base64')!==encodedPath||!Buffer.from(path).equals(raw))throw Error('Invalid collector path encoding');
+   if(status==='D'){
+    if(mode!=='000000'||oid!=='0'.repeat(40))throw Error('Invalid deletion');
+    files.push({path,status:'removed',mode:null,sha:null,size:0,content:null});
+   }else{
+    if(!['A','M'].includes(status))throw Error('Invalid collector status');
+    pending={path,status:status==='A'?'added':'modified',mode,sha:oid};
+   }
+  }else if(type==='blob'){
+   if(!pending||parts.length!==3||sha!==pending.sha)throw Error('Unexpected collector blob');
+   files.push({...pending,size:Buffer.from(content,'base64').length,content});
+   pending=null;
+  }else if(type==='END'){
+   if(pending||parts.length!==2||sha!==String(files.length))throw Error('Invalid collector end');
+   ended=true;
+  }else throw Error('Unknown collector record');
+ }
+ if(!ended)throw Error('Incomplete collector output');
+ return verifyPublicGitTreeHandoff(plan,{base:plan.base,head:plan.head,files},objects);
+}
