@@ -40,8 +40,8 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
   if(!files.some(f=>f.sha===sha))throw Error('Blob not in changed file list');
   const size=Number(txt(['cat-file','-s',sha]));
   if(!Number.isSafeInteger(size)||size<0)throw Error('Invalid git blob size');
-  const bytes=size>60000?Buffer.alloc(0):git(['cat-file','blob',sha],65536);
-  if(size<=60000&&bytes.length!==size)throw Error('Git blob length mismatch');
+  const bytes=size>70000?Buffer.alloc(0):git(['cat-file','blob',sha],73728);
+  if(size<=70000&&bytes.length!==size)throw Error('Git blob length mismatch');
   const payload={sha,encoding:'base64',size,content:bytes.toString('base64')};
   return new Response(JSON.stringify(payload));
  };
