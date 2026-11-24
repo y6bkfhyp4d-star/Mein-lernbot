@@ -323,6 +323,17 @@ export function analyzeAST(file,source){
         invalidate('localStorage');
     }
     if(node.type==='CallExpression'){
+      // C22: indirect references and Function.prototype.call/apply still invoke
+      // the underlying method. They must use the same provenance checks.
+      const invoked=(callee)=>{
+        if(callee?.type==='SequenceExpression')
+          return invoked(callee.expressions.at(-1));
+        if(callee?.type==='MemberExpression'&&
+           (staticProperty(callee,'call')||staticProperty(callee,'apply')))
+          return invoked(callee.object);
+        return callee;
+      };
+      const target=invoked(node.callee);
       // C8: child expressions can mutate the known method before the outer call.
       if(!uncertain&&(eagerEffects(node.arguments)||
           (node.callee?.type==='MemberExpression'&&node.callee.computed&&
@@ -331,17 +342,17 @@ export function analyzeAST(file,source){
       if(name)calls.push({name,...loc(node)});
       if((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if((identifier(node.callee,'eval')&&!shadowed('eval',scope))||globalBuiltin(node.callee,'eval',scope))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
-      if((member(node.callee,'localStorage','clear')&&!shadowed('localStorage',scope))||
-        explicitGlobal(node.callee,'localStorage','clear',scope)||
-        (staticProperty(node.callee,'clear')&&node.callee.object?.type==='Identifier'&&
-         aliasAt(node.callee.object.name,scope,node.start)?.origin==='localStorage'&&
+      if((member(target,'localStorage','clear')&&!shadowed('localStorage',scope))||
+        explicitGlobal(target,'localStorage','clear',scope)||
+        (staticProperty(target,'clear')&&target.object?.type==='Identifier'&&
+         aliasAt(target.object.name,scope,node.start)?.origin==='localStorage'&&
          stillKnown('localStorage',node.start,uncertain)))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.',
           confidenceFor('localStorage',node.start));
-      if((member(node.callee,'document','write')&&!shadowed('document',scope))||
-        explicitGlobal(node.callee,'document','write',scope)||
-        (staticProperty(node.callee,'write')&&node.callee.object?.type==='Identifier'&&
-         aliasAt(node.callee.object.name,scope,node.start)?.origin==='document'&&
+      if((member(target,'document','write')&&!shadowed('document',scope))||
+        explicitGlobal(target,'document','write',scope)||
+        (staticProperty(target,'write')&&target.object?.type==='Identifier'&&
+         aliasAt(target.object.name,scope,node.start)?.origin==='document'&&
          stillKnown('document',node.start,uncertain)))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.',
           confidenceFor('document',node.start));
