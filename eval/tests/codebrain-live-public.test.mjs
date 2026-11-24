@@ -36,8 +36,8 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
    console.log('NERYX PUBLIC API RATE LIMIT: '+detail);
    if(process.env.GITHUB_STEP_SUMMARY)
     appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-     '## Optional public API probe: INCONCLUSIVE (not verified)\\n\\n'+
-     'Anonymous GitHub throttling prevented live verification. Offline snapshot results are independent.\\n\\n');
+     '## Optional public API probe: INCONCLUSIVE (not verified)\n\n'+
+     'Anonymous GitHub throttling prevented live verification. Offline snapshot results are independent.\n\n');
    t.skip('INCONCLUSIVE: evidenced GitHub API rate limit; no live verification');
    return;
   }
@@ -55,7 +55,7 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
  assert.doesNotMatch(report,/Bearer |ghp_|github_pat_/);
  if(process.env.GITHUB_STEP_SUMMARY)
   appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-   '## Optional public API probe: REACHABLE (not a security approval)\\n\\n'+
-   'The live public API responded; this does not certify source correctness or scanner coverage.\\n\\n');
+   '## Optional public API probe: REACHABLE (not a security approval)\n\n'+
+   'The live public API responded; this does not certify source correctness or scanner coverage.\n\n');
  console.log('Public API smoke: PR='+number+' real files='+result.rows.length+', checked='+result.checked+', partial='+result.rows.filter(x=>x.status==='partial').length+', skipped='+result.rows.filter(x=>x.status==='skipped').length+', errors='+result.rows.filter(x=>x.status==='error').length+', complete='+result.complete);
 });
