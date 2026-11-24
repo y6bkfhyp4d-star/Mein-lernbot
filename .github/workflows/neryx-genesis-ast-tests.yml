@@ -523,3 +523,66 @@ jobs:
             } catch { console.error('NERYX_PUBLIC_GIT_SCAN_INCOMPLETE'); process.exitCode=1; }
           }
           JS
+
+      - name: Verify internal network isolation prerequisites
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          net="neryx-internal-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          peer="${net}-peer"
+          client="${net}-client"
+          image='python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20'
+          cleanup() {
+            docker rm -f "$client" "$peer" >/dev/null 2>&1 || true
+            docker network rm "$net" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker network create --internal --driver bridge "$net" >/dev/null
+          test "$(docker network inspect --format '{{.Internal}}' "$net")" = true
+          common=(--pull never --platform linux/amd64 --network "$net" --read-only
+            --cap-drop ALL --security-opt no-new-privileges:true --user 65534:65534
+            --memory 64m --memory-swap 64m --cpus 0.5 --pids-limit 16
+            --entrypoint /usr/local/bin/python3)
+          docker run -d --name "$peer" "${common[@]}" "$image" -I -S -c '
+          import socket
+          with socket.socket() as s:
+              s.settimeout(25)
+              s.bind(("0.0.0.0", 18080))
+              s.listen(1)
+              print("READY",flush=True)
+              conn,_=s.accept()
+              with conn:
+                  conn.settimeout(2)
+                  conn.sendall(b"NERYX_INTERNAL_PEER")
+          ' >/dev/null
+          ready=0
+          for attempt in $(seq 1 30); do
+            if docker logs "$peer" 2>&1 | grep -Fxq READY; then ready=1; break; fi
+            sleep 0.2
+          done
+          test "$ready" = 1
+          timeout --kill-after=5s 20s docker run --name "$client" "${common[@]}" "$image" -I -S -c '
+          import socket,sys
+          with open("/proc/net/route",encoding="ascii") as f:
+              routes=[line.split() for line in f.readlines()[1:]]
+          assert all(row[1]!="00000000" for row in routes)
+          with socket.create_connection((sys.argv[1],18080),timeout=3) as s:
+              received=b""
+              while len(received)<19:
+                  chunk=s.recv(19-len(received))
+                  if not chunk: break
+                  received+=chunk
+              assert received==b"NERYX_INTERNAL_PEER"
+          # Documentation-only address: no real external service is targeted.
+          try:
+              with socket.create_connection(("192.0.2.1",443),timeout=2):
+                  raise AssertionError("Unexpected external connection")
+          except OSError:
+              pass
+          print("NERYX_INTERNAL_NETWORK_PREREQUISITES_OK")
+          ' "$peer"
+          docker rm -f "$client" "$peer" >/dev/null
+          docker network rm "$net" >/dev/null
+          test -z "$(docker ps -a --filter "name=$net" --format '{{.Names}}')"
+          test -z "$(docker network ls --filter "name=$net" --format '{{.Name}}')"
+          echo NERYX_INTERNAL_NETWORK_CLEANUP_OK
