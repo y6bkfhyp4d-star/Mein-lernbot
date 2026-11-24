@@ -209,3 +209,28 @@ export function decodePublicGitCollector(plan,output){
  if(!ended)throw Error('Incomplete collector output');
  return verifyPublicGitTreeHandoff(plan,{base:plan.base,head:plan.head,files},objects);
 }
+
+ // Offline transport adapter. Only input from the verified collector is accepted.
+export async function inspectPublicGitCollector(plan,output,{repo,number,parsers}){
+ if(publicGitPlan({repo,number,head:plan.head,base:plan.base}).url!==plan.url)throw Error('Mismatched scan context');
+ if(!parsers||['ast','pythonSyntax','yamlSyntax'].some(k=>typeof parsers[k]!=='function'))throw Error('Missing isolated parsers');
+ const data=decodePublicGitCollector(plan,output);
+ const {inspect}=await import('../../.github/scripts/neryx-codebrain.mjs');
+ const {snapshotMatchesFiles,snapshotOutcome}=await import('./codebrain-git-snapshot.mjs');
+ const files=data.files.map(f=>({filename:f.path,status:f.status,sha:f.sha||'0'.repeat(40)}));
+ const blobs=new Map(data.files.filter(f=>f.status!=='removed').map(f=>[f.sha,f]));
+ const prefix='https://api.github.com/repos/'+repo;
+ const pr={state:'open',base:{ref:'main',sha:data.base},head:{sha:data.head},changed_files:files.length};
+ const request=async url=>{
+  if(url===prefix+'/pulls/'+number)return new Response(JSON.stringify(pr));
+  if(url===prefix+'/pulls/'+number+'/files?per_page=100')return new Response(JSON.stringify(files));
+  if(url.startsWith(prefix+'/git/blobs/')){
+   const sha=url.slice((prefix+'/git/blobs/').length),f=blobs.get(sha);
+   if(f)return new Response(JSON.stringify({sha,encoding:'base64',size:f.size,content:f.content}));
+  }
+  throw Error('Unexpected offline transport request');
+ };
+ const result=await inspect({repo,number,anonymous:true,request,ast:parsers.ast,pythonSyntax:parsers.pythonSyntax,yamlSyntax:parsers.yamlSyntax});
+ if(result.sha!==data.head||!snapshotMatchesFiles(result,files))throw Error('Scan inventory mismatch');
+ return {scope:'ENDPOINT_TREE_DIFF',base:data.base,head:data.head,result,outcome:snapshotOutcome(result)};
+}

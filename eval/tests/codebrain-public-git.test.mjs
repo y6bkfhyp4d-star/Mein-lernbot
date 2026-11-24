@@ -65,3 +65,9 @@ test('raw Git tree proof rejects omitted trees, forged paths and extra proof obj
  assert.throws(()=>verifyPublicGitTreeHandoff(proofPlan,proofPacket,[...proof,proofObject('tree',Buffer.from('extra'))]));
  assert.throws(()=>verifyPublicGitTreeHandoff(proofPlan,proofPacket,proof.map(x=>x===leaf?{...x,content:empty.content}:x)));
 });
+
+import {inspectPublicGitCollector} from './codebrain-public-git.mjs';
+test('offline scanner adapter requires parser injection and refuses context mismatch',async()=>{
+ await assert.rejects(inspectPublicGitCollector(proofPlan,'',{repo:context.repo,number:context.number}),/Missing isolated parsers/);
+ await assert.rejects(inspectPublicGitCollector(proofPlan,'',{repo:'Other/repo',number:context.number,parsers:{}}),/Mismatched scan context/);
+});

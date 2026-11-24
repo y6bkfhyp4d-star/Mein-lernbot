@@ -460,22 +460,31 @@ jobs:
           echo NERYX_GIT_PROBE_CLEANUP_OK
       - name: Probe pinned public Git refs without REST API or checkout
         if: github.event_name == 'pull_request'
-        timeout-minutes: 2
+        timeout-minutes: 3
         env:
           PROBE_PR: ${{ github.event.pull_request.number }}
           PROBE_HEAD: ${{ github.event.pull_request.head.sha }}
           PROBE_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          node --input-type=module <<'JS'
+          stage="$(mktemp -d "$RUNNER_TEMP/neryx-public-scan.XXXXXX")"
+          trap 'rm -rf -- "$stage"' EXIT
+          chmod 755 "$stage"
+          cp .github/scripts/{neryx-python-syntax.py,neryx-yaml-syntax.rb} "$stage/"
+          cp eval/genesis-ast/{analyzer.mjs,codebrain-worker.mjs} "$stage/"
+          mkdir "$stage/node_modules"
+          cp -R eval/genesis-ast/node_modules/acorn "$stage/node_modules/"
+          chmod -R a+rX "$stage"
+          STAGE="$stage" node --input-type=module <<'JS'
           import {execFileSync} from 'node:child_process';
           import {randomUUID} from 'node:crypto';
-          import {publicGitPlan,publicGitCollector,decodePublicGitCollector} from './eval/tests/codebrain-public-git.mjs';
+          import {publicGitPlan,publicGitCollector,decodePublicGitCollector,inspectPublicGitCollector} from './eval/tests/codebrain-public-git.mjs';
+          import {createSandboxParsers} from './.github/scripts/neryx-sandbox.mjs';
           const plan=publicGitPlan({repo:'y6bkfhyp4d-star/Mein-lernbot',number:Number(process.env.PROBE_PR),head:process.env.PROBE_HEAD,base:process.env.PROBE_BASE});
           const name='neryx-public-git-'+randomUUID();
           const image='buildpack-deps@sha256:7f1df9258f51f0379175ec1c069f66b5b93b4b86c8a2e796a084cfc689262160';
           const invoke=(args,timeout=60000)=>execFileSync('/usr/bin/docker',args,{encoding:'utf8',timeout,killSignal:'SIGKILL',maxBuffer:15000000,stdio:['ignore','pipe','pipe'],env:{PATH:'/usr/bin:/bin',LANG:'C.UTF-8'}});
-          let verified=false;
+          let verified=false, payload;
           try {
             const script=[
               'mkdir -m 700 "$HOME"',
@@ -494,6 +503,7 @@ jobs:
               'GIT_NO_REPLACE_OBJECTS=1','GIT_ASKPASS=/bin/false','/bin/bash','-ec',script,'probe',...plan.fetch]);
             const data=decodePublicGitCollector(plan,out);
             console.log('NERYX_PUBLIC_GIT_TREE_HANDOFF_OK files='+data.files.length);
+            payload=out;
             verified=true;
           } catch {
             console.error('NERYX_PUBLIC_GIT_INCOMPLETE: transport, resource or identity check failed');
@@ -503,5 +513,13 @@ jobs:
             if(remaining)throw Error('Git probe cleanup incomplete');
           }
           if(!verified)process.exitCode=1;
-          else console.log('NERYX_PUBLIC_GIT_PINNED_REFS_OK');
+          else {
+            console.log('NERYX_PUBLIC_GIT_PINNED_REFS_OK');
+            try {
+              const data=await inspectPublicGitCollector(plan,payload,{repo:'y6bkfhyp4d-star/Mein-lernbot',number:Number(process.env.PROBE_PR),parsers:createSandboxParsers({stage:process.env.STAGE})});
+              console.log('NERYX_PUBLIC_GIT_SCAN scope='+data.scope+' files='+data.result.rows.length+' checked='+data.result.checked+' errors='+data.result.rows.filter(r=>r.status==='error').length+' outcome='+data.outcome);
+              if(data.outcome==='INCOMPLETE')process.exitCode=1;
+              else console.log('NERYX_PUBLIC_GIT_SCAN_OK');
+            } catch { console.error('NERYX_PUBLIC_GIT_SCAN_INCOMPLETE'); process.exitCode=1; }
+          }
           JS
