@@ -305,19 +305,21 @@ export function analyzeAST(file,source){
         });
       }
     }
-    // C25: track direct, straight-line updates to already known mutable
-    // function references. Unknown values may be the original method:
-    // never use them to prove a harmless call.
-    if(!uncertain&&node.type==='AssignmentExpression'&&node.operator==='='&&
+    // C26: record bound methods introduced by later assignments too.
+    // Conditional/callback writes remain possible, never proven harmless.
+    if(node.type==='AssignmentExpression'&&node.operator==='='&&
        node.left?.type==='Identifier'){
       let owner=scope;
       while(owner&&!owner.bindings?.has(node.left.name))owner=owner.parent;
       const known=owner&&boundFunctions.get(owner)?.get(node.left.name);
-      if(known?.mutable){
-        const candidate=boundSource(node.right,scope,node.start);
-        const next=candidate||{...known,originalPossible:true};
+      const candidate=boundSource(node.right,scope,node.start);
+      // A const binding cannot be reassigned to a new bound function.
+      if(owner&&(known?.mutable||!known&&candidate)){
+        if(!boundFunctions.has(owner))boundFunctions.set(owner,new Map());
+        const next=candidate||known;
         boundFunctions.get(owner).set(node.left.name,{
-          ...next,originalPossible:true,mutable:true,after:node.end
+          ...next,originalPossible:true,mutable:true,
+          after:uncertain?node.start:node.end
         });
       }
     }
