@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/scripts/neryx-codebrain.mjs'
+      - '.github/scripts/neryx-sandbox.mjs'
       - 'eval/tests/codebrain-live-public.test.mjs'
       - 'eval/tests/codebrain.test.mjs'
       - 'eval/tests/codebrain-rate-limit-diagnostics.mjs'
@@ -59,6 +60,20 @@ jobs:
       - name: Install pinned Acorn parser without lifecycle scripts
         working-directory: eval/genesis-ast
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare pinned offline sandbox images and minimal parser stage
+        run: |
+          set -euo pipefail
+          docker pull --platform linux/amd64 python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20
+          docker pull --platform linux/amd64 ruby@sha256:a9ec8f8f22bdcfff3747e9080fedce2b86f487bdec856ca56464ec63603e49c9
+          docker pull --platform linux/amd64 node@sha256:12f54cafa58d0e96554ae05871e29663ff7241836377dc9a7916449b8adb062c
+          stage="$(mktemp -d "$RUNNER_TEMP/neryx-snapshot.XXXXXX")"
+          chmod 755 "$stage"
+          cp .github/scripts/{neryx-python-syntax.py,neryx-yaml-syntax.rb} "$stage/"
+          cp eval/genesis-ast/{analyzer.mjs,codebrain-worker.mjs} "$stage/"
+          mkdir "$stage/node_modules"
+          cp -R eval/genesis-ast/node_modules/acorn "$stage/node_modules/"
+          chmod -R a+rX "$stage"
+          printf 'CODEBRAIN_SANDBOX_STAGE=%s\n' "$stage" >> "$GITHUB_ENV"
       - name: Inspect local PR merge snapshot without any GitHub API
         env:
           CODEBRAIN_PR_NUMBER: ${{ github.event.pull_request.number }}

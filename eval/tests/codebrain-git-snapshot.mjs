@@ -1,11 +1,12 @@
 // Offline verification of the GitHub Actions synthetic merge commit.
 // No GitHub API, no credentials. Never execute inspected source.
 import {execFileSync} from 'node:child_process';
-import {inspect,render,astWorkerDefault,gitBlobHash} from '../../.github/scripts/neryx-codebrain.mjs';
+import {inspect,render,gitBlobHash} from '../../.github/scripts/neryx-codebrain.mjs';
+import {createSandboxParsers} from '../../.github/scripts/neryx-sandbox.mjs';
 const SHA=/^[a-f0-9]{40}$/i;
 const run=(args,maxBuffer=131072)=>execFileSync('git',['--no-replace-objects',...args],{encoding:'buffer',maxBuffer,timeout:8000,killSignal:'SIGKILL',stdio:['ignore','pipe','pipe'],env:{PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-8',GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_TERMINAL_PROMPT:'0',GIT_NO_LAZY_FETCH:'1'}});
 const safeFile=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
-export async function inspectGitSnapshot({repo,number,expectedHead,expectedBase,git=run,ast=null}){
+export async function inspectGitSnapshot({repo,number,expectedHead,expectedBase,git=run,ast=null,pythonSyntax,yamlSyntax}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1||!SHA.test(expectedHead||'')||!SHA.test(expectedBase||''))throw Error('Invalid snapshot context');
  const txt=args=>git(args).toString('utf8').trim();
  const merge=txt(['rev-parse','HEAD']);
@@ -54,7 +55,7 @@ export async function inspectGitSnapshot({repo,number,expectedHead,expectedBase,
   const payload={sha,encoding:'base64',size,content:bytes.toString('base64')};
   return new Response(JSON.stringify(payload));
  };
- const result=await inspect({repo,number,anonymous:true,request,ast});
+ const result=await inspect({repo,number,anonymous:true,request,ast,pythonSyntax,yamlSyntax});
  if(txt(['rev-parse','HEAD'])!==merge)throw Error('Snapshot HEAD changed during inspection');
  if(!snapshotMatchesFiles(result,files))throw Error('Snapshot result file mismatch');
  return {result,merge,base,head};
@@ -100,8 +101,9 @@ export const snapshotOutcome=r=>!snapshotPasses(r)?'INCOMPLETE':r.complete?'COMP
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
   const number=Number(process.env.CODEBRAIN_PR_NUMBER);
-  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,expectedBase:process.env.CODEBRAIN_PR_BASE_SHA,ast:astWorkerDefault});
-  console.log('NERYX SNAPSHOT: isolated Acorn AST active for JS/MJS/CJS');
+  const parsers=createSandboxParsers({stage:process.env.CODEBRAIN_SANDBOX_STAGE});
+  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,expectedBase:process.env.CODEBRAIN_PR_BASE_SHA,...parsers});
+  console.log('NERYX SNAPSHOT: OS sandbox active for Python, YAML and Acorn');
   console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete+' outcome='+snapshotOutcome(data.result));
   // C27: path and reason are sanitized, source content is never logged.
   for(const row of data.result.rows.filter(x=>x.status!=='checked')){
