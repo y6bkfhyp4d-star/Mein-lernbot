@@ -45,6 +45,7 @@ test('public smoke workflow has no token permissions, secrets, or privileged tri
  assert.match(text,/codebrain-git-snapshot\.test\.mjs/);
  assert.match(text,/CODEBRAIN_PR_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
  assert.match(text,/node eval\/tests\/codebrain-git-snapshot\.mjs/);
+ assert.match(text,/ruby -c \.github\/scripts\/neryx-yaml-syntax\.rb/);
  assert.doesNotMatch(text,/open PR 97/);
 });
 test('Python and YAML parser helpers do not run or deserialize analyzed source',()=>{
