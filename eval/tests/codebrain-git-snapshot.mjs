@@ -55,7 +55,7 @@ export const snapshotPasses=r=>{
  if(!checked||checked!==r.checked||r.complete!==r.rows.every(x=>x?.status==='checked')||r.blocking)return false;
  return r.rows.every(x=>x?.status==='checked'||
   (x?.status==='skipped'&&typeof x.file==='string'&&safeFile(x.file)&&(
-   (x.reason==='unsupported-type'&&!/\\.(?:js|mjs|cjs|json|ya?ml|py)$/i.test(x.file))||
+   (x.reason==='unsupported-type'&&!/\.(?:js|mjs|cjs|json|ya?ml|py)$/i.test(x.file))||
    x.reason==='not-added-or-modified'
   )));
 };
