@@ -142,3 +142,63 @@ jobs:
           grep -Fq 'input-limit' "$RUNNER_TEMP/neryx-yaml-rejected.err"
           rm -f "$RUNNER_TEMP"/neryx-yaml-boundary.txt "$RUNNER_TEMP"/neryx-yaml-rejected.{txt,err}
           echo NERYX_ISOLATED_YAML_SYNTHETIC_OK
+      - name: Verify actual Acorn worker in isolated synthetic cases
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          image='node@sha256:12f54cafa58d0e96554ae05871e29663ff7241836377dc9a7916449b8adb062c'
+          docker pull --platform linux/amd64 "$image"
+          name="neryx-js-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          stage="$(mktemp -d "$RUNNER_TEMP/neryx-js.XXXXXX")"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true; rm -rf -- "$stage"' EXIT
+          chmod 755 "$stage"
+          cp eval/genesis-ast/{analyzer.mjs,codebrain-worker.mjs} "$stage/"
+          mkdir "$stage/node_modules"
+          cp -R eval/genesis-ast/node_modules/acorn "$stage/node_modules/"
+          chmod -R a+rX "$stage"
+          parse() {
+            timeout --kill-after=5s 15s docker run -i --name "$name" --rm --pull never --platform linux/amd64 \
+              --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+              --user 65534:65534 --memory 192m --memory-swap 192m --cpus 0.5 --pids-limit 32 \
+              --tmpfs /tmp:rw,noexec,nosuid,nodev,size=1m \
+              --mount "type=bind,source=$stage,target=/parser,readonly" \
+              --entrypoint /usr/local/bin/node "$image" --max-old-space-size=96 /parser/codebrain-worker.mjs
+          }
+          check() {
+            local label="$1" expected="$2" result
+            result="$(parse)"
+            printf '%s' "$result" | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          assert set(data) == {"parsed", "findings"}
+          assert type(data["parsed"]) is bool and isinstance(data["findings"], list)
+          assert len(data["findings"]) <= 41
+          for f in data["findings"]:
+              assert set(f) == {"rule", "line"} and type(f["line"]) is int and f["line"] >= 1
+          expected = sys.argv[1]
+          assert data["parsed"] is (expected != "invalid")
+          if expected == "invalid":
+              assert len(data["findings"]) == 1 and data["findings"][0]["rule"] == "AST000"
+          elif expected == "dynamic":
+              assert any(f["rule"] == "AST001" for f in data["findings"])
+          else:
+              assert not data["findings"]
+          ' "$expected"
+            echo "Acorn probe passed: $label"
+          }
+          printf '%s' '{"path":"sample.mjs","source":"export const x = 1; throw new Error(\"MUST_NOT_EXECUTE\");"}' | check inert-module valid
+          printf '%s' '{"path":"sample.mjs","source":"eval(\"synthetic\");"}' | check dynamic-warning dynamic
+          printf '%s' '{"path":"sample.mjs","source":"export const = ;"}' | check malformed-module invalid
+          printf '%s' '{"path":"sample.cjs","source":"return;"}' | check commonjs-return valid
+          printf '%s' '{"path":"sample.mjs","source":"return;"}' | check module-return invalid
+          python3 -c 'import json; print(json.dumps({"path":"sample.mjs","source":"//"+"ä"*34999},ensure_ascii=False))' | check exact-byte-boundary valid
+          python3 -c 'import json; print(json.dumps({"path":"sample.mjs","source":"//"+"ä"*34999+" "},ensure_ascii=False))' > "$stage-input.json"
+          set +e
+          parse < "$stage-input.json" > "$stage-output.json" 2>"$stage-error.txt"
+          rc=$?
+          set -e
+          test "$rc" = 1
+          test ! -s "$stage-output.json"
+          grep -Fxq 'AST worker failed' "$stage-error.txt"
+          rm -f "$stage-input.json" "$stage-output.json" "$stage-error.txt"
+          echo NERYX_ISOLATED_ACORN_SYNTHETIC_OK
