@@ -107,7 +107,7 @@ test('snapshot result counters, completeness and statuses must agree before pass
 });
 
 test('C27 snapshot reads a supported 64KB JS file rather than silently skipping it',async()=>{
- const f=fixture({path:'large.test.mjs',source:'const x=1;\n'+'// safe data\n'.repeat(5900)});
+ const f=fixture({path:'large.test.mjs',source:'const x=1;\n'+'// safe data\n'.repeat(5000)});
  const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,
   ast:()=>({parsed:true,findings:[]})});
  assert.equal(data.result.rows[0].status,'checked');
