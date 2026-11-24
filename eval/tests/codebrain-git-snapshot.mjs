@@ -54,7 +54,10 @@ export const snapshotPasses=r=>{
  const checked=r.rows.filter(x=>x?.status==='checked').length;
  if(!checked||checked!==r.checked||r.complete!==r.rows.every(x=>x?.status==='checked')||r.blocking)return false;
  return r.rows.every(x=>x?.status==='checked'||
-  (x?.status==='skipped'&&['unsupported-type','not-added-or-modified'].includes(x.reason)));
+  (x?.status==='skipped'&&typeof x.file==='string'&&safeFile(x.file)&&(
+   (x.reason==='unsupported-type'&&!/\\.(?:js|mjs|cjs|json|ya?ml|py)$/i.test(x.file))||
+   x.reason==='not-added-or-modified'
+  )));
 };
 // Intentional unsupported skips are distinct from incomplete attempted scans.
 export const snapshotOutcome=r=>!snapshotPasses(r)?'INCOMPLETE':r.complete?'COMPLETE':'PARTIAL_UNSUPPORTED';
