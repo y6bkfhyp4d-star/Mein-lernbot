@@ -30,7 +30,7 @@ jobs:
         timeout-minutes: 2
         run: |
           set -euo pipefail
-          image='alpine@sha256:47aa075851fe0d4cb23a4ac565cf788f1c3a22fa9f854bf9e4f260b248784a85'
+          image='alpine@sha256:9db2934886712d877c932e07249c75a59e6ca27adfbccc05261987a17bef2d63'
           docker pull --platform linux/amd64 "$image"
           name="neryx-isolation-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
