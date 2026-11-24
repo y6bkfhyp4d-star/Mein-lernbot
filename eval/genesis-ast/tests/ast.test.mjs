@@ -1395,3 +1395,45 @@ test('C22 unrelated methods called through call/apply do not trigger watched fin
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
 });
+
+test('C23 immediately invoking a bound document method reports an original call',()=>{
+ const r=analyzeAST('bind-invocation.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write.bind(doc)("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2]);
+});
+test('C23 creating a bound method alone does not call original document.write',()=>{
+ const r=analyzeAST('bind-only.mjs',[
+  'const doc=globalThis.document;',
+  'const later=doc.write.bind(doc);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
+test('C23 bound localStorage.clear invoked immediately is detected',()=>{
+ const r=analyzeAST('bind-storage.mjs',[
+  'const store=globalThis.localStorage;',
+  'store.clear.bind(store)();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[2]);
+});
+test('C23 confirmed fresh method replacement suppresses bound method warning',()=>{
+ const r=analyzeAST('bind-replaced.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'doc.write.bind(doc)("replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
+test('C23 nested bind/call expression resolves the invoked method',()=>{
+ const r=analyzeAST('bind-chain.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write.bind(doc).call(null,"original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2]);
+});
