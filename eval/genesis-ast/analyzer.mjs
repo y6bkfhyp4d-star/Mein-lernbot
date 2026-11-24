@@ -328,6 +328,11 @@ export function analyzeAST(file,source){
       const invoked=(callee)=>{
         if(callee?.type==='SequenceExpression')
           return invoked(callee.expressions.at(-1));
+        // C23: a freshly bound method is invoked by the OUTER call, not by
+        // the inner bind() expression. Do not report merely creating a bound fn.
+        if(callee?.type==='CallExpression'&&
+           staticProperty(callee.callee,'bind'))
+          return invoked(callee.callee.object);
         if(callee?.type==='MemberExpression'&&
            (staticProperty(callee,'call')||staticProperty(callee,'apply')))
           return invoked(callee.object);
