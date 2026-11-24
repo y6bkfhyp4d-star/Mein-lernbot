@@ -79,29 +79,29 @@ test('snapshot refuses green status when AST findings exceed the reporting cap',
  assert.equal(snapshotPasses(data.result),false);
 });
 test('snapshot accepts supported clean scans but rejects undisclosed analysis skips',()=>{
- const base={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
+ const base={checked:1,blocking:false,complete:true,rows:[{file:'safe.js',status:'checked',reason:'ast',findings:[]}]};
  assert.equal(snapshotPasses(base),true);
- assert.equal(snapshotPasses({...base,complete:false,rows:[...base.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotPasses({...base,complete:false,rows:[...base.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type',findings:[]}]}),true);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'size-or-encoding'}]}),false);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),false);
 });
 
 test('snapshot outcome distinguishes full, intentional partial and broken scans',()=>{
- const ok={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
+ const ok={checked:1,blocking:false,complete:true,rows:[{file:'safe.js',status:'checked',reason:'ast',findings:[]}]};
  assert.equal(snapshotOutcome(ok),'COMPLETE');
- assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),'PARTIAL_UNSUPPORTED');
+ assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type',findings:[]}]}),'PARTIAL_UNSUPPORTED');
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'findings-truncated'}]}),'INCOMPLETE');
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),'INCOMPLETE');
 });
 
 test('snapshot result counters, completeness and statuses must agree before passing',()=>{
- const good={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
+ const good={checked:1,blocking:false,complete:true,rows:[{file:'safe.js',status:'checked',reason:'ast',findings:[]}]};
  assert.equal(snapshotPasses(good),true);
  assert.equal(snapshotPasses({...good,checked:2}),false);
  assert.equal(snapshotPasses({...good,complete:false}),false);
  assert.equal(snapshotPasses({...good,rows:[...good.rows,{status:'pending',reason:'unknown'}]}),false);
- assert.equal(snapshotPasses({...good,rows:[...good.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),false);
- assert.equal(snapshotPasses({...good,complete:false,rows:[...good.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotPasses({...good,rows:[...good.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type',findings:[]}]}),false);
+ assert.equal(snapshotPasses({...good,complete:false,rows:[...good.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type',findings:[]}]}),true);
  assert.equal(snapshotOutcome({...good,checked:2}),'INCOMPLETE');
  assert.equal(snapshotPasses(null),false);
 });
@@ -127,30 +127,44 @@ test('C27 unsupported files are disclosed as partial, while over-limit files sti
 
 test('C33 falsely claiming a supported source is unsupported cannot pass offline gate',()=>{
  const base={checked:1,blocking:false,complete:false,rows:[
-  {file:'safe.mjs',status:'checked',reason:'ast'},
-  {file:'eval/analyzer.mjs',status:'skipped',reason:'unsupported-type'}
+  {file:'safe.mjs',status:'checked',reason:'ast',findings:[]},
+  {file:'eval/analyzer.mjs',status:'skipped',reason:'unsupported-type',findings:[]}
  ]};
  assert.equal(snapshotPasses(base),false);
  assert.equal(snapshotOutcome(base),'INCOMPLETE');
  for(const file of ['script.js','check.cjs','data.json','config.yaml','config.yml','tool.py']){
-  assert.equal(snapshotPasses({...base,rows:[base.rows[0],{file,status:'skipped',reason:'unsupported-type'}]}),false,file);
+  assert.equal(snapshotPasses({...base,rows:[base.rows[0],{file,status:'skipped',reason:'unsupported-type',findings:[]}]}),false,file);
  }
 });
 test('C33 genuinely unsupported paths remain transparent partial coverage',()=>{
- const checked={file:'eval/a.js',status:'checked',reason:'ast'};
+ const checked={file:'eval/a.js',status:'checked',reason:'ast',findings:[]};
  for(const path of ['docs/README.md','.github/scripts/helper.rb','assets/logo.svg']){
   const r={checked:1,blocking:false,complete:false,rows:[
-   checked,{file:path,status:'skipped',reason:'unsupported-type'}
+   checked,{file:path,status:'skipped',reason:'unsupported-type',findings:[]}
   ]};
   assert.equal(snapshotPasses(r),true,path);
   assert.equal(snapshotOutcome(r),'PARTIAL_UNSUPPORTED',path);
  }
 });
 test('C33 malformed or unsafe unsupported paths never certify partial coverage',()=>{
- const checked={file:'safe.js',status:'checked',reason:'ast'};
+ const checked={file:'safe.js',status:'checked',reason:'ast',findings:[]};
  for(const path of ['../hidden.md','/absolute.md','docs\\hidden.md','',null]){
   const r={checked:1,blocking:false,complete:false,rows:[checked,
-   {file:path,status:'skipped',reason:'unsupported-type'}]};
+   {file:path,status:'skipped',reason:'unsupported-type',findings:[]}]};
   assert.equal(snapshotPasses(r),false,String(path));
  }
 });
+
+ test('C34 result integrity rejects duplicate paths and inconsistent findings',()=>{
+ const row={file:'safe.js',status:'checked',reason:'ast',findings:[]};
+ const good={checked:1,blocking:false,complete:true,rows:[row]};
+ assert.equal(snapshotPasses(good),true);
+ assert.equal(snapshotPasses({...good,checked:2,rows:[row,{...row}]}),false);
+ for(const file of ['', '../unsafe.js',null])assert.equal(snapshotPasses({...good,rows:[{...row,file}]}),false);
+ const confirmed={rule:'AST000',line:1,label:'Syntax',kind:'confirmed'};
+ const heuristic={...confirmed,rule:'AST001',kind:'heuristic'};
+ assert.equal(snapshotPasses({...good,rows:[{...row,findings:[heuristic]}]}),true);
+ assert.equal(snapshotPasses({...good,rows:[{...row,findings:[confirmed]}]}),false);
+ for(const findings of [null,[null],[{...heuristic,line:0}],[{...heuristic,kind:'unknown'}],Array(41).fill(heuristic)])assert.equal(snapshotPasses({...good,rows:[{...row,findings}]}),false);
+ assert.equal(snapshotPasses({...good,complete:false,rows:[row,{file:'docs/a.md',status:'skipped',reason:'unsupported-type',findings:[heuristic]}]}),false);
+ });

@@ -51,6 +51,14 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
 // Unsupported or deleted files remain disclosed; truncated or failed supported scans cannot pass.
 export const snapshotPasses=r=>{
  if(!r||!Array.isArray(r.rows)||typeof r.complete!=='boolean'||typeof r.blocking!=='boolean')return false;
+ const seen=new Set();
+ for(const row of r.rows){
+  if(!row||!safeFile(row.file)||seen.has(row.file)||!Array.isArray(row.findings)||row.findings.length>40)return false;
+  seen.add(row.file);
+  if(row.findings.some(f=>!f||!['confirmed','heuristic'].includes(f.kind)||!Number.isSafeInteger(f.line)||f.line<1||typeof f.rule!=='string'||!f.rule||typeof f.label!=='string'))return false;
+  if(row.status==='skipped'&&row.findings.length)return false;
+ }
+ if(r.blocking!==r.rows.some(x=>x.findings.some(f=>f.kind==='confirmed')))return false;
  const checked=r.rows.filter(x=>x?.status==='checked').length;
  if(!checked||checked!==r.checked||r.complete!==r.rows.every(x=>x?.status==='checked')||r.blocking)return false;
  return r.rows.every(x=>x?.status==='checked'||
