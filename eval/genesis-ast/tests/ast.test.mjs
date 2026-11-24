@@ -1208,3 +1208,73 @@ test('C19 nested conditional deletion exposes inherited document.write and must 
   assert.deepEqual(called,['restored inherited method']);
  }
 });
+
+test('C20 unknown computed property assignment may restore document.write',()=>{
+ const source=[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'doc[key]=original;',
+  'doc.write("restored");'
+ ].join('\n');
+ const report=analyzeAST('computed-restore.mjs',source);
+ assert.equal(report.parsed,true);
+ assert.deepEqual(has(report,'AST005').map(f=>f.line),[4]);
+ for(const key of ['write','title']){
+  const originalCalls=[];
+  const original=function(value){originalCalls.push(value);};
+  const document=Object.create({write:original});
+  runInNewContext(source,{document,key,original},
+    {timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+  assert.deepEqual(originalCalls,key==='write'?['restored']:[]);
+ }
+});
+test('C20 dynamic property delete and unknown fresh assignment revoke certainty',()=>{
+ for(const mutation of ['delete doc[key];','doc[key]=()=>{};']){
+  const source=[
+   'const doc=globalThis.document;',
+   'doc.write=()=>{};',
+   mutation,
+   'doc.write("potential original");'
+  ].join('\n');
+  const report=analyzeAST('dynamic-mutation.mjs',source);
+  assert.equal(report.parsed,true);
+  assert.deepEqual(has(report,'AST005').map(f=>f.line),[4],mutation);
+ }
+});
+test('C20 dynamic mutations can restore localStorage clear across aliases',()=>{
+ const report=analyzeAST('computed-storage.mjs',[
+  'const store=globalThis.localStorage;',
+  'const alias=store;',
+  'store.clear=()=>{};',
+  'alias[key]=oldClear;',
+  'store.clear();'
+ ].join('\n'));
+ assert.equal(report.parsed,true);
+ assert.deepEqual(has(report,'AST004').map(f=>f.line),[5]);
+});
+test('C20 definite unrelated property does not revoke a proven method',()=>{
+ const report=analyzeAST('fixed-unrelated.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'doc["title"]=text;',
+  'doc.write("still replaced");'
+ ].join('\n'));
+ assert.equal(report.parsed,true);
+ assert.deepEqual(has(report,'AST005').map(f=>f.line),[]);
+});
+test('C20 Reflect and Object.defineProperty remain call-side-effect barriers',()=>{
+ for(const invocation of [
+  'Object.defineProperty(doc,"write",{value:original,configurable:true});',
+  'Reflect.set(doc,"write",original);',
+  'Reflect.deleteProperty(doc,"write");'
+ ]){
+  const report=analyzeAST('reflect-barrier.mjs',[
+   'const doc=globalThis.document;',
+   'doc.write=()=>{};',
+   invocation,
+   'doc.write("uncertain");'
+  ].join('\n'));
+  assert.equal(report.parsed,true);
+  assert.deepEqual(has(report,'AST005').map(f=>f.line),[4],invocation);
+ }
+});
