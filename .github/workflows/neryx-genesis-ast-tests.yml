@@ -104,17 +104,39 @@ jobs:
               --mount "type=bind,source=$helper,target=/parser.rb,readonly" \
               --entrypoint /usr/local/bin/ruby "$image" -W0 /parser.rb
           }
-          test "$(printf 'key: value\n' | parse)" = '{"parsed":true,"line":null}'
-          test "$(printf '%s\n' '--- !ruby/object:NeryxNonexistentSyntheticClass' 'value: 1' | parse)" = '{"parsed":true,"line":null}'
-          test "$(printf 'key: [\n' | parse)" = '{"parsed":false,"line":1}'
+          # Label each synthetic case and validate the output contract independently.
+          check() {
+            local label="$1" expected="$2" result
+            if ! result="$(parse)"; then
+              echo "YAML probe failed to execute: $label" >&2
+              return 1
+            fi
+            if ! printf '%s' "$result" | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          assert isinstance(data, dict) and set(data) == {"parsed", "line"}
+          if sys.argv[1] == "valid":
+              assert data["parsed"] is True and data["line"] is None
+          else:
+              assert data["parsed"] is False and type(data["line"]) is int and data["line"] >= 1
+          ' "$expected"; then
+              echo "YAML result contract failed: $label" >&2
+              return 1
+            fi
+            echo "YAML probe passed: $label"
+          }
+          printf 'key: value\n' | check valid-document valid
+          printf '%s\n' '--- !ruby/object:NeryxNonexistentSyntheticClass' 'value: 1' | check inert-object-tag valid
+          printf 'key: [\n' | check invalid-document invalid
           python3 -c 'import sys; sys.stdout.buffer.write(b"x: 1\n#"+b"\xc3\xa4"*34997)' > "$RUNNER_TEMP/neryx-yaml-boundary.txt"
           test "$(wc -c < "$RUNNER_TEMP/neryx-yaml-boundary.txt")" = 70000
-          test "$(parse < "$RUNNER_TEMP/neryx-yaml-boundary.txt")" = '{"parsed":true,"line":null}'
+          check exact-byte-boundary valid < "$RUNNER_TEMP/neryx-yaml-boundary.txt"
           printf ' ' >> "$RUNNER_TEMP/neryx-yaml-boundary.txt"
           set +e
           parse < "$RUNNER_TEMP/neryx-yaml-boundary.txt" > "$RUNNER_TEMP/neryx-yaml-rejected.txt" 2>"$RUNNER_TEMP/neryx-yaml-rejected.err"
           rc=$?
           set -e
+          echo "YAML oversized-input exit status: $rc"
           test "$rc" = 1
           test ! -s "$RUNNER_TEMP/neryx-yaml-rejected.txt"
           grep -Fq 'input-limit' "$RUNNER_TEMP/neryx-yaml-rejected.err"
