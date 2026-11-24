@@ -456,3 +456,50 @@ jobs:
             '
           test -z "$(docker ps -a --filter "name=$name" --format '{{.Names}}')"
           echo NERYX_GIT_PROBE_CLEANUP_OK
+      - name: Probe pinned public Git refs without REST API or checkout
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 2
+        env:
+          PROBE_PR: ${{ github.event.pull_request.number }}
+          PROBE_HEAD: ${{ github.event.pull_request.head.sha }}
+          PROBE_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {randomUUID} from 'node:crypto';
+          import {publicGitPlan,verifyPublicGitIdentity} from './eval/tests/codebrain-public-git.mjs';
+          const plan=publicGitPlan({repo:'y6bkfhyp4d-star/Mein-lernbot',number:Number(process.env.PROBE_PR),head:process.env.PROBE_HEAD,base:process.env.PROBE_BASE});
+          const name='neryx-public-git-'+randomUUID();
+          const image='buildpack-deps@sha256:7f1df9258f51f0379175ec1c069f66b5b93b4b86c8a2e796a084cfc689262160';
+          const invoke=(args,timeout=60000)=>execFileSync('/usr/bin/docker',args,{encoding:'utf8',timeout,killSignal:'SIGKILL',maxBuffer:65536,stdio:['ignore','pipe','pipe'],env:{PATH:'/usr/bin:/bin',LANG:'C.UTF-8'}});
+          let verified=false;
+          try {
+            const script=[
+              'mkdir -m 700 "$HOME"',
+              'git -c core.hooksPath=/dev/null init --bare --template= /tmp/repo.git >&2',
+              'cd /tmp/repo.git',
+              'git "$@" >&2',
+              'git --no-replace-objects fsck --strict --no-reflogs >&2',
+              'git --no-replace-objects rev-parse --verify "refs/neryx/base^{commit}"',
+              'git --no-replace-objects rev-parse --verify "refs/neryx/head^{commit}"'
+            ].join('\n');
+            const out=invoke(['run','--name',name,'--pull','never','--platform','linux/amd64',
+              '--network','bridge','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges:true',
+              '--user','65534:65534','--memory','256m','--memory-swap','256m','--cpus','1','--pids-limit','32',
+              '--tmpfs','/tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777','--entrypoint','/usr/bin/env',image,
+              '-i','PATH=/usr/bin:/bin','LANG=C.UTF-8','HOME=/tmp/neryx-home',
+              'GIT_CONFIG_NOSYSTEM=1','GIT_CONFIG_GLOBAL=/dev/null','GIT_TERMINAL_PROMPT=0',
+              'GIT_NO_REPLACE_OBJECTS=1','GIT_ASKPASS=/bin/false','/bin/sh','-ec',script,'probe',...plan.fetch]);
+            verifyPublicGitIdentity(plan,out.trimEnd().split('\n'));
+            verified=true;
+          } catch {
+            console.error('NERYX_PUBLIC_GIT_INCOMPLETE: transport, resource or identity check failed');
+          } finally {
+            invoke(['rm','-f',name],10000);
+            const remaining=invoke(['ps','-a','--filter','name='+name,'--format','{{.Names}}'],10000).trim();
+            if(remaining)throw Error('Git probe cleanup incomplete');
+          }
+          if(!verified)process.exitCode=1;
+          else console.log('NERYX_PUBLIC_GIT_PINNED_REFS_OK');
+          JS
