@@ -3,6 +3,7 @@
 // permissions: {} and no secrets. It is NOT a privileged trusted-code review.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createSandboxParsers} from '../../.github/scripts/neryx-sandbox.mjs';
 import {inspect,render} from '../../.github/scripts/neryx-codebrain.mjs';
 import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic,isPublicApiRateLimit} from './codebrain-rate-limit-diagnostics.mjs';
 import {appendFileSync} from 'node:fs';
@@ -25,9 +26,10 @@ test('anonymously inspect triggering public PR via GitHub REST API', {skip:proce
   if(response.status===403||response.status===429)denial=githubRateLimitDiagnostic(response);
   return response;
  };
+ const parsers=createSandboxParsers({stage:process.env.CODEBRAIN_SANDBOX_STAGE});
  let result;
  try{
-  result=await inspect({repo,number,anonymous:true,request});
+  result=await inspect({repo,number,anonymous:true,request,...parsers});
  }catch(err){
   if(/^GitHub HTTP (?:403|429)$/.test(String(err?.message))&&isPublicApiRateLimit(denial)){
    // A skipped optional probe is never a verified live result.

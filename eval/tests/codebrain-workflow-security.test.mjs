@@ -177,3 +177,16 @@ test('manual scanner requires sandbox adapters and stages images before token-be
  assert.match(cli,/token:process.env.GH_TOKEN,\.\.\.parsers/);
  assert.doesNotMatch(cli,/astWorkerDefault|pythonSyntaxDefault|yamlSyntaxDefault/);
 });
+
+test('public live probe requires sandbox adapters before inspecting external blobs',()=>{
+ const w=workflowStructure(read('.github/workflows/neryx-codebrain-public-smoke.yml'));
+ const steps=w.jobs['codebrain-public-smoke'].steps;
+ const i=steps.findIndex(s=>s.run==='node --test eval/tests/codebrain-live-public.test.mjs');
+ assert.ok(i>0);
+ assert.match(steps[i-1].run,/CODEBRAIN_SANDBOX_STAGE/);
+ assert.match(steps[i-1].run,/docker pull --platform linux\/amd64/);
+ const live=read('eval/tests/codebrain-live-public.test.mjs');
+ assert.match(live,/createSandboxParsers\(\{stage:process.env.CODEBRAIN_SANDBOX_STAGE\}\)/);
+ assert.match(live,/anonymous:true,request,\.\.\.parsers/);
+ assert.doesNotMatch(live,/astWorkerDefault|pythonSyntaxDefault|yamlSyntaxDefault/);
+});
