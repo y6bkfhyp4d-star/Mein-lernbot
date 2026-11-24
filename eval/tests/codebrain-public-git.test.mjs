@@ -20,3 +20,26 @@ test('public Git identity verification rejects drift and malformed output',()=>{
  assert.deepEqual(verifyPublicGitIdentity(p,[context.base,context.head]),{base:context.base,head:context.head});
  for(const values of [[context.head,context.base],[context.base,'c'.repeat(40)],[context.base,context.head+'\n'],[context.base],null])assert.throws(()=>verifyPublicGitIdentity(p,values));
 });
+
+import {validatePublicGitHandoff} from './codebrain-public-git.mjs';
+import {createHash} from 'node:crypto';
+const blob=Buffer.from('export const x = 1;');
+const entry={path:'src/a.mjs',status:'added',mode:'100644',sha:createHash('sha1').update('blob '+blob.length+'\0').update(blob).digest('hex'),size:blob.length,content:blob.toString('base64')};
+const packet={base:context.base,head:context.head,files:[entry]};
+test('public Git handoff validates canonical blob bytes and pinned identities',()=>{
+ const result=validatePublicGitHandoff(publicGitPlan(context),packet);
+ assert.deepEqual(result,packet);
+ assert.ok(Object.isFrozen(result.files[0]));
+});
+test('public Git handoff rejects corrupt bytes, unsafe modes, paths and duplicate entries',()=>{
+ const p=publicGitPlan(context);
+ for(const patch of [{content:'AAAA'},{sha:'c'.repeat(40)},{size:70001},{mode:'120000'},{mode:'160000'},{path:'../a'},{path:'.git/config'},{path:'a\\b'},{content:entry.content+'\n'},{status:'unknown'}])assert.throws(()=>validatePublicGitHandoff(p,{...packet,files:[{...entry,...patch}]}));
+ for(const files of [[],[entry,entry],Array(31).fill(entry)])assert.throws(()=>validatePublicGitHandoff(p,{...packet,files}));
+ assert.throws(()=>validatePublicGitHandoff(p,{...packet,head:context.base}));
+});
+test('public Git handoff distinguishes deletion from present blob',()=>{
+ const p=publicGitPlan(context);
+ const removed={path:'old.js',status:'removed',mode:null,sha:null,size:0,content:null};
+ assert.deepEqual(validatePublicGitHandoff(p,{...packet,files:[removed]}).files,[removed]);
+ assert.throws(()=>validatePublicGitHandoff(p,{...packet,files:[{...removed,content:''}]}));
+});
