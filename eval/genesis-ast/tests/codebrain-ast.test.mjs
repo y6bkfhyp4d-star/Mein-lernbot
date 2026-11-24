@@ -33,3 +33,16 @@ test('real AST syntax failure is reported without raw source',async()=>{
  assert.match(render(r),/bestätigter Syntaxfehler/);
  assert.doesNotMatch(render(r),/export const x/);
 });
+
+test('ambiguous JS dialect rejection is incomplete and not a confirmed syntax error',async()=>{
+ const {astWorkerDefault}=await import('../../../.github/scripts/neryx-codebrain.mjs');
+ const {createHash}=await import('node:crypto');
+ for(const [source,accepted] of [['const view = <div />;',false],['return;',true]]){
+  const bytes=Buffer.from(source),sha=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  const head='a'.repeat(40);
+  const r=await inspect({repo:'example/repo',number:94,anonymous:true,ast:astWorkerDefault,request:async url=>({ok:true,json:async()=>url.endsWith('/pulls/94')?{state:'open',base:{ref:'main'},head:{sha:head},changed_files:1}:url.includes('/files?')?[{filename:'example.js',status:'modified',sha}]:{sha,encoding:'base64',size:bytes.length,content:bytes.toString('base64')}})});
+  assert.equal(r.complete,accepted);
+  assert.equal(r.blocking,false);
+  if(!accepted){assert.equal(r.rows[0].reason,'ambiguous-js-parser-rejection');assert.equal(r.rows[0].findings[0].kind,'heuristic');}
+ }
+});

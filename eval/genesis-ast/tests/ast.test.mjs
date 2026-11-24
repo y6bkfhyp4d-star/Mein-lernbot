@@ -1654,3 +1654,9 @@ test('C26 runtime oracle verifies conditional bound callback warnings',()=>{
   assert.deepEqual(called,flag&&other?['probe']:[]);
  }
 });
+
+test('explicit CommonJS accepts top-level return; ES module does not',()=>{
+ assert.equal(analyzeAST('x.cjs','return;').parsed,true);
+ assert.equal(analyzeAST('x.js','return;').parsed,true);
+ assert.equal(analyzeAST('x.mjs','return;').parsed,false);
+});

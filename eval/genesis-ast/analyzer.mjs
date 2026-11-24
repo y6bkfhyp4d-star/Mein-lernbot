@@ -171,22 +171,25 @@ function walk(node,visit,parent=null,scope=null,uncertain=false){
 function syntaxError(file,source,error){
   const line=error.loc?.line??1,column=(error.loc?.column??0)+1;
   return {rule:'AST000',severity:'high',file,line,column,
-    message:'JavaScript-Syntaxfehler: '+String(error.message).slice(0,180),
-    suggestion:'Syntax an dieser Position korrigieren; keine Ausführung erfolgt.',confidence:'high'};
+    message:'Acorn 8.15.0 lehnt den Quelltext in den getesteten Sprachmodi ab: '+String(error.message).slice(0,180),
+    suggestion:'Sprachmodus, Dialekt und Syntax an dieser Position prüfen; keine Ausführung erfolgt.',confidence:'high'};
 }
 export function analyzeAST(file,source){
   if(typeof file!=='string'||typeof source!=='string')throw new TypeError('Datei und Quelltext müssen Strings sein');
-  const type=file.endsWith('.mjs')?'module':file.endsWith('.cjs')?'script':'module';
-  let tree;
-  try{
-    tree=parse(source,{ecmaVersion:'latest',sourceType:type,locations:true,allowHashBang:true});
-  }catch(error){
-    // Classic .js code often uses top-level return, or should be handled as scripts.
-    if(type==='module'&&file.endsWith('.js')){
-      try{tree=parse(source,{ecmaVersion:'latest',sourceType:'script',locations:true,allowHashBang:true});}
-      catch(err){return {file,parser:'acorn-ast',findings:[syntaxError(file,source,err)],imports:[],functions:[],calls:[],parsed:false};}
-    }else return {file,parser:'acorn-ast',findings:[syntaxError(file,source,error)],imports:[],functions:[],calls:[],parsed:false};
+  // .js has no authoritative module/dialect metadata in this file-only API.
+  // Try supported modes without executing or importing the source.
+  const modes=file.endsWith('.mjs')?['module']:file.endsWith('.cjs')?['commonjs']:['module','script','commonjs'];
+  let tree, lastError;
+  for(const sourceType of modes){
+    try{
+      tree=parse(source,{ecmaVersion:'latest',sourceType,locations:true,allowHashBang:true});
+      break;
+    }catch(error){
+      if(!(error instanceof SyntaxError))throw error;
+      lastError=error;
+    }
   }
+  if(!tree)return {file,parser:'acorn-ast',findings:[syntaxError(file,source,lastError)],imports:[],functions:[],calls:[],parsed:false};
   const findings=[],imports=[],functions=[],calls=[];
   // C12: explicit per-origin states. Only a proven straight-line replacement
   // suppresses a finding; unknown flow keeps the potentially original method.

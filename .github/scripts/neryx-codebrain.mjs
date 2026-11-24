@@ -135,6 +135,13 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
     row.reason='yaml-ast-parse';
    }else if(ast){
     const data=validateAstResult(ast(path,source));
+    // A .js file can be JSX, Flow, or another dialect. No authoritative
+    // language-mode metadata is available; do not assert a universal syntax error.
+    if(!data.parsed&&path.endsWith('.js')){
+     row.reason='ambiguous-js-parser-rejection';
+     row.findings=data.findings.map(v=>({rule:v.rule,line:v.line,label:'Acorn lehnt getestete JS-Modi ab; Dialekt unbekannt',kind:'heuristic'}));
+     continue;
+    }
     matches=data.findings.map(v=>({rule:v.rule,line:v.line,label:astLabels[v.rule]||'AST-Hinweis',kind:v.rule==='AST000'?'confirmed':'heuristic'}));
     row.reason=data.parsed?'ast':'ast-syntax-error';
    }else{
