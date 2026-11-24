@@ -1507,3 +1507,80 @@ test('C24 runtime oracle verifies stored bound functions retain captured value',
   assert.deepEqual(called,replaceBeforeBind?[]:['sample']);
  }
 });
+
+test('C25 resolves up to four immutable bound-function alias hops',()=>{
+ const r=analyzeAST('multi-hop-bound.mjs',[
+  'const doc=globalThis.document;',
+  'const fn=doc.write.bind(doc);',
+  'const a=fn;',
+  'const b=a;',
+  'const c=b;',
+  'const d=c;',
+  'd("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[7]);
+});
+test('C25 multi-hop aliases preserve a previously captured replacement',()=>{
+ const r=analyzeAST('multi-hop-safe.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'const fn=doc.write.bind(doc);',
+  'const a=fn;',
+  'const b=a;',
+  'const c=b;',
+  'c("replacement");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
+test('C25 mutable bound original function remains recognized',()=>{
+ const r=analyzeAST('mutable-original.mjs',[
+  'const doc=globalThis.document;',
+  'let fn=doc.write.bind(doc);',
+  'doc.write=()=>{};',
+  'fn("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C25 mutable bound replacement is conservatively reported after unknown reassignment',()=>{
+ const r=analyzeAST('mutable-unknown.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'let fn=doc.write.bind(doc);',
+  'fn=unknown;',
+  'fn("possible original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[5]);
+});
+test('C25 shadowed mutable binding does not inherit outer reference',()=>{
+ const r=analyzeAST('mutable-shadow.mjs',[
+  'const doc=globalThis.document;',
+  'let fn=doc.write.bind(doc);',
+  '{let fn=()=>{};fn("other");}',
+  'fn("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C25 independent runtime confirms multi-hop immutable function capture',()=>{
+ for(const safe of [false,true]){
+  const lines=[
+   'const doc=globalThis.document;',
+   ...(safe?['doc.write=()=>{};']:[]),
+   'const fn=doc.write.bind(doc);',
+   'const a=fn;',
+   'const b=a;',
+   'b("marker");'
+  ];
+  const source=lines.join('\n');
+  const report=analyzeAST('multi-hop-oracle.mjs',source);
+  assert.deepEqual(has(report,'AST005').map(x=>x.line),safe?[]:[lines.length]);
+  const observed=[];
+  const document={write(value){observed.push(value);}};
+  runInNewContext(source,{document},{timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+  assert.deepEqual(observed,safe?[]:['marker']);
+ }
+});
