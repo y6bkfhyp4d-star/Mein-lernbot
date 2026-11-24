@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic} from './codebrain-rate-limit-diagnostics.mjs';
+import {githubRateLimitDiagnostic,formatGithubRateLimitDiagnostic,isPublicApiRateLimit} from './codebrain-rate-limit-diagnostics.mjs';
 const response=(status,headers)=>({status,headers:new Headers(headers)});
 test('primary GitHub rate exhaustion is identified using zero remaining',()=>{
  const d=githubRateLimitDiagnostic(response(403,{'x-ratelimit-remaining':'0','x-ratelimit-limit':'60','x-ratelimit-reset':'1795460000','x-ratelimit-resource':'core'}));
@@ -24,4 +24,15 @@ test('missing, malformed or malicious headers do not echo untrusted data',()=>{
 test('non-403 and non-429 responses produce no diagnostic',()=>{
  assert.equal(githubRateLimitDiagnostic(response(200,{})),null);
  assert.equal(githubRateLimitDiagnostic(response(500,{})),null);
+});
+
+test('C28 optional public probe is inconclusive only for evidenced throttling',()=>{
+ assert.equal(isPublicApiRateLimit(githubRateLimitDiagnostic(response(403,{
+  'x-ratelimit-remaining':'0','x-ratelimit-limit':'60'}))),true);
+ assert.equal(isPublicApiRateLimit(githubRateLimitDiagnostic(response(429,{}))),true);
+ assert.equal(isPublicApiRateLimit(githubRateLimitDiagnostic(response(403,{}))),false);
+ assert.equal(isPublicApiRateLimit(githubRateLimitDiagnostic(response(403,{
+  'x-ratelimit-remaining':'42'}))),false);
+ assert.equal(isPublicApiRateLimit(githubRateLimitDiagnostic(response(500,{}))),false);
+ assert.equal(isPublicApiRateLimit(null),false);
 });
