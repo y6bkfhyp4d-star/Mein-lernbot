@@ -82,13 +82,19 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  if(!Number.isInteger(pr.changed_files)||pr.changed_files<1||pr.changed_files>30)throw Error('Leere oder zu große Dateiliste');
  const files=await get('/pulls/'+number+'/files?per_page=100');
  if(!Array.isArray(files)||files.length!==pr.changed_files)throw Error('Unvollständige Dateiliste');
+ const seen=new Set();
+ for(const f of files){
+  if(!f||typeof f.filename!=='string'||seen.has(f.filename))throw Error('Invalid or duplicate file inventory');
+  seen.add(f.filename);
+ }
  const rows=[];let used=0;
  for(const f of files){
   const path=f?.filename;
   const row={file:okPath(path)?path:'[invalid-path]',status:'skipped',reason:'unsupported',findings:[]};
   rows.push(row);
   if(!okPath(path)){row.reason='invalid-path';continue;}
-  if(!['added','modified'].includes(f.status)){row.reason='not-added-or-modified';continue;}
+  if(f.status==='removed'){row.reason='not-added-or-modified';continue;}
+  if(!['added','modified','renamed','copied','changed'].includes(f.status)){row.reason='unsupported-change-status';continue;}
   if(!/\.(js|mjs|cjs|json|yml|yaml|py)$/.test(path)){row.reason='unsupported-type';continue;}
   if(!/^[a-f0-9]{40}$/i.test(f.sha||'')){row.reason='invalid-sha';continue;}
   try{
@@ -138,7 +144,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
  }
  const fresh=await get('/pulls/'+number);
- if(fresh?.head?.sha!==pr.head.sha||fresh?.state!=='open'||fresh?.base?.ref!=='main')throw Error('PR changed during review');
+ if(fresh?.head?.sha!==pr.head.sha||fresh?.state!=='open'||fresh?.base?.ref!=='main'||fresh?.changed_files!==pr.changed_files||(pr.base.sha!==undefined&&fresh.base.sha!==pr.base.sha))throw Error('PR changed during review');
  return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
 }
 export function render(r){

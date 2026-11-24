@@ -365,3 +365,28 @@ test('C37 API scanner independently checks bytes even if response SHA claims to 
   assert.equal(calls,0);assert.equal(r.complete,false);assert.equal(r.rows[0].status,'error');
  }
 });
+
+test('C38 duplicate API paths cannot inflate file coverage',async()=>{
+ const opts=mock([entry('safe.js'),entry('safe.js')]);
+ await assert.rejects(()=>inspect(opts),/Invalid or duplicate file inventory/);
+});
+test('C38 rename, copy and changed targets are scanned; unknown statuses stay incomplete',async()=>{
+ for(const status of ['renamed','copied','changed','removed','unknown']){
+  const r=await inspect(mock([{...entry('safe.js'),status}]));
+  assert.equal(r.complete,['renamed','copied','changed'].includes(status),status);
+  if(status==='unknown')assert.equal(r.rows[0].reason,'unsupported-change-status');
+  if(status==='removed')assert.equal(r.rows[0].reason,'not-added-or-modified');
+ }
+});
+test('C38 changed file count or base commit during review invalidates the report',async()=>{
+ for(const change of [{changed_files:2},{base:{ref:'main',sha:'c'.repeat(40)}}]){
+  const opts=mock([entry('safe.js')]);let reads=0;
+  await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+   if(!u.endsWith('/pulls/94'))return opts.request(u,o);
+   const data=await (await opts.request(u,o)).json();
+   data.base.sha='b'.repeat(40);
+   if(++reads===2)Object.assign(data,change);
+   return {ok:true,json:async()=>data};
+  }}),/PR changed during review/);
+ }
+});
