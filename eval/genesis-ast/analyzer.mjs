@@ -306,15 +306,19 @@ export function analyzeAST(file,source){
           node.argument?.type==='MemberExpression'?node.argument:null;
     // C20: an unknown computed property can designate the monitored method.
     // Only exact, freshly created replacements of a known property are proven.
-    if(!uncertain&&mutation?.object?.type==='Identifier'){
-      const alias=aliasAt(mutation.object.name,scope,node.start);
+    if(!uncertain&&mutation){
+      // C21: globalThis.document, document and their immutable aliases all
+      // refer to the same tracked method, unless the global name is shadowed.
+      const object=mutation.object;
+      const origin=aliasOrigin(object,scope)||
+        (object?.type==='Identifier'?aliasAt(object.name,scope,node.start)?.origin:null);
       const unknownProperty=mutation.computed&&mutation.property?.type!=='Literal';
       const exactFresh=node.type==='AssignmentExpression'&&
         provenReplacement(node)&&!unknownProperty;
-      if(!exactFresh&&alias?.origin==='document'&&
+      if(!exactFresh&&origin==='document'&&
          (staticProperty(mutation,'write')||unknownProperty))
         invalidate('document');
-      if(!exactFresh&&alias?.origin==='localStorage'&&
+      if(!exactFresh&&origin==='localStorage'&&
          (staticProperty(mutation,'clear')||unknownProperty))
         invalidate('localStorage');
     }
