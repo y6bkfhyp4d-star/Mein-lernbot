@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "AMD Radeon",
-    "Asus",
-    "15-Puzzle",
-    "Algorithmus von Floyd und Warshall",
-    "A.I. – Künstliche Intelligenz",
-    "A Hard Lesson",
-    "A posteriori",
-    "A priori (Begriffsklärung)",
     "Aktie",
     "Aktienbörse",
     "Albedo",
@@ -89,7 +81,15 @@
     "Anregungszustand",
     "Atmosphärenchemie",
     "Angeregter Zustand",
-    "Apparatefunktion"
+    "Apparatefunktion",
+    ".Net-Framework",
+    "AMD-Chipsätze",
+    "1989",
+    "Acer",
+    "Beweis (Logik)",
+    "Beweis (Mathematik)",
+    "Abstand",
+    "Adjazenzmatrix"
   ],
   "entries": [
     {
@@ -1251,6 +1251,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Spektrallinie"
+    },
+    {
+      "collected_at": "2026-11-24T15:22:28+00:00",
+      "excerpt": "AMD Radeon, früher ATI Radeon, ist ein Markenname von AMD, mit dem Grafikkarten und Grafikchips vermarktet werden. Im Segment der professionellen Grafikkarten wird seit 2016 die Bezeichnung AMD Radeon Pro benutzt. Die Grafikkarten stehen in Konkurrenz zu Nvidias GeForce- und Intels Arc-Reihe.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/AMD_Radeon",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "AMD Radeon"
+    },
+    {
+      "collected_at": "2026-11-24T15:22:28+00:00",
+      "excerpt": "ASUSTeK Computer Inc., kurz ASUS ['eɪsuːs] (chinesisch 華碩電腦 / 华硕电脑, Pinyin Huáshùo Diànnǎo), ist ein 1989 gegründeter großer taiwanesischer Hersteller von Computer-Hardware mit Sitz in Taipeh. Der Hersteller ist allgemein unter dem Markennamen Asus bekannt. Das Unternehmen bietet unter anderem Desktops, Laptops, Netbooks, Mobiltelefone, Netzwerkgeräte, Monitore, WLAN-Router, Projektoren, Hauptplatinen, Grafikkarten, optische Speichermedien, Multimedia-Produkte, Peripheriegeräte, Wearables, Server, Workstations und Tablet-PCs, auch als Erstausrüster, an. Im Januar 2008 wurde das Unternehmen in die drei rechtlich selbständigen Geschäftsbereiche Asus, Pegatron und Unihan aufgeteilt. Die Aktien des Unternehmens werden unter dem Börsenkürzel 2357 an der Taiwan Stock Exchange und unter ASKD an der London Stock Exchange gehandelt. Im Jahr 2025 e",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Asus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Asus"
+    },
+    {
+      "collected_at": "2026-11-24T15:22:28+00:00",
+      "excerpt": "Das 15-Puzzle, auch Fünfzehnerspiel, 14-15-Puzzle, Schiebepuzzle, Schieberätsel, Schiebefix, Schiebefax oder Ohne-Fleiß-kein-Preis-Spiel genannt, ist ein Geduldsspiel. Es wurde zwischen 1870 und 1880 in den Vereinigten Staaten vom Postangestellten Noyes Palmer Chapman erfunden. Das Spiel besteht aus 15 Kacheln, von 1 bis 15 durchnummeriert, die auf den 16 Feldern eines Vier-mal-vier-Quadrats angebracht sind. Ein Feld (das „Loch“) bleibt also frei. Eine (vertikal oder horizontal) benachbarte Kachel kann jeweils in das freie Feld hineingeschoben werden. Die Aufgabe besteht nun darin, durch Verschieben der Kacheln die Zahlen von 1 bis 15 aufsteigend anzuordnen. Je nach Ausgangsstellung gibt es verschiedene Varianten des Spiels, insbesondere das 14-15-Puzzle, bei dem in der Ausgangsstellung lediglich die Zahlen 14 und 15 vertauscht sind, wodu",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/15-Puzzle",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "15-Puzzle"
+    },
+    {
+      "collected_at": "2026-11-24T15:22:28+00:00",
+      "excerpt": "Der Algorithmus von Floyd und Warshall (auch Floyd-Warshall-Algorithmus oder Tripel-Algorithmus), benannt nach Robert Floyd und Stephen Warshall, ist ein Algorithmus der Graphentheorie. In Floyds Version findet er die kürzesten Pfade zwischen allen Paaren von Knoten eines Graphen und berechnet deren Länge (APSP, all-pairs shortest path). In Warshalls Version findet er die transitive Hülle eines Graphen. Beide Versionen wurden 1962 vorgestellt und gehen auf einen Algorithmus zurück, den Stephen Kleene 1956 im Zusammenhang mit regulären Ausdrücken veröffentlicht hat.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Algorithmus von Floyd und Warshall"
     }
   ],
   "failed_titles": [
@@ -1263,20 +1303,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 5,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Evolution",
-        "Desoxyribonukleinsäure",
-        "Chemische Reaktion",
-        "Licht",
-        "Temperatur"
-      ],
-      "time": "2026-11-17T09:20:33+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1647,6 +1673,19 @@
         "Spektrallinie"
       ],
       "time": "2026-11-24T09:28:52+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "AMD Radeon",
+        "Asus",
+        "15-Puzzle",
+        "Algorithmus von Floyd und Warshall"
+      ],
+      "time": "2026-11-24T15:22:28+00:00"
     }
   ],
   "schema": 1
