@@ -224,7 +224,8 @@ export function analyzeAST(file,source){
   const boundSource=(expression,scope,pos)=>{
     if(expression?.type==='Identifier'){
       const prior=boundAt(expression.name,scope,pos);
-      return prior&&prior.depth===0?{...prior,depth:1}:null;
+      // C25: support a bounded chain of immutable function references.
+      return prior&&prior.depth<4?{...prior,depth:prior.depth+1}:null;
     }
     if(expression?.type!=='CallExpression'||!staticProperty(expression.callee,'bind'))return null;
     // Restrict capture to a simple, known method access with inert bind args.
@@ -292,11 +293,32 @@ export function analyzeAST(file,source){
     // VariableDeclarator is visited before its initializer; this preserves
     // the method's status at capture time, before bind()'s call barrier.
     if(node.type==='VariableDeclarator'&&parent?.type==='VariableDeclaration'&&
-       parent.kind==='const'&&node.id?.type==='Identifier'&&!uncertain){
+       ['const','let','var'].includes(parent.kind)&&
+       node.id?.type==='Identifier'&&!uncertain){
       const bound=boundSource(node.init,scope,node.start);
       if(bound){
         if(!boundFunctions.has(scope))boundFunctions.set(scope,new Map());
-        boundFunctions.get(scope).set(node.id.name,{...bound,after:node.end});
+        const mutable=parent.kind!=='const';
+        boundFunctions.get(scope).set(node.id.name,{
+          ...bound,originalPossible:mutable||bound.originalPossible,
+          mutable,after:node.end
+        });
+      }
+    }
+    // C25: track direct, straight-line updates to already known mutable
+    // function references. Unknown values may be the original method:
+    // never use them to prove a harmless call.
+    if(!uncertain&&node.type==='AssignmentExpression'&&node.operator==='='&&
+       node.left?.type==='Identifier'){
+      let owner=scope;
+      while(owner&&!owner.bindings?.has(node.left.name))owner=owner.parent;
+      const known=owner&&boundFunctions.get(owner)?.get(node.left.name);
+      if(known?.mutable){
+        const candidate=boundSource(node.right,scope,node.start);
+        const next=candidate||{...known,originalPossible:true};
+        boundFunctions.get(owner).set(node.left.name,{
+          ...next,originalPossible:true,mutable:true,after:node.end
+        });
       }
     }
     if(node.type==='FunctionDeclaration'&&node.id?.name){
