@@ -35,6 +35,21 @@ Der Offline-Snapshot hatte 22 von 25 Dateien geprüft und drei Ausnahmen ausdrü
 
 Diese Dokumentationsänderung erzeugt einen neuen Commit, dessen CI separat neu bewertet werden muss; der historische Erfolg des obigen Commits wird nicht als Erfolg eines neuen Commits ausgegeben.
 
+## C30 – Stabilitätscheck und Entscheidungsvorbereitung (24.11.2026)
+
+**Bestätigter Stand vor diesem Dokumentationscommit:** Commit `2da52a57e07228e86c44e6d700b9b5e0a16b4082`; Draft-PR #97 offen und laut GitHub technisch zusammenführbar. Alle fünf relevanten PR-Workflow-Runs waren `completed/success`. Das Merge-Candidate-Workflow umfasste erfolgreiche Integration, Chromium und WebKit. Offline-Snapshot: 22 von 25 Dateien geprüft, drei Ausnahmen für nicht unterstützte Dateitypen (`PARTIAL_UNSUPPORTED`), keine Analysefehler; öffentliche Live-API-Probe war beim geprüften Lauf erreichbar.
+
+**Entscheidungsstatus: keine Merge-Freigabe.** Folgende Punkte bleiben außerhalb der belegten CI-Prüfung offen:
+
+- Externer oder unabhängiger Sicherheitsreview und abschließende manuelle Prüfung der Workflow-Vertrauensgrenzen.
+- Ende-zu-Ende-Verifikation des manuellen `workflow_dispatch` nach einer ausdrücklich genehmigten Integration; auf diesem Draft-Branch nicht nachgewiesen.
+- Entscheidung, ob die dokumentierten drei Dateityp-Ausnahmen vor einer Freigabe zusätzlich separat zu prüfen sind.
+- Ausdrückliche Genehmigung durch den Repository-Verantwortlichen. Weder Draft-Status noch Merge-Einstellungen dürfen ohne diese Genehmigung verändert werden.
+
+**Interpretation der Checks:** Grüner Merge-Candidate-Workflow belegt das geprüfte Integrations- und Browsertest-Ergebnis, nicht die Abwesenheit aller Sicherheits- oder Laufzeitfehler. `PARTIAL_UNSUPPORTED` ist keine vollständige Dateiabdeckung. Ein optionaler Live-API-Test mit `INCONCLUSIVE` darf niemals als bestandene Live-Verifikation ausgewiesen werden.
+
+**Neuer Commit = neue CI-Bewertung:** Die vorstehenden Ergebnisse gelten für `2da52a5`; bei Änderungen an diesem Dokument müssen die GitHub-Checks am neuen Head erneut überprüft werden.
+
 ## Freigaberegeln
 - Erst alle erforderlichen GitHub-Checks am letzten Commit grün und einen unabhängigen Review abschließen.
 - Sicherheitsgrenzen und Testresultate klar dokumentieren; keine automatischen Merges, kein Deployment, keine neuen Secrets oder Schreibrechte.
