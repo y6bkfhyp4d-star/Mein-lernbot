@@ -7,7 +7,7 @@
   ],
   "records": [
     {
-      "checked_at": "2026-11-24T03:44:52+00:00",
+      "checked_at": "2026-11-24T09:53:13+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
@@ -16,7 +16,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-24T03:44:52+00:00",
+      "checked_at": "2026-11-24T09:53:13+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
@@ -25,7 +25,7 @@
       "verified_correction": false
     },
     {
-      "checked_at": "2026-11-24T03:44:52+00:00",
+      "checked_at": "2026-11-24T09:53:13+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
@@ -635,6 +635,13 @@
     },
     {
       "at": "2026-11-24T03:44:52+00:00",
+      "candidates": 0,
+      "errors": 0,
+      "processed": 3,
+      "with_claims": 0
+    },
+    {
+      "at": "2026-11-24T09:53:13+00:00",
       "candidates": 0,
       "errors": 0,
       "processed": 3,
