@@ -60,6 +60,25 @@ Die beiden Markdown-Dokumente bleiben als nicht vom Code-Scanner geprüfte Ausna
 
 **Weiter offen vor einer Merge-Entscheidung:** unabhängiger Review, manuelle `workflow_dispatch`-E2E-Verifikation auf vertrauenswürdigem `main` nach einer ausdrücklich genehmigten Integration sowie ausdrückliche Genehmigung zum Merge. Der neue C31-Commit benötigt eine eigene CI-Abnahme; frühere grüne Checks sind kein Ersatz.
 
+## C32 – konsolidierter Stabilitätsnachweis und verbleibende Freigabesperren (24.11.2026)
+
+**Nachweis für unveränderten geprüften Head `262880f514cba3863dad0acfc89409259dd1a829`:** Alle fünf PR-Workflows auf GitHub `completed/success`: AST Analyzer, read-only Reviewer, Candidate Policy, Offline-Gate mit optionaler API sowie Merge Candidate Verification. Deren Jobs `integration`, `browsers (chromium)` und `browsers (webkit)` waren jeweils `completed/success`. Der Draft-PR #97 ist offen und laut GitHub technisch zusammenführbar.
+
+| Entscheidungspunkt | Stand | Aussagegrenze |
+| --- | --- | --- |
+| AST- und Regressionstests | Bestanden | Keine vollständige Semantik- oder Sicherheitsgarantie |
+| Offline-PR-Snapshot | Bestanden, `PARTIAL_UNSUPPORTED` | 22/25 Dateien geprüft, 3 explizite Ausnahmen |
+| Ruby-Helfer | Separater `ruby -c`-Check bestanden | Syntax, kein Ruby-Sicherheitsaudit |
+| Browser- und Merge-Kandidatentests | Integration, Chromium und WebKit bestanden | Nur getestete Fälle und Laufzeitumgebung |
+| Live-API-Diagnostik | Optional, nicht Freigabekriterium | Bei Limit ausdrücklich `INCONCLUSIVE` |
+| Unabhängiger Sicherheitsreview | **Offen** | Keine unabhängige Freigabe behaupten |
+| Manueller `workflow_dispatch`-E2E-Test auf vertrauenswürdigem `main` | **Nicht nachgewiesen** | Auf Draft-Branch nicht als durchgeführt ausgeben |
+| Repository-Verantwortlicher: ausdrückliche Merge-Freigabe | **Nicht erteilt** | Draft beibehalten, kein Merge und kein Deployment |
+
+**Entscheidung:** technisch getesteter Draft-Kandidat, **nicht zur automatischen Integration freigegeben**. Der unabhängige Review, die verbleibenden manuellen Nachweise und die ausdrückliche Nutzerentscheidung sind keine durch grüne CI-Checks ersetzbaren Schritte.
+
+**Nachweiskette:** Diese Sektion dokumentiert den historischen Erfolg von `262880f`. Der Dokumentationscommit selbst muss als neuer Head separat geprüft werden. Zusätzliche Dokumentationscommits erzeugen keine neuen Sicherheitsnachweise und sollten vermieden werden, sofern sich die Fakten nicht ändern.
+
 ## Freigaberegeln
 - Erst alle erforderlichen GitHub-Checks am letzten Commit grün und einen unabhängigen Review abschließen.
 - Sicherheitsgrenzen und Testresultate klar dokumentieren; keine automatischen Merges, kein Deployment, keine neuen Secrets oder Schreibrechte.
