@@ -169,7 +169,9 @@ export function render(r){
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
-  const r=await inspect({repo:process.env.GITHUB_REPOSITORY,number:Number(process.env.PR_NUMBER),token:process.env.GH_TOKEN,ast:astWorkerDefault});
+  const {createSandboxParsers}=await import('./neryx-sandbox.mjs');
+  const parsers=createSandboxParsers({stage:process.env.CODEBRAIN_SANDBOX_STAGE});
+  const r=await inspect({repo:process.env.GITHUB_REPOSITORY,number:Number(process.env.PR_NUMBER),token:process.env.GH_TOKEN,...parsers});
   const summary=render(r);
   if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,summary);
   else console.log(summary);

@@ -163,3 +163,17 @@ test('offline snapshot must receive the event base and head identities',()=>{
  assert.equal(scan.env.CODEBRAIN_PR_BASE_SHA,'${{ github.event.pull_request.base.sha }}');
  assert.equal(scan.env.CODEBRAIN_PR_HEAD_SHA,'${{ github.event.pull_request.head.sha }}');
 });
+
+test('manual scanner requires sandbox adapters and stages images before token-bearing scan',()=>{
+ const w=workflowStructure(read('.github/workflows/neryx-codebrain.yml'));
+ const steps=w.jobs['codebrain-manual'].steps;
+ const i=steps.findIndex(s=>s.run==='node .github/scripts/neryx-codebrain.mjs');
+ assert.ok(i>0);
+ assert.match(steps[i-1].run,/docker pull --platform linux\/amd64/);
+ assert.match(steps[i-1].run,/CODEBRAIN_SANDBOX_STAGE/);
+ assert.equal(Object.hasOwn(steps[i-1],'env'),false);
+ const cli=read('.github/scripts/neryx-codebrain.mjs').split('if(process.argv[1]&&import.meta.url===')[1];
+ assert.match(cli,/createSandboxParsers\(\{stage:process.env.CODEBRAIN_SANDBOX_STAGE\}\)/);
+ assert.match(cli,/token:process.env.GH_TOKEN,\.\.\.parsers/);
+ assert.doesNotMatch(cli,/astWorkerDefault|pythonSyntaxDefault|yamlSyntaxDefault/);
+});
