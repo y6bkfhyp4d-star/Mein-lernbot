@@ -1584,3 +1584,73 @@ test('C25 independent runtime confirms multi-hop immutable function capture',()=
   assert.deepEqual(observed,safe?[]:['marker']);
  }
 });
+
+test('C26 late assignment to an uninitialized mutable bound function is recognized',()=>{
+ const r=analyzeAST('late-bind.mjs',[
+  'const doc=globalThis.document;',
+  'let fn;',
+  'fn=doc.write.bind(doc);',
+  'fn("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C26 conditional assignment to mutable callback never hides possible original',()=>{
+ const r=analyzeAST('conditional-bind.mjs',[
+  'const doc=globalThis.document;',
+  'let fn=()=>{};',
+  'if(flag)fn=doc.write.bind(doc);',
+  'fn("maybe original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C26 nested branch assignment to mutable callback is conservatively reported',()=>{
+ const r=analyzeAST('nested-late-bind.mjs',[
+  'const doc=globalThis.document;',
+  'let fn=()=>{};',
+  'if(flag){if(other){fn=doc.write.bind(doc);}}',
+  'fn("conditional original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C26 unknown reassignment cannot prove a captured original is harmless',()=>{
+ const r=analyzeAST('conditional-unknown.mjs',[
+  'const doc=globalThis.document;',
+  'let fn=doc.write.bind(doc);',
+  'if(flag)fn=unknown;',
+  'fn("possible original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C26 storage callback assignment via another immutable bound alias',()=>{
+ const r=analyzeAST('conditional-storage-bind.mjs',[
+  'const store=globalThis.localStorage;',
+  'const bound=store.clear.bind(store);',
+  'let fn=()=>{};',
+  'if(flag)fn=bound;',
+  'fn();'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[5]);
+});
+test('C26 runtime oracle verifies conditional bound callback warnings',()=>{
+ for(const flag of [false,true])for(const other of [false,true]){
+  const source=[
+   'const doc=globalThis.document;',
+   'let fn=()=>{};',
+   'if(flag){if(other){fn=doc.write.bind(doc);}}',
+   'fn("probe");'
+  ].join('\n');
+  const report=analyzeAST('conditional-runtime-oracle.mjs',source);
+  const warnings=new Set(has(report,'AST005').map(f=>f.line));
+  const called=[];
+  const document={write(x){called.push(x);}};
+  runInNewContext(source,{document,flag,other},
+    {timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+  if(called.length)assert.ok(warnings.has(4),'missed actual bound original call');
+  assert.deepEqual(called,flag&&other?['probe']:[]);
+ }
+});
