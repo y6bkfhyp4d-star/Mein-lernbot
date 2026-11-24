@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 22,
+  "cursor": 27,
   "entities": [
     {
       "checked_at": "2026-11-23T15:30:30+00:00",
@@ -244,7 +244,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q9444"
     },
     {
-      "checked_at": "2026-11-20T15:19:43+00:00",
+      "checked_at": "2026-11-24T21:20:36+00:00",
       "classes": [
         "Wissenschaftsdisziplin",
         "Einzelwissenschaft",
@@ -258,7 +258,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q1069"
     },
     {
-      "checked_at": "2026-11-20T15:19:43+00:00",
+      "checked_at": "2026-11-24T21:20:36+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -267,7 +267,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q8072"
     },
     {
-      "checked_at": "2026-11-20T15:19:43+00:00",
+      "checked_at": "2026-11-24T21:20:36+00:00",
       "classes": [
         "Erfindung",
         "Maschine"
@@ -279,7 +279,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q68"
     },
     {
-      "checked_at": "2026-11-20T15:19:43+00:00",
+      "checked_at": "2026-11-24T21:20:36+00:00",
       "classes": [],
       "source_changed": false,
       "status": "ok",
@@ -288,7 +288,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q8366"
     },
     {
-      "checked_at": "2026-11-20T21:14:13+00:00",
+      "checked_at": "2026-11-24T21:20:36+00:00",
       "classes": [
         "IP network",
         "Rechnernetz",
@@ -1002,13 +1002,6 @@
   ],
   "runs": [
     {
-      "at": "2026-11-17T12:01:16+00:00",
-      "checked": 5,
-      "error_count": 1,
-      "known_sources": 20,
-      "source_changes": 0
-    },
-    {
       "at": "2026-11-17T21:15:51+00:00",
       "checked": 5,
       "error_count": 1,
@@ -1206,6 +1199,13 @@
     },
     {
       "at": "2026-11-24T15:27:54+00:00",
+      "checked": 5,
+      "error_count": 3,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-24T21:20:36+00:00",
       "checked": 5,
       "error_count": 3,
       "known_sources": 89,
