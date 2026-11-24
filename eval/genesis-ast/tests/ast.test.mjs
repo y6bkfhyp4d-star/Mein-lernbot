@@ -1278,3 +1278,69 @@ test('C20 Reflect and Object.defineProperty remain call-side-effect barriers',()
   assert.deepEqual(has(report,'AST005').map(f=>f.line),[4],invocation);
  }
 });
+
+test('C21 direct document mutation invalidates an immutable alias replacement',()=>{
+ const r=analyzeAST('direct-global-write.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'document.write=original;',
+  'doc.write("possible original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C21 explicit globalThis property mutation invalidates all matching aliases',()=>{
+ for(const mutation of [
+  'globalThis.document.write=original;',
+  'delete globalThis.document.write;',
+  'globalThis.document[key]=original;'
+ ]){
+  const r=analyzeAST('explicit-global-write.mjs',[
+   'const doc=globalThis.document;',
+   'doc.write=()=>{};',
+   mutation,
+   'doc.write("possible original");'
+  ].join('\n'));
+  assert.equal(r.parsed,true);
+  assert.deepEqual(has(r,'AST005').map(x=>x.line),[4],mutation);
+ }
+});
+test('C21 direct and explicit storage changes invalidate known aliases',()=>{
+ for(const mutation of [
+  'localStorage.clear=original;',
+  'globalThis.localStorage.clear=original;',
+  'delete globalThis.localStorage.clear;',
+  'globalThis.localStorage[key]=original;'
+ ]){
+  const r=analyzeAST('explicit-global-storage.mjs',[
+   'const store=globalThis.localStorage;',
+   'store.clear=()=>{};',
+   mutation,
+   'store.clear();'
+  ].join('\n'));
+  assert.equal(r.parsed,true);
+  assert.deepEqual(has(r,'AST004').map(x=>x.line),[4],mutation);
+ }
+});
+test('C21 shadowed globals cannot mutate the tracked global object',()=>{
+ const r=analyzeAST('shadowed-global-mutation.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  '{const document={write:null}; document.write=original;}',
+  '{const globalThis={document:{}};globalThis.document.write=original;}',
+  'doc.write("still replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
+test('C21 unrelated direct global mutation preserves known method state',()=>{
+ const r=analyzeAST('unrelated-direct-mutation.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'globalThis.document.title="ok";',
+  'document["title"]="fine";',
+  'doc.write("still replaced");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
