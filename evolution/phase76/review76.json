@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 12,
+  "cursor": 17,
   "entities": [
     {
       "checked_at": "2026-11-23T15:30:30+00:00",
@@ -137,7 +137,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q629"
     },
     {
-      "checked_at": "2026-11-20T03:10:23+00:00",
+      "checked_at": "2026-11-24T09:37:01+00:00",
       "classes": [
         "astronomische Objektklasse"
       ],
@@ -148,7 +148,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q634"
     },
     {
-      "checked_at": "2026-11-20T03:10:23+00:00",
+      "checked_at": "2026-11-24T09:37:01+00:00",
       "classes": [
         "astronomische Objektklasse"
       ],
@@ -159,7 +159,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q523"
     },
     {
-      "checked_at": "2026-11-20T03:10:23+00:00",
+      "checked_at": "2026-11-24T09:37:01+00:00",
       "classes": [
         "astronomische Objektklasse"
       ],
@@ -170,7 +170,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q318"
     },
     {
-      "checked_at": "2026-11-20T03:10:23+00:00",
+      "checked_at": "2026-11-24T09:37:01+00:00",
       "classes": [
         "Typ des Prozesses",
         "Fachgebiet",
@@ -184,7 +184,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q1063"
     },
     {
-      "checked_at": "2026-11-20T09:27:00+00:00",
+      "checked_at": "2026-11-24T09:37:01+00:00",
       "classes": [
         "Strukturklasse von chemischen Verbindungen"
       ],
@@ -1002,13 +1002,6 @@
   ],
   "runs": [
     {
-      "at": "2026-11-17T11:58:12+00:00",
-      "checked": 5,
-      "error_count": 0,
-      "known_sources": 20,
-      "source_changes": 0
-    },
-    {
       "at": "2026-11-17T12:00:54+00:00",
       "checked": 5,
       "error_count": 1,
@@ -1206,6 +1199,13 @@
     },
     {
       "at": "2026-11-24T03:16:55+00:00",
+      "checked": 5,
+      "error_count": 3,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-24T09:37:01+00:00",
       "checked": 5,
       "error_count": 3,
       "known_sources": 89,
