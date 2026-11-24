@@ -57,3 +57,33 @@ jobs:
               rm /tmp/isolation-probe
               echo NERYX_SYNTHETIC_ISOLATION_PROBE_OK
             '
+      - name: Verify actual Python parser in isolated synthetic cases
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          image='python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20'
+          docker pull --platform linux/amd64 "$image"
+          name="neryx-python-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
+          helper="$PWD/.github/scripts/neryx-python-syntax.py"
+          parse() {
+            timeout --kill-after=5s 15s docker run -i --name "$name" --rm --pull never --platform linux/amd64 \
+              --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+              --user 65534:65534 --memory 64m --memory-swap 64m --cpus 0.5 --pids-limit 16 \
+              --tmpfs /tmp:rw,noexec,nosuid,nodev,size=1m \
+              --mount "type=bind,source=$helper,target=/parser.py,readonly" \
+              --entrypoint /usr/local/bin/python3 "$image" -I -S /parser.py
+          }
+          test "$(printf 'raise RuntimeError("MUST_NOT_EXECUTE")\n' | parse)" = '{"parsed":true,"line":null}'
+          test "$(printf 'def broken(:\n' | parse)" = '{"parsed":false,"line":1}'
+          python3 -c 'import sys; sys.stdout.buffer.write(b"x=1\n#"+b"\xc3\xa4"*34997+b" ")' > "$RUNNER_TEMP/neryx-python-boundary.txt"
+          test "$(wc -c < "$RUNNER_TEMP/neryx-python-boundary.txt")" = 70000
+          test "$(parse < "$RUNNER_TEMP/neryx-python-boundary.txt")" = '{"parsed":true,"line":null}'
+          printf ' ' >> "$RUNNER_TEMP/neryx-python-boundary.txt"
+          if parse < "$RUNNER_TEMP/neryx-python-boundary.txt" > "$RUNNER_TEMP/neryx-python-rejected.txt" 2>/dev/null; then
+            echo 'Oversized parser input unexpectedly accepted' >&2
+            exit 1
+          fi
+          test ! -s "$RUNNER_TEMP/neryx-python-rejected.txt"
+          rm -f "$RUNNER_TEMP/neryx-python-boundary.txt" "$RUNNER_TEMP/neryx-python-rejected.txt"
+          echo NERYX_ISOLATED_PYTHON_SYNTHETIC_OK
