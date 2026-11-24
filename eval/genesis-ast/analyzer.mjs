@@ -209,6 +209,37 @@ export function analyzeAST(file,source){
     return uncertain||s.kind!=='replaced'||pos<s.at;
   };
   const confidenceFor=(origin,pos)=>pos>=state(origin).possibleAt?'medium':'high';
+  // C24: a bound function captures the method at bind time. Keep this
+  // separate from later changes to the underlying object's method.
+  const boundFunctions=new WeakMap();
+  const boundAt=(name,scope,pos)=>{
+    for(let current=scope;current;current=current.parent){
+      if(current.bindings?.has(name)){
+        const found=boundFunctions.get(current)?.get(name);
+        return found&&pos>=found.after?found:null;
+      }
+    }
+    return null;
+  };
+  const boundSource=(expression,scope,pos)=>{
+    if(expression?.type==='Identifier'){
+      const prior=boundAt(expression.name,scope,pos);
+      return prior&&prior.depth===0?{...prior,depth:1}:null;
+    }
+    if(expression?.type!=='CallExpression'||!staticProperty(expression.callee,'bind'))return null;
+    // Restrict capture to a simple, known method access with inert bind args.
+    if(expression.arguments.some(arg=>arg.type!=='Identifier'&&arg.type!=='Literal'))return null;
+    const method=expression.callee.object;
+    if(method?.type!=='MemberExpression')return null;
+    const object=method.object;
+    const origin=aliasOrigin(object,scope)||
+      (object?.type==='Identifier'?aliasAt(object.name,scope,pos)?.origin:null);
+    if(origin==='document'&&staticProperty(method,'write')||
+       origin==='localStorage'&&staticProperty(method,'clear'))
+      return {origin,originalPossible:stillKnown(origin,pos,false),
+        confidence:confidenceFor(origin,pos),depth:0};
+    return null;
+  };
   // C5: only a freshly created function proves replacement; self-assignments,
   // unknown values and calls cannot justify suppressing a later warning.
   const provenReplacement=node=>node?.type==='AssignmentExpression'&&node.operator==='='&&
@@ -257,6 +288,16 @@ export function analyzeAST(file,source){
       if(node.source?.type==='Literal'&&typeof node.source.value==='string')
         imports.push({specifier:node.source.value,kind:'dynamic-literal',...loc(node)});
       else report('AST007','info',node,'Dynamischer Import mit unbekanntem Ziel','Abhängigkeit zur Laufzeit gesondert prüfen.','medium');
+    }
+    // VariableDeclarator is visited before its initializer; this preserves
+    // the method's status at capture time, before bind()'s call barrier.
+    if(node.type==='VariableDeclarator'&&parent?.type==='VariableDeclaration'&&
+       parent.kind==='const'&&node.id?.type==='Identifier'&&!uncertain){
+      const bound=boundSource(node.init,scope,node.start);
+      if(bound){
+        if(!boundFunctions.has(scope))boundFunctions.set(scope,new Map());
+        boundFunctions.get(scope).set(node.id.name,{...bound,after:node.end});
+      }
     }
     if(node.type==='FunctionDeclaration'&&node.id?.name){
       const name=node.id.name;
@@ -339,6 +380,7 @@ export function analyzeAST(file,source){
         return callee;
       };
       const target=invoked(node.callee);
+      const bound=target?.type==='Identifier'?boundAt(target.name,scope,node.start):null;
       // C8: child expressions can mutate the known method before the outer call.
       if(!uncertain&&(eagerEffects(node.arguments)||
           (node.callee?.type==='MemberExpression'&&node.callee.computed&&
@@ -347,14 +389,16 @@ export function analyzeAST(file,source){
       if(name)calls.push({name,...loc(node)});
       if((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
       if((identifier(node.callee,'eval')&&!shadowed('eval',scope))||globalBuiltin(node.callee,'eval',scope))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
-      if((member(target,'localStorage','clear')&&!shadowed('localStorage',scope))||
+      if((bound?.origin==='localStorage'&&bound.originalPossible)||
+         (member(target,'localStorage','clear')&&!shadowed('localStorage',scope))||
         explicitGlobal(target,'localStorage','clear',scope)||
         (staticProperty(target,'clear')&&target.object?.type==='Identifier'&&
          aliasAt(target.object.name,scope,node.start)?.origin==='localStorage'&&
          stillKnown('localStorage',node.start,uncertain)))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.',
           confidenceFor('localStorage',node.start));
-      if((member(target,'document','write')&&!shadowed('document',scope))||
+      if((bound?.origin==='document'&&bound.originalPossible)||
+         (member(target,'document','write')&&!shadowed('document',scope))||
         explicitGlobal(target,'document','write',scope)||
         (staticProperty(target,'write')&&target.object?.type==='Identifier'&&
          aliasAt(target.object.name,scope,node.start)?.origin==='document'&&
