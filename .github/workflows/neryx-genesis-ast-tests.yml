@@ -308,22 +308,24 @@ jobs:
             --memory 64m --memory-swap 64m --cpus 0.5 --pids-limit 16
             --tmpfs /tmp:rw,noexec,nosuid,nodev,size=1m
             --entrypoint /usr/local/bin/python3)
-          # Fixed, finite allocation; no unbounded loop or external target.
-          docker run -d --name "$name" "${common[@]}" "$image" -I -S -c 'x=bytearray(96*1024*1024); print("UNEXPECTED_ALLOCATION")'
-          status="$(timeout --kill-after=2s 20s docker wait "$name")"
-          # Docker wait and inspect can observe different stages of exit-state publication.
-          # Require both facts; allow only a bounded observation window.
-          echo "Memory probe exit status: $status"
-          test "$status" = 137
-          oom=false
-          for attempt in $(seq 1 20); do
-            oom="$(docker inspect --format '{{.State.OOMKilled}}' "$name")"
-            if test "$oom" = true; then break; fi
-            sleep 0.1
-          done
-          echo "Memory probe OOMKilled: $oom"
-          test "$oom" = true
-          docker rm "$name" >/dev/null
+          # Read the kernel cgroup counter while the container is still alive.
+          # Docker's post-exit OOMKilled metadata was intermittently false.
+          timeout --kill-after=5s 30s docker run --rm --name "$name" "${common[@]}" "$image" -I -S -c '
+          import subprocess, sys
+          def events():
+              with open("/sys/fs/cgroup/memory.events", encoding="ascii") as f:
+                  return {k:int(v) for k,v in (line.split() for line in f)}
+          with open("/sys/fs/cgroup/memory.max", encoding="ascii") as f:
+              assert f.read().strip() == "67108864"
+          before=events()
+          child=subprocess.run([sys.executable,"-I","-S","-c","x=bytearray(96*1024*1024); print(123)"],capture_output=True,timeout=15)
+          after=events()
+          print("Memory probe child returncode:",child.returncode,flush=True)
+          print("Memory probe kernel oom_kill delta:",after["oom_kill"]-before["oom_kill"],flush=True)
+          assert child.returncode == -9
+          assert after["oom_kill"] > before["oom_kill"]
+          assert not child.stdout
+          '
           echo NERYX_RESOURCE_MEMORY_OK
           docker run --rm --name "$name" "${common[@]}" "$image" -I -S -c '
           import errno, subprocess, sys
