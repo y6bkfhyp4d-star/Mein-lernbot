@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Aggressivität",
-    "Altgriechische Sprache",
-    "Abgeschlossenes System (Thermodynamik)",
-    "Absoluter Nullpunkt",
-    "Abwärme",
-    "Ampere",
-    "Ablenkmagnet",
-    "Ablenkplatte",
     "Acrylnitril-Butadien-Styrol",
     "Audioverstärker",
     "Absorptionsbande",
@@ -89,7 +81,15 @@
     "Albert Gossauer",
     "Albrecht Kossel",
     "Amorph",
-    "Amorphes Material"
+    "Amorphes Material",
+    "1980er",
+    "Absicht (Recht)",
+    "4. Jahrhundert",
+    "Abendland",
+    "ArXiv",
+    "Bilanzgleichung",
+    "Besetzungsinversion",
+    "Boltzmann-Faktor"
   ],
   "entries": [
     {
@@ -1171,6 +1171,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Aggregatzustand"
+    },
+    {
+      "collected_at": "2026-11-24T03:09:56+00:00",
+      "excerpt": "Aggression (lateinisch aggressiō vom Deponens aggredī sich zubewegen auf [etw./jdn.]; heranschreiten; sich nähern; angreifen) ist eine feindselig angreifende Verhaltensweise eines Organismus. Sie ist ein biologisch in Tieren (und so auch Menschen) verankertes Verhaltensmuster zur Verteidigung oder Gewinnung von Ressourcen und zur Bewältigung potenziell gefährlicher Situationen. Diese ultimaten Ursachen werden beim Menschen durch proximate Ursachen in der Persönlichkeit oder der Umwelt ausgelöst, aktiviert oder gehemmt und durch verschiedene Emotionen motiviert. Der amerikanische Physiologe Walter Cannon prägte 1915 den Begriff Fight-or-flight; der Mediziner Hans Selye schuf 1936 als Modell der menschlichen Reaktion auf chronische Belastungen das „Allgemeine Anpassungssyndrom“ (Näheres siehe Stressreaktion). Zur Auslösung von Aggression be",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aggression",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aggression"
+    },
+    {
+      "collected_at": "2026-11-24T03:09:56+00:00",
+      "excerpt": "Altgriechisch (altgriechische Eigenbezeichnung: ἡ ἑλληνική [γλῶσσα] hē hellēnikḗ [glṓssa] (Anm.) „die griechische Sprache“; neugriechisch αρχαία ελληνική [γλώσσα] archéa ellinikí [glóssa]) ist die antike Sprachstufe der griechischen Sprache, einer indogermanischen Sprache im östlichen Mittelmeerraum, die einen eigenen Zweig dieser Sprachfamilie darstellt, möglicherweise über eine balkanindogermanische Zwischenstufe. Unter dem Begriff Altgriechisch werden Sprachformen und Dialekte zusammengefasst, die zwischen der Einführung der griechischen Schrift (etwa 800 v. Chr.) und dem Beginn der hellenistischen Ära (etwa 300 v. Chr.) und zumindest in der Literatur noch sehr viel länger, nämlich bis zum Ende der Antike (um 600 n. Chr.), verwendet wurden. Als Norm für das klassische Altgriechisch gilt der literarische attische Dialekt des 5. und 4. J",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Altgriechische_Sprache",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Altgriechische Sprache"
+    },
+    {
+      "collected_at": "2026-11-24T03:09:56+00:00",
+      "excerpt": "Ein thermodynamisches System ist ein räumlich abgrenzbares Objekt mit physikalischen Eigenschaften, die sich durch die Gesetze der Thermodynamik beschreiben lassen. Es muss gegenüber seiner Umgebung abgegrenzt, aber nicht isoliert sein. Was zum System hinzuzurechnen ist, muss aufgrund der Definition eindeutig und klar feststellbar sein. Die Festlegung der Begrenzungsflächen zur Umgebung, auch Systemgrenzen genannt, ist willkürlich; eine geschickte Wahl der Systemgrenzen kann die Lösung einer thermodynamischen Aufgabe erheblich vereinfachen. Ein Beispiel für ein thermodynamisches System ist ein Stück Eis, das auf Wasser schwimmt. Auch eine Menge Meerwasser in einem Becherglas kann als ein thermodynamisches System betrachtet werden (das in dem Meerwasser gelöste Salz ist dagegen kein thermodynamisches System). Weitere Beispiele für thermody",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Thermodynamisches_System",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Thermodynamisches System"
+    },
+    {
+      "collected_at": "2026-11-24T03:09:56+00:00",
+      "excerpt": "Der absolute Nullpunkt ist die kleinste mögliche Temperatur, −273,15 Grad Celsius, und definiert den Ursprung der absoluten Temperaturskala (0 Kelvin). Am absoluten Nullpunkt nimmt die Energie eines physikalischen Systems den kleinsten möglichen Wert an. Insbesondere ist in Systemen der klassischen Physik die kinetische Energie der Teilchen gleich null. Die Bewegungen, Schwingungen und Verformungen der Moleküle eines Stoffs sind in dem Fall komplett eingefroren. In Systemen der quantenmechanischen Physik verbleibt im Allgemeinen ein Anteil kinetischer Energie aus der Nullpunktsenergie. Nach dem dritten Hauptsatz der Thermodynamik können reale Systeme den absoluten Nullpunkt nicht erreichen, es können aber Temperaturen beliebig nahe dem absoluten Nullpunkt realisiert werden. Mit Laserkühlung konnten Proben schon bis auf wenige Milliardstel",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absoluter_Nullpunkt",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absoluter Nullpunkt"
     }
   ],
   "failed_titles": [
@@ -1183,20 +1223,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 5,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Schall",
-        "Gravitation",
-        "Erdatmosphäre",
-        "Zelle (Biologie)",
-        "Wasser"
-      ],
-      "time": "2026-11-16T21:04:15+00:00"
-    },
     {
       "added": 5,
       "attempted": 5,
@@ -1569,6 +1595,19 @@
         "Aggregatzustand"
       ],
       "time": "2026-11-23T21:08:07+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Aggression",
+        "Altgriechische Sprache",
+        "Thermodynamisches System",
+        "Absoluter Nullpunkt"
+      ],
+      "time": "2026-11-24T03:09:56+00:00"
     }
   ],
   "schema": 1
