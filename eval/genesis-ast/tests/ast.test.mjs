@@ -1344,3 +1344,54 @@ test('C21 unrelated direct global mutation preserves known method state',()=>{
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
 });
+
+test('C22 indirect sequence invokes known document method',()=>{
+ const r=analyzeAST('sequence-call.mjs',[
+  'const doc=globalThis.document;',
+  '(0,doc.write)("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2]);
+});
+test('C22 call and apply invoke the underlying document method',()=>{
+ const r=analyzeAST('indirect-method.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write.call(doc,"original");',
+  'doc.write.apply(doc,["original"]);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[2,3]);
+});
+test('C22 call and apply also track localStorage aliases',()=>{
+ const r=analyzeAST('indirect-storage.mjs',[
+  'const store=globalThis.localStorage;',
+  'store.clear.call(store);',
+  'store.clear.apply(store,[]);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[2,3]);
+});
+test('C22 confirmed replacement still suppresses indirect calls',()=>{
+ for(const invocation of [
+  '(0,doc.write)("replaced");',
+  'doc.write.call(doc,"replaced");',
+  'doc.write.apply(doc,["replaced"]);'
+ ]){
+  const r=analyzeAST('indirect-replaced.mjs',[
+   'const doc=globalThis.document;',
+   'doc.write=()=>{};',
+   invocation
+  ].join('\n'));
+  assert.equal(r.parsed,true);
+  assert.deepEqual(has(r,'AST005').map(x=>x.line),[],invocation);
+ }
+});
+test('C22 unrelated methods called through call/apply do not trigger watched findings',()=>{
+ const r=analyzeAST('unrelated-indirect.mjs',[
+  'const doc=globalThis.document;',
+  'doc.querySelector.call(doc,"body");',
+  'doc.title.apply(doc,[]);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
