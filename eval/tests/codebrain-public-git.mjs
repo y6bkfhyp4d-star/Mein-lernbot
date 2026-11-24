@@ -320,3 +320,43 @@ export async function createPublicGitRelay({connectUpstream,host='127.0.0.1',por
   await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
  }});
 }
+
+// Conservative IPv4-only admission. DNS is a trusted deployment dependency,
+// not an authentication mechanism; Git still verifies GitHub TLS certificates.
+export function publicGitIPv4(address){
+ if(typeof address!=='string'||! /^(?:0|[1-9][0-9]{0,2})(?:\.(?:0|[1-9][0-9]{0,2})){3}$/.test(address))return false;
+ const [a,b,c,d]=address.split('.').map(Number);
+ if([a,b,c,d].some(n=>n>255))return false;
+ return !(a===0||a===10||a===127||a>=224||
+  (a===100&&b>=64&&b<=127)||(a===169&&b===254)||
+  (a===172&&b>=16&&b<=31)||(a===192&&(b===168||b===0||b===88&&c===99))||
+  (a===192&&b===0&&c===2)||(a===198&&(b===18||b===19||b===51&&c===100))||
+  (a===203&&b===0&&c===113));
+}
+export async function resolvePublicGitUpstream(resolve4){
+ if(typeof resolve4!=='function')throw Error('Missing trusted resolver');
+ const addresses=await resolve4('github.com');
+ if(!Array.isArray(addresses)||addresses.length<1||addresses.length>16||
+   addresses.some(a=>!publicGitIPv4(a)))throw Error('Unsafe GitHub DNS result');
+ return Object.freeze({host:addresses[0],port:443,family:4});
+}
+// Resolve once per instance, then connect only to that numeric address.
+// No client-provided host, port or credentials enter this connector.
+export async function createFixedPublicGitConnector(){
+ const {Resolver}=await import('node:dns/promises');
+ const {createConnection}=await import('node:net');
+ const resolver=new Resolver({timeout:2000,tries:2});
+ const target=await resolvePublicGitUpstream(host=>resolver.resolve4(host));
+ return ()=>new Promise((resolve,reject)=>{
+  const socket=createConnection(target);
+  const timer=setTimeout(()=>socket.destroy(Error('Upstream connection deadline')),5000);
+  const fail=error=>{clearTimeout(timer);socket.destroy();reject(error);};
+  socket.once('error',fail);
+  socket.once('connect',()=>{
+   clearTimeout(timer);
+   if(socket.remoteAddress!==target.host||socket.remotePort!==443){fail(Error('Upstream identity mismatch'));return;}
+   // Keep an error listener until the relay attaches its own listeners.
+   resolve(socket);
+  });
+ });
+}

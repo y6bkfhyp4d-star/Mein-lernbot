@@ -118,3 +118,20 @@ test('bounded relay accepts approved tunnel and rejects other destinations witho
   await new Promise(resolve=>peer.close(resolve));
  }
 });
+
+import {publicGitIPv4,resolvePublicGitUpstream} from './codebrain-public-git.mjs';
+test('fixed upstream resolver requests only github.com and returns one numeric HTTPS endpoint',async()=>{
+ let calls=0;
+ const target=await resolvePublicGitUpstream(async host=>{
+  calls++;assert.equal(host,'github.com');return ['8.8.8.8','9.9.9.9'];
+ });
+ assert.deepEqual(target,{host:'8.8.8.8',port:443,family:4});
+ assert.ok(Object.isFrozen(target));assert.equal(calls,1);
+});
+test('fixed upstream rejects private, reserved, malformed and mixed DNS answers',async()=>{
+ for(const address of ['0.0.0.0','10.0.0.1','127.0.0.1','169.254.169.254','172.16.0.1','192.168.0.1','100.64.0.1','192.0.2.1','198.18.0.1','198.51.100.1','203.0.113.1','224.0.0.1','255.255.255.255','::1','::ffff:127.0.0.1','012.1.1.1','1.2.3.256','github.com']){
+  assert.equal(publicGitIPv4(address),false);
+  await assert.rejects(resolvePublicGitUpstream(async()=>['8.8.8.8',address]));
+ }
+ for(const answer of [[],null,Array(17).fill('8.8.8.8')])await assert.rejects(resolvePublicGitUpstream(async()=>answer));
+});
