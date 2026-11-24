@@ -1133,3 +1133,58 @@ test('C18 single-step mutations preserve warnings against the independent runtim
  assert.equal(cases,108);
  assert.equal(executions,216);
 });
+
+test('C19 nested two-condition differential oracle reports every real original-method call',()=>{
+ // Generate only from this fixed instruction alphabet; never execute repository code.
+ // The three branches have uniquely named probes so source positions are unambiguous.
+ const actions=[
+  marker=>'doc.write=()=>{};',
+  marker=>'doc.write=original;',
+  marker=>'delete doc.write;',
+  marker=>'restore();',
+  marker=>'doc.write("'+marker+'");'
+ ];
+ let generated=0,executions=0,observedOriginal=0;
+ for(let left=0;left<actions.length;left++)
+ for(let middle=0;middle<actions.length;middle++)
+ for(let right=0;right<actions.length;right++){
+  const lines=[
+   'const doc=globalThis.document;',
+   'const original=doc.write;',
+   'doc.write=()=>{};',
+   'if(flag){',
+   'if(other){',
+   actions[left]('left'),
+   '}else{',
+   actions[middle]('middle'),
+   '}',
+   '}else{',
+   actions[right]('right'),
+   '}',
+   'doc.write("end");'
+  ];
+  const source=lines.join('\n');
+  const report=analyzeAST('nested-'+left+'-'+middle+'-'+right+'.mjs',source);
+  assert.equal(report.parsed,true,'C19 generated source must parse');
+  const warningLines=new Set(has(report,'AST005').map(f=>f.line));
+  const byMarker=new Map([['left',6],['middle',8],['right',11],['end',13]]);
+  for(const flag of [false,true])for(const other of [false,true]){
+   const called=[];
+   const original=value=>called.push(value);
+   const document=Object.create({write:original});
+   runInNewContext(source,{document,flag,other,restore(){document.write=original;}},
+     {timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+   for(const marker of called){
+    assert.ok(warningLines.has(byMarker.get(marker)),
+      'C19 original method missed: left='+left+' middle='+middle+' right='+right+
+      ' flag='+flag+' other='+other+' marker='+marker);
+    observedOriginal++;
+   }
+   executions++;
+  }
+  generated++;
+ }
+ assert.equal(generated,125);
+ assert.equal(executions,500);
+ assert.ok(observedOriginal>0,'oracle must observe actual unsafe invocations');
+});
