@@ -105,3 +105,22 @@ test('snapshot result counters, completeness and statuses must agree before pass
  assert.equal(snapshotOutcome({...good,checked:2}),'INCOMPLETE');
  assert.equal(snapshotPasses(null),false);
 });
+
+test('C27 snapshot reads a supported 64KB JS file rather than silently skipping it',async()=>{
+ const f=fixture({path:'large.test.mjs',source:'const x=1;\n'+'// safe data\n'.repeat(5900)});
+ const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,
+  ast:()=>({parsed:true,findings:[]})});
+ assert.equal(data.result.rows[0].status,'checked');
+ assert.equal(data.result.checked,1);
+ assert.equal(snapshotOutcome(data.result),'COMPLETE');
+});
+test('C27 unsupported files are disclosed as partial, while over-limit files still fail closed',async()=>{
+ const unsupported=fixture({path:'docs/readme.md'});
+ const skipped=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:unsupported.git});
+ assert.equal(skipped.result.rows[0].reason,'unsupported-type');
+ assert.equal(snapshotOutcome(skipped.result),'INCOMPLETE');
+ const large=fixture({path:'too-large.js',source:'// payload\n'.repeat(7200)});
+ const result=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:large.git});
+ assert.equal(result.result.rows[0].reason,'size-or-encoding');
+ assert.equal(snapshotPasses(result.result),false);
+});
