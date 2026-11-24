@@ -3,15 +3,16 @@
 import {execFileSync} from 'node:child_process';
 import {inspect,render,astWorkerDefault,gitBlobHash} from '../../.github/scripts/neryx-codebrain.mjs';
 const SHA=/^[a-f0-9]{40}$/i;
-const run=(args,maxBuffer=131072)=>execFileSync('git',args,{encoding:'buffer',maxBuffer,timeout:8000,stdio:['ignore','pipe','pipe']});
+const run=(args,maxBuffer=131072)=>execFileSync('git',['--no-replace-objects',...args],{encoding:'buffer',maxBuffer,timeout:8000,killSignal:'SIGKILL',stdio:['ignore','pipe','pipe'],env:{PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-8',GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_TERMINAL_PROMPT:'0',GIT_NO_LAZY_FETCH:'1'}});
 const safeFile=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
-export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=null}){
- if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1||!SHA.test(expectedHead||''))throw Error('Invalid snapshot context');
+export async function inspectGitSnapshot({repo,number,expectedHead,expectedBase,git=run,ast=null}){
+ if(!/^[\w.-]+\/[\w.-]+$/.test(repo||'')||!Number.isSafeInteger(number)||number<1||!SHA.test(expectedHead||'')||!SHA.test(expectedBase||''))throw Error('Invalid snapshot context');
  const txt=args=>git(args).toString('utf8').trim();
  const merge=txt(['rev-parse','HEAD']);
- const base=txt(['rev-parse','HEAD^1']);
- const head=txt(['rev-parse','HEAD^2']);
- if(!SHA.test(merge)||!SHA.test(base)||head.toLowerCase()!==expectedHead.toLowerCase())throw Error('PR merge snapshot head mismatch');
+ const parents=txt(['rev-list','--parents','-n','1',merge]).split(' ');
+ if(parents.length!==3||parents.some(x=>!SHA.test(x))||parents[0]!==merge)throw Error('Invalid merge parent inventory');
+ const [,base,head]=parents;
+ if(base.toLowerCase()!==expectedBase.toLowerCase()||head.toLowerCase()!==expectedHead.toLowerCase())throw Error('PR merge snapshot head or base mismatch');
  const diff=git(['diff','--no-ext-diff','--no-textconv','--name-status','-z','--no-renames',base,merge],131072);
  const decoded=diff.toString('utf8');
  if(!Buffer.from(decoded,'utf8').equals(diff))throw Error('Invalid git diff encoding');
@@ -54,6 +55,7 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
   return new Response(JSON.stringify(payload));
  };
  const result=await inspect({repo,number,anonymous:true,request,ast});
+ if(txt(['rev-parse','HEAD'])!==merge)throw Error('Snapshot HEAD changed during inspection');
  if(!snapshotMatchesFiles(result,files))throw Error('Snapshot result file mismatch');
  return {result,merge,base,head};
 }
@@ -98,7 +100,7 @@ export const snapshotOutcome=r=>!snapshotPasses(r)?'INCOMPLETE':r.complete?'COMP
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
   const number=Number(process.env.CODEBRAIN_PR_NUMBER);
-  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,ast:astWorkerDefault});
+  const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,expectedBase:process.env.CODEBRAIN_PR_BASE_SHA,ast:astWorkerDefault});
   console.log('NERYX SNAPSHOT: isolated Acorn AST active for JS/MJS/CJS');
   console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete+' outcome='+snapshotOutcome(data.result));
   // C27: path and reason are sanitized, source content is never logged.

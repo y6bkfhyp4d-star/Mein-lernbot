@@ -156,3 +156,10 @@ test('Python and YAML parser helpers do not run or deserialize analyzed source',
      assert.throws(()=>checkStructure(changed,false));
    }
  });
+
+test('offline snapshot must receive the event base and head identities',()=>{
+ const w=workflowStructure(read('.github/workflows/neryx-codebrain-public-smoke.yml'));
+ const scan=w.jobs['codebrain-snapshot-smoke'].steps.find(s=>s.run==='node eval/tests/codebrain-git-snapshot.mjs');
+ assert.equal(scan.env.CODEBRAIN_PR_BASE_SHA,'${{ github.event.pull_request.base.sha }}');
+ assert.equal(scan.env.CODEBRAIN_PR_HEAD_SHA,'${{ github.event.pull_request.head.sha }}');
+});
