@@ -89,7 +89,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
   if(!/^[a-f0-9]{40}$/i.test(f.sha||'')){row.reason='invalid-sha';continue;}
   try{
    const blob=await get('/git/blobs/'+f.sha);
-   if(blob.encoding!=='base64'||typeof blob.content!=='string'||blob.content.length>85000||!Number.isInteger(blob.size)||blob.size<0||blob.size>60000||used+blob.size>400000){row.reason='size-or-encoding';continue;}
+   if(blob.encoding!=='base64'||typeof blob.content!=='string'||blob.content.length>96000||!Number.isInteger(blob.size)||blob.size<0||blob.size>70000||used+blob.size>500000){row.reason='size-or-encoding';continue;}
    // Buffer.from(..., 'base64') silently ignores invalid characters: reject corruption.
    if(blob.sha!==undefined&&blob.sha!==f.sha)throw Error('Blob SHA mismatch');
    const encoded=blob.content.replace(/[\r\n]/g,'');
