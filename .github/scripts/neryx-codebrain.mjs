@@ -11,6 +11,11 @@ import {fileURLToPath} from 'node:url';
 const okPath=p=>typeof p==='string'&&p.length<241&&!/[\x00-\x1f\x7f\\]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..');
 const clean=s=>String(s).replace(/[^\p{L}\p{N} ./_-]/gu,'_').slice(0,240);
 export const parserEnv=()=>({PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-8'});
+// Bound the direct parser process even if it ignores SIGTERM. This does not
+// isolate or terminate arbitrary descendants; external sandboxing is separate.
+export function runParser(executable,args,input,maxBuffer){
+ return execFileSync(executable,args,{input,timeout:5000,killSignal:'SIGKILL',maxBuffer,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
+}
 const astLabels={AST000:'Syntaxfehler',AST001:'Dynamische Ausführung',AST002:'Dynamische Kompilierung',AST003:'HTML-Zuweisung',AST004:'Speicherlöschung',AST005:'document.write',AST006:'Mögliche doppelte Funktion',AST007:'Unbekanntes Importziel',SEC001:'Möglicher privater Schlüssel'};
 // The same bounded AST contract applies to real workers and injected test adapters.
 export function validateAstResult(data){
@@ -24,14 +29,14 @@ export function validateAstResult(data){
 }
 const pythonSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-python-syntax.py',import.meta.url));
- const output=execFileSync('python3',['-I','-S',helper],{input:source,timeout:5000,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
+ const output=runParser('python3',['-I','-S',helper],source,4096);
  const parsed=JSON.parse(output.toString('utf8'));
  if(typeof parsed.parsed!=='boolean')throw Error('invalid python result');
  return parsed;
 };
 const yamlSyntaxDefault=source=>{
  const helper=fileURLToPath(new URL('./neryx-yaml-syntax.rb',import.meta.url));
- const output=execFileSync('ruby',['-W0',helper],{input:source,timeout:5000,maxBuffer:4096,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()});
+ const output=runParser('ruby',['-W0',helper],source,4096);
  const parsed=JSON.parse(output.toString('utf8'));
  if(typeof parsed.parsed!=='boolean')throw Error('invalid YAML result');
  return parsed;
@@ -39,9 +44,7 @@ const yamlSyntaxDefault=source=>{
 // Shared isolated AST parser for trusted manual and unprivileged snapshot scanning.
 export const astWorkerDefault=(path,source)=>{
  const helper=fileURLToPath(new URL('../../eval/genesis-ast/codebrain-worker.mjs',import.meta.url));
- const output=execFileSync(process.execPath,['--max-old-space-size=128',helper],{
-  input:JSON.stringify({path,source}),timeout:5000,maxBuffer:131072,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()
- });
+ const output=runParser(process.execPath,['--max-old-space-size=128',helper],JSON.stringify({path,source}),131072);
  const result=JSON.parse(output.toString('utf8'));
  return validateAstResult(result);
 };

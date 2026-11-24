@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 const blobHash=content=>createHash('sha1').update('blob '+Buffer.byteLength(content)+'\0').update(content).digest('hex');
-import {inspect,render,parserEnv} from '../../.github/scripts/neryx-codebrain.mjs';
+import {inspect,render,parserEnv,runParser} from '../../.github/scripts/neryx-codebrain.mjs';
 
 const SHA='a'.repeat(40);
 function mock(files,contents={},changed=files.length){
@@ -465,4 +465,18 @@ test('real Python and YAML parsers accept valid UTF-8 at the scanner byte bounda
    if(size>70000)assert.equal(r.rows[0].reason,'size-or-encoding');
   }
  }
+});
+
+// A trusted synthetic worker deliberately ignores SIGTERM. The same launcher
+// used by every real parser must enforce its deadline with SIGKILL instead.
+test('parser deadline kills a direct child that ignores SIGTERM',{timeout:15000,skip:process.platform==='win32'},()=>{
+ const start=performance.now();
+ assert.throws(()=>runParser(process.execPath,['-e',"process.on('SIGTERM',()=>{}); process.stdout.write('ready'); setTimeout(()=>{},30000);"],'',4096),err=>{
+  assert.equal(err.code,'ETIMEDOUT');
+  assert.equal(err.signal,'SIGKILL');
+  assert.equal(String(err.stdout),'ready');
+  return true;
+ });
+ const elapsed=performance.now()-start;
+ assert.ok(elapsed>=4500&&elapsed<12000,'deadline elapsed: '+elapsed);
 });
