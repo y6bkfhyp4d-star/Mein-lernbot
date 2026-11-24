@@ -237,6 +237,9 @@ export function analyzeAST(file,source){
     if(!node||typeof node!=='object')return false;
     if(Array.isArray(node))return node.some(eagerEffects);
     if(isFunction(node)||node.type==='ClassExpression')return false;
+    // C19: deleting an inherited method can expose the original again inside
+    // a conditional branch; the parent join must not preserve stale certainty.
+    if(node.type==='UnaryExpression'&&node.operator==='delete')return true;
     if(['CallExpression','NewExpression','AwaitExpression','YieldExpression',
         'AssignmentExpression','UpdateExpression','TaggedTemplateExpression',
         'ImportExpression'].includes(node.type))return true;
