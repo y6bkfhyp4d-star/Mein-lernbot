@@ -413,3 +413,5 @@ jobs:
           console.log('NERYX_LAUNCHER_FAILURE_CLEANUP_OK');
           console.log('NERYX_REAL_LAUNCHER_INTEGRATION_OK');
           JS
+      - name: Verify public Git acquisition identity contract (no network)
+        run: node --test eval/tests/codebrain-public-git.test.mjs
