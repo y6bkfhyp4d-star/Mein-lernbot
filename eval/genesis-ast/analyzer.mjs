@@ -182,7 +182,7 @@ export function analyzeAST(file,source){
   let tree, lastError;
   for(const sourceType of modes){
     try{
-      tree=parse(source,{ecmaVersion:'latest',sourceType,locations:true,allowHashBang:true});
+      tree=parse(source,{ecmaVersion:'latest',sourceType:sourceType==='commonjs'?'script':sourceType,allowReturnOutsideFunction:sourceType==='commonjs',locations:true,allowHashBang:true});
       break;
     }catch(error){
       if(!(error instanceof SyntaxError))throw error;
