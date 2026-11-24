@@ -80,8 +80,9 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
  const pr=await get('/pulls/'+number);
  if(pr?.state!=='open'||pr?.base?.ref!=='main'||!/^[a-f0-9]{40}$/i.test(pr?.head?.sha||''))throw Error('PR nicht geeignet');
  if(!Number.isInteger(pr.changed_files)||pr.changed_files<1||pr.changed_files>30)throw Error('Leere oder zu große Dateiliste');
+ const initialHead=pr.head.sha, initialBase=pr.base.sha, initialCount=pr.changed_files;
  const files=await get('/pulls/'+number+'/files?per_page=100');
- if(!Array.isArray(files)||files.length!==pr.changed_files)throw Error('Unvollständige Dateiliste');
+ if(!Array.isArray(files)||files.length!==initialCount)throw Error('Unvollständige Dateiliste');
  const seen=new Set();
  for(const f of files){
   if(!f||typeof f.filename!=='string'||seen.has(f.filename))throw Error('Invalid or duplicate file inventory');
@@ -144,8 +145,8 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
   }catch{row.status='error';row.reason='fetch-or-analyzer-error';}
  }
  const fresh=await get('/pulls/'+number);
- if(fresh?.head?.sha!==pr.head.sha||fresh?.state!=='open'||fresh?.base?.ref!=='main'||fresh?.changed_files!==pr.changed_files||(pr.base.sha!==undefined&&fresh.base.sha!==pr.base.sha))throw Error('PR changed during review');
- return {number,sha:pr.head.sha,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
+ if(fresh?.head?.sha!==initialHead||fresh?.state!=='open'||fresh?.base?.ref!=='main'||fresh?.changed_files!==initialCount||fresh?.base?.sha!==initialBase)throw Error('PR changed during review');
+ return {number,sha:initialHead,rows,checked:rows.filter(x=>x.status==='checked').length,complete:rows.every(x=>x.status==='checked'),blocking:rows.some(x=>x.findings.some(f=>f.kind==='confirmed'))};
 }
 export function render(r){
  const lines=['# NERYX CodeBrain 1.4','','Keine API-KI. Syntaxprüfung für JS, Python, JSON und YAML; Sicherheitswarnungen bleiben heuristisch. Keine vollständige Codefreigabe.','','PR #'+r.number+' | Commit '+r.sha,'','**Abdeckung: '+(r.complete?'alle unterstützten Dateitypen geprüft':'UNVOLLSTÄNDIG')+'**',r.blocking?'**Bestätigte Syntaxfehler gefunden: Prüfung nicht bestanden.**':'**Keine bestätigten Syntaxfehler in unterstützten Prüfungen festgestellt.**','','| Datei | Status | Hinweise |','|---|---|---|'];

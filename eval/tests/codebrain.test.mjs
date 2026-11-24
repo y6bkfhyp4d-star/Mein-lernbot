@@ -383,10 +383,21 @@ test('C38 changed file count or base commit during review invalidates the report
   const opts=mock([entry('safe.js')]);let reads=0;
   await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
    if(!u.endsWith('/pulls/94'))return opts.request(u,o);
-   const data=await (await opts.request(u,o)).json();
+   const data=structuredClone(await (await opts.request(u,o)).json());
    data.base.sha='b'.repeat(40);
    if(++reads===2)Object.assign(data,change);
    return {ok:true,json:async()=>data};
   }}),/PR changed during review/);
  }
+});
+
+test('C38 initial metadata remains pinned even when an adapter reuses mutable response objects',async()=>{
+ const opts=mock([entry('safe.js')]);let reads=0;
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  const response=await opts.request(u,o);
+  if(!u.endsWith('/pulls/94'))return response;
+  const data=await response.json();
+  if(++reads===2)data.changed_files=2;
+  return {ok:true,json:async()=>data};
+ }}),/PR changed during review/);
 });
