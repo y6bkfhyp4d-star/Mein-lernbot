@@ -25,3 +25,8 @@ export function formatGithubRateLimitDiagnostic(d){
   ', limit='+numeric(d.limit)+', reset_unix='+numeric(d.reset)+
   ', retry_after_seconds='+numeric(d.retryAfter);
 }
+
+ // Only documented throttling evidence may make the optional live probe inconclusive.
+ // Generic 403 (permission/policy failure) must still fail the workflow.
+export const isPublicApiRateLimit=d=>!!d&&(d.status===429||
+ d.status===403&&(d.remaining===0||d.retryAfter!==null));
