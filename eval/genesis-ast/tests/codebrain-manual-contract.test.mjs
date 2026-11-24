@@ -62,3 +62,38 @@ test('manual scanner confirms syntax failure from actual isolated AST worker, no
  assert.ok(result.rows[0].findings.some(f=>f.rule==='AST000'&&f.kind==='confirmed'));
  assert.match(render(result),/Prüfung nicht bestanden/);
 });
+
+test('C40 mixed real parser failures and corrupted transport cannot yield a clean report',async()=>{
+ const api=fakeApi({'untrusted.mjs':'export const = ;','helper.py':'def invalid(:','data.json':'{"broken":'});
+ const corruptHash=blobHash(sourceByPath['config.yml']);
+ let workerCalls=0;
+ const result=await inspect({repo:'example/repo',number:97,token:'FAKE_TOKEN_DO_NOT_PRINT',request:async(url,opts)=>{
+  const response=await api.request(url,opts);
+  if(!url.endsWith('/git/blobs/'+corruptHash))return response;
+  const source=sourceByPath['config.yml'].replace('test','evil');
+  return {ok:true,json:async()=>({sha:corruptHash,encoding:'base64',size:Buffer.byteLength(source),content:Buffer.from(source).toString('base64')})};
+ },ast:(file,source)=>{workerCalls++;return astWorkerDefault(file,source);}});
+ assert.equal(workerCalls,1);
+ assert.equal(result.checked,3);
+ assert.equal(result.complete,false);
+ assert.equal(result.blocking,true);
+ assert.equal(result.rows.find(x=>x.file==='config.yml').status,'error');
+ for(const [file,rule] of [['untrusted.mjs','AST000'],['helper.py','PY000'],['data.json','JSON000']]){
+  assert.ok(result.rows.find(x=>x.file===file).findings.some(f=>f.rule===rule&&f.kind==='confirmed'));
+ }
+ assert.match(render(result),/UNVOLLSTÄNDIG/);
+ assert.match(render(result),/Prüfung nicht bestanden/);
+ assert.doesNotMatch(render(result),/FAKE_TOKEN_DO_NOT_PRINT|name: evil/);
+});
+test('C40 real parser success does not override a changed PR head',async()=>{
+ const api=fakeApi();let calls=0;
+ await assert.rejects(()=>inspect({repo:'example/repo',number:97,token:'FAKE_TOKEN_DO_NOT_PRINT',request:async(url,opts)=>{
+  const response=await api.request(url,opts);
+  if(url.endsWith('/pulls/97')&&api.prReads===2){
+   const data=await response.json();
+   return {ok:true,json:async()=>({...data,head:{sha:'b'.repeat(40)}})};
+  }
+  return response;
+ },ast:(file,source)=>{calls++;return astWorkerDefault(file,source);}}),/PR changed during review/);
+ assert.equal(calls,1);
+});
