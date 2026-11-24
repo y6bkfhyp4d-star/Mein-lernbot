@@ -83,3 +83,38 @@ test('proxy admission rejects ambiguous framing, credentials and unapproved head
  for(const headers of ['', 'Host: other.invalid:443\r\n','Host: github.com:443\r\nHost: github.com:443\r\n','Host: github.com:443\r\nProxy-Authorization: Basic abc\r\n','Host: github.com:443\r\nContent-Length: 0\r\n','Host: github.com:443\r\nTransfer-Encoding: chunked\r\n','Host: github.com:443\r\n folded\r\n'])assert.throws(()=>admitPublicGitConnect(connect('github.com:443',headers)));
  for(const raw of [Buffer.concat([connect(),Buffer.from('extra')]),Buffer.alloc(4097),Buffer.from('GET / HTTP/1.1\r\n\r\n'),Buffer.from('CONNECT github.com:443 HTTP/1.1\nHost: github.com:443\n\n')])assert.throws(()=>admitPublicGitConnect(raw));
 });
+
+import {createPublicGitRelay} from './codebrain-public-git.mjs';
+import {createServer,createConnection} from 'node:net';
+import {once} from 'node:events';
+test('bounded relay accepts approved tunnel and rejects other destinations without upstream call',async()=>{
+ let calls=0;
+ const peer=createServer(socket=>socket.on('data',data=>socket.write(data)));
+ peer.listen(0,'127.0.0.1');await once(peer,'listening');
+ const relay=await createPublicGitRelay({connectUpstream:async()=>{
+  calls++;
+  const socket=createConnection(peer.address().port,'127.0.0.1');
+  await once(socket,'connect');return socket;
+ }});
+ try{
+  const denied=createConnection(relay.address.port,'127.0.0.1');
+  await once(denied,'connect');
+  denied.write(connect('other.invalid:443'));
+  await once(denied,'close');
+  assert.equal(calls,0);
+  const client=createConnection(relay.address.port,'127.0.0.1');
+  await once(client,'connect');
+  try{
+   client.write(connect());
+   const [response]=await once(client,'data');
+   assert.equal(response.toString(),'HTTP/1.1 200 Connection Established\r\n\r\n');
+   client.write('synthetic payload');
+   const [echo]=await once(client,'data');
+   assert.equal(echo.toString(),'synthetic payload');
+   assert.equal(calls,1);
+  }finally{client.destroy();}
+ }finally{
+  await relay.close();
+  await new Promise(resolve=>peer.close(resolve));
+ }
+});

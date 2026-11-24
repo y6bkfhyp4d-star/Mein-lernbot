@@ -259,3 +259,64 @@ export function admitPublicGitConnect(raw){
  if(!seen.has('host'))throw Error('Missing proxy host');
  return Object.freeze({host:'github.com',port:443});
 }
+
+// Bounded relay. The caller supplies a trusted connector; no client-selected
+// address is forwarded to it. No listener is opened merely by importing.
+export async function createPublicGitRelay({connectUpstream,host='127.0.0.1',port=0}){
+ if(typeof connectUpstream!=='function')throw Error('Missing trusted upstream connector');
+ const {createServer}=await import('node:net');
+ const sockets=new Set();
+ let accepted=0,total=0,closed=false;
+ const server=createServer(client=>{
+  if(closed||accepted>=12||sockets.size>=4){client.destroy();return;}
+  accepted++;
+  sockets.add(client);
+  let upstream=null,header=Buffer.alloc(0),phase='header',bytes=0,finished=false;
+  const deadline=setTimeout(()=>finish(),45000);
+  function finish(){
+   if(finished)return;
+   finished=true;clearTimeout(deadline);
+   sockets.delete(client);client.destroy();upstream?.destroy();
+  }
+  client.on('error',finish);client.on('close',finish);
+  client.setTimeout(5000,finish);
+  function account(chunk){
+   bytes+=chunk.length;total+=chunk.length;
+   if(bytes>67108864||total>134217728){finish();return false;}
+   return true;
+  }
+  client.on('data',chunk=>{
+   if(finished)return;
+   if(phase==='relay'){
+    if(account(chunk)&&!upstream.write(chunk))client.pause();
+    return;
+   }
+   if(phase!=='header'){finish();return;}
+   if(header.length+chunk.length>4096){finish();return;}
+   header=Buffer.concat([header,chunk]);
+   if(!header.includes('\r\n\r\n'))return;
+   try{admitPublicGitConnect(header);}catch{finish();return;}
+   phase='connecting';client.pause();
+   Promise.resolve().then(()=>connectUpstream()).then(socket=>{
+    if(finished){socket.destroy();return;}
+    upstream=socket;
+    upstream.on('error',finish);upstream.on('close',finish);
+    upstream.setTimeout(10000,finish);
+    upstream.on('drain',()=>{if(!finished)client.resume();});
+    client.on('drain',()=>{if(!finished)upstream.resume();});
+    upstream.on('data',data=>{
+     if(account(data)&&!client.write(data))upstream.pause();
+    });
+    phase='relay';client.setTimeout(10000,finish);
+    client.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+    client.resume();
+   }).catch(finish);
+  });
+ });
+ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,host,resolve);});
+ return Object.freeze({address:server.address(),close:async()=>{
+  closed=true;
+  for(const socket of sockets)socket.destroy();
+  await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
+ }});
+}
