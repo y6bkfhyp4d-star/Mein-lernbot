@@ -43,3 +43,25 @@ test('public Git handoff distinguishes deletion from present blob',()=>{
  assert.deepEqual(validatePublicGitHandoff(p,{...packet,files:[removed]}).files,[removed]);
  assert.throws(()=>validatePublicGitHandoff(p,{...packet,files:[{...removed,content:''}]}));
 });
+
+import {verifyPublicGitTreeHandoff} from './codebrain-public-git.mjs';
+function proofObject(type,raw){
+ return {type,sha:createHash('sha1').update(type+' '+raw.length+'\0').update(raw).digest('hex'),content:raw.toString('base64')};
+}
+const empty=proofObject('tree',Buffer.alloc(0));
+const leaf=proofObject('tree',Buffer.concat([Buffer.from('100644 a.mjs\0'),Buffer.from(entry.sha,'hex')]));
+const parent=proofObject('tree',Buffer.concat([Buffer.from('40000 src\0'),Buffer.from(leaf.sha,'hex')]));
+const baseCommit=proofObject('commit',Buffer.from('tree '+empty.sha+'\n\nbase\n'));
+const headCommit=proofObject('commit',Buffer.from('tree '+parent.sha+'\n\nhead\n'));
+const proofPlan=publicGitPlan({...context,base:baseCommit.sha,head:headCommit.sha});
+const proofPacket={...packet,base:baseCommit.sha,head:headCommit.sha};
+const proof=[empty,leaf,parent,baseCommit,headCommit];
+test('raw Git tree proof binds nested blob to pinned commits',()=>{
+ assert.deepEqual(verifyPublicGitTreeHandoff(proofPlan,proofPacket,proof),proofPacket);
+});
+test('raw Git tree proof rejects omitted trees, forged paths and extra proof objects',()=>{
+ assert.throws(()=>verifyPublicGitTreeHandoff(proofPlan,proofPacket,proof.filter(x=>x!==leaf)));
+ assert.throws(()=>verifyPublicGitTreeHandoff(proofPlan,{...proofPacket,files:[{...entry,path:'src/b.mjs'}]},proof));
+ assert.throws(()=>verifyPublicGitTreeHandoff(proofPlan,proofPacket,[...proof,proofObject('tree',Buffer.from('extra'))]));
+ assert.throws(()=>verifyPublicGitTreeHandoff(proofPlan,proofPacket,proof.map(x=>x===leaf?{...x,content:empty.content}:x)));
+});

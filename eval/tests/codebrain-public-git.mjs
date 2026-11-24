@@ -44,3 +44,73 @@ export function validatePublicGitHandoff(plan,packet){
  }
  return Object.freeze({base:packet.base,head:packet.head,files:Object.freeze(files)});
 }
+
+// Verify raw Git commit/tree objects against pinned SHA-1 identities.
+// Derive the complete endpoint-tree difference, independently of the handoff list.
+export function verifyPublicGitTreeHandoff(plan,packet,objects){
+ const validated=validatePublicGitHandoff(plan,packet);
+ if(!Array.isArray(objects)||objects.length>4096)throw Error('Invalid proof inventory');
+ const map=new Map();
+ let total=0;
+ for(const o of objects){
+  if(!o||!SHA.test(o.sha)||!['commit','tree'].includes(o.type)||typeof o.content!=='string'||o.content.length>1398104||map.has(o.sha))throw Error('Invalid proof object');
+  const raw=Buffer.from(o.content,'base64');
+  total+=raw.length;
+  if(raw.toString('base64')!==o.content||total>8388608||createHash('sha1').update(o.type+' '+raw.length+'\0').update(raw).digest('hex')!==o.sha)throw Error('Invalid proof hash or size');
+  map.set(o.sha,{type:o.type,raw});
+ }
+ const used=new Set();
+ const get=(sha,type)=>{
+  const o=map.get(sha);
+  if(!o||o.type!==type)throw Error('Missing proof object');
+  used.add(sha);
+  return o.raw;
+ };
+ const root=sha=>{
+  const raw=get(sha,'commit');
+  const first=raw.subarray(0,raw.indexOf(10)).toString('ascii');
+  if(!/^tree [a-f0-9]{40}$/.test(first))throw Error('Invalid commit tree');
+  return first.slice(5);
+ };
+ const inventory=sha=>{
+  const files=new Map();
+  let count=0;
+  function walk(id,prefix,depth){
+   if(depth>32)throw Error('Tree depth limit');
+   const raw=get(id,'tree'),names=new Set();
+   let pos=0;
+   while(pos<raw.length){
+    if(++count>20000)throw Error('Tree entry limit');
+    const space=raw.indexOf(32,pos),nul=raw.indexOf(0,space+1);
+    if(space<pos||nul<=space+1||nul+21>raw.length)throw Error('Malformed tree entry');
+    const mode=raw.subarray(pos,space).toString('ascii');
+    const bytes=raw.subarray(space+1,nul),name=bytes.toString('utf8');
+    if(!Buffer.from(name).equals(bytes)||/[\x00-\x1f\x7f\\/]/.test(name)||['.','..','.git'].includes(name.toLowerCase())||names.has(name))throw Error('Invalid tree name');
+    names.add(name);
+    const path=prefix+name,oid=raw.subarray(nul+1,nul+21).toString('hex');
+    if(path.length>240)throw Error('Tree path limit');
+    if(mode==='40000')walk(oid,path+'/',depth+1);
+    else if(['100644','100755','120000','160000'].includes(mode))files.set(path,{mode,sha:oid});
+    else throw Error('Unsupported tree mode');
+    pos=nul+21;
+   }
+  }
+  walk(root(sha),'',0);
+  return files;
+ };
+ const base=inventory(plan.base),head=inventory(plan.head);
+ const expected=new Map();
+ for(const path of new Set([...base.keys(),...head.keys()])){
+  const a=base.get(path),b=head.get(path);
+  if(a?.mode===b?.mode&&a?.sha===b?.sha)continue;
+  if([a,b].some(x=>x&&!['100644','100755'].includes(x.mode)))throw Error('Unsupported changed tree mode');
+  expected.set(path,b?{status:a?'modified':'added',...b}:{status:'removed',mode:null,sha:null});
+  if(expected.size>30)throw Error('Changed tree limit');
+ }
+ if(expected.size!==validated.files.length||used.size!==map.size)throw Error('Incomplete or excess proof inventory');
+ for(const f of validated.files){
+  const e=expected.get(f.path);
+  if(!e||e.status!==f.status||e.mode!==f.mode||e.sha!==f.sha)throw Error('Handoff differs from pinned trees');
+ }
+ return validated;
+}
