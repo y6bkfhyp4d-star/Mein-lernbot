@@ -81,7 +81,7 @@ test('snapshot refuses green status when AST findings exceed the reporting cap',
 test('snapshot accepts supported clean scans but rejects undisclosed analysis skips',()=>{
  const base={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
  assert.equal(snapshotPasses(base),true);
- assert.equal(snapshotPasses({...base,complete:false,rows:[...base.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotPasses({...base,complete:false,rows:[...base.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),true);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'skipped',reason:'size-or-encoding'}]}),false);
  assert.equal(snapshotPasses({...base,rows:[...base.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),false);
 });
@@ -89,7 +89,7 @@ test('snapshot accepts supported clean scans but rejects undisclosed analysis sk
 test('snapshot outcome distinguishes full, intentional partial and broken scans',()=>{
  const ok={checked:1,blocking:false,complete:true,rows:[{status:'checked',reason:'ast'}]};
  assert.equal(snapshotOutcome(ok),'COMPLETE');
- assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'unsupported-type'}]}),'PARTIAL_UNSUPPORTED');
+ assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),'PARTIAL_UNSUPPORTED');
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'skipped',reason:'findings-truncated'}]}),'INCOMPLETE');
  assert.equal(snapshotOutcome({...ok,complete:false,rows:[...ok.rows,{status:'error',reason:'fetch-or-analyzer-error'}]}),'INCOMPLETE');
 });
@@ -100,8 +100,8 @@ test('snapshot result counters, completeness and statuses must agree before pass
  assert.equal(snapshotPasses({...good,checked:2}),false);
  assert.equal(snapshotPasses({...good,complete:false}),false);
  assert.equal(snapshotPasses({...good,rows:[...good.rows,{status:'pending',reason:'unknown'}]}),false);
- assert.equal(snapshotPasses({...good,rows:[...good.rows,{status:'skipped',reason:'unsupported-type'}]}),false);
- assert.equal(snapshotPasses({...good,complete:false,rows:[...good.rows,{status:'skipped',reason:'unsupported-type'}]}),true);
+ assert.equal(snapshotPasses({...good,rows:[...good.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),false);
+ assert.equal(snapshotPasses({...good,complete:false,rows:[...good.rows,{file:'docs/notes.md',status:'skipped',reason:'unsupported-type'}]}),true);
  assert.equal(snapshotOutcome({...good,checked:2}),'INCOMPLETE');
  assert.equal(snapshotPasses(null),false);
 });
@@ -123,4 +123,34 @@ test('C27 unsupported files are disclosed as partial, while over-limit files sti
  const result=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:large.git});
  assert.equal(result.result.rows[0].reason,'size-or-encoding');
  assert.equal(snapshotPasses(result.result),false);
+});
+
+test('C33 falsely claiming a supported source is unsupported cannot pass offline gate',()=>{
+ const base={checked:1,blocking:false,complete:false,rows:[
+  {file:'safe.mjs',status:'checked',reason:'ast'},
+  {file:'eval/analyzer.mjs',status:'skipped',reason:'unsupported-type'}
+ ]};
+ assert.equal(snapshotPasses(base),false);
+ assert.equal(snapshotOutcome(base),'INCOMPLETE');
+ for(const file of ['script.js','check.cjs','data.json','config.yaml','config.yml','tool.py']){
+  assert.equal(snapshotPasses({...base,rows:[base.rows[0],{file,status:'skipped',reason:'unsupported-type'}]}),false,file);
+ }
+});
+test('C33 genuinely unsupported paths remain transparent partial coverage',()=>{
+ const checked={file:'eval/a.js',status:'checked',reason:'ast'};
+ for(const path of ['docs/README.md','.github/scripts/helper.rb','assets/logo.svg']){
+  const r={checked:1,blocking:false,complete:false,rows:[
+   checked,{file:path,status:'skipped',reason:'unsupported-type'}
+  ]};
+  assert.equal(snapshotPasses(r),true,path);
+  assert.equal(snapshotOutcome(r),'PARTIAL_UNSUPPORTED',path);
+ }
+});
+test('C33 malformed or unsafe unsupported paths never certify partial coverage',()=>{
+ const checked={file:'safe.js',status:'checked',reason:'ast'};
+ for(const path of ['../hidden.md','/absolute.md','docs\\hidden.md','',null]){
+  const r={checked:1,blocking:false,complete:false,rows:[checked,
+   {file:path,status:'skipped',reason:'unsupported-type'}]};
+  assert.equal(snapshotPasses(r),false,String(path));
+ }
 });
