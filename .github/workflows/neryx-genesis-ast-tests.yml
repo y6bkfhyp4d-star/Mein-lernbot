@@ -26,3 +26,34 @@ jobs:
       - name: AST smoke on existing source (no writeback)
         working-directory: eval/genesis-ast
         run: node analyzer.mjs analyzer.mjs > /dev/null
+      - name: Verify OS isolation prerequisites with synthetic probe only
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          image='alpine@sha256:47aa075851fe0d4cb23a4ac565cf788f1c3a22fa9f854bf9e4f260b248784a85'
+          docker pull --platform linux/amd64 "$image"
+          name="neryx-isolation-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
+          timeout --kill-after=5s 30s docker run --name "$name" --rm --pull never --platform linux/amd64 \
+            --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --user 65534:65534 --memory 64m --memory-swap 64m --cpus 0.5 --pids-limit 16 \
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=1m \
+            "$image" /bin/sh -ec '
+              test "$(id -u)" = 65534
+              grep -Eq "^CapEff:[[:space:]]+0+$" /proc/self/status
+              grep -Eq "^NoNewPrivs:[[:space:]]+1$" /proc/self/status
+              grep -Eq "^Seccomp:[[:space:]]+2$" /proc/self/status
+              test "$(ls /sys/class/net)" = lo
+              test ! -e /var/run/docker.sock
+              test ! -d /home/runner
+              test -z "${GH_TOKEN:-}${GITHUB_TOKEN:-}"
+              if touch /tmp/../isolation-probe 2>/dev/null; then exit 1; fi
+              grep -E "^([^ ]+ ){5}ro(,| )" /proc/self/mountinfo | grep -q " / / "
+              test "$(cat /sys/fs/cgroup/memory.max)" = 67108864
+              test "$(cat /sys/fs/cgroup/memory.swap.max)" = 0
+              test "$(cat /sys/fs/cgroup/pids.max)" = 16
+              test "$(cat /sys/fs/cgroup/cpu.max)" = "50000 100000"
+              touch /tmp/isolation-probe
+              rm /tmp/isolation-probe
+              echo NERYX_SYNTHETIC_ISOLATION_PROBE_OK
+            '
