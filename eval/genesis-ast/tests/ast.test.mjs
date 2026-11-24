@@ -1077,3 +1077,59 @@ test('C17 generated bounded runtime counterexamples must never hide original-met
  }
  assert.equal(checked,total*2);
 });
+
+test('C18 single-step mutations preserve warnings against the independent runtime oracle',()=>{
+ // Only fixed test instructions are combined; no repository or user source executes.
+ // Every call carries a unique marker so diagnostics map to an exact source line.
+ const baselines=[
+  ['doc.write=()=>{};','if(flag)restore();','doc.write("p2");'],
+  ['if(flag)doc.write=()=>{};','doc.write("p1");','doc.write("p2");'],
+  ['doc.write=()=>{};','delete doc.write;','doc.write("p2");'],
+  ['doc.write=()=>{};','if(flag)doc.write=original;','doc.write("p2");'],
+  ['doc.write("p0");','doc.write=()=>{};','doc.write("p2");'],
+  ['if(flag)doc.write=()=>{};else doc.write=function(){};','restore();','doc.write("p2");']
+ ];
+ const mutations=[
+  'doc.write=()=>{};',
+  'doc.write=original;',
+  'delete doc.write;',
+  'if(flag)restore();',
+  'restore();',
+  'if(flag)doc.write=()=>{};'
+ ];
+ let cases=0, executions=0;
+ for(let seed=0;seed<baselines.length;seed++){
+  for(let position=0;position<3;position++){
+   for(let mutation=0;mutation<mutations.length;mutation++){
+    const steps=baselines[seed].slice();
+    steps[position]=mutations[mutation];
+    const lines=['const doc=globalThis.document;','const original=doc.write;',...steps,'doc.write("end");'];
+    const source=lines.join('\n');
+    const report=analyzeAST('mutant-'+seed+'-'+position+'-'+mutation+'.mjs',source);
+    assert.equal(report.parsed,true,'C18 mutant parse');
+    const warnings=new Set(has(report,'AST005').map(x=>x.line));
+    const markerLines=new Map();
+    lines.forEach((line,i)=>{
+      const match=line.match(/doc\.write\("(p[012]|end)"\)/);
+      if(match)markerLines.set(match[1],i+1);
+    });
+    for(const flag of [false,true]){
+     const observed=[];
+     const original=function(value){observed.push(value);};
+     const document=Object.create({write:original});
+     runInNewContext(source,{document,flag,restore(){document.write=original;}},
+      {timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+     for(const marker of observed)
+      assert.ok(warnings.has(markerLines.get(marker)),
+       'C18 missed real original method: seed='+seed+' pos='+position+
+       ' variant='+mutation+' flag='+flag+' marker='+marker+
+       ' source='+JSON.stringify(lines));
+     executions++;
+    }
+    cases++;
+   }
+  }
+ }
+ assert.equal(cases,108);
+ assert.equal(executions,216);
+});
