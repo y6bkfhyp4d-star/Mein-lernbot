@@ -1,16 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const blobHash=content=>createHash('sha1').update('blob '+Buffer.byteLength(content)+'\0').update(content).digest('hex');
 import {inspect,render,parserEnv} from '../../.github/scripts/neryx-codebrain.mjs';
 
 const SHA='a'.repeat(40);
 function mock(files,contents={},changed=files.length){
+ const blobs=new Map();
+ files=files.map(f=>{
+  const content=contents[f.sha]??'const value = 1;';
+  const sha=blobHash(content);
+  blobs.set(sha,content);
+  return {...f,sha};
+ });
  const pr={state:'open',base:{ref:'main'},head:{sha:SHA},changed_files:changed};
  const request=async url=>{
   let data;
   if(url.endsWith('/pulls/94'))data=pr;
   else if(url.includes('/files?'))data=files;
   else if(url.includes('/git/blobs/')){
-   const content=contents[url.split('/').at(-1)]??'const value = 1;';
+   const content=blobs.get(url.split('/').at(-1));
+   if(content===undefined)throw Error('unexpected blob');
    data={encoding:'base64',size:Buffer.byteLength(content),content:Buffer.from(content).toString('base64')};
   }else throw Error('unexpected URL');
   return {ok:true,json:async()=>data};
@@ -255,9 +265,9 @@ test('Git blob response SHA mismatch fails closed',async()=>{
  assert.equal(r.rows[0].status,'error');
 });
 test('canonical base64 with Git blob SHA stays supported',async()=>{
- const opts=mock([entry('safe.js')]);
+ const opts=mock([entry('safe.js')],{[SHA]:'a'});
  const r=await inspect({...opts,request:async(u,o)=>{
-  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({sha:SHA,encoding:'base64',size:1,content:'YQ==\n'})};
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({sha:blobHash('a'),encoding:'base64',size:1,content:'YQ==\n'})};
   return opts.request(u,o);
  }});
  assert.equal(r.complete,true);
@@ -342,4 +352,16 @@ test('AST result contract retains valid findings and overflow sentinel',async()=
  const clean=await inspect({...mock([entry('valid.mjs')]),ast:()=>({parsed:true,findings:[{rule:'AST003',line:1}]})});
  assert.equal(clean.complete,true);
  assert.equal(clean.rows[0].findings[0].kind,'heuristic');
+});
+
+test('C37 API scanner independently checks bytes even if response SHA claims to match',async()=>{
+ const opts=mock([entry('safe.js')],{[SHA]:'const x=1;'});
+ for(const includeSha of [true,false]){
+  let calls=0;
+  const r=await inspect({...opts,request:async(u,o)=>{
+   if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({...(includeSha?{sha:u.split('/').at(-1)}:{}),encoding:'base64',size:10,content:Buffer.from('const x=2;').toString('base64')})};
+   return opts.request(u,o);
+  },ast:()=>{calls++;return {parsed:true,findings:[]};}});
+  assert.equal(calls,0);assert.equal(r.complete,false);assert.equal(r.rows[0].status,'error');
+ }
 });

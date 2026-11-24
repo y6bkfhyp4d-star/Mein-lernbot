@@ -1,5 +1,9 @@
 import {analyzeSource} from '../../eval/genesis/code-analyzer.mjs';
 import {appendFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+export function gitBlobHash(bytes){
+ return createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+}
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
@@ -96,6 +100,7 @@ export async function inspect({repo,number,token,request=fetch,analyze=analyzeSo
    if(!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded))throw Error('Invalid base64');
    const bytes=Buffer.from(encoded,'base64');
    if(bytes.length!==blob.size||bytes.includes(0)||bytes.toString('base64')!==encoded)throw Error('Invalid bytes');
+   if(gitBlobHash(bytes)!==f.sha.toLowerCase())throw Error('Git blob content hash mismatch');
    const source=bytes.toString('utf8');
    if(!Buffer.from(source,'utf8').equals(bytes))throw Error('Invalid UTF8');
    used+=bytes.length;
