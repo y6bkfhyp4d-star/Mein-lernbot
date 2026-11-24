@@ -234,3 +234,28 @@ export async function inspectPublicGitCollector(plan,output,{repo,number,parsers
  if(result.sha!==data.head||!snapshotMatchesFiles(result,files))throw Error('Scan inventory mismatch');
  return {scope:'ENDPOINT_TREE_DIFF',base:data.base,head:data.head,result,outcome:snapshotOutcome(result)};
 }
+
+// Strict CONNECT admission contract. No DNS lookup or socket creation here.
+// The eventual relay must independently pin its upstream and enforce limits.
+export function admitPublicGitConnect(raw){
+ if(!Buffer.isBuffer(raw)||raw.length<1||raw.length>4096)throw Error('Invalid proxy request size');
+ if(raw.some(x=>x>126||(x<32&&x!==13&&x!==10&&x!==9)))throw Error('Invalid proxy request bytes');
+ const text=raw.toString('ascii');
+ if(!text.endsWith('\r\n\r\n')||text.indexOf('\r\n\r\n')!==text.length-4)throw Error('Invalid proxy framing');
+ const lines=text.slice(0,-4).split('\r\n');
+ if(lines.length>16||!/^CONNECT github\.com:443 HTTP\/1\.[01]$/.test(lines.shift()))throw Error('Denied proxy destination');
+ const seen=new Set();
+ for(const line of lines){
+  const m=/^([A-Za-z][A-Za-z0-9-]{0,63}):[ \t]*([\x20-\x7e]{1,512})$/.exec(line);
+  if(!m)throw Error('Invalid proxy header');
+  const name=m[1].toLowerCase(),value=m[2].trim();
+  if(seen.has(name))throw Error('Duplicate proxy header');
+  seen.add(name);
+  if(name==='host'&&value==='github.com:443')continue;
+  if(name==='proxy-connection'&&/^(keep-alive|close)$/i.test(value))continue;
+  if(name==='user-agent'&&value.length>0)continue;
+  throw Error('Denied proxy header');
+ }
+ if(!seen.has('host'))throw Error('Missing proxy host');
+ return Object.freeze({host:'github.com',port:443});
+}

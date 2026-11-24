@@ -71,3 +71,15 @@ test('offline scanner adapter requires parser injection and refuses context mism
  await assert.rejects(inspectPublicGitCollector(proofPlan,'',{repo:context.repo,number:context.number}),/Missing isolated parsers/);
  await assert.rejects(inspectPublicGitCollector(proofPlan,'',{repo:'Other/repo',number:context.number,parsers:{}}),/Mismatched scan context/);
 });
+
+import {admitPublicGitConnect} from './codebrain-public-git.mjs';
+const connect=(target='github.com:443',headers='Host: github.com:443\r\n')=>Buffer.from('CONNECT '+target+' HTTP/1.1\r\n'+headers+'\r\n');
+test('proxy admission permits only fixed GitHub HTTPS CONNECT target',()=>{
+ assert.deepEqual(admitPublicGitConnect(connect()),{host:'github.com',port:443});
+ assert.deepEqual(admitPublicGitConnect(connect('github.com:443','Host: github.com:443\r\nProxy-Connection: Keep-Alive\r\nUser-Agent: git/2.56\r\n')),{host:'github.com',port:443});
+ for(const target of ['github.com:80','github.com.evil.invalid:443','127.0.0.1:443','[::1]:443','github.com.:443','github.com:0443','user@github.com:443','GITHUB.COM:443'])assert.throws(()=>admitPublicGitConnect(connect(target)));
+});
+test('proxy admission rejects ambiguous framing, credentials and unapproved headers',()=>{
+ for(const headers of ['', 'Host: other.invalid:443\r\n','Host: github.com:443\r\nHost: github.com:443\r\n','Host: github.com:443\r\nProxy-Authorization: Basic abc\r\n','Host: github.com:443\r\nContent-Length: 0\r\n','Host: github.com:443\r\nTransfer-Encoding: chunked\r\n','Host: github.com:443\r\n folded\r\n'])assert.throws(()=>admitPublicGitConnect(connect('github.com:443',headers)));
+ for(const raw of [Buffer.concat([connect(),Buffer.from('extra')]),Buffer.alloc(4097),Buffer.from('GET / HTTP/1.1\r\n\r\n'),Buffer.from('CONNECT github.com:443 HTTP/1.1\nHost: github.com:443\n\n')])assert.throws(()=>admitPublicGitConnect(raw));
+});
