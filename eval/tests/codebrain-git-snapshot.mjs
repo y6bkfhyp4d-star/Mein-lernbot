@@ -64,6 +64,12 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
   const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,ast:astWorkerDefault});
   console.log('NERYX SNAPSHOT: isolated Acorn AST active for JS/MJS/CJS');
   console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete+' outcome='+snapshotOutcome(data.result));
+  // C27: path and reason are sanitized, source content is never logged.
+  for(const row of data.result.rows.filter(x=>x.status!=='checked')){
+   const safeName=typeof row.file==='string'&&safeFile(row.file)?row.file:'[invalid-path]';
+   const safeReason=typeof row.reason==='string'&&/^[a-z-]{1,48}$/.test(row.reason)?row.reason:'unknown';
+   console.log('NERYX SNAPSHOT EXCEPTION: '+row.status+' '+safeReason+' '+safeName);
+  }
   if(process.env.GITHUB_STEP_SUMMARY){
    const {appendFileSync}=await import('node:fs');
    appendFileSync(process.env.GITHUB_STEP_SUMMARY,'# NERYX CodeBrain: lokaler PR-Merge-Snapshot (ohne GitHub API)\n\n**Kein Live-API-Nachweis, kein unabhängiger Sicherheitsreview.**\n\n'+'**Snapshot-Abdeckung: '+snapshotOutcome(data.result)+'** (COMPLETE=alle geprüft; PARTIAL_UNSUPPORTED=nur ausdrücklich ausgelassene Dateien; INCOMPLETE=Scanfehler oder Abbruch).\n\n'+render(data.result));
