@@ -304,12 +304,18 @@ export function analyzeAST(file,source){
         ?node.argument
         :node.type==='UnaryExpression'&&node.operator==='delete'&&
           node.argument?.type==='MemberExpression'?node.argument:null;
-    if(!uncertain&&mutation?.object?.type==='Identifier'&&
-       !(node.type==='AssignmentExpression'&&provenReplacement(node))){
+    // C20: an unknown computed property can designate the monitored method.
+    // Only exact, freshly created replacements of a known property are proven.
+    if(!uncertain&&mutation?.object?.type==='Identifier'){
       const alias=aliasAt(mutation.object.name,scope,node.start);
-      if(alias?.origin==='document'&&staticProperty(mutation,'write'))
+      const unknownProperty=mutation.computed&&mutation.property?.type!=='Literal';
+      const exactFresh=node.type==='AssignmentExpression'&&
+        provenReplacement(node)&&!unknownProperty;
+      if(!exactFresh&&alias?.origin==='document'&&
+         (staticProperty(mutation,'write')||unknownProperty))
         invalidate('document');
-      if(alias?.origin==='localStorage'&&staticProperty(mutation,'clear'))
+      if(!exactFresh&&alias?.origin==='localStorage'&&
+         (staticProperty(mutation,'clear')||unknownProperty))
         invalidate('localStorage');
     }
     if(node.type==='CallExpression'){
