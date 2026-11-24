@@ -4,7 +4,7 @@
 
 ## Nachgewiesen
 - Die Dateiübertragung des PR findet über die GitHub-API als Daten statt. Der manuelle Scanner importiert keine PR-Quelltextdateien.
-- Die neue AST-Ausführung verwendet einen separaten Node-Prozess mit Speicherlimit, 2,5-Sekunden-Timeout und begrenztem Befund-Output.
+- Die neue AST-Ausführung verwendet einen separaten Node-Prozess mit Speicherlimit, 5-Sekunden-Timeout, 128-MiB-V8-Heaplimit und begrenztem Befund-Output.
 - Python wird mit `ast.parse` geprüft; YAML mit `Psych.parse_stream`; JSON mit `JSON.parse`. Keiner dieser Parser führt untersuchten Quelltext absichtlich aus.
 - Die Acorn-Abhängigkeit hat ein Lockfile und wurde im AST-CI-Lauf mit `npm ci --ignore-scripts` installiert.
 - Die öffentlichen Smoke-Tests haben PR #97 mehrfach ohne Authentifizierung über die GitHub-API untersucht.
@@ -17,6 +17,23 @@
 4. **Syntax ≠ Sicherheitsfreigabe:** AST-Befunde und Regex-Warnungen sind keine vollständige Sicherheits- oder Korrektheitsprüfung. Semantik, Abhängigkeiten, GitHub-Workflow-Logik und zur Laufzeit entstehende Effekte werden nicht umfassend validiert.
 5. **Isolation:** Ein separater Prozess mit Timeout/Node-Speicherlimit ist kein Betriebssystem-Sandboxersatz. Die heuristische Alternative im öffentlichen Smoke-Test hat lediglich das Workflow-Timeout als Gesamtschutz.
 6. **Manueller Ende-zu-Ende-Test:** Der echte `workflow_dispatch`-Durchlauf mit einem GitHub-Token ist auf diesem Draft-Branch nicht nachgewiesen. Der Workflow wird erst nach ausdrücklich genehmigter Integration in `main` regulär verfügbar.
+
+## C29 – überprüfter CI-Abschluss (Stand 24.11.2026)
+
+**Geprüfter Commit:** `b3c8ad611c7de32954f326f8f7b2d1245389e525` auf `feature/neryx-codebrain-v1-readonly` in Draft-PR #97.
+
+Die fünf PR-Workflows meldeten für diesen Commit den Status `completed/success`:
+- `GENESIS X AST Analyzer 2.1 tests`
+- `NERYX free read-only code reviewer`
+- `NERYX GENESIS X candidate policy`
+- `NERYX CodeBrain offline gate and optional public API (no secrets)`
+- `NERYX merge candidate verification`
+
+Der Offline-Snapshot hatte 22 von 25 Dateien geprüft und drei Ausnahmen ausdrücklich als nicht unterstützte Dateitypen benannt (`PARTIAL_UNSUPPORTED`). Die öffentliche API war bei diesem Lauf erreichbar; bei Rate-Limits bleibt sie optional und ausdrücklich unbestätigt.
+
+**Nicht nachgewiesen:** unabhängiger externer Sicherheitsreview, vollständige Analyse sämtlicher Dateitypen, echter manueller `workflow_dispatch`-Ende-zu-Ende-Lauf auf `main` und vollständige Laufzeit-/Semantikkorrektheit des Analyzers. Das positive CI-Ergebnis ist keine automatische Freigabe und ersetzt keine Genehmigung zum Merge.
+
+Diese Dokumentationsänderung erzeugt einen neuen Commit, dessen CI separat neu bewertet werden muss; der historische Erfolg des obigen Commits wird nicht als Erfolg eines neuen Commits ausgegeben.
 
 ## Freigaberegeln
 - Erst alle erforderlichen GitHub-Checks am letzten Commit grün und einen unabhängigen Review abschließen.
