@@ -296,3 +296,62 @@ jobs:
                   raise SystemExit(f"PARITY_CASE_FAILED {language}/{label}") from None
           print(f"NERYX_PARSER_PARITY_OK cases={len(cases)}", flush=True)
           PY
+      - name: Verify bounded resource enforcement and container cleanup
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          image='python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20'
+          name="neryx-resource-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
+          common=(--pull never --platform linux/amd64 --network none --read-only
+            --cap-drop ALL --security-opt no-new-privileges:true --user 65534:65534
+            --memory 64m --memory-swap 64m --cpus 0.5 --pids-limit 16
+            --tmpfs /tmp:rw,noexec,nosuid,nodev,size=1m
+            --entrypoint /usr/local/bin/python3)
+          # Fixed, finite allocation; no unbounded loop or external target.
+          docker run -d --name "$name" "${common[@]}" "$image" -I -S -c 'x=bytearray(96*1024*1024); print("UNEXPECTED_ALLOCATION")'
+          status="$(timeout --kill-after=2s 20s docker wait "$name")"
+          test "$status" = 137
+          test "$(docker inspect --format '{{.State.OOMKilled}}' "$name")" = true
+          docker rm "$name" >/dev/null
+          echo NERYX_RESOURCE_MEMORY_OK
+          docker run --rm --name "$name" "${common[@]}" "$image" -I -S -c '
+          import errno, subprocess, sys
+          children = []
+          denied = False
+          try:
+              for _ in range(20):
+                  try:
+                      children.append(subprocess.Popen([sys.executable, "-I", "-S", "-c", "import time; time.sleep(10)"]))
+                  except OSError as error:
+                      assert error.errno == errno.EAGAIN
+                      denied = True
+                      break
+              assert denied and 0 < len(children) < 16
+          finally:
+              for child in children:
+                  if child.poll() is None:
+                      child.kill()
+              for child in children:
+                  child.wait(timeout=3)
+          '
+          echo NERYX_RESOURCE_PIDS_OK
+          docker run -d --name "$name" "${common[@]}" "$image" -I -S -c 'import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print("READY",flush=True); time.sleep(60)'
+          ready=0
+          for attempt in $(seq 1 30); do
+            if docker logs "$name" 2>&1 | grep -Fxq READY; then ready=1; break; fi
+            sleep 0.2
+          done
+          test "$ready" = 1
+          set +e
+          timeout --kill-after=2s 2s docker wait "$name" >/dev/null
+          rc=$?
+          set -e
+          test "$rc" = 124
+          timeout --kill-after=2s 10s docker rm -f "$name" >/dev/null
+          if docker container inspect "$name" >/dev/null 2>&1; then
+            echo 'Container still exists after cleanup' >&2
+            exit 1
+          fi
+          echo NERYX_RESOURCE_TIMEOUT_CLEANUP_OK
+          echo NERYX_SYNTHETIC_RESOURCE_TESTS_OK
