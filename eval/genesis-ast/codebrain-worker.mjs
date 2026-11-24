@@ -12,7 +12,7 @@ try{
  if(size>maxInput)throw Error('worker-input-limit');
  const body=buffer.toString('utf8',0,size);
  const {path,source}=JSON.parse(body);
- if(typeof path!=='string'||typeof source!=='string'||Buffer.byteLength(source,'utf8')>60000)throw Error('invalid-source');
+ if(typeof path!=='string'||typeof source!=='string'||Buffer.byteLength(source,'utf8')>70000)throw Error('invalid-source');
  const r=analyzeAST(path,source);
  const output={parsed:r.parsed,findings:r.findings.slice(0,41).map(({rule,line})=>({rule,line}))};
  process.stdout.write(JSON.stringify(output));
