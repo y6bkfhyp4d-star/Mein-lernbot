@@ -36,7 +36,7 @@ const yamlSyntaxDefault=source=>{
 export const astWorkerDefault=(path,source)=>{
  const helper=fileURLToPath(new URL('../../eval/genesis-ast/codebrain-worker.mjs',import.meta.url));
  const output=execFileSync(process.execPath,['--max-old-space-size=128',helper],{
-  input:JSON.stringify({path,source}),timeout:2500,maxBuffer:16384,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()
+  input:JSON.stringify({path,source}),timeout:5000,maxBuffer:131072,windowsHide:true,stdio:['pipe','pipe','pipe'],env:parserEnv()
  });
  const result=JSON.parse(output.toString('utf8'));
  return validateAstResult(result);
