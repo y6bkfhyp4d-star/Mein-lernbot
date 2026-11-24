@@ -1,4 +1,4 @@
-name: NERYX CodeBrain public API smoke (no secrets)
+name: NERYX CodeBrain offline gate and optional public API (no secrets)
 on:
   pull_request:
     branches: [main]
@@ -19,6 +19,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   codebrain-public-smoke:
+    name: Optional public API diagnostic (quota may be inconclusive)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -32,12 +33,13 @@ jobs:
           node-version: '22'
       - name: Verify scanner safeguards offline first
         run: node --test eval/tests/codebrain.test.mjs eval/tests/codebrain-rate-limit-diagnostics.test.mjs eval/tests/codebrain-rate-limit-retry.test.mjs
-      - name: Public API smoke against triggering PR (no tokens or secrets)
+      - name: Optional live API probe (quota => explicit INCONCLUSIVE, not verified)
         env:
           CODEBRAIN_LIVE_PUBLIC: '1'
           CODEBRAIN_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: node --test eval/tests/codebrain-live-public.test.mjs
   codebrain-snapshot-smoke:
+    name: Offline snapshot coverage gate (no GitHub API)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
