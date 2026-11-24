@@ -79,6 +79,23 @@ Die beiden Markdown-Dokumente bleiben als nicht vom Code-Scanner geprüfte Ausna
 
 **Nachweiskette:** Diese Sektion dokumentiert den historischen Erfolg von `262880f`. Der Dokumentationscommit selbst muss als neuer Head separat geprüft werden. Zusätzliche Dokumentationscommits erzeugen keine neuen Sicherheitsnachweise und sollten vermieden werden, sofern sich die Fakten nicht ändern.
 
+## C41 – Architektur- und Vertrauensgrenzenreview (24.11.2026)
+
+**Nachweisstand:** `3548f7c5535d46717f18abd474f3f39e774b9899`, Draft-PR #97. Alle fünf Workflows erfolgreich; Integration, Chromium und WebKit erfolgreich. Offline-Snapshot: 22/25 geprüft, 3 explizite Ausnahmen, 0 Fehler, PARTIAL_UNSUPPORTED. API-Diagnostik: 22/25 geprüft, 3 übersprungen, 0 Fehler; API erreichbar in diesem Lauf. Offline-Adapter 19/19 und API-Schutz-/Diagnostiktests 60/60 bestanden (Runs 45403086106 und 45403085893).
+
+| Grenze | Kontrolle | Verbleibende Einschränkung |
+| --- | --- | --- |
+| Git-Objekt zu Scanner | C36/C37: Hash über tatsächliche Blob-Bytes; Größen- und UTF-8-Prüfung | Git SHA-1 ist Objektidentität, kein unabhängiger Herkunftsnachweis |
+| Inventar zu Ergebnis | C33–C35: eindeutige Pfade, Befundschema, Abgleich mit lokalem Diff; C38: API-Duplikate und Metadatenänderungen ablehnen | API-Inventar bleibt vom Anbieter abhängig; lokaler Merge-Snapshot ist nicht identisch mit PR-Head |
+| Änderungsstatus | API scannt added, modified, renamed, copied, changed; unknown bleibt unvollständig; removed wird ausgewiesen | Offline akzeptiert nur A/M/D, andere Status brechen ab; keine vollständige Prüfung gelöschter Inhalte |
+| Ressourcen | C39: 70.000 Bytes pro Datei, 500.000 analysierte Bytes, 30 Dateien, 40 ausgegebene Befunde; exakte Grenztests | Keine globale RSS-/CPU-Messung; Transportdaten und Parserkosten sind nicht gleich Analysebudget |
+| Parser und Transport | C40: kombinierte echte JS/Python/JSON-Syntaxfehler, manipulierte YAML-Bytes und wechselnder Head | Keine vollständige Semantik-/Datenflussanalyse; Worker ist keine OS-Sandbox |
+| CI-Vertrauen | PR-Snapshot ohne Secrets und ohne persistierte Checkout-Credentials; manueller Workflow mit read-only Token und Checkout von main | PR-Testcode kann im unprivilegierten Runner laufen; manueller echter Dispatch auf main nicht verifiziert |
+
+**Bewertung:** intern CI-verifizierter Draft-Kandidat mit klaren Grenzen. Kein unabhängiger Sicherheitsreview, keine Freigabe. C42 soll den Abschlussstand und die offenen Nachweise dokumentieren, nicht die Merge-Sperren entfernen. Die historischen Aussagen zu C27–C32 bleiben historische Nachweise; insbesondere ersetzt die neue Behandlung von umbenannten Dateien die frühere API-Einschränkung, nicht die übrigen Abdeckungslimits.
+
+**Offene technische Beobachtung:** Im manuellen Workflow läuft der erste Scanner-Test vor der expliziten Node-22-Installation; für reproduzierbare Laufzeit wird die Reihenfolge im selben C41-Commit korrigiert. Der reale Dispatch bleibt ungetestet. Neuer Head benötigt eigene CI.
+
 ## Freigaberegeln
 - Erst alle erforderlichen GitHub-Checks am letzten Commit grün und einen unabhängigen Review abschließen.
 - Sicherheitsgrenzen und Testresultate klar dokumentieren; keine automatischen Merges, kein Deployment, keine neuen Secrets oder Schreibrechte.
