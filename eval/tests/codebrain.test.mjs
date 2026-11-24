@@ -401,3 +401,50 @@ test('C38 initial metadata remains pinned even when an adapter reuses mutable re
   return {ok:true,json:async()=>data};
  }}),/PR changed during review/);
 });
+
+test('C39 exact per-file byte boundary including multibyte UTF8',async()=>{
+ for(const size of [69999,70000,70001]){
+  const source='// '+'ä'.repeat(Math.floor((size-3)/2))+' '.repeat((size-3)%2);
+  assert.equal(Buffer.byteLength(source),size);
+  let calls=0;
+  const opts=mock([entry('boundary.js')],{[SHA]:source});
+  const result=await inspect({...opts,ast:(file,actual)=>{
+   calls++;assert.equal(actual,source);return {parsed:true,findings:[]};
+  }});
+  assert.equal(calls,size<=70000?1:0);
+  assert.equal(result.complete,size<=70000);
+  if(size>70000)assert.equal(result.rows[0].reason,'size-or-encoding');
+ }
+});
+test('C39 total byte budget includes repeated blobs and failed analyzers',async()=>{
+ for(const extra of [0,1]){
+  const files=Array.from({length:8},(_,i)=>entry('f'+i+'.js',i===7?'b'.repeat(40):SHA));
+  const opts=mock(files,{[SHA]:'//'+ ' '.repeat(69998),['b'.repeat(40)]:'//'+ ' '.repeat(9998+extra)});
+  let calls=0;
+  const result=await inspect({...opts,ast:()=>{
+   calls++;if(calls===1)throw Error('simulated parser failure');return {parsed:true,findings:[]};
+  }});
+  assert.equal(calls,extra?7:8);
+  assert.equal(result.complete,false);
+  assert.equal(result.rows[0].status,'error');
+  assert.equal(result.rows[7].status,extra?'skipped':'checked');
+  if(extra)assert.equal(result.rows[7].reason,'size-or-encoding');
+ }
+});
+test('C39 thirty changed files accepted, thirty-one rejected before fetching inventory',async()=>{
+ for(const count of [30,31]){
+  const opts=mock(Array.from({length:count},(_,i)=>entry('f'+i+'.js')));
+  let requests=0;
+  const args={...opts,request:async(u,o)=>{requests++;return opts.request(u,o);},ast:()=>({parsed:true,findings:[]})};
+  if(count===30){const result=await inspect(args);assert.equal(result.checked,30);assert.equal(result.complete,true);assert.equal(requests,33);}
+  else{await assert.rejects(()=>inspect(args),/Leere oder zu große/);assert.equal(requests,1);}
+ }
+});
+test('C39 findings boundary distinguishes forty from forty-one',async()=>{
+ for(const count of [40,41]){
+  const result=await inspect({...mock([entry('boundary.js')]),ast:()=>({parsed:true,findings:Array.from({length:count},(_,i)=>({rule:'AST001',line:i+1}))})});
+  assert.equal(result.rows[0].findings.length,40);
+  assert.equal(result.complete,count===40);
+  assert.equal(result.rows[0].reason,count===40?'ast':'findings-truncated');
+ }
+});
