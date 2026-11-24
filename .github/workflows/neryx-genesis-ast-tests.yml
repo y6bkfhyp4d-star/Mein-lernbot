@@ -357,3 +357,49 @@ jobs:
           echo NERYX_SYNTHETIC_RESOURCE_TESTS_OK
       - name: Verify candidate sandbox launcher contract
         run: node --test eval/tests/codebrain-sandbox.test.mjs
+      - name: Exercise candidate launcher with actual Docker parsers
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          stage="$(mktemp -d "$RUNNER_TEMP/neryx-launcher.XXXXXX")"
+          trap 'rm -rf -- "$stage"' EXIT
+          chmod 755 "$stage"
+          cp .github/scripts/{neryx-python-syntax.py,neryx-yaml-syntax.rb} "$stage/"
+          cp eval/genesis-ast/{analyzer.mjs,codebrain-worker.mjs} "$stage/"
+          mkdir "$stage/node_modules"
+          cp -R eval/genesis-ast/node_modules/acorn "$stage/node_modules/"
+          chmod -R a+rX "$stage"
+          STAGE="$stage" node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {renameSync} from 'node:fs';
+          import {join} from 'node:path';
+          import {createSandboxParsers} from './.github/scripts/neryx-sandbox.mjs';
+          const stage=process.env.STAGE;
+          const list=()=>execFileSync('/usr/bin/docker',['ps','-a','--filter','name=neryx-parser-','--format','{{.Names}}'],{encoding:'utf8',timeout:10000}).trim();
+          assert.equal(list(),'');
+          const p=createSandboxParsers({stage});
+          assert.deepEqual(p.pythonSyntax('raise RuntimeError("INERT")'),{parsed:true,line:null});
+          assert.equal(p.pythonSyntax('def broken(:').parsed,false);
+          assert.equal(list(),'');
+          console.log('NERYX_LAUNCHER_PYTHON_OK');
+          assert.deepEqual(p.yamlSyntax('--- !ruby/object:NeryxSynthetic\nx: 1'),{parsed:true,line:null});
+          assert.equal(p.yamlSyntax('key: [').parsed,false);
+          assert.equal(list(),'');
+          console.log('NERYX_LAUNCHER_YAML_OK');
+          assert.deepEqual(p.ast('sample.mjs','export const x = 1;'),{parsed:true,findings:[]});
+          assert.equal(p.ast('sample.mjs','export const = ;').parsed,false);
+          assert.ok(p.ast('sample.mjs','eval("synthetic")').findings.some(f=>f.rule==='AST001'));
+          assert.equal(list(),'');
+          console.log('NERYX_LAUNCHER_ACORN_OK');
+          const helper=join(stage,'neryx-python-syntax.py');
+          renameSync(helper,helper+'.disabled');
+          try {
+            assert.throws(()=>p.pythonSyntax('x=1'),/Sandbox parser or cleanup failed/);
+            assert.equal(list(),'');
+          } finally {renameSync(helper+'.disabled',helper);}
+          assert.throws(()=>p.pythonSyntax('x'.repeat(70001)),/Invalid sandbox input/);
+          assert.equal(list(),'');
+          console.log('NERYX_LAUNCHER_FAILURE_CLEANUP_OK');
+          console.log('NERYX_REAL_LAUNCHER_INTEGRATION_OK');
+          JS
