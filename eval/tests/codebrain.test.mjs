@@ -448,3 +448,21 @@ test('C39 findings boundary distinguishes forty from forty-one',async()=>{
   assert.equal(result.rows[0].reason,count===40?'ast':'findings-truncated');
  }
 });
+
+// P1a: transport and real parser limits agree; limits are not syntax findings.
+test('real Python and YAML parsers accept valid UTF-8 at the scanner byte boundary',async()=>{
+ for(const extension of ['py','yaml']){
+  for(const size of [60000,60001,69999,70000,70001]){
+   const prefix=extension==='py'?'x = 1\n#':'x: 1\n#';
+   const remaining=size-Buffer.byteLength(prefix);
+   const source=prefix+'ä'.repeat(Math.floor(remaining/2))+' '.repeat(remaining%2);
+   assert.equal(Buffer.byteLength(source),size);
+   const r=await inspect(mock([entry('boundary.'+extension)],{[SHA]:source}));
+   assert.equal(r.complete,size<=70000,extension+' '+size);
+   assert.equal(r.blocking,false);
+   assert.equal(r.rows[0].findings.length,0);
+   assert.equal(r.rows[0].status,size<=70000?'checked':'skipped');
+   if(size>70000)assert.equal(r.rows[0].reason,'size-or-encoding');
+  }
+ }
+});
