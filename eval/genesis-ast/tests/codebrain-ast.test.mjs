@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const blobHash=source=>createHash('sha1').update('blob '+Buffer.byteLength(source)+'\0').update(source).digest('hex');
 import {analyzeAST} from '../analyzer.mjs';
 import {inspect,render} from '../../../.github/scripts/neryx-codebrain.mjs';
 const SHA='b'.repeat(40);
 function mock(source){
  return async url=>{
   const data=url.endsWith('/pulls/97')?{state:'open',base:{ref:'main'},head:{sha:SHA},changed_files:1}:
-   url.includes('/files?')?[{filename:'example.mjs',status:'added',sha:SHA}]:
+   url.includes('/files?')?[{filename:'example.mjs',status:'added',sha:blobHash(source)}]:
    url.includes('/git/blobs/')?{encoding:'base64',size:Buffer.byteLength(source),content:Buffer.from(source).toString('base64')}:null;
   if(!data)throw Error('Unexpected URL');
   return {ok:true,json:async()=>data};

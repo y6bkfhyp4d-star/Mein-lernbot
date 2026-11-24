@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const blobHash=source=>createHash('sha1').update('blob '+Buffer.byteLength(source)+'\0').update(source).digest('hex');
 import {inspect,render,astWorkerDefault} from '../../../.github/scripts/neryx-codebrain.mjs';
 
 // Simulates GitHub REST responses, but uses the real isolated JS/Python/YAML parsers.
@@ -12,7 +14,7 @@ const sourceByPath={
  'data.json':'{"ok":true}'
 };
 function fakeApi(override={}){
- const files=Object.keys(sourceByPath).map((filename,i)=>({filename,status:'added',sha:String(i+1).repeat(40)}));
+ const files=Object.keys(sourceByPath).map(filename=>({filename,status:'added',sha:blobHash(override[filename]??sourceByPath[filename])}));
  const blobs=new Map(files.map(f=>[f.sha,override[f.filename]??sourceByPath[f.filename]]));
  let prReads=0;
  const seen=[];
