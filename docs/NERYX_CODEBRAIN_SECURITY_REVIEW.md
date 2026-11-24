@@ -50,6 +50,16 @@ Diese Dokumentationsänderung erzeugt einen neuen Commit, dessen CI separat neu 
 
 **Neuer Commit = neue CI-Bewertung:** Die vorstehenden Ergebnisse gelten für `2da52a5`; bei Änderungen an diesem Dokument müssen die GitHub-Checks am neuen Head erneut überprüft werden.
 
+## C31 – Read-only-Nachprüfung der unterstützungsbedingten Ausnahmen (24.11.2026)
+
+**Geprüfter Ausgangsstand:** `c59c52c62743f415df4cf60fa8b3fdb3932aa2ac`, Draft-PR #97, fünf von fünf PR-Workflows `completed/success` (inklusive Integration, Chromium und WebKit).
+
+Der Offline-CodeBrain-Scanner meldete bislang `PARTIAL_UNSUPPORTED` mit 22 von 25 unterstützten Dateien geprüft. Für den bisher ausdrücklich als `unsupported-type` erfassten Ruby-Helfer `.github/scripts/neryx-yaml-syntax.rb` führt die unprivilegierte Snapshot-CI jetzt separat `ruby -c` aus. Die Syntaxprüfung parst den Helfer, führt ihn nicht als Programm aus und verwendet keine neuen API-Tokens. Ein Syntaxfehler führt zu einem roten Offline-Gate. Der CodeBrain-Snapshot selbst meldet den Ruby-Helfer weiterhin korrekt als nicht unterstützt; der zusätzliche Gate-Test ist **keine** vollständige Ruby-Sicherheitsanalyse.
+
+Die beiden Markdown-Dokumente bleiben als nicht vom Code-Scanner geprüfte Ausnahmen ausgewiesen. Dateiabdeckung, Resultate und Abnahme dürfen nicht als vollständiger Security-Audit bezeichnet werden.
+
+**Weiter offen vor einer Merge-Entscheidung:** unabhängiger Review, manuelle `workflow_dispatch`-E2E-Verifikation auf vertrauenswürdigem `main` nach einer ausdrücklich genehmigten Integration sowie ausdrückliche Genehmigung zum Merge. Der neue C31-Commit benötigt eine eigene CI-Abnahme; frühere grüne Checks sind kein Ersatz.
+
 ## Freigaberegeln
 - Erst alle erforderlichen GitHub-Checks am letzten Commit grün und einen unabhängigen Review abschließen.
 - Sicherheitsgrenzen und Testresultate klar dokumentieren; keine automatischen Merges, kein Deployment, keine neuen Secrets oder Schreibrechte.
