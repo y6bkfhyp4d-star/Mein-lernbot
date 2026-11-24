@@ -1437,3 +1437,73 @@ test('C23 nested bind/call expression resolves the invoked method',()=>{
  assert.equal(r.parsed,true);
  assert.deepEqual(has(r,'AST005').map(x=>x.line),[2]);
 });
+
+test('C24 calling a stored bound document function reports original method',()=>{
+ const r=analyzeAST('stored-bound-document.mjs',[
+  'const doc=globalThis.document;',
+  'const fn=doc.write.bind(doc);',
+  'fn("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+});
+test('C24 a bound replacement stays harmless after an unrelated call barrier',()=>{
+ const r=analyzeAST('stored-bound-replaced.mjs',[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'const fn=doc.write.bind(doc);',
+  'unknownCallback();',
+  'fn("captured replacement");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[]);
+});
+test('C24 binding original method remains dangerous after replacing the property',()=>{
+ const r=analyzeAST('stored-bound-original.mjs',[
+  'const doc=globalThis.document;',
+  'const fn=doc.write.bind(doc);',
+  'doc.write=()=>{};',
+  'fn("captured original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C24 stored bound storage clear supports call/apply and one immutable alias',()=>{
+ const r=analyzeAST('stored-bound-storage.mjs',[
+  'const store=globalThis.localStorage;',
+  'const fn=store.clear.bind(store);',
+  'const copy=fn;',
+  'copy.call(null);',
+  'fn.apply(null,[]);'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST004').map(x=>x.line),[4,5]);
+});
+test('C24 shadowed bound function name does not leak its outer origin',()=>{
+ const r=analyzeAST('stored-bound-shadow.mjs',[
+  'const doc=globalThis.document;',
+  'const fn=doc.write.bind(doc);',
+  '{const fn=()=>{};fn("local");}',
+  'fn("original");'
+ ].join('\n'));
+ assert.equal(r.parsed,true);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[4]);
+});
+test('C24 runtime oracle verifies stored bound functions retain captured value',()=>{
+ for(const replaceBeforeBind of [false,true]){
+  const lines=[
+   'const doc=globalThis.document;',
+   ...(replaceBeforeBind?['doc.write=()=>{};']:[]),
+   'const fn=doc.write.bind(doc);',
+   ...(!replaceBeforeBind?['doc.write=()=>{};']:[]),
+   'fn("sample");'
+  ];
+  const r=analyzeAST('bound-capture-oracle.mjs',lines.join('\n'));
+  const warnings=has(r,'AST005').map(x=>x.line);
+  assert.deepEqual(warnings,replaceBeforeBind?[]:[lines.length]);
+  const called=[];
+  const document={write(value){called.push(value);}};
+  runInNewContext(lines.join('\n'),{document},{timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+  assert.deepEqual(called,replaceBeforeBind?[]:['sample']);
+ }
+});
