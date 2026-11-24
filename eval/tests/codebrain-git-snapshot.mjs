@@ -1,6 +1,7 @@
 // Offline verification of the GitHub Actions synthetic merge commit.
 // No GitHub API, no credentials. Never execute inspected source.
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {inspect,render,astWorkerDefault} from '../../.github/scripts/neryx-codebrain.mjs';
 const SHA=/^[a-f0-9]{40}$/i;
 const run=(args,maxBuffer=131072)=>execFileSync('git',args,{encoding:'buffer',maxBuffer,timeout:8000,stdio:['ignore','pipe','pipe']});
@@ -46,6 +47,10 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
   if(!Number.isSafeInteger(size)||size<0)throw Error('Invalid git blob size');
   const bytes=size>70000?Buffer.alloc(0):git(['cat-file','blob',sha],73728);
   if(size<=70000&&bytes.length!==size)throw Error('Git blob length mismatch');
+  if(size<=70000){
+   const actual=createHash('sha1').update('blob '+size+'\0').update(bytes).digest('hex');
+   if(actual!==sha.toLowerCase())throw Error('Git blob content hash mismatch');
+  }
   const payload={sha,encoding:'base64',size,content:bytes.toString('base64')};
   return new Response(JSON.stringify(payload));
  };

@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {inspectGitSnapshot,snapshotPasses,snapshotOutcome,snapshotMatchesFiles} from './codebrain-git-snapshot.mjs';
-const HEAD='a'.repeat(40), BASE='b'.repeat(40), MERGE='c'.repeat(40), BLOB='d'.repeat(40);
+const HEAD='a'.repeat(40), BASE='b'.repeat(40), MERGE='c'.repeat(40);
 function fixture({status='M',path='safe.js',source='const ok = 1;',head=HEAD}={}){
  const calls=[];
+ const BLOB=createHash('sha1').update('blob '+Buffer.byteLength(source)+'\0').update(source).digest('hex');
  const git=args=>{
   calls.push(args);
   const cmd=args[0];
@@ -182,5 +184,25 @@ test('C35 unsupported Git status and duplicate or invalid UTF8 paths fail before
   const f=fixture();
   await assert.rejects(()=>inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:args=>args[0]==='diff'?diff:f.git(args)}),/Unsupported git diff entry|Invalid git diff encoding/);
   assert.ok(!f.calls.some(x=>x[0]==='cat-file'));
+ }
+});
+
+test('C36 correct blob bytes reach the analyzer, corrupted bytes never do',async()=>{
+ for(const source of ['', 'const x=1;', '// Grüße 🌍\n']){
+  const f=fixture({source});
+  let calls=0;
+  const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:f.git,ast:(file,actual)=>{
+   calls++;assert.equal(actual,source);return {parsed:true,findings:[]};
+  }});
+  assert.equal(calls,1);
+  assert.equal(snapshotPasses(data.result),true);
+ }
+ const f=fixture({source:'const x=1;'});
+ for(const wrong of ['const x=2;','short']){
+  let calls=0;
+  const data=await inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:args=>args[0]==='cat-file'&&args[1]==='blob'?Buffer.from(wrong):f.git(args),ast:()=>{calls++;return {parsed:true,findings:[]};}});
+  assert.equal(calls,0);
+  assert.equal(data.result.rows[0].status,'error');
+  assert.equal(snapshotPasses(data.result),false);
  }
 });
