@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectGitSnapshot,snapshotPasses,snapshotOutcome} from './codebrain-git-snapshot.mjs';
+import {inspectGitSnapshot,snapshotPasses,snapshotOutcome,snapshotMatchesFiles} from './codebrain-git-snapshot.mjs';
 const HEAD='a'.repeat(40), BASE='b'.repeat(40), MERGE='c'.repeat(40), BLOB='d'.repeat(40);
 function fixture({status='M',path='safe.js',source='const ok = 1;',head=HEAD}={}){
  const calls=[];
@@ -168,3 +168,19 @@ test('C33 malformed or unsafe unsupported paths never certify partial coverage',
  for(const findings of [null,[null],[{...heuristic,line:0}],[{...heuristic,kind:'unknown'}],Array(41).fill(heuristic)])assert.equal(snapshotPasses({...good,rows:[{...row,findings}]}),false);
  assert.equal(snapshotPasses({...good,complete:false,rows:[row,{file:'docs/a.md',status:'skipped',reason:'unsupported-type',findings:[heuristic]}]}),false);
  });
+
+test('C35 every Git change must have exactly one correctly classified result row',()=>{
+ const files=[{filename:'a.js',status:'modified'},{filename:'b.md',status:'added'},{filename:'c.js',status:'removed'}];
+ const rows=[{file:'a.js',status:'checked',reason:'ast'},{file:'b.md',status:'skipped',reason:'unsupported-type'},{file:'c.js',status:'skipped',reason:'not-added-or-modified'}];
+ assert.equal(snapshotMatchesFiles({rows},files),true);
+ assert.equal(snapshotMatchesFiles({rows:[...rows].reverse()},files),true);
+ for(const bad of [rows.slice(0,2),[rows[0],rows[0],rows[2]],[...rows,{file:'extra.js'}],[{...rows[0],file:'other.js'},...rows.slice(1)],[{...rows[0],status:'skipped',reason:'not-added-or-modified'},...rows.slice(1)],[...rows.slice(0,2),{...rows[2],status:'checked',reason:'ast'}]])assert.equal(snapshotMatchesFiles({rows:bad},files),false);
+ assert.equal(snapshotMatchesFiles({rows},[files[0],files[0],files[2]]),false);
+});
+test('C35 unsupported Git status and duplicate or invalid UTF8 paths fail before blob reads',async()=>{
+ for(const diff of [Buffer.from('T\0safe.js\0'),Buffer.from('M\0safe.js\0M\0safe.js\0'),Buffer.from([77,0,255,0])]){
+  const f=fixture();
+  await assert.rejects(()=>inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,git:args=>args[0]==='diff'?diff:f.git(args)}),/Unsupported git diff entry|Invalid git diff encoding/);
+  assert.ok(!f.calls.some(x=>x[0]==='cat-file'));
+ }
+});

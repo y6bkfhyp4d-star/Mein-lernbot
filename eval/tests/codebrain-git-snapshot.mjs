@@ -13,14 +13,18 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
  const head=txt(['rev-parse','HEAD^2']);
  if(!SHA.test(merge)||!SHA.test(base)||head.toLowerCase()!==expectedHead.toLowerCase())throw Error('PR merge snapshot head mismatch');
  const diff=git(['diff','--no-ext-diff','--no-textconv','--name-status','-z','--no-renames',base,merge],131072);
- const entries=diff.toString('utf8').split('\0');
+ const decoded=diff.toString('utf8');
+ if(!Buffer.from(decoded,'utf8').equals(diff))throw Error('Invalid git diff encoding');
+ const entries=decoded.split('\0');
  if(entries.at(-1)!=='')throw Error('Invalid git diff output');
  entries.pop();
  if(entries.length===0||entries.length%2)throw Error('Invalid git diff entries');
  const files=[];
+ const paths=new Set();
  for(let i=0;i<entries.length;i+=2){
   const [status,path]=[entries[i],entries[i+1]];
-  if(!/^[AMDTCU]$/.test(status)||!safeFile(path))throw Error('Unsupported git diff entry');
+  if(!/^[AMD]$/.test(status)||!safeFile(path)||paths.has(path))throw Error('Unsupported git diff entry');
+  paths.add(path);
   let sha='0'.repeat(40);
   if(status==='A'||status==='M'){
    sha=txt(['rev-parse','--verify',merge+':'+path]);
@@ -46,7 +50,25 @@ export async function inspectGitSnapshot({repo,number,expectedHead,git=run,ast=n
   return new Response(JSON.stringify(payload));
  };
  const result=await inspect({repo,number,anonymous:true,request,ast});
+ if(!snapshotMatchesFiles(result,files))throw Error('Snapshot result file mismatch');
  return {result,merge,base,head};
+}
+// Compare scanner output against the independently enumerated Git changes.
+export function snapshotMatchesFiles(result,files){
+ if(!Array.isArray(files)||!files.length||!Array.isArray(result?.rows)||result.rows.length!==files.length)return false;
+ const expected=new Map();
+ for(const f of files){
+  if(!safeFile(f?.filename)||expected.has(f.filename)||!['added','modified','removed'].includes(f.status))return false;
+  expected.set(f.filename,f.status);
+ }
+ for(const row of result.rows){
+  if(!row||!expected.has(row.file))return false;
+  const removed=expected.get(row.file)==='removed';
+  const deletion=row.status==='skipped'&&row.reason==='not-added-or-modified';
+  if(removed!==deletion||(!removed&&row.reason==='not-added-or-modified'))return false;
+  expected.delete(row.file);
+ }
+ return expected.size===0;
 }
 // Unsupported or deleted files remain disclosed; truncated or failed supported scans cannot pass.
 export const snapshotPasses=r=>{
