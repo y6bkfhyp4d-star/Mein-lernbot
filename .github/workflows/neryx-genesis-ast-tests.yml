@@ -311,8 +311,18 @@ jobs:
           # Fixed, finite allocation; no unbounded loop or external target.
           docker run -d --name "$name" "${common[@]}" "$image" -I -S -c 'x=bytearray(96*1024*1024); print("UNEXPECTED_ALLOCATION")'
           status="$(timeout --kill-after=2s 20s docker wait "$name")"
+          # Docker wait and inspect can observe different stages of exit-state publication.
+          # Require both facts; allow only a bounded observation window.
+          echo "Memory probe exit status: $status"
           test "$status" = 137
-          test "$(docker inspect --format '{{.State.OOMKilled}}' "$name")" = true
+          oom=false
+          for attempt in $(seq 1 20); do
+            oom="$(docker inspect --format '{{.State.OOMKilled}}' "$name")"
+            if test "$oom" = true; then break; fi
+            sleep 0.1
+          done
+          echo "Memory probe OOMKilled: $oom"
+          test "$oom" = true
           docker rm "$name" >/dev/null
           echo NERYX_RESOURCE_MEMORY_OK
           docker run --rm --name "$name" "${common[@]}" "$image" -I -S -c '
