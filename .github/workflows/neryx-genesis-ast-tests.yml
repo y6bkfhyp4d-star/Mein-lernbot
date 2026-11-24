@@ -87,3 +87,36 @@ jobs:
           test ! -s "$RUNNER_TEMP/neryx-python-rejected.txt"
           rm -f "$RUNNER_TEMP/neryx-python-boundary.txt" "$RUNNER_TEMP/neryx-python-rejected.txt"
           echo NERYX_ISOLATED_PYTHON_SYNTHETIC_OK
+      - name: Verify actual YAML parser in isolated synthetic cases
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          image='ruby@sha256:a9ec8f8f22bdcfff3747e9080fedce2b86f487bdec856ca56464ec63603e49c9'
+          docker pull --platform linux/amd64 "$image"
+          name="neryx-yaml-probe-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
+          helper="$PWD/.github/scripts/neryx-yaml-syntax.rb"
+          parse() {
+            timeout --kill-after=5s 15s docker run -i --name "$name" --rm --pull never --platform linux/amd64 \
+              --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+              --user 65534:65534 --memory 64m --memory-swap 64m --cpus 0.5 --pids-limit 16 \
+              --tmpfs /tmp:rw,noexec,nosuid,nodev,size=1m \
+              --mount "type=bind,source=$helper,target=/parser.rb,readonly" \
+              --entrypoint /usr/local/bin/ruby "$image" -W0 /parser.rb
+          }
+          test "$(printf 'key: value\n' | parse)" = '{"parsed":true,"line":null}'
+          test "$(printf '%s\n' '--- !ruby/object:NeryxNonexistentSyntheticClass' 'value: 1' | parse)" = '{"parsed":true,"line":null}'
+          test "$(printf 'key: [\n' | parse)" = '{"parsed":false,"line":1}'
+          python3 -c 'import sys; sys.stdout.buffer.write(b"x: 1\n#"+b"\xc3\xa4"*34997)' > "$RUNNER_TEMP/neryx-yaml-boundary.txt"
+          test "$(wc -c < "$RUNNER_TEMP/neryx-yaml-boundary.txt")" = 70000
+          test "$(parse < "$RUNNER_TEMP/neryx-yaml-boundary.txt")" = '{"parsed":true,"line":null}'
+          printf ' ' >> "$RUNNER_TEMP/neryx-yaml-boundary.txt"
+          set +e
+          parse < "$RUNNER_TEMP/neryx-yaml-boundary.txt" > "$RUNNER_TEMP/neryx-yaml-rejected.txt" 2>"$RUNNER_TEMP/neryx-yaml-rejected.err"
+          rc=$?
+          set -e
+          test "$rc" = 1
+          test ! -s "$RUNNER_TEMP/neryx-yaml-rejected.txt"
+          grep -Fq 'input-limit' "$RUNNER_TEMP/neryx-yaml-rejected.err"
+          rm -f "$RUNNER_TEMP"/neryx-yaml-boundary.txt "$RUNNER_TEMP"/neryx-yaml-rejected.{txt,err}
+          echo NERYX_ISOLATED_YAML_SYNTHETIC_OK
