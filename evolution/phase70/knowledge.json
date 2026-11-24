@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Aktie",
-    "Aktienbörse",
-    "Albedo",
-    "Apsis (Astronomie)",
-    "(208996) Achlys",
-    "(307261) Máni",
-    "(50000) Quaoar",
-    "(90482) Orcus",
     "Acetoxygruppe",
     "Acetyl-Coenzym A",
     "Acyl-CoA-Synthetase",
@@ -89,7 +81,15 @@
     "Beweis (Logik)",
     "Beweis (Mathematik)",
     "Abstand",
-    "Adjazenzmatrix"
+    "Adjazenzmatrix",
+    "Afrika",
+    "Aktienart (China)",
+    "Aktiengesellschaft",
+    "Aktienhandel",
+    "19P/Borrelly",
+    "Albedo (Begriffsklärung)",
+    "Altgriechische Präpositionen",
+    "Anomalistisches Jahr"
   ],
   "entries": [
     {
@@ -1291,6 +1291,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Algorithmus von Floyd und Warshall"
+    },
+    {
+      "collected_at": "2026-11-24T21:11:51+00:00",
+      "excerpt": "Die Aktie (englisch share) ist ein Wertpapier, das den Anteil an einer Aktiengesellschaft oder einer Kommanditgesellschaft auf Aktien verbrieft. Eine Aktie ist im Sinne des Wertpapierhandelsgesetzes und des Kreditwesengesetzes ein Finanzinstrument.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aktie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aktie"
+    },
+    {
+      "collected_at": "2026-11-24T21:11:51+00:00",
+      "excerpt": "Die Wertpapierbörse (auch Effektenbörse; englisch stock exchange) ist eine Börse, an der als Handelsobjekte Wertpapiere gehandelt werden.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Wertpapierb%C3%B6rse",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Wertpapierbörse"
+    },
+    {
+      "collected_at": "2026-11-24T21:11:51+00:00",
+      "excerpt": "Die Albedo (lateinisch albedo ‚Weiße‘; von lateinisch albus ‚weiß‘) ist ein Maß für das Rückstrahlvermögen (Reflexionsstrahlung) von diffus reflektierenden, also sichtbar nicht leuchtenden Oberflächen. Sie wird als dimensionslose Zahl angegeben und entspricht dem Verhältnis von rückgestrahlter zu einfallender Strahlungsenergie (ein Albedo von 0,9 entspricht 90 % Rückstrahlung). Die Albedo hängt bei einer gegebenen Oberfläche von der Wellenlänge des einstrahlenden Lichtes ab und kann für Wellenlängenbereiche – z. B. das Sonnenspektrum oder das sichtbare Licht – angegeben werden. Vor allem in der Meteorologie ist sie von Bedeutung, da sie Aussagen darüber ermöglicht, wie stark sich eine Oberfläche erwärmt – und damit auch die Luft in Kontakt mit der Oberfläche. In der Klimatologie ist die so genannte Eis-Albedo-Rückkopplung ein wesentlicher",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Albedo",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Albedo"
+    },
+    {
+      "collected_at": "2026-11-24T21:11:51+00:00",
+      "excerpt": "Apsis oder Apside (Plural Apsiden) bezeichnet in der Astronomie einen der zwei Hauptscheitel der elliptischen Umlaufbahn eines Himmelskörpers um einen anderen als Zentralkörper. Die Apoapsis ist derjenige Scheitel mit der größten Entfernung zum Zentralkörper und die Periapsis der mit der geringsten; beide gemeinsam werden Apsiden genannt, ihre Verbindungsgerade heißt Apsidenlinie. Bei einer Umlaufbahn – beispielsweise von Planeten – um die Sonne bezeichnet Perihel (von altgriechisch περί perí ‚herum‘ und ἥλιος hḗlios ‚Sonne‘) den sonnennächsten und Aphel (IPA: [ˈap.heːl]) den sonnenfernsten Bahnpunkt. Bei einer Umlaufbahn – beispielsweise des Mondes – um die Erde bezeichnet Perigäum den erdnächsten und Apogäum den erdfernsten Bahnpunkt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Apsis_%28Astronomie%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Apsis (Astronomie)"
     }
   ],
   "failed_titles": [
@@ -1303,19 +1343,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Magnetismus",
-        "Regenwald",
-        "Geologie",
-        "Vulkan"
-      ],
-      "time": "2026-11-17T15:09:36+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1686,6 +1713,19 @@
         "Algorithmus von Floyd und Warshall"
       ],
       "time": "2026-11-24T15:22:28+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Aktie",
+        "Wertpapierbörse",
+        "Albedo",
+        "Apsis (Astronomie)"
+      ],
+      "time": "2026-11-24T21:11:51+00:00"
     }
   ],
   "schema": 1
