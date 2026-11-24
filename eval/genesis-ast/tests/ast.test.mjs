@@ -1188,3 +1188,23 @@ test('C19 nested two-condition differential oracle reports every real original-m
  assert.equal(executions,500);
  assert.ok(observedOriginal>0,'oracle must observe actual unsafe invocations');
 });
+
+test('C19 nested conditional deletion exposes inherited document.write and must warn',()=>{
+ const source=[
+  'const doc=globalThis.document;',
+  'doc.write=()=>{};',
+  'if(flag){if(other){delete doc.write;}else{delete doc.write;}}',
+  'else{delete doc.write;}',
+  'doc.write("restored inherited method");'
+ ].join('\n');
+ const report=analyzeAST('nested-delete-regression.mjs',source);
+ assert.equal(report.parsed,true);
+ assert.deepEqual(has(report,'AST005').map(f=>f.line),[5]);
+ for(const flag of [false,true])for(const other of [false,true]){
+  const called=[];
+  const document=Object.create({write(v){called.push(v);}});
+  runInNewContext(source,{document,flag,other},
+    {timeout:100,contextCodeGeneration:{strings:false,wasm:false}});
+  assert.deepEqual(called,['restored inherited method']);
+ }
+});
