@@ -355,3 +355,5 @@ jobs:
           fi
           echo NERYX_RESOURCE_TIMEOUT_CLEANUP_OK
           echo NERYX_SYNTHETIC_RESOURCE_TESTS_OK
+      - name: Verify candidate sandbox launcher contract
+        run: node --test eval/tests/codebrain-sandbox.test.mjs
