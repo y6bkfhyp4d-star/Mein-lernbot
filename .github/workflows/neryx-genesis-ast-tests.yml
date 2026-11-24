@@ -202,3 +202,97 @@ jobs:
           grep -Fxq 'AST worker failed' "$stage-error.txt"
           rm -f "$stage-input.json" "$stage-output.json" "$stage-error.txt"
           echo NERYX_ISOLATED_ACORN_SYNTHETIC_OK
+      - name: Compare isolated and host parser results on fixed synthetic corpus
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          stage="$(mktemp -d "$RUNNER_TEMP/neryx-parity.XXXXXX")"
+          chmod 755 "$stage"
+          name="neryx-parity-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true; rm -rf -- "$stage"' EXIT
+          cp .github/scripts/{neryx-python-syntax.py,neryx-yaml-syntax.rb} "$stage/"
+          cp eval/genesis-ast/{analyzer.mjs,codebrain-worker.mjs} "$stage/"
+          mkdir "$stage/node_modules"
+          cp -R eval/genesis-ast/node_modules/acorn "$stage/node_modules/"
+          chmod -R a+rX "$stage"
+          STAGE="$stage" CONTAINER_NAME="$name" python3 - <<'PY'
+          import json, os, subprocess
+          stage = os.environ["STAGE"]
+          name = os.environ["CONTAINER_NAME"]
+          images = {
+              "python": "python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20",
+              "yaml": "ruby@sha256:a9ec8f8f22bdcfff3747e9080fedce2b86f487bdec856ca56464ec63603e49c9",
+              "js": "node@sha256:12f54cafa58d0e96554ae05871e29663ff7241836377dc9a7916449b8adb062c",
+          }
+          commands = {
+              "python": ("python3", "/usr/local/bin/python3", ["-I", "-S", "neryx-python-syntax.py"]),
+              "yaml": ("ruby", "/usr/local/bin/ruby", ["-W0", "neryx-yaml-syntax.rb"]),
+              "js": ("node", "/usr/local/bin/node", ["--max-old-space-size=96", "codebrain-worker.mjs"]),
+          }
+          def js(path, source):
+              return json.dumps({"path": path, "source": source}, ensure_ascii=False).encode()
+          cases = [
+              ("python", "empty", b"", True),
+              ("python", "unicode", "name = 'Grüße'\n".encode(), True),
+              ("python", "inert", b"raise RuntimeError('synthetic')", True),
+              ("python", "invalid", b"def broken(:", False),
+              ("python", "oversize", b"#" + b"x"*70000, None),
+              ("yaml", "empty", b"", True),
+              ("yaml", "unicode", "name: Grüße\n".encode(), True),
+              ("yaml", "tag", b"--- !ruby/object:NeryxSynthetic\nx: 1", True),
+              ("yaml", "invalid", b"key: [", False),
+              ("yaml", "oversize", b"#" + b"x"*70000, None),
+              ("js", "empty", js("a.mjs", ""), True),
+              ("js", "module", js("a.mjs", "export const x = 1;"), True),
+              ("js", "commonjs", js("a.cjs", "return;"), True),
+              ("js", "warning", js("a.mjs", "eval('synthetic');"), True),
+              ("js", "invalid", js("a.mjs", "export const = ;"), False),
+              ("js", "unicode-boundary", js("a.mjs", "//" + "ä"*34999), True),
+              ("js", "oversize", js("a.mjs", "//" + "ä"*34999 + " "), None),
+          ]
+          def run(args, data):
+              return subprocess.run(args, input=data, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, timeout=20, cwd=stage,
+                                    env={"PATH": os.environ["PATH"], "LANG": "C.UTF-8"})
+          for language, label, data, expected in cases:
+              host, entry, args = commands[language]
+              memory, pids = ("192m", "32") if language == "js" else ("64m", "16")
+              docker = ["docker", "run", "-i", "--rm", "--name", name,
+                        "--pull", "never", "--platform", "linux/amd64",
+                        "--network", "none", "--read-only", "--cap-drop", "ALL",
+                        "--security-opt", "no-new-privileges:true", "--user", "65534:65534",
+                        "--memory", memory, "--memory-swap", memory, "--cpus", "0.5",
+                        "--pids-limit", pids, "--tmpfs", "/tmp:rw,noexec,nosuid,nodev,size=1m",
+                        "--mount", f"type=bind,source={stage},target=/parser,readonly",
+                        "--workdir", "/parser", "--entrypoint", entry, images[language], *args]
+              try:
+                  a, b = run([host, *args], data), run(docker, data)
+                  if expected is None:
+                      assert a.returncode == b.returncode == 1
+                      assert not a.stdout and not b.stdout
+                      marker = b"AST worker failed" if language == "js" else b"input-limit"
+                      assert marker in a.stderr and marker in b.stderr
+                  else:
+                      assert a.returncode == b.returncode == 0
+                      x, y = json.loads(a.stdout), json.loads(b.stdout)
+                      assert x["parsed"] is y["parsed"] is expected
+                      if language == "js":
+                          assert set(x) == set(y) == {"parsed", "findings"}
+                          assert x == y
+                          if label == "warning":
+                              assert any(f["rule"] == "AST001" for f in x["findings"])
+                          if not expected:
+                              assert len(x["findings"]) == 1 and x["findings"][0]["rule"] == "AST000"
+                      else:
+                          assert set(x) == set(y) == {"parsed", "line"}
+                          if expected:
+                              assert x["line"] is y["line"] is None
+                          else:
+                              assert all(type(v["line"]) is int and v["line"] >= 1 for v in (x,y))
+                              if x["line"] != y["line"]:
+                                  print(f"PARITY_POSITION_DIFFERENCE {language}/{label}: host={x['line']} container={y['line']}", flush=True)
+                  print(f"PARITY_CASE_OK {language}/{label}", flush=True)
+              except Exception:
+                  raise SystemExit(f"PARITY_CASE_FAILED {language}/{label}") from None
+          print(f"NERYX_PARSER_PARITY_OK cases={len(cases)}", flush=True)
+          PY
