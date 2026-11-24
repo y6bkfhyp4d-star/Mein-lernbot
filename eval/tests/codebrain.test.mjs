@@ -214,7 +214,7 @@ test('PR head changed during review must be rejected',async()=>{
 test('oversized encoded Git blob is skipped before decoding',async()=>{
  const opts=mock([entry('safe.js')]);
  const r=await inspect({...opts,request:async(u,o)=>{
-  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({encoding:'base64',size:100,content:'A'.repeat(85001)})};
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({encoding:'base64',size:100,content:'A'.repeat(96001)})};
   return opts.request(u,o);
  }});
  assert.equal(r.complete,false);
