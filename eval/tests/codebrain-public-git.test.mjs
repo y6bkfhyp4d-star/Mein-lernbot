@@ -194,3 +194,65 @@ test('relay closes client on upstream failure without fallback', {timeout:10000}
   assert.equal(calls,1);assert.equal(received,0);
  }finally{await relay.close();}
 });
+
+
+import {PUBLIC_GIT_RELAY_LIMITS} from './codebrain-public-git.mjs';
+test('relay limits cannot exceed production ceilings',async()=>{
+ for(const [key,value] of Object.entries(PUBLIC_GIT_RELAY_LIMITS)){
+  for(const invalid of [0,-1,value+1,NaN,1.5])await assert.rejects(createPublicGitRelay({connectUpstream:async()=>{},limits:{[key]:invalid}}),/Invalid relay limits/);
+ }
+ await assert.rejects(createPublicGitRelay({connectUpstream:async()=>{},limits:{unknown:1}}),/Invalid relay limits/);
+});
+test('relay enforces per-connection and aggregate byte caps in both directions', {timeout:10000},async()=>{
+ const peers=new Set();
+ let forwarded=0;
+ const peer=createServer(s=>{
+  peers.add(s);s.on('close',()=>peers.delete(s));s.on('error',()=>{});
+  s.on('data',chunk=>{forwarded+=chunk.length;s.write(chunk);});
+ });
+ peer.listen(0,'127.0.0.1');await once(peer,'listening');
+ const relay=await createPublicGitRelay({limits:{connectionBytes:64,totalBytes:96},connectUpstream:async()=>{
+  const s=createConnection(peer.address().port,'127.0.0.1');await once(s,'connect');return s;
+ }});
+ const clients=[];
+ async function tunnel(){
+  const s=createConnection(relay.address.port,'127.0.0.1');clients.push(s);s.on('error',()=>{});
+  const closed=new Promise(resolve=>s.once('close',resolve));
+  await once(s,'connect');s.write(connect());
+  const [header]=await once(s,'data');
+  assert.equal(header.toString(),'HTTP/1.1 200 Connection Established\r\n\r\n');
+  return {s,closed};
+ }
+ try{
+  const a=await tunnel();
+  a.s.write(Buffer.alloc(32,65));const [echo]=await once(a.s,'data');assert.equal(echo.length,32);
+  a.s.write(Buffer.from('x'));await a.closed;assert.equal(forwarded,32);
+  const b=await tunnel();
+  b.s.write(Buffer.alloc(15,66));const [echo2]=await once(b.s,'data');assert.equal(echo2.length,15);
+  b.s.write(Buffer.alloc(3,67));await b.closed;assert.equal(forwarded,47);
+ }finally{
+  for(const s of clients)s.destroy();
+  await relay.close();
+  for(const s of peers)s.destroy();
+  await new Promise(resolve=>peer.close(resolve));
+ }
+});
+test('relay absolute deadline closes active tunnel and upstream', {timeout:10000},async()=>{
+ let peerClosed;
+ const peer=createServer(s=>{s.on('error',()=>{});peerClosed=new Promise(resolve=>s.once('close',resolve));s.on('data',chunk=>s.write(chunk));});
+ peer.listen(0,'127.0.0.1');await once(peer,'listening');
+ const relay=await createPublicGitRelay({limits:{lifetimeMs:1200},connectUpstream:async()=>{
+  const s=createConnection(peer.address().port,'127.0.0.1');await once(s,'connect');return s;
+ }});
+ const s=createConnection(relay.address.port,'127.0.0.1');s.on('error',()=>{});
+ const closed=new Promise(resolve=>s.once('close',resolve));
+ let ticker;
+ try{
+  await once(s,'connect');s.write(connect());await once(s,'data');
+  s.on('data',()=>{});
+  ticker=setInterval(()=>{if(!s.destroyed)s.write('x');},50);
+  await closed;assert.ok(peerClosed);await peerClosed;
+ }finally{
+  clearInterval(ticker);s.destroy();await relay.close();await new Promise(resolve=>peer.close(resolve));
+ }
+});

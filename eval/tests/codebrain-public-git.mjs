@@ -262,7 +262,12 @@ export function admitPublicGitConnect(raw){
 
 // Bounded relay. The caller supplies a trusted connector; no client-selected
 // address is forwarded to it. No listener is opened merely by importing.
-export async function createPublicGitRelay({connectUpstream,host='127.0.0.1',port=0}){
+export const PUBLIC_GIT_RELAY_LIMITS=Object.freeze({connectionBytes:67108864,totalBytes:134217728,lifetimeMs:45000});
+export async function createPublicGitRelay({connectUpstream,host='127.0.0.1',port=0,limits=PUBLIC_GIT_RELAY_LIMITS}){
+ const cap={...PUBLIC_GIT_RELAY_LIMITS,...limits};
+ for(const key of Object.keys(cap)){
+  if(!Object.hasOwn(PUBLIC_GIT_RELAY_LIMITS,key)||!Number.isSafeInteger(cap[key])||cap[key]<1||cap[key]>PUBLIC_GIT_RELAY_LIMITS[key])throw Error('Invalid relay limits');
+ }
  if(typeof connectUpstream!=='function')throw Error('Missing trusted upstream connector');
  const {createServer}=await import('node:net');
  const sockets=new Set();
@@ -272,7 +277,7 @@ export async function createPublicGitRelay({connectUpstream,host='127.0.0.1',por
   accepted++;
   sockets.add(client);
   let upstream=null,header=Buffer.alloc(0),phase='header',bytes=0,finished=false;
-  const deadline=setTimeout(()=>finish(),45000);
+  const deadline=setTimeout(()=>finish(),cap.lifetimeMs);
   function finish(){
    if(finished)return;
    finished=true;clearTimeout(deadline);
@@ -282,7 +287,7 @@ export async function createPublicGitRelay({connectUpstream,host='127.0.0.1',por
   client.setTimeout(5000,finish);
   function account(chunk){
    bytes+=chunk.length;total+=chunk.length;
-   if(bytes>67108864||total>134217728){finish();return false;}
+   if(bytes>cap.connectionBytes||total>cap.totalBytes){finish();return false;}
    return true;
   }
   client.on('data',chunk=>{
