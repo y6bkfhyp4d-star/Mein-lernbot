@@ -69,14 +69,7 @@ export function createSandboxParsers({stage,invoke=docker}){
    if(attempted){
     try{invoke(['rm','-f',name],'',10000,4096);}catch{failed=true;}
     try{
-     const remaining=invoke(['ps','-a','--filter','name=^/'+name+'
-  }
-  if(failed)throw Error('Sandbox parser or cleanup failed');
-  return data;
- }
- return Object.freeze({pythonSyntax:source=>parse('python',source),yamlSyntax:source=>parse('yaml',source),ast:(path,source)=>parse('js',source,path)});
-}
-,'--format','{{.Names}}'],'',10000,4096);
+     const remaining=invoke(['ps','-a','--filter','name=^/'+name+'$','--format','{{.Names}}'],'',10000,4096);
      if(remaining.toString('utf8').trim()!=='')failed=true;
     }catch{failed=true;}
    }
