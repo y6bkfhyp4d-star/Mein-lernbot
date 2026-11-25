@@ -494,7 +494,7 @@ jobs:
             networkCreated=true;
             if(invoke(['network','inspect','--format','{{.Internal}}',network],10000).trim()!=='true')throw Error('Network not internal');
             const proxyModule=resolve('eval/tests/codebrain-public-git.mjs');
-            const proxyProgram="import {createFixedPublicGitConnector,createPublicGitRelay} from '/proxy.mjs'; const connectUpstream=await createFixedPublicGitConnector(); await createPublicGitRelay({connectUpstream,host:'0.0.0.0',port:18080}); console.log('NERYX_PROXY_READY');";
+            const proxyProgram="import {createFixedPublicGitConnector,createPublicGitRelay} from '/proxy.mjs'; import {networkInterfaces} from 'node:os'; import {setTimeout as delay} from 'node:timers/promises'; const initial=new Set(Object.values(networkInterfaces()).flat().map(x=>x.address)); console.log('NERYX_PROXY_INTERFACE_BASELINE'); let address; for(let i=0;i<100;i++){const added=Object.values(networkInterfaces()).flat().filter(x=>x.family==='IPv4'&&!x.internal&&!initial.has(x.address)); if(added.length===1){address=added[0].address;break;} if(added.length>1)throw Error('Ambiguous internal interface'); await delay(100);} if(!address)throw Error('Missing internal interface'); const connectUpstream=await createFixedPublicGitConnector(); const relay=await createPublicGitRelay({connectUpstream,host:address,port:18080}); if(relay.address.address!==address)throw Error('Wrong bind address'); console.log('NERYX_PROXY_READY '+address);";
             proxyCreated=true;
             invoke(['run','-d','--name',proxy,'--pull','never','--platform','linux/amd64',
               '--network','bridge','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges:true',
@@ -502,15 +502,27 @@ jobs:
               '--mount','type=bind,source='+proxyModule+',target=/proxy.mjs,readonly',
               '--entrypoint','/usr/bin/env','node@sha256:12f54cafa58d0e96554ae05871e29663ff7241836377dc9a7916449b8adb062c',
               '-i','PATH=/usr/local/bin:/usr/bin:/bin','LANG=C.UTF-8','/usr/local/bin/node','--max-old-space-size=96','--input-type=module','-e',proxyProgram],15000);
+            let baseline=false;
+            for(let i=0;i<25;i++){
+              if(invoke(['logs',proxy],10000).split('\n').includes('NERYX_PROXY_INTERFACE_BASELINE')){baseline=true;break;}
+              await delay(200);
+            }
+            if(!baseline)throw Error('Proxy baseline missing');
             invoke(['network','connect',network,proxy],10000);
+            const proxyAddress=invoke(['inspect','--format','{{range $k,$v := .NetworkSettings.Networks}}{{if eq $k "'+network+'"}}{{$v.IPAddress}}{{end}}{{end}}',proxy],10000).trim();
+            if(!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(proxyAddress))throw Error('Missing internal proxy address');
             let ready=false;
             for(let i=0;i<25;i++){
-              if(invoke(['logs',proxy],10000).split('\n').includes('NERYX_PROXY_READY')){ready=true;break;}
+              if(invoke(['logs',proxy],10000).split('\n').includes('NERYX_PROXY_READY '+proxyAddress)){ready=true;break;}
               await delay(200);
             }
             if(!ready)throw Error('Proxy readiness missing');
-            const proxyAddress=invoke(['inspect','--format','{{range $k,$v := .NetworkSettings.Networks}}{{if eq $k "'+network+'"}}{{$v.IPAddress}}{{end}}{{end}}',proxy],10000).trim();
-            if(!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(proxyAddress))throw Error('Missing internal proxy address');
+
+            const externalAddress=invoke(['inspect','--format','{{.NetworkSettings.Networks.bridge.IPAddress}}',proxy],10000).trim();
+            if(!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(externalAddress)||externalAddress===proxyAddress)throw Error('Missing external interface');
+            const bindProbe="import {createConnection} from 'node:net'; const s=createConnection({host:process.argv[1],port:18080}); const timer=setTimeout(()=>{s.destroy();process.exitCode=1;},3000); s.once('connect',()=>{clearTimeout(timer);s.destroy();process.exitCode=1;}); s.once('error',e=>{clearTimeout(timer);if(e.code!=='ECONNREFUSED')process.exitCode=1;});";
+            invoke(['exec',proxy,'/usr/local/bin/node','--input-type=module','-e',bindProbe,externalAddress],10000);
+            console.log('NERYX_PROXY_EXTERNAL_BIND_DENIED');
             const script=[
               'awk "NR>1 && \\$2==\\\"00000000\\\" {bad=1} END {exit bad}" /proc/net/route',
               'mkdir -m 700 "$HOME"',
