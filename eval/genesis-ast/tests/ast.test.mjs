@@ -1710,3 +1710,49 @@ test('NERYX fixed calibration corpus reports per-rule precision and recall',asyn
  assert.equal(Object.values(total).reduce((a,b)=>a+b,0),cases.length*rules.length);
  console.log('NERYX_CALIBRATION '+JSON.stringify({schema:'neryx.calibration.v1',independent:false,scope:'CASE_RULE_PRESENCE',cases:cases.length,rules:Object.fromEntries(rules.map(r=>[r,metric(counts[r])])),micro:metric(total),misses}));
 });
+
+
+// Diagnostic challenge: fixed expected semantics, not a blind holdout.
+// Synthetic source is parsed only. Rule presence is not exploitability.
+test('NERYX challenge v1 measures indirect access and scope limitations',()=>{
+ const cases=[
+  ['indirect-eval','const f=eval; f(input);','AST001',true],
+  ['sequence-eval','(0,eval)(input);','AST001',true],
+  ['eval-shadow','function f(eval){ return eval(input); }','AST001',false,'fixture.cjs'],
+  ['global-shadow','function f(globalThis){ globalThis.eval(input); }','AST001',false],
+  ['function-alias','const F=Function; new F(input);','AST002',true],
+  ['function-shadow','function f(Function){ return new Function(input); }','AST002',false],
+  ['html-computed-constant','const key="innerHTML"; node[key]=input;','AST003',true],
+  ['html-concat','node["inner"+"HTML"]=input;','AST003',true],
+  ['html-read','const v=node["innerHTML"];','AST003',false],
+  ['html-text','node["textContent"]=input;','AST003',false],
+  ['storage-destructure','const {clear}=localStorage; clear.call(localStorage);','AST004',true],
+  ['storage-chain','const a=localStorage; const b=a; const c=b; c.clear();','AST004',true],
+  ['storage-bound','const f=localStorage.clear.bind(localStorage); f();','AST004',true],
+  ['storage-shadow-block','{ const localStorage={clear(){}}; localStorage.clear(); }','AST004',false],
+  ['storage-comment','// localStorage.clear()\nconst x=1;','AST004',false],
+  ['document-conditional','const d=document; if(flag)d.write=()=>{}; d.write(input);','AST005',true],
+  ['document-replaced','const d=document; d.write=()=>{}; d.write(input);','AST005',false],
+  ['document-bound','const f=document.write.bind(document); f(input);','AST005',true],
+  ['document-destructure','const {write}=document; write.call(document,input);','AST005',true],
+  ['document-shadow','function f(document){ const d=document; d.write(input); }','AST005',false],
+  ['document-global-shadow','function f(globalThis){ globalThis.document.write(input); }','AST005',false],
+  ['import-expression','import("./"+name);','AST007',true],
+  ['import-literal','import("./known.mjs");','AST007',false],
+  ['import-constant','const name="./known.mjs"; import(name);','AST007',true]
+ ];
+ const counts={tp:0,fp:0,fn:0,tn:0},misses=[],byRule={};
+ for(const [id,source,rule,want,file='fixture.mjs'] of cases){
+  const report=analyzeAST(file,source);
+  assert.equal(report.parsed,true,id);
+  const got=report.findings.some(f=>f.rule===rule);
+  const k=want?(got?'tp':'fn'):(got?'fp':'tn');
+  counts[k]++;
+  byRule[rule]??={tp:0,fp:0,fn:0,tn:0};
+  byRule[rule][k]++;
+  if(want!==got)misses.push({id,rule,type:want?'FN':'FP'});
+ }
+ assert.equal(Object.values(counts).reduce((a,b)=>a+b,0),cases.length);
+ const metric=c=>({...c,precision:c.tp+c.fp?c.tp/(c.tp+c.fp):null,recall:c.tp+c.fn?c.tp/(c.tp+c.fn):null});
+ console.log('NERYX_CHALLENGE '+JSON.stringify({schema:'neryx.challenge.v1',independent:false,scope:'TARGETED_CASE_RULE_PRESENCE',cases:cases.length,micro:metric(counts),rules:Object.fromEntries(Object.entries(byRule).map(([r,c])=>[r,metric(c)])),misses}));
+});
