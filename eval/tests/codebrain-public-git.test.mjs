@@ -135,3 +135,62 @@ test('fixed upstream rejects private, reserved, malformed and mixed DNS answers'
  }
  for(const answer of [[],null,Array(17).fill('8.8.8.8')])await assert.rejects(resolvePublicGitUpstream(async()=>answer));
 });
+
+
+// Finite loopback-only resource tests: no external target or credentials.
+test('relay enforces simultaneous and lifetime connection caps', {timeout:15000}, async()=>{
+ const relay=await createPublicGitRelay({connectUpstream:async()=>{throw Error('No upstream expected');}});
+ const clients=new Set();
+ const open=async()=>{
+  const s=createConnection(relay.address.port,'127.0.0.1');
+  clients.add(s);
+  s.on('error',()=>{});
+  const closed=new Promise(resolve=>s.once('close',resolve));
+  await new Promise((resolve,reject)=>{s.once('connect',resolve);s.once('error',reject);});
+  return {s,closed};
+ };
+ try{
+  const held=[];
+  for(let i=0;i<4;i++)held.push(await open());
+  const fifth=await open();
+  await fifth.closed;
+  assert.ok(held.every(x=>!x.s.destroyed));
+  for(const x of held){x.s.end();await x.closed;}
+  // The rejected fifth connection must not consume the lifetime allowance.
+  // Approved framing followed by connector failure produces a clean close.
+  for(let i=0;i<8;i++){
+   const x=await open();x.s.write(connect());await x.closed;
+  }
+  const exhausted=await open();await exhausted.closed;
+ }finally{
+  for(const s of clients)s.destroy();
+  await relay.close();
+ }
+});
+test('relay does not invoke connector for oversized headers or incomplete framing', {timeout:12000},async()=>{
+ let calls=0;
+ const relay=await createPublicGitRelay({connectUpstream:async()=>{calls++;throw Error('Unexpected connector');}});
+ try{
+  for(const payload of [Buffer.alloc(4097,65),Buffer.from('CONNECT github.com:443 HTTP/1.1\r\n')]){
+   const s=createConnection(relay.address.port,'127.0.0.1');
+   s.on('error',()=>{});
+   const closed=new Promise(resolve=>s.once('close',resolve));
+   await once(s,'connect');
+   s.write(payload);
+   await closed;
+  }
+  assert.equal(calls,0);
+ }finally{await relay.close();}
+});
+test('relay closes client on upstream failure without fallback', {timeout:10000},async()=>{
+ let calls=0;
+ const relay=await createPublicGitRelay({connectUpstream:async()=>{calls++;throw Error('Synthetic upstream failure');}});
+ try{
+  const s=createConnection(relay.address.port,'127.0.0.1');
+  s.on('error',()=>{});
+  const closed=new Promise(resolve=>s.once('close',resolve));
+  let received=0;s.on('data',chunk=>{received+=chunk.length;});
+  await once(s,'connect');s.write(connect());await closed;
+  assert.equal(calls,1);assert.equal(received,0);
+ }finally{await relay.close();}
+});
