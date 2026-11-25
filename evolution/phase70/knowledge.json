@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Alveolengängige Fraktion",
-    "Brown’sche Molekularbewegung",
-    "Adenosintriphosphat",
-    "Dynein",
-    "Adenosin",
-    "Adenosinmonophosphat",
-    "Anarchie und Alltag",
-    "Antilopen Gang",
     "Abgabe",
     "Abwasserabgabe",
     "Absolutadjektiv",
@@ -89,7 +81,15 @@
     "Apollo-Typ",
     "Astronomische Einheit",
     "19. Mai",
-    "1918"
+    "1918",
+    "A-Staub",
+    "Einatembare Fraktion",
+    "Absolute Temperatur",
+    "Aktienkurs",
+    "Acetyl-CoA",
+    "Alexander Robertus Todd",
+    "Aktin",
+    "Bruce Alberts"
   ],
   "entries": [
     {
@@ -1441,6 +1441,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Abraham Pais"
+    },
+    {
+      "collected_at": "2026-11-25T21:14:58+00:00",
+      "excerpt": "Als alveolengängige Fraktion (respirable fraction) wird unter anderem in den Normen EN 481, ISO 7708, EN ISO 10882-1 und EN 14042 der Massenanteil der Schwebstoffe bzw. luftgetragenen Partikel bezeichnet, der bis in die nichtciliierten Luftwege vordringt. Sie ist eine Größe zur Beurteilung möglicher Gesundheitsgefahren am Arbeitsplatz und hängt unter anderem von der jeweiligen betrachteten Person und deren Atmungsweise ab. Per Konvention wird in der Norm EN 481 festgelegt, dass die alveolengängige Fraktion durch Berechnung über die einatembare Fraktion ermittelt wird: „Der Prozentsatz […] der einatembaren Konvention, der mit einem aerodynamischen Durchmesser D in Mikrometer zu sammeln ist, ergibt sich aus einer kumulierten Lognormalverteilung mit einem Medianwert von 4,25 µm und einer geometrischen Standardabweichung von 1,5.“ Für die Zie",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Alveoleng%C3%A4ngige_Fraktion",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Alveolengängige Fraktion"
+    },
+    {
+      "collected_at": "2026-11-25T21:14:58+00:00",
+      "excerpt": "Die brownsche Bewegung ist die vom Botaniker Robert Brown im Jahr 1827 unter dem Mikroskop entdeckte unregelmäßige und ruckartige Wärmebewegung kleiner Teilchen in Flüssigkeiten und Gasen. Der ebenfalls gebräuchliche Name brownsche Molekularbewegung rührt daher, dass das Wort Molekül damals noch generell zur Bezeichnung eines kleinen Körpers gebraucht wurde. Moleküle im heutigen Sinn sind noch um ein Vielfaches kleiner als die im Mikroskop sichtbaren Teilchen und bleiben hier vollständig unsichtbar. Es sind aber die Moleküle der umgebenden Materie, die die brownsche Bewegung hervorbringen, indem sie ständig und aus allen Richtungen in großer Zahl gegen die mikroskopisch kleinen Teilchen stoßen und dabei rein zufällig mal die eine Richtung, mal die andere Richtung stärker zum Tragen kommt. Diese Erklärung wurde 1905 von Albert Einstein und",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Brownsche_Bewegung",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Brownsche Bewegung"
+    },
+    {
+      "collected_at": "2026-11-25T21:14:58+00:00",
+      "excerpt": "Adenosintriphosphat, kurz ATP, ist ein Nukleotid, nämlich das Triphosphat des Nucleosids Adenosin. Adenosintriphosphat ist der universelle und unmittelbar verfügbare Energieträger in Zellen und wichtiger Regulator energieliefernder Prozesse. Das Molekül besteht aus einem Adeninrest, dem Zucker Ribose und drei Phosphaten (α bis γ) in Ester- (α) bzw. Anhydridbindung (β und γ).",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adenosintriphosphat",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adenosintriphosphat"
+    },
+    {
+      "collected_at": "2026-11-25T21:14:58+00:00",
+      "excerpt": "Dynein bezeichnet eine Gruppe von Motorproteinen in eukaryotischen Zellen. In Kooperation mit anderen Motorproteinen wie Myosin sind sie wesentlich am intrazellulären Transport von biologischen Lasten wie z. B. Biomakromolekülen, Vesikeln und Zellorganellen beteiligt. Dynein kommt zusammen mit Kinesin an Mikrotubuli-Filamenten (Bestandteil des Cytoskeletts) als Transporter von Zellorganellen und Vesikeln vor. Zudem werden die Flagellen und motile Cilien erst durch Dynein als Bestandteil beweglich und ausrichtbar. Mutationen in den Genen DNAL1, DNAI1, DNAH5 und DNAH11 können seltene Erbkrankheiten wie das Kartagener-Syndrom und Primäre Ciliäre Dyskinesie (PCD) verursachen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Dynein",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Dynein"
     }
   ],
   "failed_titles": [
@@ -1453,19 +1493,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "18. Oktober",
-        "Achämenidenreich",
-        "Abdus Salam",
-        "Akkumulator"
-      ],
-      "time": "2026-11-18T15:14:33+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1834,6 +1861,19 @@
         "Abraham Pais"
       ],
       "time": "2026-11-25T15:25:11+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Alveolengängige Fraktion",
+        "Brownsche Bewegung",
+        "Adenosintriphosphat",
+        "Dynein"
+      ],
+      "time": "2026-11-25T21:14:58+00:00"
     }
   ],
   "schema": 1
