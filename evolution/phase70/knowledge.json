@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "(2001) Einstein",
-    "14. März",
-    "(1566) Icarus",
-    "Abraham Pais",
-    "(9935) 1986 CP1",
-    "(9937) Triceratops",
-    "Abgas (Band)",
-    "Abgaskessel",
     "Alveolengängige Fraktion",
     "Brown’sche Molekularbewegung",
     "Adenosintriphosphat",
@@ -89,7 +81,15 @@
     "A320 (Begriffsklärung)",
     "ABG-Semca",
     "ABN AMRO",
-    "AEX-Index"
+    "AEX-Index",
+    "Asteroid",
+    "Asteroidengürtel",
+    "1. März",
+    "10. März",
+    "Apollo-Typ",
+    "Astronomische Einheit",
+    "19. Mai",
+    "1918"
   ],
   "entries": [
     {
@@ -1401,6 +1401,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "ASML"
+    },
+    {
+      "collected_at": "2026-11-25T15:25:11+00:00",
+      "excerpt": "(2001) Einstein ist ein Asteroid des Hauptgürtels, der am 5. März 1973 vom Schweizer Astronomen Paul Wild am Observatorium Zimmerwald (IAU-Code 026) in der Schweizer Gemeinde Wald im Kanton Bern entdeckt wurde. Er wurde am 15. Oktober 1977 nach dem theoretischen Physiker und Begründer der Relativitätstheorie Albert Einstein benannt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%282001%29_Einstein",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(2001) Einstein"
+    },
+    {
+      "collected_at": "2026-11-25T15:25:11+00:00",
+      "excerpt": "Der 14. März ist der 73. Tag des gregorianischen Kalenders (der 74. in Schaltjahren), somit bleiben 292 Tage bis zum Jahresende.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/14._M%C3%A4rz",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "14. März"
+    },
+    {
+      "collected_at": "2026-11-25T15:25:11+00:00",
+      "excerpt": "(1566) Icarus ist ein erdnaher Asteroid (Planetoid), aus der Gruppe der Apollo-Asteroiden. Dies sind Himmelskörper, deren Bahnen die Erdbahn kreuzen können. Dieser etwa einen Kilometer große Asteroid wurde am 27. Juni 1949 von Walter Baade entdeckt und besitzt eine relativ helle Oberfläche mit einer Albedo von 0,4. Icarus bewegt sich zwischen 0,2 AE (Perihel) und 2 AE (Aphel) auf einer stark elliptischen Bahn um die Sonne. Damit kommt er der Sonne näher als der Merkur. Aus diesem Grund wurde er nach Ikarus, einer tragischen Gestalt der griechischen Sage benannt. Dieser kam mit Hilfe von selbstgebauten Flügeln der Sonne zu nahe und stürzte ab.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%281566%29_Icarus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(1566) Icarus"
+    },
+    {
+      "collected_at": "2026-11-25T15:25:11+00:00",
+      "excerpt": "Abraham „Bram“ Pais (* 19. Mai 1918 in Amsterdam; † 28. Juli 2000 in Kopenhagen) war ein niederländischer Physiker und Quantenfeldtheoretiker. Als Kenner der Physik des 20. Jahrhunderts und ihrer Entwicklung genoss er internationalen Ruf; als Kollege, früherer Mitarbeiter und Freund Albert Einsteins gehörte er zu den führenden Einstein-Biographen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abraham_Pais",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abraham Pais"
     }
   ],
   "failed_titles": [
@@ -1413,19 +1453,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "(136108) Haumea",
-        "(136199) Eris",
-        "3-Hydroxypropionatzyklus",
-        "ATP-Citrat-Lyase"
-      ],
-      "time": "2026-11-18T09:21:47+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1794,6 +1821,19 @@
         "ASML"
       ],
       "time": "2026-11-25T09:34:16+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "(2001) Einstein",
+        "14. März",
+        "(1566) Icarus",
+        "Abraham Pais"
+      ],
+      "time": "2026-11-25T15:25:11+00:00"
     }
   ],
   "schema": 1
