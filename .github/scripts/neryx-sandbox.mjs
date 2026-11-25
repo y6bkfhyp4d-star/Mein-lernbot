@@ -1,7 +1,8 @@
 // Candidate sandbox launcher. Fixed images, no shell, no fallback.
 import {execFileSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-import {realpathSync,statSync} from 'node:fs';
+import {realpathSync,lstatSync,readdirSync} from 'node:fs';
+import {join} from 'node:path';
 import {validateAstResult} from './neryx-codebrain.mjs';
 const specs=Object.freeze({
  python:{image:'python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20',entry:'/usr/local/bin/python3',args:['-I','-S','/parser/neryx-python-syntax.py'],memory:'64m',pids:'16'},
@@ -12,9 +13,36 @@ const env=()=>({PATH:'/usr/bin:/bin',LANG:'C.UTF-8'});
 function docker(args,input,timeout,maxBuffer){
  return execFileSync('/usr/bin/docker',args,{input,timeout,maxBuffer,killSignal:'SIGKILL',env:env(),stdio:['pipe','pipe','pipe']});
 }
-export function createSandboxParsers({stage,invoke=docker}){
+const stageFiles=new Set(['neryx-python-syntax.py','neryx-yaml-syntax.rb','analyzer.mjs','codebrain-worker.mjs','node_modules/acorn/package.json','node_modules/acorn/CHANGELOG.md','node_modules/acorn/LICENSE','node_modules/acorn/README.md','node_modules/acorn/bin/acorn','node_modules/acorn/dist/acorn.js','node_modules/acorn/dist/acorn.mjs','node_modules/acorn/dist/acorn.d.ts','node_modules/acorn/dist/acorn.d.mts','node_modules/acorn/dist/bin.js']);
+const stageDirs=new Set(['node_modules','node_modules/acorn','node_modules/acorn/bin','node_modules/acorn/dist']);
+const requiredFiles=['neryx-python-syntax.py','neryx-yaml-syntax.rb','analyzer.mjs','codebrain-worker.mjs','node_modules/acorn/package.json','node_modules/acorn/dist/acorn.mjs','node_modules/acorn/dist/acorn.js'];
+export function validateSandboxStage(stage){
+ const fail=()=>{throw Error('Invalid sandbox stage');};
+ if(typeof stage!=='string'||!stage.startsWith('/')||/[,\r\n]/.test(stage))fail();
  const root=realpathSync(stage);
- if(!statSync(root).isDirectory()||/[,\r\n]/.test(root)||root==='/')throw Error('Invalid sandbox stage');
+ if(root!==stage||root==='/'||!lstatSync(root).isDirectory())fail();
+ const found=new Set();
+ let total=0;
+ function walk(relative){
+  const dir=relative?join(root,relative):root;
+  const names=readdirSync(dir);
+  if(names.length>32)fail();
+  for(const name of names){
+   const path=relative?relative+'/'+name:name;
+   const st=lstatSync(join(root,path));
+   if(st.isDirectory()&&stageDirs.has(path)){walk(path);continue;}
+   if(!st.isFile()||st.nlink!==1||!stageFiles.has(path)||st.size>1048576||(st.mode&0o022))fail();
+   total+=st.size;
+   if(total>4194304)fail();
+   found.add(path);
+  }
+ }
+ walk('');
+ if(requiredFiles.some(path=>!found.has(path)))fail();
+ return root;
+}
+export function createSandboxParsers({stage,invoke=docker}){
+ const root=validateSandboxStage(stage);
  function parse(language,source,path){
   if(typeof source!=='string'||Buffer.byteLength(source)>70000)throw Error('Invalid sandbox input');
   if(language==='js'&&(typeof path!=='string'||path.length>240))throw Error('Invalid sandbox path');
@@ -28,6 +56,7 @@ export function createSandboxParsers({stage,invoke=docker}){
    '--mount','type=bind,source='+root+',target=/parser,readonly','--entrypoint',spec.entry,spec.image,...spec.args];
   let data,failed=false;
   try{
+   validateSandboxStage(root);
    const raw=invoke(args,input,15000,language==='js'?131072:4096);
    data=JSON.parse(raw.toString('utf8'));
    if(language==='js'){
