@@ -299,7 +299,7 @@ test('B5 shadowed globalThis does not impersonate the global eval or Function',(
  assert.deepEqual(has(r,'AST002').map(x=>x.line),[7]);
 });
 
-test('B6 immutable aliases resolve exactly one additional hop',()=>{
+test('B6 immutable aliases resolve bounded additional hops',()=>{
  const r=analyzeAST('alias-chain.mjs',[
   'const first = globalThis.document;',
   'const second = first;',
@@ -308,10 +308,10 @@ test('B6 immutable aliases resolve exactly one additional hop',()=>{
   'const next = store;',
   'next.clear();',
   'const third = second;',
-  'third.write("too deep to confirm");'
+  'third.write("known third alias");'
  ].join('\n'));
  assert.equal(r.parsed,true);
- assert.deepEqual(has(r,'AST005').map(x=>x.line),[3]);
+ assert.deepEqual(has(r,'AST005').map(x=>x.line),[3,8]);
  assert.deepEqual(has(r,'AST004').map(x=>x.line),[6]);
 });
 test('B6 never infers chains through mutable or shadowed sources',()=>{

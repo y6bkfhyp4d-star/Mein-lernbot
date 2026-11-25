@@ -124,14 +124,14 @@ function collectAliases(statements,scope){
   for(const decl of stmt.declarations){
    if(decl.id?.type!=='Identifier')continue;
    // The initializer is evaluated before the binding can be used.
-   // One immutable hop is allowed; unknown or mutable predecessors never qualify.
+   // At most four additional immutable hops; unknown or mutable predecessors never qualify.
    const value=constantString(decl.init,scope,decl.start);
    if(value!==null){scope.aliases.set(decl.id.name,{origin:'constant-string',value,after:decl.end});continue;}
    const direct=aliasOrigin(decl.init,scope);
    const prior=decl.init?.type==='Identifier'?aliasAt(decl.init.name,scope,decl.start):null;
    const origin=direct||prior?.origin;
    const depth=direct?0:(prior?.depth??0)+1;
-   if(origin&&depth<=1)scope.aliases.set(decl.id.name,{origin,depth,after:decl.end});
+   if(origin&&depth<=4)scope.aliases.set(decl.id.name,{origin,depth,after:decl.end});
   }
  }
 }

@@ -185,3 +185,22 @@ test('bounded constant property resolution detects HTML writes without executing
   assert.equal(r.findings.some(f=>f.rule==='AST003'),want,source);
  }
 });
+
+
+test('bounded object alias chains preserve scope and replacement constraints',()=>{
+ const cases=[
+  ['const a=localStorage; const b=a; const c=b; c.clear();','AST004',true],
+  ['const a=document; const b=a; const c=b; const d=c; const e=d; e.write(input);','AST005',true],
+  ['const a=document; const b=a; const c=b; const d=c; const e=d; const f=e; f.write(input);','AST005',false],
+  ['let a=document; const b=a; const c=b; c.write(input);','AST005',false],
+  ['const a=document; const b=a; const c=b; {const c={write(){}}; c.write(input);}','AST005',false],
+  ['const a=localStorage; const b=a; const c=b; a.clear=()=>{}; c.clear();','AST004',false],
+  ['const a=localStorage; const b=a; const c=b; if(flag)a.clear=()=>{}; c.clear();','AST004',true],
+  ['const a=document; const b=a; c.write(input); const c=b;','AST005',false]
+ ];
+ for(const [source,rule,want] of cases){
+  const r=analyzeAST('fixture.mjs',source);
+  assert.equal(r.parsed,true,source);
+  assert.equal(r.findings.some(f=>f.rule===rule),want,source);
+ }
+});
