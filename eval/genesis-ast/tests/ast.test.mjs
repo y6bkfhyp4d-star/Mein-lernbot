@@ -73,16 +73,18 @@ test('detects equivalent bracket and bare Function forms without evaluating sour
  assert.equal(has(r,'AST005').length,1);
  assert.equal(r.parsed,true);
 });
-test('dynamic computed properties and inert strings are not treated as known hazards',()=>{
+test('constant computed HTML properties are reported but unresolved properties and inert strings are not',()=>{
  const r=analyzeAST('safe.mjs',[
   'const prop = "innerHTML"',
   'element[prop] = "text"',
+  'element[unknownProp] = input',
   'localStorage[method]()',
   'document[action]("sample")',
   'const message = "Function(\\\"x\\\")"',
  ].join(';\n'));
  assert.equal(r.parsed,true);
- for(const rule of ['AST002','AST003','AST004','AST005'])
+ assert.deepEqual(has(r,'AST003').map(f=>f.line),[2]);
+ for(const rule of ['AST002','AST004','AST005'])
   assert.equal(has(r,rule).length,0,rule);
 });
 
