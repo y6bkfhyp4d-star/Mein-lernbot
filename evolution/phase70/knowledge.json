@@ -1,11 +1,5 @@
 {
   "discovered_queue": [
-    "Acetoxygruppe",
-    "Acetyl-Coenzym A",
-    "Acyl-CoA-Synthetase",
-    "Adenosintriphosphat-Citrat-Lyase",
-    "1. April",
-    "11. Oktober",
     "(139) Juewa",
     "12. Oktober",
     "A318",
@@ -89,7 +83,13 @@
     "19P/Borrelly",
     "Albedo (Begriffsklärung)",
     "Altgriechische Präpositionen",
-    "Anomalistisches Jahr"
+    "Anomalistisches Jahr",
+    "Acetaldehyd",
+    "Acetylchlorid",
+    "2-Oxoadipat-Dehydrogenase-Komplex",
+    "ACSF3",
+    "AASDH",
+    "ACSBG1"
   ],
   "entries": [
     {
@@ -1331,6 +1331,36 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Apsis (Astronomie)"
+    },
+    {
+      "collected_at": "2026-11-25T03:17:56+00:00",
+      "excerpt": "Die Acetoxygruppe, abgekürzt AcO oder OAc, ist eine funktionelle Gruppe, die sich von der Essigsäure ableitet (siehe Abbildung). Sie unterscheidet sich von der Acetylgruppe CH3-C(=O)- (Ac) durch ein zusätzliches Sauerstoffatom. Die Oxidation von Ethanol liefert über das Zwischenprodukt Acetaldehyd Essigsäure, in der an den Acetoxyrest ein Wasserstoffatom gebunden ist. Bei der Acetylierung von Alkoholen oder Phenolen mit Acetylchlorid in Gegenwart einer Base bilden sich Ester der Essigsäure, die einen Acetoxyrest enthalten, an den ein Alkyl- oder Aryl-Rest gebunden ist. Der Name Acetoxy ist eine Verkürzung der Bezeichnung Acetyl-Oxy.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Acetoxygruppe",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Acetoxygruppe"
+    },
+    {
+      "collected_at": "2026-11-25T03:17:56+00:00",
+      "excerpt": "Acetyl-Coenzym A (kurz Acetyl-CoA) ist ein „aktivierter“ Essigsäurerest (CH3CO-). Dieser ist an die SH-Gruppe des Cysteamin-Anteils von Coenzym A gebunden. Sie leitet sich durch Veresterung der SH-Gruppe von Coenzym A mit Essigsäure ab.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Acetyl-Coenzym_A",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Acetyl-Coenzym A"
+    },
+    {
+      "collected_at": "2026-11-25T03:17:56+00:00",
+      "excerpt": "Acyl-CoA-Synthetasen, auch Acyl-CoA-Ligasen genannt, sind Enzyme, die Fettsäuren „aktivieren“, durch Thioveresterung an Coenzym A. Dies ist der erste Schritt des Fettsäurestoffwechsels, so dass Fettsäuren an katabolischen und anabolischen Stoffwechselwegen teilnehmen können. Dazu gehören z. B. die Synthese von Triacylglycerin, Phospholipiden, Plasmalogenen, Sphingolipiden, der Abbau von Fettsäuren zur Energiegewinnung, die Umwandlung in Alkohole oder Aldehyde, die Verlängerung von Fettsäuren, das Einfügen und Entfernen von Doppelbindungen oder die kovalente Bindung an Proteine. Die Mitglieder dieser Familie aktivieren hauptsächlich Fettsäuren, aber es gibt auch Mitglieder, die stattdessen andere Substrate aktivieren, wie AACS, das die Ketocarbonsäure Acetessigsäure aktiviert, oder ACSF3, das die Dicarbonsäuren Malonsäure und Methylmalonsä",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Acyl-CoA-Synthetase",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Acyl-CoA-Synthetase"
     }
   ],
   "failed_titles": [
@@ -1343,19 +1373,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Computer",
-        "Algorithmus",
-        "Internet",
-        "Künstliche Intelligenz"
-      ],
-      "time": "2026-11-17T21:09:05+00:00"
-    },
     {
       "added": 3,
       "attempted": 5,
@@ -1726,6 +1743,18 @@
         "Apsis (Astronomie)"
       ],
       "time": "2026-11-24T21:11:51+00:00"
+    },
+    {
+      "added": 3,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Acetoxygruppe",
+        "Acetyl-Coenzym A",
+        "Acyl-CoA-Synthetase"
+      ],
+      "time": "2026-11-25T03:17:56+00:00"
     }
   ],
   "schema": 1
