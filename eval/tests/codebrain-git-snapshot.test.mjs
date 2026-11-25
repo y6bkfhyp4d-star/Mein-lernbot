@@ -219,3 +219,22 @@ test('snapshot rejects a changed HEAD even after successful analysis',async()=>{
  const f=fixture();let reads=0;
  await assert.rejects(()=>inspectGitSnapshot({repo:'example/repo',number:97,expectedHead:HEAD,expectedBase:BASE,git:args=>args[0]==='rev-parse'&&args[1]==='HEAD'&&++reads===2?Buffer.from('d'.repeat(40)+'\n'):f.git(args)}),/HEAD changed/);
 });
+
+test('evidence separates coverage, findings and gate without claiming security',async()=>{
+ const {snapshotEvidence}=await import('./codebrain-git-snapshot.mjs');
+ const row={file:'a.mjs',status:'checked',reason:'ast',findings:[]};
+ const result={number:97,sha:HEAD,checked:1,complete:true,blocking:false,rows:[row]};
+ const context={scope:'ENDPOINT_TREE_DIFF',base:BASE,head:HEAD,result};
+ const e=snapshotEvidence(context);
+ assert.equal(e.coverage,'COMPLETE');
+ assert.equal(e.verdict,'NO_CONFIRMED_FINDINGS');
+ assert.equal(e.securityCertified,false);
+ const confirmed={...row,reason:'ast-syntax-error',findings:[{kind:'confirmed',rule:'AST000',line:1,label:'Syntax'}]};
+ const f=snapshotEvidence({...context,result:{...result,blocking:true,rows:[confirmed]}});
+ assert.equal(f.coverage,'COMPLETE');assert.equal(f.verdict,'CONFIRMED_FINDINGS');assert.equal(f.gate,'INCOMPLETE');
+ const partial=snapshotEvidence({...context,result:{...result,complete:false,rows:[row,{file:'notes.md',status:'skipped',reason:'unsupported-type',findings:[]}]}});
+ assert.equal(partial.coverage,'PARTIAL_UNSUPPORTED');assert.equal(partial.counts.unsupported,1);
+ const incomplete=snapshotEvidence({...context,result:{...result,complete:false,rows:[row,{file:'b.js',status:'error',reason:'fetch-or-analyzer-error',findings:[]}]}});
+ assert.equal(incomplete.verdict,'INCOMPLETE');
+ for(const bad of [{...context,head:BASE},{...context,result:{...result,checked:2}},{...context,result:{...result,rows:[row,row]}},{...context,scope:'SYNTHETIC_MERGE_DIFF'}])assert.throws(()=>snapshotEvidence(bad));
+});

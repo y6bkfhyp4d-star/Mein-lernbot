@@ -98,11 +98,40 @@ export const snapshotPasses=r=>{
 };
 // Intentional unsupported skips are distinct from incomplete attempted scans.
 export const snapshotOutcome=r=>!snapshotPasses(r)?'INCOMPLETE':r.complete?'COMPLETE':'PARTIAL_UNSUPPORTED';
+// Coverage and findings are separate dimensions; a confirmed finding does
+// not erase the fact that a file was examined. Never certify a security review.
+export function snapshotEvidence({scope,base,head,result,merge}){
+ if(!['ENDPOINT_TREE_DIFF','SYNTHETIC_MERGE_DIFF'].includes(scope)||!SHA.test(base||'')||!SHA.test(head||'')||
+ (scope==='SYNTHETIC_MERGE_DIFF'?!SHA.test(merge||''):merge!==undefined)||
+ result?.sha!==head||!Number.isSafeInteger(result.number)||result.number<1||result.number>1000000||
+ !Array.isArray(result.rows)||result.rows.length<1||result.rows.length>30)throw Error('Invalid evidence context');
+ const counts={inventory:result.rows.length,checked:0,unsupported:0,deleted:0,incomplete:0,confirmed:0,heuristic:0};
+ const seen=new Set();
+ for(const row of result.rows){
+  if(!row||!safeFile(row.file)||seen.has(row.file)||!['checked','skipped','error'].includes(row.status)||
+   typeof row.reason!=='string'||!/^[a-z-]{1,48}$/.test(row.reason)||!Array.isArray(row.findings)||row.findings.length>40)throw Error('Invalid evidence row');
+  seen.add(row.file);
+  if(row.status==='checked')counts.checked++;
+  else if(row.status==='skipped'&&row.reason==='unsupported-type'&&!/\.(?:js|mjs|cjs|json|ya?ml|py)$/i.test(row.file)&&!row.findings.length)counts.unsupported++;
+  else if(row.status==='skipped'&&row.reason==='not-added-or-modified'&&!row.findings.length)counts.deleted++;
+  else counts.incomplete++;
+  for(const f of row.findings){
+   if(!f||!['confirmed','heuristic'].includes(f.kind)||!Number.isSafeInteger(f.line)||f.line<1||typeof f.rule!=='string'||!f.rule||typeof f.label!=='string')throw Error('Invalid evidence finding');
+   counts[f.kind]++;
+  }
+ }
+ if(result.checked!==counts.checked||result.complete!==(counts.checked===counts.inventory)||result.blocking!==(counts.confirmed>0))throw Error('Inconsistent evidence counters');
+ const coverage=counts.incomplete||!counts.checked?'INCOMPLETE':counts.unsupported||counts.deleted?'PARTIAL_UNSUPPORTED':'COMPLETE';
+ return Object.freeze({schema:'neryx.scan-evidence.v1',scope,base,head,...(merge?{merge}:{}),number:result.number,coverage,
+  verdict:coverage==='INCOMPLETE'?'INCOMPLETE':counts.confirmed?'CONFIRMED_FINDINGS':'NO_CONFIRMED_FINDINGS',
+  gate:snapshotOutcome(result),counts:Object.freeze(counts),securityCertified:false});
+}
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
   const number=Number(process.env.CODEBRAIN_PR_NUMBER);
   const parsers=createSandboxParsers({stage:process.env.CODEBRAIN_SANDBOX_STAGE});
   const data=await inspectGitSnapshot({repo:process.env.GITHUB_REPOSITORY,number,expectedHead:process.env.CODEBRAIN_PR_HEAD_SHA,expectedBase:process.env.CODEBRAIN_PR_BASE_SHA,...parsers});
+  console.log('NERYX_SCAN_EVIDENCE '+JSON.stringify(snapshotEvidence({scope:'SYNTHETIC_MERGE_DIFF',...data})));
   console.log('NERYX SNAPSHOT: OS sandbox active for Python, YAML and Acorn');
   console.log('NERYX SNAPSHOT ONLY: merge='+data.merge+' PR-head='+data.head+' files='+data.result.rows.length+' checked='+data.result.checked+' skipped='+data.result.rows.filter(x=>x.status==='skipped').length+' errors='+data.result.rows.filter(x=>x.status==='error').length+' complete='+data.result.complete+' outcome='+snapshotOutcome(data.result));
   // C27: path and reason are sanitized, source content is never logged.

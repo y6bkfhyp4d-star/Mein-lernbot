@@ -216,7 +216,7 @@ export async function inspectPublicGitCollector(plan,output,{repo,number,parsers
  if(!parsers||['ast','pythonSyntax','yamlSyntax'].some(k=>typeof parsers[k]!=='function'))throw Error('Missing isolated parsers');
  const data=decodePublicGitCollector(plan,output);
  const {inspect}=await import('../../.github/scripts/neryx-codebrain.mjs');
- const {snapshotMatchesFiles,snapshotOutcome}=await import('./codebrain-git-snapshot.mjs');
+ const {snapshotMatchesFiles,snapshotOutcome,snapshotEvidence}=await import('./codebrain-git-snapshot.mjs');
  const files=data.files.map(f=>({filename:f.path,status:f.status,sha:f.sha||'0'.repeat(40)}));
  const blobs=new Map(data.files.filter(f=>f.status!=='removed').map(f=>[f.sha,f]));
  const prefix='https://api.github.com/repos/'+repo;
@@ -232,7 +232,7 @@ export async function inspectPublicGitCollector(plan,output,{repo,number,parsers
  };
  const result=await inspect({repo,number,anonymous:true,request,ast:parsers.ast,pythonSyntax:parsers.pythonSyntax,yamlSyntax:parsers.yamlSyntax});
  if(result.sha!==data.head||!snapshotMatchesFiles(result,files))throw Error('Scan inventory mismatch');
- return {scope:'ENDPOINT_TREE_DIFF',base:data.base,head:data.head,result,outcome:snapshotOutcome(result)};
+ return {scope:'ENDPOINT_TREE_DIFF',base:data.base,head:data.head,result,outcome:snapshotOutcome(result),evidence:snapshotEvidence({scope:'ENDPOINT_TREE_DIFF',base:data.base,head:data.head,result})};
 }
 
 // Strict CONNECT admission contract. No DNS lookup or socket creation here.

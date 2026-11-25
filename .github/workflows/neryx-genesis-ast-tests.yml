@@ -562,6 +562,7 @@ jobs:
             console.log('NERYX_PUBLIC_GIT_INTERNAL_PROXY_OK');
             try {
               const data=await inspectPublicGitCollector(plan,payload,{repo:'y6bkfhyp4d-star/Mein-lernbot',number:Number(process.env.PROBE_PR),parsers:createSandboxParsers({stage:process.env.STAGE})});
+              console.log('NERYX_SCAN_EVIDENCE '+JSON.stringify(data.evidence));
               console.log('NERYX_PUBLIC_GIT_SCAN scope='+data.scope+' files='+data.result.rows.length+' checked='+data.result.checked+' errors='+data.result.rows.filter(r=>r.status==='error').length+' outcome='+data.outcome);
               if(data.outcome==='INCOMPLETE')process.exitCode=1;
               else console.log('NERYX_PUBLIC_GIT_SCAN_OK');
