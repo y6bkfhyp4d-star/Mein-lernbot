@@ -204,3 +204,25 @@ test('bounded object alias chains preserve scope and replacement constraints',()
   assert.equal(r.findings.some(f=>f.rule===rule),want,source);
  }
 });
+
+
+test('immutable destructured method capture preserves origin and capture-time replacement',()=>{
+ const cases=[
+  ['const {clear}=localStorage; clear.call(localStorage);','AST004',true],
+  ['const {write}=document; write.call(document,input);','AST005',true],
+  ['const d=document; const {write:w}=d; w.apply(d,[input]);','AST005',true],
+  ['const d=document; const {write:w}=d; d.write=()=>{}; w.call(d,input);','AST005',true],
+  ['const d=document; d.write=()=>{}; const {write:w}=d; w.call(d,input);','AST005',false],
+  ['const {write}=document;','AST005',false],
+  ['const {write}=document; {const write=()=>{}; write(input);}','AST005',false],
+  ['const document={write(){}}; const {write}=document; write.call(document,input);','AST005',false],
+  ['const {write=()=>{}}=document; write.call(document,input);','AST005',false],
+  ['const {["write"]:w}=document; w.call(document,input);','AST005',false],
+  ['const {clear:c}=localStorage; const f=c; f.call(localStorage);','AST004',true]
+ ];
+ for(const [source,rule,want] of cases){
+  const r=analyzeAST('fixture.mjs',source);
+  assert.equal(r.parsed,true,source);
+  assert.equal(r.findings.some(f=>f.rule===rule),want,source);
+ }
+});

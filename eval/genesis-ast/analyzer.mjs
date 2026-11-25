@@ -335,6 +335,26 @@ export function analyzeAST(file,source){
         });
       }
     }
+    // Capture simple immutable destructured methods at declaration time.
+    // Exclude defaults, rest, computed keys and nested patterns.
+    if(node.type==='VariableDeclarator'&&parent?.type==='VariableDeclaration'&&
+       parent.kind==='const'&&node.id?.type==='ObjectPattern'&&!uncertain){
+      const object=node.init;
+      const origin=aliasOrigin(object,scope)||
+        (object?.type==='Identifier'?aliasAt(object.name,scope,node.start)?.origin:null);
+      const key=origin==='document'?'write':origin==='localStorage'?'clear':null;
+      if(key&&node.id.properties.every(p=>p.type==='Property'&&!p.computed&&
+          p.kind==='init'&&p.value?.type==='Identifier')){
+        for(const p of node.id.properties){
+          if(!(identifier(p.key,key)||p.key?.type==='Literal'&&p.key.value===key))continue;
+          if(!boundFunctions.has(scope))boundFunctions.set(scope,new Map());
+          boundFunctions.get(scope).set(p.value.name,{
+            origin,originalPossible:stillKnown(origin,node.start,false),
+            confidence:confidenceFor(origin,node.start),depth:0,mutable:false,after:node.end
+          });
+        }
+      }
+    }
     // C26: record bound methods introduced by later assignments too.
     // Conditional/callback writes remain possible, never proven harmless.
     if(node.type==='AssignmentExpression'&&node.operator==='='&&
