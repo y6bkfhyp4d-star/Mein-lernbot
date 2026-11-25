@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "(139) Juewa",
-    "12. Oktober",
-    "A318",
-    "ASML",
-    "Abstandsquadratgesetz",
-    "Antennendiagramm",
-    "Absolute Temperatur",
-    "Adiabatenexponent",
     "(2001) Einstein",
     "14. März",
     "(1566) Icarus",
@@ -89,7 +81,15 @@
     "2-Oxoadipat-Dehydrogenase-Komplex",
     "ACSF3",
     "AASDH",
-    "ACSBG1"
+    "ACSBG1",
+    "Arecibo-Observatorium",
+    "Argument der Periapsis",
+    "11. Oktober",
+    "13. Oktober",
+    "A320 (Begriffsklärung)",
+    "ABG-Semca",
+    "ABN AMRO",
+    "AEX-Index"
   ],
   "entries": [
     {
@@ -1361,6 +1361,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Acyl-CoA-Synthetase"
+    },
+    {
+      "collected_at": "2026-11-25T09:34:16+00:00",
+      "excerpt": "(139) Juewa ist ein Asteroid des mittleren Hauptgürtels, der am 10. Oktober 1874 vom US-amerikanischen Astronomen James Craig Watson in Peking entdeckt wurde. Dieser Asteroid wurde bei den Vorbereitungen zur Beobachtung des Venustransits vom 9. Dezember 1874 gefunden. Der Entdecker, der dazu nach China gereist war, erklärte (Observation of the Transit of Venus. Teil II, 1881, S. 108.): „In der Nacht des 10. Oktober stieß ich bei der Beobachtung des Sternbilds Fische mit dem 5-Zoll-Äquatorialobjektiv auf einen Stern der 11. Größenordnung in einer Himmelsregion, mit der ich sehr vertraut war und in der ich bis dahin keinen solchen Stern gesehen hatte. Nachfolgende Beobachtungen in derselben Nacht mit einem eigens zu diesem Zweck improvisierten Mikrometer zeigten, dass der Stern langsam rückläufig war und dass er ein neues Mitglied der Plane",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%28139%29_Juewa",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(139) Juewa"
+    },
+    {
+      "collected_at": "2026-11-25T09:34:16+00:00",
+      "excerpt": "Der 12. Oktober ist der 285. Tag des gregorianischen Kalenders (der 286. in Schaltjahren), somit bleiben 80 Tage bis zum Jahresende.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/12._Oktober",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "12. Oktober"
+    },
+    {
+      "collected_at": "2026-11-25T09:34:16+00:00",
+      "excerpt": "Als Airbus-A320-Familie werden vier Schmalrumpfflugzeug-Baureihen des Flugzeugherstellers Airbus für die Kurz-, Mittel- und Langstrecke bezeichnet. Die A320 war dabei als erste Variante das Basismodell der als Tiefdecker ausgeführten A320-Familie. Die Benennungssequenz der Baumuster orientiert sich an der jeweiligen Länge des Rumpfes; die A318 und A319 sind etwas kürzer als die A320, die gestreckte Version heißt A321. Die erste A320 wurde 1988 ausgeliefert und war das erste zivile Flugzeug mit digitaler Fly-by-Wire-Steuerung. Bis einschließlich Juni 2026 sind insgesamt 20.210 Flugzeuge der A320-Familie bestellt worden. 12.743 Maschinen wurden ausgeliefert, davon sind 11.244 im Dienst. Die A320-Reihe ist seit Oktober 2025 das meistverkaufte Verkehrsflugzeug der Welt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Airbus-A320-Familie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Airbus-A320-Familie"
+    },
+    {
+      "collected_at": "2026-11-25T09:34:16+00:00",
+      "excerpt": "Die ASML Holding N.V. (Advanced Semiconductor Materials Lithography) ist ein niederländisches multinationales Unternehmen und der weltweit größte Anbieter von Lithographiesystemen für die Halbleiterindustrie. Die sehr komplexen Maschinen spielen eine wichtige Rolle bei der Herstellung von integrierten Schaltkreisen; die meisten Mikrochip-Hersteller (Foundries und IDMs) sind ASML-Kunden. Sein globaler Marktanteil wird auf 80–90 % taxiert. ASML bietet Kundendienst in 14 Ländern an. Der Hauptsitz von ASML befindet sich in Veldhoven in den Niederlanden. Dort befinden sich neben der Verwaltung die Forschungs- und Entwicklungsabteilung sowie die Montage unter Reinraum-Bedingungen. Weitere Standorte für Forschung, Entwicklung sowie Fertigung sind in Taiwan, Japan, China, Deutschland und den USA. Mit dem Stand von Anfang 2024 ist ASML das wertvol",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/ASML",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "ASML"
     }
   ],
   "failed_titles": [
@@ -1373,20 +1413,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 3,
-      "attempted": 5,
-      "error_samples": [
-        "Neurales Netz: kein geeigneter Artikel"
-      ],
-      "errors": 1,
-      "new_titles": [
-        "Maschinelles Lernen",
-        "(1) Ceres",
-        "(10199) Chariklo"
-      ],
-      "time": "2026-11-18T03:07:25+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1755,6 +1781,19 @@
         "Acyl-CoA-Synthetase"
       ],
       "time": "2026-11-25T03:17:56+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "(139) Juewa",
+        "12. Oktober",
+        "Airbus-A320-Familie",
+        "ASML"
+      ],
+      "time": "2026-11-25T09:34:16+00:00"
     }
   ],
   "schema": 1
