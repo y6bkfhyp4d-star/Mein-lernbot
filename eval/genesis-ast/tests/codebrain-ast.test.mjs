@@ -142,3 +142,25 @@ test('NERYX challenge v1 measures indirect access and scope limitations',()=>{
  const metric=c=>({...c,precision:c.tp+c.fp?c.tp/(c.tp+c.fp):null,recall:c.tp+c.fn?c.tp/(c.tp+c.fn):null});
  console.log('NERYX_CHALLENGE '+JSON.stringify({schema:'neryx.challenge.v1',independent:false,scope:'TARGETED_CASE_RULE_PRESENCE',cases:cases.length,micro:metric(counts),rules:Object.fromEntries(Object.entries(byRule).map(([r,c])=>[r,metric(c)])),misses}));
 });
+
+
+test('immutable builtin references resolve without confusing shadowed or mutable bindings',()=>{
+ const cases=[
+  ['const f=eval; f(input);','AST001',true,'fixture.mjs'],
+  ['(0,eval)(input);','AST001',true,'fixture.mjs'],
+  ['const F=Function; new F(input);','AST002',true,'fixture.mjs'],
+  ['const F=globalThis.Function; F(input);','AST002',true,'fixture.mjs'],
+  ['const f=eval; const g=f; g(input);','AST001',true,'fixture.mjs'],
+  ['function x(eval){const f=eval; f(input);}','AST001',false,'fixture.cjs'],
+  ['function x(Function){const F=Function; new F(input);}','AST002',false,'fixture.mjs'],
+  ['const f=eval; {const f=()=>{}; f(input);}','AST001',false,'fixture.mjs'],
+  ['let f=eval; f=()=>{}; f(input);','AST001',false,'fixture.mjs'],
+  ['const f=eval;','AST001',false,'fixture.mjs'],
+  ['const f=eval; (f,()=>{})();','AST001',false,'fixture.mjs']
+ ];
+ for(const [source,rule,want,file] of cases){
+  const r=analyzeAST(file,source);
+  assert.equal(r.parsed,true,source);
+  assert.equal(r.findings.some(f=>f.rule===rule),want,source);
+ }
+});

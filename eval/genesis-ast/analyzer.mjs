@@ -96,6 +96,8 @@ function aliasOrigin(node,scope){
  if(!node)return null;
  if(identifier(node,'document')&&!shadowed('document',scope))return 'document';
  if(identifier(node,'localStorage')&&!shadowed('localStorage',scope))return 'localStorage';
+ for(const name of ['eval','Function'])
+  if((identifier(node,name)&&!shadowed(name,scope))||globalBuiltin(node,name,scope))return name;
  for(const name of ['document','localStorage'])
   if(staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope))
    return name;
@@ -134,6 +136,14 @@ function explicitGlobal(node,object,property,scope){
 // Explicit builtin access is global only when globalThis is not locally bound.
 function globalBuiltin(node,name,scope){
  return staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope);
+}
+// Resolve only immutable, lexically visible builtin references. A sequence
+// expression yields its final operand; no operand is evaluated by the analyzer.
+function builtinReference(node,name,scope,position){
+ if(node?.type==='SequenceExpression')node=node.expressions.at(-1);
+ return (identifier(node,name)&&!shadowed(name,scope))||
+  globalBuiltin(node,name,scope)||
+  (node?.type==='Identifier'&&aliasAt(node.name,scope,position)?.origin===name);
 }
 function walk(node,visit,parent=null,scope=null,uncertain=false){
  if(!node||typeof node!=='object')return;
@@ -414,8 +424,8 @@ export function analyzeAST(file,source){
            eagerEffects(node.callee.property))))invalidateAll();
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
-      if((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
-      if((identifier(node.callee,'eval')&&!shadowed('eval',scope))||globalBuiltin(node.callee,'eval',scope))report('AST001','high',node,'Direkter eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
+      if(builtinReference(node.callee,'Function',scope,node.start))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
+      if(builtinReference(node.callee,'eval',scope,node.start))report('AST001','high',node,'Möglicher eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
       if((bound?.origin==='localStorage'&&bound.originalPossible)||
          (member(target,'localStorage','clear')&&!shadowed('localStorage',scope))||
         explicitGlobal(target,'localStorage','clear',scope)||
@@ -438,7 +448,7 @@ export function analyzeAST(file,source){
     if(!uncertain&&['CallExpression','NewExpression','AwaitExpression','YieldExpression'].includes(node.type)){
       invalidateAll();
     }
-    if(node.type==='NewExpression'&&((identifier(node.callee,'Function')&&!shadowed('Function',scope))||globalBuiltin(node.callee,'Function',scope)))
+    if(node.type==='NewExpression'&&(builtinReference(node.callee,'Function',scope,node.start)))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
     if(node.type==='AssignmentExpression'&&staticProperty(node.left,'innerHTML'))
       report('AST003','medium',node,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
