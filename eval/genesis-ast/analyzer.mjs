@@ -103,6 +103,21 @@ function aliasOrigin(node,scope){
    return name;
  return null;
 }
+// Bounded string-only folding: no coercion, calls or execution.
+function constantString(node,scope,position,depth=0){
+ if(!node||depth>8)return null;
+ if(node.type==='Literal'&&typeof node.value==='string')return node.value.length<=256?node.value:null;
+ if(node.type==='Identifier'){
+  const alias=aliasAt(node.name,scope,position);
+  return alias?.origin==='constant-string'?alias.value:null;
+ }
+ if(node.type==='BinaryExpression'&&node.operator==='+'){
+  const left=constantString(node.left,scope,position,depth+1);
+  const right=constantString(node.right,scope,position,depth+1);
+  return left!==null&&right!==null&&left.length+right.length<=256?left+right:null;
+ }
+ return null;
+}
 function collectAliases(statements,scope){
  for(const stmt of statements||[]){
   if(stmt?.type!=='VariableDeclaration'||stmt.kind!=='const')continue;
@@ -110,6 +125,8 @@ function collectAliases(statements,scope){
    if(decl.id?.type!=='Identifier')continue;
    // The initializer is evaluated before the binding can be used.
    // One immutable hop is allowed; unknown or mutable predecessors never qualify.
+   const value=constantString(decl.init,scope,decl.start);
+   if(value!==null){scope.aliases.set(decl.id.name,{origin:'constant-string',value,after:decl.end});continue;}
    const direct=aliasOrigin(decl.init,scope);
    const prior=decl.init?.type==='Identifier'?aliasAt(decl.init.name,scope,decl.start):null;
    const origin=direct||prior?.origin;
@@ -450,7 +467,8 @@ export function analyzeAST(file,source){
     }
     if(node.type==='NewExpression'&&(builtinReference(node.callee,'Function',scope,node.start)))
       report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
-    if(node.type==='AssignmentExpression'&&staticProperty(node.left,'innerHTML'))
+    if(node.type==='AssignmentExpression'&&(staticProperty(node.left,'innerHTML')||
+      (node.left?.type==='MemberExpression'&&node.left.computed&&constantString(node.left.property,scope,node.start)==='innerHTML')))
       report('AST003','medium',node,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
     // Reference scans the actual original text, including strings, below.
   });

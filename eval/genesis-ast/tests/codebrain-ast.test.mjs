@@ -164,3 +164,24 @@ test('immutable builtin references resolve without confusing shadowed or mutable
   assert.equal(r.findings.some(f=>f.rule===rule),want,source);
  }
 });
+
+
+test('bounded constant property resolution detects HTML writes without executing expressions',()=>{
+ const cases=[
+  ['const key="innerHTML"; node[key]=input;',true],
+  ['node["inner"+"HTML"]=input;',true],
+  ['const a="inner"; const b=a+"HTML"; node[b]=input;',true],
+  ['const key="innerHTML"; {const key="textContent"; node[key]=input;}',false],
+  ['let key="innerHTML"; key="textContent"; node[key]=input;',false],
+  ['const key="textContent"; node[key]=input;',false],
+  ['const key="innerHTML"; const x=node[key];',false],
+  ['node[unknown()]=input;',false],
+  ['const key="innerHTML"; function f(key){node[key]=input;}',false],
+  ['node["inner"+1]=input;',false]
+ ];
+ for(const [source,want] of cases){
+  const r=analyzeAST('fixture.mjs',source);
+  assert.equal(r.parsed,true,source);
+  assert.equal(r.findings.some(f=>f.rule==='AST003'),want,source);
+ }
+});
