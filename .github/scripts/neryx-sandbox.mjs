@@ -54,9 +54,10 @@ export function createSandboxParsers({stage,invoke=docker}){
    '--user','65534:65534','--memory',spec.memory,'--memory-swap',spec.memory,'--cpus','0.5',
    '--pids-limit',spec.pids,'--tmpfs','/tmp:rw,noexec,nosuid,nodev,size=1m',
    '--mount','type=bind,source='+root+',target=/parser,readonly','--entrypoint',spec.entry,spec.image,...spec.args];
-  let data,failed=false;
+  let data,failed=false,attempted=false;
   try{
    validateSandboxStage(root);
+   attempted=true;
    const raw=invoke(args,input,15000,language==='js'?131072:4096);
    data=JSON.parse(raw.toString('utf8'));
    if(language==='js'){
@@ -65,7 +66,20 @@ export function createSandboxParsers({stage,invoke=docker}){
    }else if(!data||Object.keys(data).sort().join(',')!=='line,parsed'||typeof data.parsed!=='boolean'||(data.parsed?data.line!==null:!Number.isSafeInteger(data.line)||data.line<1))throw Error('Bad parser result');
   }catch{failed=true;}
   finally{
-   try{invoke(['rm','-f',name],'',10000,4096);}catch{failed=true;}
+   if(attempted){
+    try{invoke(['rm','-f',name],'',10000,4096);}catch{failed=true;}
+    try{
+     const remaining=invoke(['ps','-a','--filter','name=^/'+name+'
+  }
+  if(failed)throw Error('Sandbox parser or cleanup failed');
+  return data;
+ }
+ return Object.freeze({pythonSyntax:source=>parse('python',source),yamlSyntax:source=>parse('yaml',source),ast:(path,source)=>parse('js',source,path)});
+}
+,'--format','{{.Names}}'],'',10000,4096);
+     if(remaining.toString('utf8').trim()!=='')failed=true;
+    }catch{failed=true;}
+   }
   }
   if(failed)throw Error('Sandbox parser or cleanup failed');
   return data;
