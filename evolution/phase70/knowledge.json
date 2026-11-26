@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Abgabe",
-    "Abwasserabgabe",
-    "Absolutadjektiv",
-    "Adjektivierung",
-    "Aufmerksamkeit",
-    "Emotion",
-    "EMV-Prüfung",
-    "Elektromagnetische Welle",
     "Adsorption",
     "Adsorptionskältemaschine",
     "Adrasteia (Mythologie)",
@@ -89,7 +81,15 @@
     "Acetyl-CoA",
     "Alexander Robertus Todd",
     "Aktin",
-    "Bruce Alberts"
+    "Bruce Alberts",
+    "AEUV",
+    "Abgabe (Begriffsklärung)",
+    "Abwasserbehandlung",
+    "Abwassergebühr",
+    "CanooNet",
+    "Duden",
+    "Derivation (Linguistik)",
+    "Eigenname"
   ],
   "entries": [
     {
@@ -1481,6 +1481,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Dynein"
+    },
+    {
+      "collected_at": "2026-11-26T03:15:50+00:00",
+      "excerpt": "Als Abgaben werden in der Finanzwirtschaft allgemein sämtliche Zahlungen von Wirtschaftssubjekten an staatliche Hoheitsträger verstanden. In der Finanzwissenschaft und im Steuerrecht umfasst der Oberbegriff der Abgaben die Steuern, öffentlichen Beiträge und öffentlichen Gebühren.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abgabe",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abgabe"
+    },
+    {
+      "collected_at": "2026-11-26T03:15:50+00:00",
+      "excerpt": "Die Abwasserabgabe ist in Deutschland eine Abgabe für die Einleitung von Abwasser in ein Gewässer. Sie wird durch die Bundesländer erhoben. Abwasser im Sinne des Abwasserabgabengesetzes sind das durch häuslichen, gewerblichen, landwirtschaftlichen oder sonstigen Gebrauch in seinen Eigenschaften veränderte und das bei Trockenwetter damit zusammen abfließende Wasser (Schmutzwasser) sowie das von Niederschlägen aus dem Bereich von bebauten oder befestigten Flächen abfließende und gesammelte Wasser (Niederschlagswasser). Als Schmutzwasser gelten auch die aus Anlagen zum Behandeln, Lagern und Ablagern von Abfällen austretenden und gesammelten Flüssigkeiten. Der Begriff Abwasserabgabe ist nicht identisch mit dem Begriff Abwassergebühr. Die Abwasserabgabe als umweltpolitisches Lenkungsinstrument wurde durch die Verabschiedung des Abwasserabgaben",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Abwasserabgabe",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Abwasserabgabe"
+    },
+    {
+      "collected_at": "2026-11-26T03:15:50+00:00",
+      "excerpt": "Ein absolutes Adjektiv ist in der Sprachwissenschaft ein Adjektiv (Eigenschaftswort), das semantisch keine Steigerung erlaubt, da die Teilhabe an dieser Eigenschaft nur ganz oder gar nicht, aber nicht in variierendem Maße möglich ist. Eine Frau kann zum Beispiel schwanger sein, nicht aber „ein bisschen schwanger“, „schwangerer“ als eine andere oder „am schwangersten“. Also ist schwanger ein absolutes Adjektiv. Weitere Beispiele: dreieckig lauwarm mündlich tot lebendig gleich fertig Ebenfalls zu den absoluten Adjektiven gehören Eigenschaftswörter, die per se schon einen höchsten oder geringsten Grad ausdrücken: leer voll ganz einzig optimal absolut Wird von absoluten Adjektiven dennoch ein Superlativ gebildet, so wird dieser umgangssprachlich gelegentlich Hyperlativ genannt. Beispiele: die optimalste Lösung das leerste Glas die letzteste A",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Absolutadjektiv",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Absolutadjektiv"
+    },
+    {
+      "collected_at": "2026-11-26T03:15:50+00:00",
+      "excerpt": "Mit dem Begriff Adjektivierung bezeichnet man die Bildung eines Adjektivs aus einer anderen Wortklasse durch Derivation (Ableitung).",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adjektivierung",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adjektivierung"
     }
   ],
   "failed_titles": [
@@ -1493,19 +1533,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Akustik",
-        "Althochdeutsche Sprache",
-        "Abschirmung (Gravitation)",
-        "Al-Bīrūnī"
-      ],
-      "time": "2026-11-18T21:09:49+00:00"
-    },
     {
       "added": 3,
       "attempted": 5,
@@ -1874,6 +1901,19 @@
         "Dynein"
       ],
       "time": "2026-11-25T21:14:58+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Abgabe",
+        "Abwasserabgabe",
+        "Absolutadjektiv",
+        "Adjektivierung"
+      ],
+      "time": "2026-11-26T03:15:50+00:00"
     }
   ],
   "schema": 1
