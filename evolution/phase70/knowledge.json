@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "(5145) Pholus",
-    "Alpha-Centauri",
-    "1000dokumente.de",
-    "100 Wörter des Jahrhunderts",
-    "A Latin Dictionary",
-    "Anastatischer Druck",
-    "1,3-Dioxan",
-    "3-Hydroxypropionsäure",
     "Albert Gossauer",
     "Albrecht Kossel",
     "Amorph",
@@ -89,19 +81,17 @@
     "Adrasteia (Mysien)",
     "Adrestos",
     "12. Dezember",
-    "2004"
+    "2004",
+    "(2060) Chiron",
+    "Bahnelement",
+    "ARD alpha",
+    "Abenteuer Forschung",
+    "Andreas Wirsching",
+    "Bayerische Staatsbibliothek",
+    "3sat",
+    "68er-Bewegung"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-16T20:22:58+00:00",
-      "excerpt": "Das Sonnensystem ist das Planetensystem, in dem sich die Erde befindet. Es besteht aus der Sonne, acht sie umkreisenden Planeten (von innen nach außen: Merkur, Venus, Erde, Mars, Jupiter, Saturn, Uranus und Neptun), deren natürlichen Satelliten, den Zwergplaneten, anderen Kleinkörpern (Kometen, Asteroiden und Meteoroiden) und aus unzähligen Gas- und Staubteilchen, die durch die Anziehungskraft der Sonne an diese gebunden sind. Die Internationale Astronomische Union definiert den Pluto seit 2006 als Zwergplaneten und nicht mehr als den äußersten Planeten des Sonnensystems.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Sonnensystem",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Sonnensystem"
-    },
     {
       "collected_at": "2026-11-16T20:22:58+00:00",
       "excerpt": "Der Mars (IPA: [ maʁs] ) ist, von der Sonne aus gezählt, der vierte Planet im Sonnensystem und der äußere Nachbar der Erde. Er zählt zu den erdähnlichen (terrestrischen) Planeten. Mit einem Durchmesser von knapp 6800 Kilometern ist er etwa halb so groß wie die Erde und sein Volumen beträgt gut ein Siebtel des Erdvolumens, womit der Mars nach dem Merkur der zweitkleinste Planet des Sonnensystems ist. Er weist eine vielfältige Geologie sowie die höchsten Vulkane des Sonnensystems auf. Mit einer durchschnittlichen Entfernung von 228 Millionen Kilometern ist er rund 1,5-mal so weit von der Sonne entfernt wie die Erde. Mit einer Dichte von 3,9 g/cm³ weist der Mars den geringsten Wert der erdähnlichen Planeten auf. Die Masse des Mars beträgt somit nur etwa ein Zehntel der Erdmasse (bei gleicher Dichte wie die der Erde betrüge sie etwa ein Siebe",
@@ -1561,6 +1551,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Aegir (Mond)"
+    },
+    {
+      "collected_at": "2026-11-26T21:10:32+00:00",
+      "excerpt": "(5145) Pholus ist ein Asteroid aus der Gruppe der Zentauren, der am 9. Januar 1992 von David Rabinowitz entdeckt wurde. Benannt wurde der Himmelskörper nach Pholos, einem Zentauren aus der griechischen Mythologie. Pholus läuft auf einer stark exzentrischen Bahn in rund 91 Jahren um die Sonne. Der Perihel-Abstand liegt mit 8,71 AE innerhalb der Bahn des Planeten Saturn, im Aphel von 32,14 AE außerhalb der Neptunbahn. Die Bahnexzentrizität beträgt 0,574, wobei die Bahn mit 24,697° stark gegen die Ekliptik geneigt ist. Pholus war wahrscheinlich ursprünglich ein Objekt des Kuipergürtels. Der Durchmesser von Pholus wurde zu 185 km (± 16 km) bestimmt. Er weist eine dunkle Oberfläche mit einer Albedo von 0,04 auf. Untersuchungen seines Spektrums zeigen, dass die Oberfläche eine tiefrote Färbung aufweist, die auf das Vorhandensein von Kohlenwasse",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/%285145%29_Pholus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "(5145) Pholus"
+    },
+    {
+      "collected_at": "2026-11-26T21:10:32+00:00",
+      "excerpt": "α-Centauri war eine Sendereihe des Bildungskanals BR-Alpha (jetzt ARD alpha) des Bayerischen Rundfunks, in der der Astrophysiker Harald Lesch in jeweils etwa 15-minütigen Folgen Fragen aus der Physik – insbesondere der Astronomie und Astrophysik – und bisweilen der Philosophie in populärwissenschaftlicher Form beantwortete.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Alpha-Centauri",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Alpha-Centauri"
+    },
+    {
+      "collected_at": "2026-11-26T21:10:32+00:00",
+      "excerpt": "1000dokumente.de umfasst die beiden Online-Editionen 100(0) Schlüsseldokumente zur deutschen Geschichte im 20. Jahrhundert und 100(0) Schlüsseldokumente zur russischen und sowjetischen Geschichte, die von der Bayerischen Staatsbibliothek angeboten und vom Lehrstuhl für Osteuropäische Geschichte der Friedrich-Alexander-Universität Erlangen-Nürnberg redaktionell betreut werden. Die Dokumenteneditionen stellen überwiegend Textdokumente, aber auch Bilder, Audio- und Videodokumente zur deutschen Geschichte des 20. Jahrhunderts bzw. russischen und sowjetischen Geschichte vor und wenden sich sowohl an die wissenschaftliche wie allgemein geschichtsinteressierte Öffentlichkeit in Deutschland und Russland. Die einzelnen Dokumente werden im Volltext sowie zusätzlich als Faksimile-Abbildung präsentiert. Es wird ihnen jeweils eine von russischen oder",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/1000dokumente.de",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "1000dokumente.de"
+    },
+    {
+      "collected_at": "2026-11-26T21:10:32+00:00",
+      "excerpt": "100 Wörter des Jahrhunderts war der Titel eines Medienverbundes von 3sat, DeutschlandRadio Berlin, der Süddeutschen Zeitung und dem Suhrkamp Verlag. Innerhalb dessen wurde 1999 eine Sammlung von 100 Wörtern, die als für das 20. Jahrhundert besonders bezeichnend angesehen wurden, im öffentlich-rechtlichen Fernsehen sowie Hörfunk, in einer überregionalen Zeitung und in einem Buch vorgestellt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/100_W%C3%B6rter_des_Jahrhunderts",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "100 Wörter des Jahrhunderts"
     }
   ],
   "failed_titles": [
@@ -1573,18 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 3,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "-genese",
-        "Abgeschlossenes System",
-        "Abfallprodukt"
-      ],
-      "time": "2026-11-19T15:15:27+00:00"
-    },
     {
       "added": 2,
       "attempted": 5,
@@ -1955,6 +1973,19 @@
         "Aegir (Mond)"
       ],
       "time": "2026-11-26T15:21:23+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "(5145) Pholus",
+        "Alpha-Centauri",
+        "1000dokumente.de",
+        "100 Wörter des Jahrhunderts"
+      ],
+      "time": "2026-11-26T21:10:32+00:00"
     }
   ],
   "schema": 1
