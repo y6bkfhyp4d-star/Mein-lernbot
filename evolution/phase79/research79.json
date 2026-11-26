@@ -9,7 +9,7 @@
   "records": [
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-25T21:58:23+00:00",
+      "checked_at": "2026-11-26T04:01:48+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (1) Ceres und wie wird es eingeordnet?",
@@ -20,7 +20,7 @@
     },
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-25T21:58:23+00:00",
+      "checked_at": "2026-11-26T04:01:48+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (136108) Haumea und wie wird es eingeordnet?",
@@ -31,7 +31,7 @@
     },
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-25T21:58:23+00:00",
+      "checked_at": "2026-11-26T04:01:48+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (136199) Eris und wie wird es eingeordnet?",
@@ -42,7 +42,7 @@
     },
     {
       "baseline_claims": 0,
-      "checked_at": "2026-11-25T21:58:23+00:00",
+      "checked_at": "2026-11-26T04:01:48+00:00",
       "claims": [],
       "independent_verified": false,
       "question": "Was ist (2) Pallas und wie wird es eingeordnet?",
@@ -535,16 +535,6 @@
   ],
   "runs": [
     {
-      "at": "2026-11-18T21:53:42+00:00",
-      "baseline_candidates_same_pages": 0,
-      "baseline_topics_same_pages": 0,
-      "candidates": 0,
-      "errors": 0,
-      "processed": 4,
-      "with_claims": 0,
-      "without_matching_hit": 4
-    },
-    {
       "at": "2026-11-19T03:57:53+00:00",
       "baseline_candidates_same_pages": 0,
       "baseline_topics_same_pages": 0,
@@ -826,6 +816,16 @@
     },
     {
       "at": "2026-11-25T21:58:23+00:00",
+      "baseline_candidates_same_pages": 0,
+      "baseline_topics_same_pages": 0,
+      "candidates": 0,
+      "errors": 0,
+      "processed": 4,
+      "with_claims": 0,
+      "without_matching_hit": 4
+    },
+    {
+      "at": "2026-11-26T04:01:48+00:00",
       "baseline_candidates_same_pages": 0,
       "baseline_topics_same_pages": 0,
       "candidates": 0,
