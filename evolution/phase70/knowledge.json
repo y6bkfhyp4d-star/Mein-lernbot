@@ -1539,18 +1539,6 @@
       "error_samples": [],
       "errors": 0,
       "new_titles": [
-        "Aerologie",
-        "Aerosol",
-        "ATP-Synthase"
-      ],
-      "time": "2026-11-19T03:08:31+00:00"
-    },
-    {
-      "added": 3,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
         "Abiotisch",
         "Abklingbecken",
         "Abwasser"
@@ -1914,6 +1902,18 @@
         "Adjektivierung"
       ],
       "time": "2026-11-26T03:15:50+00:00"
+    },
+    {
+      "added": 0,
+      "attempted": 5,
+      "error_samples": [
+        "DNA: HTTPError: HTTP Error 429: We suspect this request is automated: if so, please respect our robot policy. If you think you were incorrectly blocked, ple",
+        "Adsorption: HTTPError: HTTP Error 429: We suspect this request is automated: if so, please respect our robot policy. If you think you were incorrectly blocked, ple",
+        "Adsorptionskältemaschine: HTTPError: HTTP Error 429: We suspect this request is automated: if so, please respect our robot policy. If you think you were incorrectly blocked, ple"
+      ],
+      "errors": 5,
+      "new_titles": [],
+      "time": "2026-11-26T09:29:35+00:00"
     }
   ],
   "schema": 1
