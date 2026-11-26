@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Adsorption",
-    "Adsorptionskältemaschine",
-    "Adrasteia (Mythologie)",
-    "Aegir (Mond)",
-    "15. August",
-    "2008",
-    "(162173) Ryugu",
-    "(243) Ida",
     "(5145) Pholus",
     "Alpha-Centauri",
     "1000dokumente.de",
@@ -89,7 +81,15 @@
     "CanooNet",
     "Duden",
     "Derivation (Linguistik)",
-    "Eigenname"
+    "Eigenname",
+    "Abgasreinigung",
+    "Abwasserreinigung",
+    "Absorptionskältemaschine",
+    "Aktivkohle",
+    "Adrasteia (Mysien)",
+    "Adrestos",
+    "12. Dezember",
+    "2004"
   ],
   "entries": [
     {
@@ -1521,6 +1521,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Adjektivierung"
+    },
+    {
+      "collected_at": "2026-11-26T15:21:23+00:00",
+      "excerpt": "Als Adsorption (von lateinisch adsorptio, von adsorbere ‚(an)saugen‘) bezeichnet man die Anreicherung einer Substanz, die in einer fluiden Phase im flüssigen oder gasförmigen Aggregatzustand gelöst ist, an der Grenzfläche zu einer zweiten kondensierten Phase im flüssigen oder festen Aggregatzustand. Die sich an der Grenzfläche anreichernde Substanz wird als Adsorptiv bezeichnet, solange sich diese in der fluiden Phase befindet. Im adsorbierten Zustand wird die sich an der Grenzfläche anreichernde Substanz Adsorpt genannt. Die die Grenzfläche bereitstellende kondensierte Phase wird als Adsorbens bezeichnet. Der Komplex aus Adsorpt und Adsorbens wird Adsorbat genannt. Adsorption ist zu unterscheiden von Absorption, bei der die Stoffe in das Innere eines Festkörpers oder einer Flüssigkeit eindringen. Der Oberbegriff für Adsorption und Absorp",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adsorption",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adsorption"
+    },
+    {
+      "collected_at": "2026-11-26T15:21:23+00:00",
+      "excerpt": "Eine Adsorptionskältemaschine bzw. adsorptionsgetriebene Kältemaschine (engl. adsorption driven chiller, ADC) dient der Kälteerzeugung und beruht auf der reversiblen Adsorption eines Kältemittels in einen Sorptionstoff. Mit der Ad- bzw. Desorption des Kältemittels (z. B. Wasser, Ammoniak, Methanol oder Ethanol) geht gleichzeitig eine Aggregatsänderung einher. Das Kältemittel nimmt Energie aus der Umgebung auf, desorbiert und verdampft. Aufgrund der für die Desorption benötigten Energie und der Verdunstungskälte kühlt die Umgebung dabei ab. Das nun gasförmige Kältemittel wird von dem porösen Sorptionsmittel wieder adsorbiert und kondensiert in dessen Poren. Aufgrund der bei der Adsorption frei werdenden Energie und der Kondensationsenthalpie wird Wärme während dessen abgegeben. Als Sorptionsmittel eignen sich alle Materialien mit der passe",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adsorptionsk%C3%A4ltemaschine",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adsorptionskältemaschine"
+    },
+    {
+      "collected_at": "2026-11-26T15:21:23+00:00",
+      "excerpt": "Adrasteia (altgriechisch Ἀδράστεια Adrásteia, deutsch ‚die Unausweichliche‘) ist in der Griechischen Mythologie eine jungfräuliche Bergnymphe und eine der Beschützerinnen des jungen Zeus.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Adrasteia_%28Mythologie%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Adrasteia (Mythologie)"
+    },
+    {
+      "collected_at": "2026-11-26T15:21:23+00:00",
+      "excerpt": "Vorlage:Infobox Mond/Wartung/!A_Fallen Aegir (auch Saturn XXXVI) ist einer der kleineren äußeren Monde des Planeten Saturn.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Aegir_%28Mond%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Aegir (Mond)"
     }
   ],
   "failed_titles": [
@@ -1533,18 +1573,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 3,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Abiotisch",
-        "Abklingbecken",
-        "Abwasser"
-      ],
-      "time": "2026-11-19T09:26:12+00:00"
-    },
     {
       "added": 3,
       "attempted": 5,
@@ -1914,6 +1942,19 @@
       "errors": 5,
       "new_titles": [],
       "time": "2026-11-26T09:29:35+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Adsorption",
+        "Adsorptionskältemaschine",
+        "Adrasteia (Mythologie)",
+        "Aegir (Mond)"
+      ],
+      "time": "2026-11-26T15:21:23+00:00"
     }
   ],
   "schema": 1
