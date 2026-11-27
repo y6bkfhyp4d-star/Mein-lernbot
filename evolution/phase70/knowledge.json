@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Anregungszustand",
-    "Atmosphärenchemie",
-    "Angeregter Zustand",
-    "Apparatefunktion",
-    ".Net-Framework",
-    "AMD-Chipsätze",
-    "1989",
-    "Acer",
     "Beweis (Logik)",
     "Beweis (Mathematik)",
     "Abstand",
@@ -89,49 +81,17 @@
     "Aktionsraum",
     "Alte Welt",
     "Alessandro Volta",
-    "Alexander Stepanowitsch Popow"
+    "Alexander Stepanowitsch Popow",
+    "Althochdeutsch",
+    "Antischall",
+    "Al-Khazini",
+    "Alhazen",
+    "Argon",
+    "Atmosphäre (Astronomie)",
+    "Adipozyt",
+    "Afrikanischer Strauß"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-16T21:04:15+00:00",
-      "excerpt": "Wasser (lateinisch Aqua; altgriechisch hydor) ist die chemische Verbindung H2O, bestehend aus den Elementen Sauerstoff (O) und Wasserstoff (H). Die Bezeichnung Wasser wird dabei für den flüssigen Aggregatzustand verwendet. Im festen Zustand spricht man von Eis, im gasförmigen Zustand von Wasserdampf. In der Natur kommt Wasser selten rein vor, sondern enthält meist gelöste Anteile von Salzen, Gasen und organischen Verbindungen. Wasser ist die Grundlage allen Lebens auf der Erde. Als die wichtigste Flüssigkeit wird es auch als das Blaue Gold bezeichnet. Die international anerkannte Hydrologin Malin Falkenmark bezeichnete den Wasserkreislauf als den „Blutkreislauf der Biosphäre“. Biologische Vorgänge laufen nur dank Wasser ab. Der Mensch als biologisches Wesen (Wasseranteil ca. 70 %) nutzt das Wasser zur Sicherung seines eigenen Überlebens u",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Wasser",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Wasser"
-    },
-    {
-      "collected_at": "2026-11-17T03:05:16+00:00",
-      "excerpt": "Wasserstoff ist ein chemisches Element mit dem Symbol H (für lateinisch hydrogenium ‚Wassererzeuger‘ von altgriechisch ὕδωρ hydōr, deutsch ‚Wasser‘) und der Ordnungszahl 1. Im Periodensystem steht das Element Wasserstoff in der 1. Periode und in der 1. IUPAC-Gruppe. Wasserstoff ist mit einem Massenanteil von etwa 70 % das häufigste chemische Element im Universum, jedoch nicht auf der Erde, wo sein Massenanteil an der Erdhülle nur 0,87 % beträgt. Der Großteil des Wasserstoffs auf der Erde ist im Wasser gebunden, der Verbindung mit Sauerstoff, deren Masse zu 11 % aus Wasserstoff besteht. Wasserstoff kommt gebunden an andere Elemente in sämtlichen Pflanzen und lebenden Organismen vor. Wasserstoff ist ein fester Bestandteil fast aller organischen chemischen Substanzen. Wasserstoff ist das chemische Element mit der geringsten Atommasse. Sein h",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Wasserstoff",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Wasserstoff"
-    },
-    {
-      "collected_at": "2026-11-17T03:05:16+00:00",
-      "excerpt": "Sauerstoff (auch Oxygenium, kurz Oxygen, genannt; gebildet aus altgriechisch ὀξύς oxýs „scharf, spitz, sauer“ und -gen, zusammen „Säureerzeuger, Säurebildner“) ist ein chemisches Element mit dem Symbol O und der Ordnungszahl 8. Es steht an achter Stelle im Periodensystem und dort zusammen mit den Elementen Schwefel, Selen, Tellur, Polonium und Livermorium, die die Chalkogene bilden, in der sechsten Hauptgruppe, bzw. 16. IUPAC-Gruppe. Sauerstoff ist bezüglich der Masse mit 48,9 % das häufigste Element der Erdkruste, das häufigste Element der Erdhülle und mit rund 30 % das zweithäufigste Element der Erde insgesamt (Eisen ist an 1. Stelle). Unter Normalbedingung tritt Sauerstoff in Form eines kovalenten Homodimers auf, also einer Verbindung aus zwei Sauerstoff-Atomen und mit der Summenformel O2, bezeichnet als molekularer Sauerstoff, Dioxyge",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Sauerstoff",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Sauerstoff"
-    },
-    {
-      "collected_at": "2026-11-17T03:05:16+00:00",
-      "excerpt": "Ein Planet (von altgriechisch πλανήτης planḗtēs, deutsch ‚Umherschweifender, Wanderer‘) ist ein Himmelskörper, der einen Stern oder Braunen Zwerg umkreist und dessen Masse nicht ausreicht, um Kernfusion in Gang zu setzen. Er leuchtet daher nicht selbst, sondern reflektiert nur das Licht des Sterns. Im Sonnensystem sind die Planeten die acht größten Himmelskörper, die die Sonne umkreisen. Die vier inneren Planeten – Merkur, Venus, Erde, Mars – bestehen aus Gestein mit einem Metallkern, die äußeren vier – Jupiter, Saturn, Uranus, Neptun – bestehen größtenteils aus Gas. Entstanden sind die Planeten aus der protoplanetaren Scheibe, deren kleine Teilchen sich immer mehr zusammenballten. Kleinere Objekte im Sonnensystem, wie zum Beispiel Pluto, werden gemäß Definition der IAU entweder als Zwergplanet oder als Kleinkörper eingeordnet. Objekte, w",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Planet",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Planet"
-    },
     {
       "collected_at": "2026-11-17T03:05:16+00:00",
       "excerpt": "Unter einem Stern (altgriechisch ἀστήρ, ἄστρον astēr, ástron und lateinisch aster, astrum, stella, sidus für ‘Stern, Gestirn’; ahd. sterno; astronomisches Symbol: ✱) versteht man in der Astronomie einen massereichen, selbstleuchtenden Himmelskörper aus sehr heißem Gas und Plasma, wie zum Beispiel die Sonne. Dass nahezu alle mit dem bloßen Auge sichtbaren selbstleuchtenden Himmelskörper sonnenähnliche Objekte sind, die nur wegen ihrer weiten Entfernung punktförmig erscheinen, ist eine der wichtigsten Erkenntnisse der modernen Astronomie. Etwa drei Viertel der Sterne sind Teil eines Doppelstern- oder Mehrfachsystems, viele haben ein Planetensystem. Gemeinsam entstandene Sterne bilden öfter Sternhaufen. Unter günstigen Bedingungen können mehrere Tausend Sterne freiäugig unterschieden werden. Diese gehören alle zur gleichen Galaxie wie die So",
@@ -1591,6 +1551,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Elektrizität"
+    },
+    {
+      "collected_at": "2026-11-27T15:17:11+00:00",
+      "excerpt": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper). Diese Schwingungen rufen Druck- und Dichteschwankungen hervor, die sich in dem Medium ausbreiten und so die Schallwellen bilden. Umgangssprachlich bezeichnet Schall vor allem das Geräusch, den Klang, den Ton, den Knall (Schallarten), wie er von Menschen und Tieren mit dem Gehör, also dem Ohr-Gehirn-System auditiv wahrgenommen werden kann. Man unterscheidet dabei den Nutzschall, wie Musik oder die Stimme beim Gespräch, und den Störschall, wie Baustellen- oder Verkehrslärm. „Schall“ ist ein Kollektivum und wird nur im Singular benutzt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Schall",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Schall"
+    },
+    {
+      "collected_at": "2026-11-27T15:17:11+00:00",
+      "excerpt": "Die Gravitation (von lateinisch gravitas für „Schwere“), auch Massenanziehung oder Gravitationskraft, ist eine der vier Grundkräfte der Physik. Sie äußert sich in der gegenseitigen Anziehung von Massen. Sie nimmt mit zunehmender Entfernung der Massen ab, besitzt aber unbegrenzte Reichweite. Im Gegensatz zu elektrischen oder magnetischen Kräften lässt sie sich nicht abschirmen. Auf der Erde bewirkt die Gravitation (Erdanziehungskraft), dass alle Körper nach „unten“, d. h. in Richtung Erdmittelpunkt, fallen, sofern sie nicht durch andere Kräfte daran gehindert werden. Im Sonnensystem bestimmt die Gravitation die Bahnen der Planeten, Monde, Satelliten und Kometen und im Kosmos die Bildung von Sternen und Galaxien sowie dessen Entwicklung im Großen. Der Begriff Schwerkraft wird oft synonym zu „Gravitation“ verwendet. In manchem Zusammenhang –",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Gravitation",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Gravitation"
+    },
+    {
+      "collected_at": "2026-11-27T15:17:11+00:00",
+      "excerpt": "Die Atmosphäre der Erde, auch Erdatmosphäre (von altgriechisch ἀτμός atmós, deutsch ‚Dampf‘ und σφαῖρα sphaira, deutsch ‚Kugel‘) ist die gas­förmige Hülle der Erdoberfläche und eine der sogenannten Erdsphären. Sie hat einen hohen Anteil an Stickstoff und Sauerstoff und somit oxidierende Verhältnisse. Ihre vertikale Gliederung ist durch unterschiedliche Temperaturen bedingt. Das Wettergeschehen findet in den unteren etwa 10 Kilometern statt, der Troposphäre. Die höheren Schichten haben keinen großen Einfluss mehr.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Erdatmosph%C3%A4re",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Erdatmosphäre"
+    },
+    {
+      "collected_at": "2026-11-27T15:17:11+00:00",
+      "excerpt": "Eine Zelle (lateinisch cellula ‚Kämmerchen, Zelle‘) ist die kleinste lebende Einheit aller Organismen. Man unterscheidet Einzeller, also Lebewesen, die nur aus einer Zelle bestehen, und Mehrzeller, also Lebewesen, die aus mehr als nur einer Zelle bestehen. Besteht das Lebewesen aus vielen Zellen (Vielzeller), können Zellen zu funktionellen Einheiten verbunden sein und dadurch Gewebe bilden. Der menschliche Körper besteht aus mehreren hundert verschiedenen Zell- und Gewebetypen. Evolutionsbiologisch betrachtet und im Vergleich zu Einzellern haben die Zellen von Vielzellern größtenteils ihre Fähigkeit, für sich allein leben zu können, verloren und haben sich auf eine Arbeitsteilung in Geweben spezialisiert. Die Wissenschaft und Lehre von den Zellen der Lebewesen ist die Zytologie (altgriechisch κύτος kytos, deutsch ‚Zelle‘).",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Zelle_%28Biologie%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Zelle (Biologie)"
     }
   ],
   "failed_titles": [
@@ -1603,18 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 1,
-      "attempted": 5,
-      "error_samples": [
-        "Adalbert W. A. Pauldrach: kein geeigneter Artikel"
-      ],
-      "errors": 1,
-      "new_titles": [
-        "Absolute Helligkeit"
-      ],
-      "time": "2026-11-20T09:20:40+00:00"
-    },
     {
       "added": 2,
       "attempted": 5,
@@ -1990,6 +1978,19 @@
         "Elektrizität"
       ],
       "time": "2026-11-27T09:29:11+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Schall",
+        "Gravitation",
+        "Erdatmosphäre",
+        "Zelle (Biologie)"
+      ],
+      "time": "2026-11-27T15:17:11+00:00"
     }
   ],
   "schema": 1
