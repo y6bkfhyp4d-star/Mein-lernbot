@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "ArXiv",
-    "Bilanzgleichung",
-    "Besetzungsinversion",
-    "Boltzmann-Faktor",
-    "1,3-Butadien",
-    "3D-Druck",
-    "AV-Receiver",
-    "Aktivbox",
     "Anregungszustand",
     "Atmosphärenchemie",
     "Angeregter Zustand",
@@ -89,49 +81,17 @@
     "16. September",
     "1853",
     "Alpha privativum",
-    "Amorphe Lötfolie"
+    "Amorphe Lötfolie",
+    "2001 Mars Odyssey",
+    "ALH 84001 (Meteorit)",
+    "Acetat",
+    "Aerob",
+    "Aktionsraum",
+    "Alte Welt",
+    "Alessandro Volta",
+    "Alexander Stepanowitsch Popow"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-16T21:04:15+00:00",
-      "excerpt": "Schall (von althochdeutsch scal) bezeichnet allgemein mechanische Schwingungen in einem elastischen Medium (Gas, Flüssigkeit, Festkörper). Diese Schwingungen rufen Druck- und Dichteschwankungen hervor, die sich in dem Medium ausbreiten und so die Schallwellen bilden. Umgangssprachlich bezeichnet Schall vor allem das Geräusch, den Klang, den Ton, den Knall (Schallarten), wie er von Menschen und Tieren mit dem Gehör, also dem Ohr-Gehirn-System auditiv wahrgenommen werden kann. Man unterscheidet dabei den Nutzschall, wie Musik oder die Stimme beim Gespräch, und den Störschall, wie Baustellen- oder Verkehrslärm. „Schall“ ist ein Kollektivum und wird nur im Singular benutzt.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Schall",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Schall"
-    },
-    {
-      "collected_at": "2026-11-16T21:04:15+00:00",
-      "excerpt": "Die Gravitation (von lateinisch gravitas für „Schwere“), auch Massenanziehung oder Gravitationskraft, ist eine der vier Grundkräfte der Physik. Sie äußert sich in der gegenseitigen Anziehung von Massen. Sie nimmt mit zunehmender Entfernung der Massen ab, besitzt aber unbegrenzte Reichweite. Im Gegensatz zu elektrischen oder magnetischen Kräften lässt sie sich nicht abschirmen. Auf der Erde bewirkt die Gravitation (Erdanziehungskraft), dass alle Körper nach „unten“, d. h. in Richtung Erdmittelpunkt, fallen, sofern sie nicht durch andere Kräfte daran gehindert werden. Im Sonnensystem bestimmt die Gravitation die Bahnen der Planeten, Monde, Satelliten und Kometen und im Kosmos die Bildung von Sternen und Galaxien sowie dessen Entwicklung im Großen. Der Begriff Schwerkraft wird oft synonym zu „Gravitation“ verwendet. In manchem Zusammenhang –",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Gravitation",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Gravitation"
-    },
-    {
-      "collected_at": "2026-11-16T21:04:15+00:00",
-      "excerpt": "Die Atmosphäre der Erde, auch Erdatmosphäre (von altgriechisch ἀτμός atmós, deutsch ‚Dampf‘ und σφαῖρα sphaira, deutsch ‚Kugel‘) ist die gas­förmige Hülle der Erdoberfläche und eine der sogenannten Erdsphären. Sie hat einen hohen Anteil an Stickstoff und Sauerstoff und somit oxidierende Verhältnisse. Ihre vertikale Gliederung ist durch unterschiedliche Temperaturen bedingt. Das Wettergeschehen findet in den unteren etwa 10 Kilometern statt, der Troposphäre. Die höheren Schichten haben keinen großen Einfluss mehr.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Erdatmosph%C3%A4re",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Erdatmosphäre"
-    },
-    {
-      "collected_at": "2026-11-16T21:04:15+00:00",
-      "excerpt": "Eine Zelle (lateinisch cellula ‚Kämmerchen, Zelle‘) ist die kleinste lebende Einheit aller Organismen. Man unterscheidet Einzeller, also Lebewesen, die nur aus einer Zelle bestehen, und Mehrzeller, also Lebewesen, die aus mehr als nur einer Zelle bestehen. Besteht das Lebewesen aus vielen Zellen (Vielzeller), können Zellen zu funktionellen Einheiten verbunden sein und dadurch Gewebe bilden. Der menschliche Körper besteht aus mehreren hundert verschiedenen Zell- und Gewebetypen. Evolutionsbiologisch betrachtet und im Vergleich zu Einzellern haben die Zellen von Vielzellern größtenteils ihre Fähigkeit, für sich allein leben zu können, verloren und haben sich auf eine Arbeitsteilung in Geweben spezialisiert. Die Wissenschaft und Lehre von den Zellen der Lebewesen ist die Zytologie (altgriechisch κύτος kytos, deutsch ‚Zelle‘).",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Zelle_%28Biologie%29",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Zelle (Biologie)"
-    },
     {
       "collected_at": "2026-11-16T21:04:15+00:00",
       "excerpt": "Wasser (lateinisch Aqua; altgriechisch hydor) ist die chemische Verbindung H2O, bestehend aus den Elementen Sauerstoff (O) und Wasserstoff (H). Die Bezeichnung Wasser wird dabei für den flüssigen Aggregatzustand verwendet. Im festen Zustand spricht man von Eis, im gasförmigen Zustand von Wasserdampf. In der Natur kommt Wasser selten rein vor, sondern enthält meist gelöste Anteile von Salzen, Gasen und organischen Verbindungen. Wasser ist die Grundlage allen Lebens auf der Erde. Als die wichtigste Flüssigkeit wird es auch als das Blaue Gold bezeichnet. Die international anerkannte Hydrologin Malin Falkenmark bezeichnete den Wasserkreislauf als den „Blutkreislauf der Biosphäre“. Biologische Vorgänge laufen nur dank Wasser ab. Der Mensch als biologisches Wesen (Wasseranteil ca. 70 %) nutzt das Wasser zur Sicherung seines eigenen Überlebens u",
@@ -1591,6 +1551,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Amorphes Material"
+    },
+    {
+      "collected_at": "2026-11-27T09:29:11+00:00",
+      "excerpt": "Der Mars (IPA: [ maʁs] ) ist, von der Sonne aus gezählt, der vierte Planet im Sonnensystem und der äußere Nachbar der Erde. Er zählt zu den erdähnlichen (terrestrischen) Planeten. Mit einem Durchmesser von knapp 6800 Kilometern ist er etwa halb so groß wie die Erde und sein Volumen beträgt gut ein Siebtel des Erdvolumens, womit der Mars nach dem Merkur der zweitkleinste Planet des Sonnensystems ist. Er weist eine vielfältige Geologie sowie die höchsten Vulkane des Sonnensystems auf. Mit einer durchschnittlichen Entfernung von 228 Millionen Kilometern ist er rund 1,5-mal so weit von der Sonne entfernt wie die Erde. Mit einer Dichte von 3,9 g/cm³ weist der Mars den geringsten Wert der erdähnlichen Planeten auf. Die Masse des Mars beträgt somit nur etwa ein Zehntel der Erdmasse (bei gleicher Dichte wie die der Erde betrüge sie etwa ein Siebe",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Mars_%28Planet%29",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Mars (Planet)"
+    },
+    {
+      "collected_at": "2026-11-27T09:29:11+00:00",
+      "excerpt": "Die Photosynthese (altgriechisch φῶς phō̂s, deutsch ‚Licht‘ und σύνθεσις sýnthesis, deutsch ‚Zusammensetzung‘, auch Fotosynthese geschrieben) ist ein physiologischer Prozess zur Erzeugung energiereicher Biomoleküle aus energieärmeren Stoffen mit Hilfe von Lichtenergie. Sie wird von Pflanzen, Algen und manchen Bakterien betrieben. Bei diesem biochemischen Vorgang wird Lichtenergie mit Hilfe von lichtabsorbierenden Farbstoffen wie Chlorophyll in chemische Energie umgewandelt. Diese wird dann genutzt, um aus energiearmen anorganischen Stoffen (vor allem Kohlenstoffdioxid (CO2) und Wasser (H2O)) energiereiche organische Verbindungen (vor allem Kohlenhydrate) aufzubauen. Der genutzte Anteil der eingestrahlten Energie, nämlich der zum Aufbau der Assimilate verwendete Anteil, wird photosynthetische Effizienz genannt. Soweit die energiereichen or",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Photosynthese",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Photosynthese"
+    },
+    {
+      "collected_at": "2026-11-27T09:29:11+00:00",
+      "excerpt": "Das Okapi (Okapia johnstoni), auch Waldgiraffe oder Kurzhalsgiraffe genannt, ist ein Paarhufer aus der Familie der Giraffenartigen. Näher mit den Giraffen (Giraffa) als mit anderen Paarhufern verwandt, ähnelt es in seinen Körperproportionen eher typischen Huftieren als den Giraffen. Gekennzeichnet ist es durch seine kontrastreiche Färbung aus rotbraun, schwarz und weiß sowie den vergleichsweise langen Hals. Das Okapi bewohnt den Regenwald in der Demokratischen Republik Kongo und wird von der IUCN als stark gefährdet (endangered) eingestuft. Als sehr scheuer Bewohner des Regenwaldes ist es bisher nur wenig erforscht. Es wurde als Großsäugetier erst im Jahre 1901 beschrieben.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Okapi",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Okapi"
+    },
+    {
+      "collected_at": "2026-11-27T09:29:11+00:00",
+      "excerpt": "Elektrizität (von altgriechisch ἤλεκτρον ēlektron, deutsch ‚Bernstein‘) ist der physikalische Oberbegriff für alle Phänomene, die ihre Ursache in ruhender oder bewegter elektrischer Ladung haben. Dies umfasst viele aus dem Alltag bekannte Phänomene wie Blitze oder die Kraftwirkung des Magnetismus. Der Begriff der Elektrizität ist in der Naturwissenschaft nicht streng abgegrenzt, es werden aber bestimmte Eigenschaften zum Kernbereich der Elektrizität gezählt: Die elektrische Ladung. Sie ist eine Eigenschaft bestimmter atomarer Teilchen wie der negativ geladenen Elektronen und der positiv geladenen Protonen, die als Ladungsträger bezeichnet werden, und wird in der Einheit Coulomb gemessen. Die Bezeichnung positiv bzw. negativ ist willkürlich gewählt. Wesentliche Eigenschaft ist, dass sich gleichnamige elektrische Ladungen abstoßen, während",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Elektrizit%C3%A4t",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Elektrizität"
     }
   ],
   "failed_titles": [
@@ -1603,17 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 2,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "(2) Pallas",
-        "AGB-Stern"
-      ],
-      "time": "2026-11-20T03:02:11+00:00"
-    },
     {
       "added": 1,
       "attempted": 5,
@@ -1988,6 +1977,19 @@
         "Amorphes Material"
       ],
       "time": "2026-11-27T03:18:18+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Mars (Planet)",
+        "Photosynthese",
+        "Okapi",
+        "Elektrizität"
+      ],
+      "time": "2026-11-27T09:29:11+00:00"
     }
   ],
   "schema": 1
