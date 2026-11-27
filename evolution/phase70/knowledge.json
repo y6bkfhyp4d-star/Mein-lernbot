@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Beweis (Logik)",
-    "Beweis (Mathematik)",
-    "Abstand",
-    "Adjazenzmatrix",
-    "Afrika",
-    "Aktienart (China)",
-    "Aktiengesellschaft",
-    "Aktienhandel",
     "19P/Borrelly",
     "Albedo (Begriffsklärung)",
     "Altgriechische Präpositionen",
@@ -89,49 +81,17 @@
     "Argon",
     "Atmosphäre (Astronomie)",
     "Adipozyt",
-    "Afrikanischer Strauß"
+    "Afrikanischer Strauß",
+    "Acre-foot",
+    "Alchemie",
+    "-gen",
+    "Acidität",
+    "Aceton",
+    "Actinium",
+    "(4) Vesta",
+    "(5) Astraea"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-17T03:05:16+00:00",
-      "excerpt": "Unter einem Stern (altgriechisch ἀστήρ, ἄστρον astēr, ástron und lateinisch aster, astrum, stella, sidus für ‘Stern, Gestirn’; ahd. sterno; astronomisches Symbol: ✱) versteht man in der Astronomie einen massereichen, selbstleuchtenden Himmelskörper aus sehr heißem Gas und Plasma, wie zum Beispiel die Sonne. Dass nahezu alle mit dem bloßen Auge sichtbaren selbstleuchtenden Himmelskörper sonnenähnliche Objekte sind, die nur wegen ihrer weiten Entfernung punktförmig erscheinen, ist eine der wichtigsten Erkenntnisse der modernen Astronomie. Etwa drei Viertel der Sterne sind Teil eines Doppelstern- oder Mehrfachsystems, viele haben ein Planetensystem. Gemeinsam entstandene Sterne bilden öfter Sternhaufen. Unter günstigen Bedingungen können mehrere Tausend Sterne freiäugig unterschieden werden. Diese gehören alle zur gleichen Galaxie wie die So",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Stern",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Stern"
-    },
-    {
-      "collected_at": "2026-11-17T03:05:16+00:00",
-      "excerpt": "Eine Galaxie ist eine durch Gravitation gebundene große Ansammlung von Sternen und ihren Planetensystemen sowie interstellaren Objekten, Gasnebeln, Staubwolken, Dunkler Materie und sonstigen astronomischen Objekten. Galaxien variieren stark in Aussehen (Morphologie), Größe und Zusammensetzung. Während große Galaxien häufig die Struktur von Spiralen ausbilden, sind Zwerggalaxien zumeist irregulären Typs. Daneben existieren weitere Arten und Formen. Die Milchstraße, Heimatgalaxie unseres Sonnensystems, ist eine Balkenspirale von rund 1,5 Billionen Sonnenmassen (M☉) mit etwa 250 Milliarden Sternen. Galaxien haben typischerweise eine Gesamtmasse von 109 bis 1013 M☉. Ihr Durchmesser kann mehrere hunderttausend Lichtjahre betragen. Die Milchstraße hat einen Durchmesser von bis zu 200.000 Lichtjahren und gehört damit zu den größeren Galaxien. Vo",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Galaxie",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Galaxie"
-    },
-    {
-      "collected_at": "2026-11-17T09:20:33+00:00",
-      "excerpt": "Unter Evolution (von lateinisch evolvere „herausrollen“, „auseinanderrollen“, „auswickeln“, „entwickeln“) versteht man im deutschsprachigen Raum in erster Linie die biologische Evolution. Darunter wird die von Generation zu Generation stattfindende allmähliche Veränderung der vererbbaren Merkmale einer Population von Lebewesen und von anderen organischen Strukturen (z. B. Viren) verstanden. Das Lehr- und Forschungsgebiet der Evolution wird als Evolutionsbiologie bezeichnet und unterliegt, wie viele andere Wissenschaften, einem kontinuierlichen Erkenntnisfortschritt. Hierzu können insbesondere neue Einsichten durch die Entdeckung neuer Fossilien oder die Anwendung neuer Forschungsmethoden beitragen. Das Themenfeld der Evolution wurde zuweilen unterteilt in die Evolutionsgeschichte, in der die Veränderungen der Lebewesen im Laufe der Erdges",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Evolution",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Evolution"
-    },
-    {
-      "collected_at": "2026-11-17T09:20:33+00:00",
-      "excerpt": "Desoxyribonukleinsäure (), meist kurz als DNA (Abkürzung für englisch deoxyribonucleic acid), seltener auch als DNS abgekürzt, ist eine aus unterschiedlichen Desoxyribonukleotiden aufgebaute Nukleinsäure. Sie trägt die Erbinformation bei allen Lebewesen und den DNA-Viren. Das langkettige Polynukleotid enthält in Abschnitten von Genen besondere Abfolgen seiner Nukleotide. Diese DNA-Abschnitte dienen als Matrizen für den Aufbau entsprechender Ribonukleinsäuren (RNA), wenn genetische Information von DNA in RNA umgeschrieben wird (siehe Transkription). Die hierbei an der DNA-Vorlage aufgebauten RNA-Stränge erfüllen unterschiedliche Aufgaben; sie sind als rRNA (englisch ribosomal RNA), als tRNA (englisch transfer RNA) und als mRNA (englisch messenger RNA) an der Biosynthese von Proteinen beteiligt (siehe Proteinbiosynthese). Im Falle einer Mes",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Desoxyribonukleins%C3%A4ure",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Desoxyribonukleinsäure"
-    },
     {
       "collected_at": "2026-11-17T09:20:33+00:00",
       "excerpt": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird. Auch Elemente können an Reaktionen beteiligt sein. Chemische Reaktionen sind in der Regel mit Veränderungen der chemischen Bindungen in Molekülen oder Kristallen verbunden. Durch eine chemische Reaktion können sich die Eigenschaften der Produkte im Vergleich zu den Edukten stark ändern. Nicht zu den chemischen Reaktionen zählen physikalische Vorgänge, bei denen sich lediglich der Aggregatzustand ändert wie Schmelzen oder Verdampfen, Diffusion, das Vermengen von Reinstoffen zu Stoffgemischen sowie Kernreaktionen, bei denen Elemente in andere umgewandelt werden. Reaktionen bestehen aus einer meist recht komplizierten Folge einzelner Teilschritte, den sogenannten Elementar",
@@ -1591,6 +1551,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Zelle (Biologie)"
+    },
+    {
+      "collected_at": "2026-11-27T21:13:24+00:00",
+      "excerpt": "Wasser (lateinisch Aqua; altgriechisch hydor) ist die chemische Verbindung H2O, bestehend aus den Elementen Sauerstoff (O) und Wasserstoff (H). Die Bezeichnung Wasser wird dabei für den flüssigen Aggregatzustand verwendet. Im festen Zustand spricht man von Eis, im gasförmigen Zustand von Wasserdampf. In der Natur kommt Wasser selten rein vor, sondern enthält meist gelöste Anteile von Salzen, Gasen und organischen Verbindungen. Wasser ist die Grundlage allen Lebens auf der Erde. Als die wichtigste Flüssigkeit wird es auch als das Blaue Gold bezeichnet. Die international anerkannte Hydrologin Malin Falkenmark bezeichnete den Wasserkreislauf als den „Blutkreislauf der Biosphäre“. Biologische Vorgänge laufen nur dank Wasser ab. Der Mensch als biologisches Wesen (Wasseranteil ca. 70 %) nutzt das Wasser zur Sicherung seines eigenen Überlebens u",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Wasser",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Wasser"
+    },
+    {
+      "collected_at": "2026-11-27T21:13:24+00:00",
+      "excerpt": "Wasserstoff ist ein chemisches Element mit dem Symbol H (für lateinisch hydrogenium ‚Wassererzeuger‘ von altgriechisch ὕδωρ hydōr, deutsch ‚Wasser‘) und der Ordnungszahl 1. Im Periodensystem steht das Element Wasserstoff in der 1. Periode und in der 1. IUPAC-Gruppe. Wasserstoff ist mit einem Massenanteil von etwa 70 % das häufigste chemische Element im Universum, jedoch nicht auf der Erde, wo sein Massenanteil an der Erdhülle nur 0,87 % beträgt. Der Großteil des Wasserstoffs auf der Erde ist im Wasser gebunden, der Verbindung mit Sauerstoff, deren Masse zu 11 % aus Wasserstoff besteht. Wasserstoff kommt gebunden an andere Elemente in sämtlichen Pflanzen und lebenden Organismen vor. Wasserstoff ist ein fester Bestandteil fast aller organischen chemischen Substanzen. Wasserstoff ist das chemische Element mit der geringsten Atommasse. Sein h",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Wasserstoff",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Wasserstoff"
+    },
+    {
+      "collected_at": "2026-11-27T21:13:24+00:00",
+      "excerpt": "Sauerstoff (auch Oxygenium, kurz Oxygen, genannt; gebildet aus altgriechisch ὀξύς oxýs „scharf, spitz, sauer“ und -gen, zusammen „Säureerzeuger, Säurebildner“) ist ein chemisches Element mit dem Symbol O und der Ordnungszahl 8. Es steht an achter Stelle im Periodensystem und dort zusammen mit den Elementen Schwefel, Selen, Tellur, Polonium und Livermorium, die die Chalkogene bilden, in der sechsten Hauptgruppe, bzw. 16. IUPAC-Gruppe. Sauerstoff ist bezüglich der Masse mit 48,9 % das häufigste Element der Erdkruste, das häufigste Element der Erdhülle und mit rund 30 % das zweithäufigste Element der Erde insgesamt (Eisen ist an 1. Stelle). Unter Normalbedingung tritt Sauerstoff in Form eines kovalenten Homodimers auf, also einer Verbindung aus zwei Sauerstoff-Atomen und mit der Summenformel O2, bezeichnet als molekularer Sauerstoff, Dioxyge",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Sauerstoff",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Sauerstoff"
+    },
+    {
+      "collected_at": "2026-11-27T21:13:24+00:00",
+      "excerpt": "Ein Planet (von altgriechisch πλανήτης planḗtēs, deutsch ‚Umherschweifender, Wanderer‘) ist ein Himmelskörper, der einen Stern oder Braunen Zwerg umkreist und dessen Masse nicht ausreicht, um Kernfusion in Gang zu setzen. Er leuchtet daher nicht selbst, sondern reflektiert nur das Licht des Sterns. Im Sonnensystem sind die Planeten die acht größten Himmelskörper, die die Sonne umkreisen. Die vier inneren Planeten – Merkur, Venus, Erde, Mars – bestehen aus Gestein mit einem Metallkern, die äußeren vier – Jupiter, Saturn, Uranus, Neptun – bestehen größtenteils aus Gas. Entstanden sind die Planeten aus der protoplanetaren Scheibe, deren kleine Teilchen sich immer mehr zusammenballten. Kleinere Objekte im Sonnensystem, wie zum Beispiel Pluto, werden gemäß Definition der IAU entweder als Zwergplanet oder als Kleinkörper eingeordnet. Objekte, w",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Planet",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Planet"
     }
   ],
   "failed_titles": [
@@ -1603,17 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 2,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Adler (Sternbild)",
-        "Adaptive Radiation"
-      ],
-      "time": "2026-11-20T15:14:16+00:00"
-    },
     {
       "added": 2,
       "attempted": 5,
@@ -1991,6 +1980,19 @@
         "Zelle (Biologie)"
       ],
       "time": "2026-11-27T15:17:11+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Wasser",
+        "Wasserstoff",
+        "Sauerstoff",
+        "Planet"
+      ],
+      "time": "2026-11-27T21:13:24+00:00"
     }
   ],
   "schema": 1
