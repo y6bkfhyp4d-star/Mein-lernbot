@@ -1,6 +1,6 @@
 {
   "changes": [],
-  "cursor": 72,
+  "cursor": 77,
   "entities": [
     {
       "checked_at": "2026-11-23T15:30:30+00:00",
@@ -808,7 +808,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q93894"
     },
     {
-      "checked_at": "2026-11-22T21:08:24+00:00",
+      "checked_at": "2026-11-27T09:37:58+00:00",
       "classes": [
         "Pfadsuch-Algorithmus",
         "graphentheoretischer Algorithmus",
@@ -822,7 +822,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q277680"
     },
     {
-      "checked_at": "2026-11-22T21:08:24+00:00",
+      "checked_at": "2026-11-27T09:37:58+00:00",
       "classes": [
         "musikalisches Werk / Komposition"
       ],
@@ -833,7 +833,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q127257803"
     },
     {
-      "checked_at": "2026-11-22T21:08:24+00:00",
+      "checked_at": "2026-11-27T09:37:58+00:00",
       "classes": [
         "lateinische Phrase"
       ],
@@ -844,7 +844,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q12078874"
     },
     {
-      "checked_at": "2026-11-22T21:08:24+00:00",
+      "checked_at": "2026-11-27T09:37:58+00:00",
       "classes": [
         "Wirtschaftstätigkeit"
       ],
@@ -855,7 +855,7 @@
       "wikidata_url": "https://www.wikidata.org/wiki/Q475000"
     },
     {
-      "checked_at": "2026-11-23T03:22:13+00:00",
+      "checked_at": "2026-11-27T09:37:58+00:00",
       "classes": [
         "Asteroid",
         "Zwergplanetenkandidat",
@@ -1001,13 +1001,6 @@
     }
   ],
   "runs": [
-    {
-      "at": "2026-11-20T03:10:23+00:00",
-      "checked": 5,
-      "error_count": 1,
-      "known_sources": 56,
-      "source_changes": 0
-    },
     {
       "at": "2026-11-20T09:27:00+00:00",
       "checked": 5,
@@ -1206,6 +1199,13 @@
     },
     {
       "at": "2026-11-27T03:26:02+00:00",
+      "checked": 5,
+      "error_count": 3,
+      "known_sources": 89,
+      "source_changes": 0
+    },
+    {
+      "at": "2026-11-27T09:37:58+00:00",
       "checked": 5,
       "error_count": 3,
       "known_sources": 89,
