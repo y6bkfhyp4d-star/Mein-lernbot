@@ -1,15 +1,5 @@
 {
   "discovered_queue": [
-    "19P/Borrelly",
-    "Albedo (Begriffsklärung)",
-    "Altgriechische Präpositionen",
-    "Anomalistisches Jahr",
-    "Acetaldehyd",
-    "Acetylchlorid",
-    "2-Oxoadipat-Dehydrogenase-Komplex",
-    "ACSF3",
-    "AASDH",
-    "ACSBG1",
     "Arecibo-Observatorium",
     "Argument der Periapsis",
     "11. Oktober",
@@ -89,59 +79,19 @@
     "Aceton",
     "Actinium",
     "(4) Vesta",
-    "(5) Astraea"
+    "(5) Astraea",
+    "Akkretion (Astronomie)",
+    "Akkretionsscheibe",
+    "Adalbert W. A. Pauldrach",
+    "Aktive Galaxie",
+    "Aktualismus (Geologie)",
+    "Alfred North Whitehead",
+    "4′,6-Diamidin-2-phenylindol",
+    "5-Chlorouracil",
+    "Alphonse Louis Nicolas Borrelly",
+    "Aphel"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-17T09:20:33+00:00",
-      "excerpt": "Eine chemische Reaktion ist ein Vorgang, bei dem eine oder meist mehrere chemische Verbindungen in andere umgewandelt werden und Energie freigesetzt oder aufgenommen wird. Auch Elemente können an Reaktionen beteiligt sein. Chemische Reaktionen sind in der Regel mit Veränderungen der chemischen Bindungen in Molekülen oder Kristallen verbunden. Durch eine chemische Reaktion können sich die Eigenschaften der Produkte im Vergleich zu den Edukten stark ändern. Nicht zu den chemischen Reaktionen zählen physikalische Vorgänge, bei denen sich lediglich der Aggregatzustand ändert wie Schmelzen oder Verdampfen, Diffusion, das Vermengen von Reinstoffen zu Stoffgemischen sowie Kernreaktionen, bei denen Elemente in andere umgewandelt werden. Reaktionen bestehen aus einer meist recht komplizierten Folge einzelner Teilschritte, den sogenannten Elementar",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Chemische_Reaktion",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Chemische Reaktion"
-    },
-    {
-      "collected_at": "2026-11-17T09:20:33+00:00",
-      "excerpt": "Licht ist eine Form der elektromagnetischen Strahlung. Im engeren Sinne sind nur die für das menschliche Auge sichtbaren Anteile des elektromagnetischen Spektrums gemeint. Die untere Grenze dieses Bereichs wird bei Wellenlängen von 360 bis 400 nm, die obere Grenze bei 760 bis 830 nm angesetzt. Im weiteren Sinne werden in der Physik auch elektromagnetische Wellen kürzerer Wellenlänge (Ultraviolett oder Röntgenstrahlung) und größerer Wellenlänge (Infrarot und Terahertz-Strahlung) dazu gezählt, wobei die Internationale Beleuchtungskommission von der Verwendung der Bezeichnung Licht in diesem Kontext abrät. Die physikalischen Eigenschaften des Lichts werden durch verschiedene Modelle beschrieben: In der Strahlenoptik wird die geradlinige Ausbreitung des Lichts durch „Lichtstrahlen“ veranschaulicht; in der Wellenoptik wird die Wellennatur des",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Licht",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Licht"
-    },
-    {
-      "collected_at": "2026-11-17T09:20:33+00:00",
-      "excerpt": "Die Temperatur ist eine physikalische Zustandsgröße aus der Thermodynamik. Sie wird mit einem Thermometer in den SI-Einheiten Kelvin (K) und Grad Celsius (°C) gemessen. Im Alltag ist sie mit dem Gefühl von „warm“ und „kalt“ verbunden, die gemessene Temperatur kann sich aber erheblich von der gefühlten Temperatur unterscheiden. Bringt man zwei Körper mit unterschiedlichen Temperaturen in thermischen Kontakt, findet Wärmeübertragung statt. Die Wärme fließt dabei stets vom heißeren zum kälteren Körper. Dadurch nimmt die Temperaturdifferenz so lange ab, bis sich die beiden Temperaturen einander angeglichen haben. Wenn die Temperaturen gleich sind, herrscht thermisches Gleichgewicht, in dem kein Wärmeaustausch mehr stattfindet. Die tiefste überhaupt mögliche Temperatur ist 0 K, gleichbedeutend mit −273,15 °C. Sie heißt Absoluter Nullpunkt. Die",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Temperatur",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Temperatur"
-    },
-    {
-      "collected_at": "2026-11-17T15:09:36+00:00",
-      "excerpt": "Der Magnetismus ist eine physikalische Erscheinung, die sich unter anderem als Kraftwirkung zwischen Magneten, magnetisierten bzw. magnetisierbaren Gegenständen und bewegten elektrischen Ladungen äußert. Er lässt sich beschreiben durch ein Feld (Magnetfeld), das einerseits von diesen Objekten erzeugt wird und andererseits auf sie wirkt. Magnetfelder entstehen zum einen bei jeder Bewegung von elektrischen Ladungen. Das ist Grundlage von Elektromagneten und wegen des Induktionsgesetzes auch der induktiven elektronischen Bauelemente. Zum anderen existiert das magnetische (Dipol-)moment von Elementarteilchen als Folge ihres Spins, was zu Dauermagneten und anderen magnetischen Eigenschaften von Festkörpern, aber auch Flüssigkeiten und Gasen führt. Der Magnetismus ist ein Teilgebiet des Elektromagnetismus. Die zugrundeliegende Grundkraft heißt",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Magnetismus",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Magnetismus"
-    },
-    {
-      "collected_at": "2026-11-17T15:09:36+00:00",
-      "excerpt": "Als Regenwald bezeichnet man Wälder, die durch ganzjährig fallende, große Niederschlagsmengen gekennzeichnet sind. Wegen der völlig unterschiedlichen Klimabedingungen unterscheidet man nach den Klimazonen verschiedene Regenwaldtypen: Tropischer Regenwald (der in wenigen Regionen in subtropischen Regenwald übergeht) – mit meist mehr als 1800 mm Jahresniederschlag (siehe auch Tropische Regenwaldklimate) Gemäßigter Regenwald – mit meist über 1000 mm Jahresniederschlag, auch als Schnee (siehe auch Gemäßigte Regenwaldklimate). Im weiteren Sinne werden mitunter auch die saisonalen Feuchtwälder der Tropen und Subtropen als Regenwälder behandelt.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Regenwald",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Regenwald"
-    },
     {
       "collected_at": "2026-11-17T15:09:36+00:00",
       "excerpt": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen. Der Begriff wird auch für den geologischen Aufbau verwendet, etwa Die Geologie der Alpen. Die Bezeichnung Geologie im heutigen Sinn findet sich erstmals 1778 bei Jean-André Deluc (1727–1817). Als feststehenden Begriff führte sie 1779 Horace-Bénédict de Saussure (1740–1799) ein. Vor allem in Deutschland war anfangs alternativ die Bezeichnung Geognosie gebräuchlich.",
@@ -1591,6 +1541,56 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Planet"
+    },
+    {
+      "collected_at": "2026-11-28T03:11:54+00:00",
+      "excerpt": "Unter einem Stern (altgriechisch ἀστήρ, ἄστρον astēr, ástron und lateinisch aster, astrum, stella, sidus für ‘Stern, Gestirn’; ahd. sterno; astronomisches Symbol: ✱) versteht man in der Astronomie einen massereichen, selbstleuchtenden Himmelskörper aus sehr heißem Gas und Plasma, wie zum Beispiel die Sonne. Dass nahezu alle mit dem bloßen Auge sichtbaren selbstleuchtenden Himmelskörper sonnenähnliche Objekte sind, die nur wegen ihrer weiten Entfernung punktförmig erscheinen, ist eine der wichtigsten Erkenntnisse der modernen Astronomie. Etwa drei Viertel der Sterne sind Teil eines Doppelstern- oder Mehrfachsystems, viele haben ein Planetensystem. Gemeinsam entstandene Sterne bilden öfter Sternhaufen. Unter günstigen Bedingungen können mehrere Tausend Sterne freiäugig unterschieden werden. Diese gehören alle zur gleichen Galaxie wie die So",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Stern",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Stern"
+    },
+    {
+      "collected_at": "2026-11-28T03:11:54+00:00",
+      "excerpt": "Eine Galaxie ist eine durch Gravitation gebundene große Ansammlung von Sternen und ihren Planetensystemen sowie interstellaren Objekten, Gasnebeln, Staubwolken, Dunkler Materie und sonstigen astronomischen Objekten. Galaxien variieren stark in Aussehen (Morphologie), Größe und Zusammensetzung. Während große Galaxien häufig die Struktur von Spiralen ausbilden, sind Zwerggalaxien zumeist irregulären Typs. Daneben existieren weitere Arten und Formen. Die Milchstraße, Heimatgalaxie unseres Sonnensystems, ist eine Balkenspirale von rund 1,5 Billionen Sonnenmassen (M☉) mit etwa 250 Milliarden Sternen. Galaxien haben typischerweise eine Gesamtmasse von 109 bis 1013 M☉. Ihr Durchmesser kann mehrere hunderttausend Lichtjahre betragen. Die Milchstraße hat einen Durchmesser von bis zu 200.000 Lichtjahren und gehört damit zu den größeren Galaxien. Vo",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Galaxie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Galaxie"
+    },
+    {
+      "collected_at": "2026-11-28T03:11:54+00:00",
+      "excerpt": "Unter Evolution (von lateinisch evolvere „herausrollen“, „auseinanderrollen“, „auswickeln“, „entwickeln“) versteht man im deutschsprachigen Raum in erster Linie die biologische Evolution. Darunter wird die von Generation zu Generation stattfindende allmähliche Veränderung der vererbbaren Merkmale einer Population von Lebewesen und von anderen organischen Strukturen (z. B. Viren) verstanden. Das Lehr- und Forschungsgebiet der Evolution wird als Evolutionsbiologie bezeichnet und unterliegt, wie viele andere Wissenschaften, einem kontinuierlichen Erkenntnisfortschritt. Hierzu können insbesondere neue Einsichten durch die Entdeckung neuer Fossilien oder die Anwendung neuer Forschungsmethoden beitragen. Das Themenfeld der Evolution wurde zuweilen unterteilt in die Evolutionsgeschichte, in der die Veränderungen der Lebewesen im Laufe der Erdges",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Evolution",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Evolution"
+    },
+    {
+      "collected_at": "2026-11-28T03:11:54+00:00",
+      "excerpt": "Desoxyribonukleinsäure (), meist kurz als DNA (Abkürzung für englisch deoxyribonucleic acid), seltener auch als DNS abgekürzt, ist eine aus unterschiedlichen Desoxyribonukleotiden aufgebaute Nukleinsäure. Sie trägt die Erbinformation bei allen Lebewesen und den DNA-Viren. Das langkettige Polynukleotid enthält in Abschnitten von Genen besondere Abfolgen seiner Nukleotide. Diese DNA-Abschnitte dienen als Matrizen für den Aufbau entsprechender Ribonukleinsäuren (RNA), wenn genetische Information von DNA in RNA umgeschrieben wird (siehe Transkription). Die hierbei an der DNA-Vorlage aufgebauten RNA-Stränge erfüllen unterschiedliche Aufgaben; sie sind als rRNA (englisch ribosomal RNA), als tRNA (englisch transfer RNA) und als mRNA (englisch messenger RNA) an der Biosynthese von Proteinen beteiligt (siehe Proteinbiosynthese). Im Falle einer Mes",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Desoxyribonukleins%C3%A4ure",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Desoxyribonukleinsäure"
+    },
+    {
+      "collected_at": "2026-11-28T03:11:54+00:00",
+      "excerpt": "Der Komet Borrelly (offizielle Bezeichnung 19P/Borrelly) ist ein kurzperiodischer Komet, der am 22. September 2001 durch die NASA-Raumsonde Deep Space 1 erforscht wurde.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/19P/Borrelly",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "19P/Borrelly"
     }
   ],
   "failed_titles": [
@@ -1603,17 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 2,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Adult",
-        "1,2-Propandiol"
-      ],
-      "time": "2026-11-20T21:07:04+00:00"
-    },
     {
       "added": 3,
       "attempted": 5,
@@ -1993,6 +1982,20 @@
         "Planet"
       ],
       "time": "2026-11-27T21:13:24+00:00"
+    },
+    {
+      "added": 5,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Stern",
+        "Galaxie",
+        "Evolution",
+        "Desoxyribonukleinsäure",
+        "19P/Borrelly"
+      ],
+      "time": "2026-11-28T03:11:54+00:00"
     }
   ],
   "schema": 1
