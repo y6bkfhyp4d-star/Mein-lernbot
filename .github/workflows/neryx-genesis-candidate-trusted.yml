@@ -60,6 +60,11 @@ jobs:
                   raise RuntimeError("Invalid or unsupported PR file count")
               return count
 
+          def valid_path(path):
+              return (isinstance(path, str) and bool(path)
+                      and not any(ord(c) < 32 or ord(c) == 127 or c == chr(92) for c in path)
+                      and all(part not in ("", ".", "..") for part in path.split("/")))
+
           count = snapshot()
           paths = []
           seen = set()
@@ -69,15 +74,18 @@ jobs:
                   raise RuntimeError("Incomplete PR file inventory")
               for file in files:
                   path = file["filename"]
-                  if not isinstance(path, str) or not path or path in seen:
+                  if not valid_path(path) or path in seen:
                       raise RuntimeError("Invalid or duplicate PR filename")
                   seen.add(path)
                   paths.append(path)
-                  if file["status"] == "renamed" and not file.get("previous_filename"):
-                      raise RuntimeError("Missing rename origin")
+                  status = file["status"]
+                  if status not in ("added", "removed", "modified", "renamed", "copied", "changed", "unchanged"):
+                      raise RuntimeError("Unknown PR file status")
+                  if status in ("renamed", "copied") and not file.get("previous_filename"):
+                      raise RuntimeError("Missing rename or copy origin")
                   if "previous_filename" in file:
                       previous = file["previous_filename"]
-                      if not isinstance(previous, str) or not previous:
+                      if not valid_path(previous):
                           raise RuntimeError("Invalid previous filename")
                       paths.append(previous)
           if len(seen) != count or snapshot() != count:
