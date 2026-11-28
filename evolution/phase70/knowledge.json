@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "A-Staub",
-    "Einatembare Fraktion",
-    "Absolute Temperatur",
-    "Aktienkurs",
-    "Acetyl-CoA",
-    "Alexander Robertus Todd",
-    "Aktin",
-    "Bruce Alberts",
     "AEUV",
     "Abgabe (Begriffsklärung)",
     "Abwasserbehandlung",
@@ -89,49 +81,17 @@
     "Agung (Vulkan)",
     "Andesit",
     "Acer",
-    "Acorn"
+    "Acorn",
+    "Ableitung (Logik)",
+    "Abstraktion",
+    "6Bone",
+    "ARD/ZDF-Onlinestudie",
+    "A.I. – Künstliche Intelligenz",
+    "AI-Alignment",
+    "AlphaFold",
+    "AlphaGo"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-18T03:07:25+00:00",
-      "excerpt": "Die in den 1990er entdeckte (10199) Chariklo ist der größte Asteroid aus der Gruppe der Zentauren. Der Äquivalentdurchmesser beträgt etwa 248 km.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/%2810199%29_Chariklo",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "(10199) Chariklo"
-    },
-    {
-      "collected_at": "2026-11-18T09:21:47+00:00",
-      "excerpt": "(136108) Haumea () (frühere, provisorische Bezeichnung 2003 EL61) ist ein Zwergplanet der Unterklasse der Plutoiden und zählt zu den größten bisher bekannten Objekten im Kuipergürtel. Sie wurde einerseits erst als Cubewano klassifiziert, andererseits später in einer möglichen 7:12-Resonanz mit Neptun gesehen. Wegen ihrer schnellen Rotation hat sie mit einem Äquatordurchmesser von etwa 2300 km und einem Abstand der Pole von nur etwa 1100 km eine stark ellipsoide Form. Im Rahmen der Beobachtungen einer Sternbedeckung am 21. Januar 2017 wurde entdeckt, dass Haumea einen Ring hat.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/%28136108%29_Haumea",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "(136108) Haumea"
-    },
-    {
-      "collected_at": "2026-11-18T09:21:47+00:00",
-      "excerpt": "(136199) Eris (IPA: [ˈeːʁɪs] ; frühere Bezeichnung 2003 UB313) ist der massereichste und nach Pluto zweitgrößte bekannte Zwergplanet des Sonnensystems. Eris zählt zu den Plutoiden, einer Unterklasse von Zwergplaneten, die jenseits der Neptunbahn die Sonne umrunden. Eris ist (Stand 2019) das größte erfasste Objekt im Sonnensystem, welches noch nie von einer Raumsonde untersucht wurde; bekannt ist ein Mond namens Dysnomia. Der Zwergplanet ist nach Eris benannt, der griechischen Göttin der Zwietracht und des Streits. Nach der Bekanntgabe ihrer Entdeckung am 29. Juli 2005 bezeichneten die NASA und viele Medien dieses transneptunische Objekt mit einem ähnlichen Durchmesser wie Pluto zunächst als „zehnten Planeten“. Die Internationale Astronomische Union (IAU) verabschiedete allerdings am 24. August 2006 eine neue Planetendefinition, nach der E",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/%28136199%29_Eris",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "(136199) Eris"
-    },
-    {
-      "collected_at": "2026-11-18T09:21:47+00:00",
-      "excerpt": "Der 3-Hydroxypropionatzyklus, auch 3-Hydroxypropionat-Bizyklus oder 3-Hydroxypropionat/Malyl-CoA-Zyklus, ist ein Stoffwechselweg, durch den bestimmte Mikroorganismen Kohlenstoffdioxid (CO2) fixieren können (Kohlenstoffdioxid-Assimilation). Hierbei werden zwei Moleküle CO2 in Form von Bicarbonat (HCO3−) zu einem Molekül Glyoxylat unter ATP- und NADPH-Verbrauch aufgebaut. Anschließend wird das entstandene Glyoxylat durch einen Folgezyklus unter Fixierung eines weiteren Moleküls Bicarbonat zu Pyruvat umgesetzt. Der 3-Hydroxypropionatzyklus wurde erstmals 1986 im phototrophen Bakterium Chloroflexus aurantiacus entdeckt.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/3-Hydroxypropionatzyklus",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "3-Hydroxypropionatzyklus"
-    },
     {
       "collected_at": "2026-11-18T09:21:47+00:00",
       "excerpt": "ATP-Citrat-Lyase (auch: ATP-Citrat-Synthase) ist das Enzym, das im Zytosol eukaryotischer Zellen eine Acetylgruppe von Citrat auf Coenzym A überträgt, woraus unter anderem Acetyl-CoA resultiert. Dies ist der zweite Reaktionsschritt im Citrat-Shuttle, welches notwendig ist, um das bei der oxidativen Decarboxylierung produzierte Acetyl-CoA aus den Mitochondrien herauszubefördern. Diese Prozesse sind Teil des Energiestoffwechsels in allen Eukaryoten. Das erzeugte Acetyl-CoA ist Ausgangsstoff für die im Zytosol stattfindende Lipogenese. Hypocitraturie ist eine Ursache für Nierensteine und kann eine überhöhte Aktivität der ATP-Citrat-Lyase in Urin-Leukozyten als Ursache haben, wie in einer thailändischen Studie festgestellt. Nahrungsumstellung oder Kaliumcitrat-Supplementation sind mögliche Therapien. ATP-Citrat-Lyase ist ein mögliches Target",
@@ -1591,6 +1551,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Computer"
+    },
+    {
+      "collected_at": "2026-11-28T21:04:28+00:00",
+      "excerpt": "Ein Algorithmus (benannt nach dem Mathematiker und Universalgelehrten al-Chwarizmi, von arabisch: الخوارزمی al-Ḫwārizmī, deutsch ‚der Choresmier‘) ist eine eindeutige Handlungsvorschrift zur Lösung eines Problems oder einer Klasse von Problemen. Algorithmen bestehen aus endlich vielen, wohldefinierten Einzelschritten. Damit können sie zur Ausführung in ein Computerprogramm implementiert, aber auch in menschlicher Sprache formuliert werden. Bei der Problemlösung wird eine bestimmte Eingabe in eine bestimmte Ausgabe überführt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Algorithmus",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Algorithmus"
+    },
+    {
+      "collected_at": "2026-11-28T21:04:28+00:00",
+      "excerpt": "Das Internet (von englisch interconnected networks ‚zusammengeschaltete Netzwerke‘, kurz net ‚Netz‘), umgangssprachlich auch Netz, ist ein weltweiter Verbund von Rechnernetzwerken, den autonomen Systemen. Über das Internet kann sich jeder Rechner mit jedem anderen Rechner verbinden. Der Datenaustausch zwischen den über das Internet verbundenen Rechnern erfolgt über Internetdienste wie bspw. World Wide Web, E-Mail und Instant Messaging, welche sich wiederum normierter Internetprotokolle wie bspw. IP, DNS und HTTPS bedienen. Der Vorläufer des Internets war das 1969 in den USA gegründete Arpanet, das der Informationsübertragung zwischen den vielen bis dahin noch voneinander getrennten Rechnernetzwerken bspw. einzelner Universitäten diente. In den 1980er Jahren wurden im Arpanet die wichtigsten der heute noch verwendeten Protokolle eingeführt",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Internet",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Internet"
+    },
+    {
+      "collected_at": "2026-11-28T21:04:28+00:00",
+      "excerpt": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik. Es handelt sich dabei um verschiedene Klassen von Problemlösungsverfahren, die anhand von Eingaben aus ihrer Umgebung Handlungen ausführen.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/K%C3%BCnstliche_Intelligenz",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Künstliche Intelligenz"
+    },
+    {
+      "collected_at": "2026-11-28T21:04:28+00:00",
+      "excerpt": "Maschinelles Lernen (ML) entwickelt, untersucht und verwendet statistische Algorithmen, auch Lernalgorithmen genannt. Solche Algorithmen können lernen, komplizierte Probleme zu lösen, obwohl der Lösungsweg nicht einfach durch Regeln beschrieben werden kann. Dazu benötigen die Algorithmen viele Beispieldaten. Ein bekanntes Anwendungsbeispiel ist die Bilderkennung. In der mathematischen Statistik bezeichnet man dieses Fachgebiet auch als statistisches Lernen. Ein Lernalgorithmus bildet vorgegebene Beispieldaten auf ein mathematisches Modell ab. Dabei passt der Lernalgorithmus das Modell so an, dass es von den Beispieldaten auf neue Fälle verallgemeinern kann. Dieser Vorgang wird Training genannt. Nach dem Training ist der gefundene Lösungsweg im Modell gespeichert. Er wird nicht explizit programmiert. Das trainierte Modell kann für neue Dat",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Maschinelles_Lernen",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Maschinelles Lernen"
     }
   ],
   "failed_titles": [
@@ -1603,19 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Absorptionsspektrum",
-        "Agatha von Catania",
-        "1946",
-        "ASRock"
-      ],
-      "time": "2026-11-21T15:04:04+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1995,6 +1982,19 @@
         "Computer"
       ],
       "time": "2026-11-28T15:03:51+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Algorithmus",
+        "Internet",
+        "Künstliche Intelligenz",
+        "Maschinelles Lernen"
+      ],
+      "time": "2026-11-28T21:04:28+00:00"
     }
   ],
   "schema": 1
