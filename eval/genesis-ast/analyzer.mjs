@@ -99,7 +99,7 @@ function aliasOrigin(node,scope){
  for(const name of ['eval','Function'])
   if((identifier(node,name)&&!shadowed(name,scope))||globalBuiltin(node,name,scope))return name;
  for(const name of ['document','localStorage'])
-  if(staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope))
+  if(staticProperty(node,name)&&globalObject(node.object,scope))
    return name;
  return null;
 }
@@ -144,15 +144,18 @@ function aliasAt(name,scope,position){
  }
  return null;
 }
-// Explicit globalThis members bypass a shadowed document/localStorage name,
- // but only if globalThis itself resolves to the global binding.
+// Recognize unshadowed browser/global object names in browser-targeted source.
+function globalObject(node,scope){
+ return node?.type==='Identifier'&&['globalThis','window','self'].includes(node.name)&&!shadowed(node.name,scope);
+}
+// Explicit global members bypass a shadowed document/localStorage name.
 function explicitGlobal(node,object,property,scope){
  return staticProperty(node,property)&&staticProperty(node.object,object)&&
-  identifier(node.object.object,'globalThis')&&!shadowed('globalThis',scope);
+  globalObject(node.object.object,scope);
 }
-// Explicit builtin access is global only when globalThis is not locally bound.
+// Explicit builtin access requires an unshadowed global object name.
 function globalBuiltin(node,name,scope){
- return staticProperty(node,name)&&identifier(node.object,'globalThis')&&!shadowed('globalThis',scope);
+ return staticProperty(node,name)&&globalObject(node.object,scope);
 }
 // Resolve only immutable, lexically visible builtin references. A sequence
 // expression yields its final operand; no operand is evaluated by the analyzer.
@@ -177,6 +180,10 @@ function walk(node,visit,parent=null,scope=null,uncertain=false){
   'WhileStatement','DoWhileStatement','TryStatement'].includes(node.type);
  if(!postVisit)visit(node,parent,ownScope,uncertain);
  let childScope=ownScope;
+ // A named class expression binds its name within its class definition.
+ if(node.type==='ClassExpression'&&node.id){
+  childScope={functions:new Set(),bindings:new Set([node.id.name]),aliases:new Map(),parent:ownScope};
+ }
  if(isFunction(node)){
   childScope={functions:new Set(),bindings:new Set(),aliases:new Map(),parent:ownScope};
   for(const param of node.params)patternNames(param,childScope.bindings);
@@ -201,6 +208,22 @@ function syntaxError(file,source,error){
     message:'Acorn 8.15.0 lehnt den Quelltext in den getesteten Sprachmodi ab: '+String(error.message).slice(0,180),
     suggestion:'Sprachmodus, Dialekt und Syntax an dieser Position prüfen; keine Ausführung erfolgt.',confidence:'high'};
 }
+function scanSecretHeaders(file,source){
+  const findings=[];
+  let offset=0,line=1,lineStart=0;
+  for(const match of source.matchAll(/-----BEGIN (?:(?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY|PGP PRIVATE KEY BLOCK)-----/g)){
+    while(offset<match.index){
+      const ch=source.charCodeAt(offset++);
+      if(ch===13){line++;if(source.charCodeAt(offset)===10)offset++;lineStart=offset;}
+      else if(ch===10||ch===0x2028||ch===0x2029){line++;lineStart=offset;}
+    }
+    const column=match.index-lineStart+1;
+    findings.push({rule:'SEC001',severity:'critical',file,line,column,
+      message:'Möglicher privater Schlüssel im Quelltext',
+      suggestion:'Schlüssel und Zugriffsrechte prüfen; kompromittierte Schlüssel rotieren.',confidence:'medium'});
+  }
+  return findings;
+}
 export function analyzeAST(file,source){
   if(typeof file!=='string'||typeof source!=='string')throw new TypeError('Datei und Quelltext müssen Strings sein');
   // .js has no authoritative module/dialect metadata in this file-only API.
@@ -216,8 +239,8 @@ export function analyzeAST(file,source){
       lastError=error;
     }
   }
-  if(!tree)return {file,parser:'acorn-ast',findings:[syntaxError(file,source,lastError)],imports:[],functions:[],calls:[],parsed:false};
-  const findings=[],imports=[],functions=[],calls=[];
+  if(!tree)return {file,parser:'acorn-ast',findings:[...scanSecretHeaders(file,source),syntaxError(file,source,lastError)],imports:[],functions:[],calls:[],parsed:false};
+  const findings=scanSecretHeaders(file,source),imports=[],functions=[],calls=[];
   // C12: explicit per-origin states. Only a proven straight-line replacement
   // suppresses a finding; unknown flow keeps the potentially original method.
   const states=new Map(['document','localStorage'].map(name=>
@@ -419,6 +442,21 @@ export function analyzeAST(file,source){
         ?node.argument
         :node.type==='UnaryExpression'&&node.operator==='delete'&&
           node.argument?.type==='MemberExpression'?node.argument:null;
+    // Rebinding a global object can invalidate the identity assumptions of
+    // existing aliases. Do not transfer a proven replacement across objects.
+    // Unknown flow retains potential findings rather than suppressing them.
+    const rebinding=node.type==='AssignmentExpression'?node.left:
+      node.type==='UpdateExpression'||(node.type==='UnaryExpression'&&node.operator==='delete')?node.argument:null;
+    if(!uncertain&&rebinding){
+      if(rebinding.type==='Identifier'&&!shadowed(rebinding.name,scope)){
+        if(states.has(rebinding.name))invalidate(rebinding.name);
+        if(['window','self','globalThis'].includes(rebinding.name))invalidateAll();
+      }else if(rebinding.type==='MemberExpression'&&globalObject(rebinding.object,scope)){
+        if(rebinding.computed&&rebinding.property?.type!=='Literal')invalidateAll();
+        else for(const name of states.keys())if(staticProperty(rebinding,name))invalidate(name);
+        if(['window','self','globalThis'].some(name=>staticProperty(rebinding,name)))invalidateAll();
+      }
+    }
     // C20: an unknown computed property can designate the monitored method.
     // Only exact, freshly created replacements of a known property are proven.
     if(!uncertain&&mutation){
@@ -492,13 +530,6 @@ export function analyzeAST(file,source){
       report('AST003','medium',node,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
     // Reference scans the actual original text, including strings, below.
   });
-  for(const match of source.matchAll(/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g)){
-    const pre=source.slice(0,match.index),line=pre.split('\n').length;
-    const column=match.index-pre.lastIndexOf('\n');
-    findings.push({rule:'SEC001',severity:'critical',file,line,column,
-      message:'Möglicher privater Schlüssel im Quelltext',
-      suggestion:'Schlüssel und Zugriffsrechte prüfen; kompromittierte Schlüssel rotieren.',confidence:'medium'});
-  }
   findings.sort((a,b)=>ranks[a.severity]-ranks[b.severity]||a.line-b.line||a.column-b.column||a.rule.localeCompare(b.rule));
   return {file,parser:'acorn-ast',parsed:true,findings,imports,functions,calls};
 }
