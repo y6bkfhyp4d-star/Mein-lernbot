@@ -1,13 +1,5 @@
 {
   "discovered_queue": [
-    "Asteroid",
-    "Asteroidengürtel",
-    "1. März",
-    "10. März",
-    "Apollo-Typ",
-    "Astronomische Einheit",
-    "19. Mai",
-    "1918",
     "A-Staub",
     "Einatembare Fraktion",
     "Absolute Temperatur",
@@ -89,49 +81,17 @@
     "2. Hauptsatz der Thermodynamik",
     "Abwärme",
     "Aharonov-Bohm-Effekt",
-    "Altermagnetismus"
+    "Altermagnetismus",
+    "Afrika",
+    "Amazonasbecken",
+    "-logie",
+    "Abraham Gottlob Werner",
+    "Agung (Vulkan)",
+    "Andesit",
+    "Acer",
+    "Acorn"
   ],
   "entries": [
-    {
-      "collected_at": "2026-11-17T21:09:05+00:00",
-      "excerpt": "Das Internet (von englisch interconnected networks ‚zusammengeschaltete Netzwerke‘, kurz net ‚Netz‘), umgangssprachlich auch Netz, ist ein weltweiter Verbund von Rechnernetzwerken, den autonomen Systemen. Über das Internet kann sich jeder Rechner mit jedem anderen Rechner verbinden. Der Datenaustausch zwischen den über das Internet verbundenen Rechnern erfolgt über Internetdienste wie bspw. World Wide Web, E-Mail und Instant Messaging, welche sich wiederum normierter Internetprotokolle wie bspw. IP, DNS und HTTPS bedienen. Der Vorläufer des Internets war das 1969 in den USA gegründete Arpanet, das der Informationsübertragung zwischen den vielen bis dahin noch voneinander getrennten Rechnernetzwerken bspw. einzelner Universitäten diente. In den 1980er Jahren wurden im Arpanet die wichtigsten der heute noch verwendeten Protokolle eingeführt",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Internet",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Internet"
-    },
-    {
-      "collected_at": "2026-11-17T21:09:05+00:00",
-      "excerpt": "Künstliche Intelligenz (kurz KI, englisch artificial intelligence, kurz AI) ist ein Forschungs- und Anwendungsgebiet der Informatik. Es handelt sich dabei um verschiedene Klassen von Problemlösungsverfahren, die anhand von Eingaben aus ihrer Umgebung Handlungen ausführen.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/K%C3%BCnstliche_Intelligenz",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Künstliche Intelligenz"
-    },
-    {
-      "collected_at": "2026-11-18T03:07:25+00:00",
-      "excerpt": "Maschinelles Lernen (ML) entwickelt, untersucht und verwendet statistische Algorithmen, auch Lernalgorithmen genannt. Solche Algorithmen können lernen, komplizierte Probleme zu lösen, obwohl der Lösungsweg nicht einfach durch Regeln beschrieben werden kann. Dazu benötigen die Algorithmen viele Beispieldaten. Ein bekanntes Anwendungsbeispiel ist die Bilderkennung. In der mathematischen Statistik bezeichnet man dieses Fachgebiet auch als statistisches Lernen. Ein Lernalgorithmus bildet vorgegebene Beispieldaten auf ein mathematisches Modell ab. Dabei passt der Lernalgorithmus das Modell so an, dass es von den Beispieldaten auf neue Fälle verallgemeinern kann. Dieser Vorgang wird Training genannt. Nach dem Training ist der gefundene Lösungsweg im Modell gespeichert. Er wird nicht explizit programmiert. Das trainierte Modell kann für neue Dat",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/Maschinelles_Lernen",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "Maschinelles Lernen"
-    },
-    {
-      "collected_at": "2026-11-18T03:07:25+00:00",
-      "excerpt": "Ceres (IPA: [ˈtseːrεs] ) oder – in der Nomenklatur für Asteroiden – (1) Ceres ist mit einem mittleren Äquatordurchmesser von 964 km das größte Objekt im Asteroidengürtel und der kleinste von der Internationalen Astronomischen Union als Zwergplanet klassifizierte Himmelskörper. Ceres ist nach der römischen Göttin des Ackerbaus benannt; ihr astronomisches Symbol ist daher eine stilisierte Sichel: . Sie wurde am 1. Januar 1801 von Giuseppe Piazzi an der Sternwarte Palermo als erster Kleinplanet entdeckt. Im ersten halben Jahrhundert nach ihrer Entdeckung wurde sie als Planet, später als Asteroid eingestuft; seit 2006 zählt sie zur Gruppe der Zwergplaneten. Ceres ist der erste Zwergplanet, der durch eine Raumsonde untersucht wurde. Die mittlerweile inaktive Dawn umkreist den Zwergplaneten seit März 2015 als ein künstlicher Satellit.",
-      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
-      "source": "https://de.wikipedia.org/wiki/%281%29_Ceres",
-      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
-      "source_name": "Deutschsprachige Wikipedia",
-      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
-      "title": "(1) Ceres"
-    },
     {
       "collected_at": "2026-11-18T03:07:25+00:00",
       "excerpt": "Die in den 1990er entdeckte (10199) Chariklo ist der größte Asteroid aus der Gruppe der Zentauren. Der Äquivalentdurchmesser beträgt etwa 248 km.",
@@ -1591,6 +1551,46 @@
       "source_name": "Deutschsprachige Wikipedia",
       "status": "eine_quelle_nicht_unabhaengig_verifiziert",
       "title": "Magnetismus"
+    },
+    {
+      "collected_at": "2026-11-28T15:03:51+00:00",
+      "excerpt": "Als Regenwald bezeichnet man Wälder, die durch ganzjährig fallende, große Niederschlagsmengen gekennzeichnet sind. Wegen der völlig unterschiedlichen Klimabedingungen unterscheidet man nach den Klimazonen verschiedene Regenwaldtypen: Tropischer Regenwald (der in wenigen Regionen in subtropischen Regenwald übergeht) – mit meist mehr als 1800 mm Jahresniederschlag (siehe auch Tropische Regenwaldklimate) Gemäßigter Regenwald – mit meist über 1000 mm Jahresniederschlag, auch als Schnee (siehe auch Gemäßigte Regenwaldklimate). Im weiteren Sinne werden mitunter auch die saisonalen Feuchtwälder der Tropen und Subtropen als Regenwälder behandelt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Regenwald",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Regenwald"
+    },
+    {
+      "collected_at": "2026-11-28T15:03:51+00:00",
+      "excerpt": "Die Geologie (von altgriechisch γῆ gē „Erde“ und -logie) ist die Wissenschaft von Aufbau, Zusammensetzung und Struktur der Erdkruste, der Eigenschaften ihrer Gesteine und ihrer Entwicklungsgeschichte sowie der Prozesse, welche die Erdkruste formten und bis heute formen. Der Begriff wird auch für den geologischen Aufbau verwendet, etwa Die Geologie der Alpen. Die Bezeichnung Geologie im heutigen Sinn findet sich erstmals 1778 bei Jean-André Deluc (1727–1817). Als feststehenden Begriff führte sie 1779 Horace-Bénédict de Saussure (1740–1799) ein. Vor allem in Deutschland war anfangs alternativ die Bezeichnung Geognosie gebräuchlich.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Geologie",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Geologie"
+    },
+    {
+      "collected_at": "2026-11-28T15:03:51+00:00",
+      "excerpt": "Ein Vulkan ist eine geologische Struktur, die entsteht, wenn Magma (Gesteinsschmelze) bis an die Oberfläche eines Planeten (z. B. der Erde) aufsteigt. Alle Begleiterscheinungen, die mit dem Aufstieg und Austritt der glutflüssigen Gesteinsschmelze verbunden sind, bezeichnet man als Vulkanismus. Bei einem Vulkanausbruch werden nicht nur glutflüssige, sondern auch feste und gasförmige Stoffe freigesetzt. Im Fall der Erde schmelzen Gesteine ab 100 km Tiefe bei Temperaturen zwischen 1000 und 1300 °C. Das flüssige Magma sammelt sich in großen Magmaherden in 2 bis 50 km Tiefe. Wenn der Druck zu groß wird, steigt das Magma über Spalten und Klüfte der Lithosphäre auf. Magma, das an die Erdoberfläche gelangt, wird als Lava bezeichnet. Die meisten Vulkane haben annähernd die Form eines Kegels, dessen Hangneigung von der Viskosität der Lava abhängt.",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Vulkan",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Vulkan"
+    },
+    {
+      "collected_at": "2026-11-28T15:03:51+00:00",
+      "excerpt": "Ein Computer (englisch; deutsche Aussprache [kɔmˈpjuːtɐ]) oder Rechner ist ein Gerät, das mittels programmierbarer Rechenvorschriften Daten verarbeitet. Dementsprechend werden vereinzelt auch die abstrahierenden beziehungsweise veralteten, synonym gebrauchten Begriffe Rechenanlage, Datenverarbeitungsanlage oder elektronische Datenverarbeitungsanlage sowie Elektronengehirn und Elektronenrechenmaschine verwendet. Charles Babbage und Ada Lovelace (geborene Byron) gelten durch die von Babbage 1837 entworfene Rechenmaschine Analytical Engine als Vordenker des modernen universell programmierbaren Computers. Konrad Zuse (Z3, 1941 und Z4, 1945) in Berlin, John Presper Eckert und John William Mauchly (ENIAC, 1946) bauten die ersten funktionstüchtigen Geräte dieser Art. Bei der Klassifizierung eines Geräts als universell programmierbarer Computer s",
+      "method": "Quellenauszug, keine eigenständige Faktenprüfung",
+      "source": "https://de.wikipedia.org/wiki/Computer",
+      "source_license": "CC BY-SA (Lizenzbedingungen der Quelle beachten)",
+      "source_name": "Deutschsprachige Wikipedia",
+      "status": "eine_quelle_nicht_unabhaengig_verifiziert",
+      "title": "Computer"
     }
   ],
   "failed_titles": [
@@ -1603,19 +1603,6 @@
     "Abkalben"
   ],
   "runs": [
-    {
-      "added": 4,
-      "attempted": 5,
-      "error_samples": [],
-      "errors": 0,
-      "new_titles": [
-        "Zweiter Hauptsatz der Thermodynamik",
-        "Thermodynamische Temperatur",
-        "Ablenkspule",
-        "Abschirmung (Elektrotechnik)"
-      ],
-      "time": "2026-11-21T09:03:40+00:00"
-    },
     {
       "added": 4,
       "attempted": 5,
@@ -1995,6 +1982,19 @@
         "Magnetismus"
       ],
       "time": "2026-11-28T09:08:50+00:00"
+    },
+    {
+      "added": 4,
+      "attempted": 5,
+      "error_samples": [],
+      "errors": 0,
+      "new_titles": [
+        "Regenwald",
+        "Geologie",
+        "Vulkan",
+        "Computer"
+      ],
+      "time": "2026-11-28T15:03:51+00:00"
     }
   ],
   "schema": 1
