@@ -9,11 +9,35 @@ const ranks={critical:0,high:1,medium:2,low:3,info:4};
 const maxBytes=2_000_000;
 const extensions=new Set(['.js','.mjs','.cjs']);
 
+// A substitution-free template has a statically known cooked string value.
+function literalTemplate(node){
+  return node?.type==='TemplateLiteral'&&node.expressions.length===0&&
+    node.quasis.length===1&&typeof node.quasis[0].value.cooked==='string'
+    ?node.quasis[0].value.cooked:null;
+}
 function staticProperty(node,property){
   return node?.type==='MemberExpression' && (
     (!node.computed && node.property?.type==='Identifier' && node.property.name===property) ||
-    (node.computed && node.property?.type==='Literal' && node.property.value===property)
+    (node.computed && (node.property?.type==='Literal' && node.property.value===property || literalTemplate(node.property)===property))
   );
+}
+// Follow assignment targets only, not computed keys, defaults or receiver reads.
+function* assignmentTargets(root){
+  const pending=[root];
+  while(pending.length){
+    const node=pending.pop();
+    if(!node)continue;
+    switch(node.type){
+      case 'ArrayPattern': for(let i=node.elements.length-1;i>=0;i--)pending.push(node.elements[i]); break;
+      case 'ObjectPattern':
+        for(let i=node.properties.length-1;i>=0;i--){
+          const p=node.properties[i]; pending.push(p.type==='RestElement'?p.argument:p.value);
+        } break;
+      case 'AssignmentPattern': pending.push(node.left); break;
+      case 'RestElement': pending.push(node.argument); break;
+      case 'MemberExpression': case 'Identifier': yield node; break;
+    }
+  }
 }
 function member(node,object,property){
   return staticProperty(node,property) &&
@@ -107,6 +131,10 @@ function aliasOrigin(node,scope){
 function constantString(node,scope,position,depth=0){
  if(!node||depth>8)return null;
  if(node.type==='Literal'&&typeof node.value==='string')return node.value.length<=256?node.value:null;
+ if(node.type==='TemplateLiteral'){
+  const value=literalTemplate(node);
+  return value!==null&&value.length<=256?value:null;
+ }
  if(node.type==='Identifier'){
   const alias=aliasAt(node.name,scope,position);
   return alias?.origin==='constant-string'?alias.value:null;
@@ -122,12 +150,28 @@ function collectAliases(statements,scope){
  for(const stmt of statements||[]){
   if(stmt?.type!=='VariableDeclaration'||stmt.kind!=='const')continue;
   for(const decl of stmt.declarations){
+   // Simple immutable captures from an unshadowed global object.
+   // No defaults, rest, nested patterns or computed keys are inferred.
+   if(decl.id?.type==='ObjectPattern'&&globalObject(decl.init,scope)){
+    for(const prop of decl.id.properties){
+     if(prop.type!=='Property'||prop.computed||prop.kind!=='init'||prop.value?.type!=='Identifier')continue;
+     const name=prop.key?.type==='Identifier'?prop.key.name:prop.key?.value;
+     if(['eval','Function','document','localStorage'].includes(name))
+      scope.aliases.set(prop.value.name,{origin:name,depth:0,after:decl.end});
+    }
+    continue;
+   }
    if(decl.id?.type!=='Identifier')continue;
    // The initializer is evaluated before the binding can be used.
    // At most four additional immutable hops; unknown or mutable predecessors never qualify.
    const value=constantString(decl.init,scope,decl.start);
    if(value!==null){scope.aliases.set(decl.id.name,{origin:'constant-string',value,after:decl.end});continue;}
-   const direct=aliasOrigin(decl.init,scope);
+   // Null fallback is a possible receiver, not proof of definite identity.
+   const nullable=decl.init?.type==='LogicalExpression'&&decl.init.operator==='??'&&
+    decl.init.right?.type==='Literal'&&decl.init.right.value===null&&
+    ['document','localStorage'].includes(aliasOrigin(decl.init.left,scope))
+      ?aliasOrigin(decl.init.left,scope)+'-nullable':null;
+   const direct=aliasOrigin(decl.init,scope)||nullable;
    const prior=decl.init?.type==='Identifier'?aliasAt(decl.init.name,scope,decl.start):null;
    const origin=direct||prior?.origin;
    const depth=direct?0:(prior?.depth??0)+1;
@@ -144,9 +188,11 @@ function aliasAt(name,scope,position){
  }
  return null;
 }
-// Recognize unshadowed browser/global object names in browser-targeted source.
-function globalObject(node,scope){
- return node?.type==='Identifier'&&['globalThis','window','self'].includes(node.name)&&!shadowed(node.name,scope);
+// Recognize unshadowed browser and Node.js global object names.
+function globalObject(node,scope,depth=0){
+ if(depth>4)return false;
+ if(node?.type==='Identifier')return ['globalThis','window','self','global'].includes(node.name)&&!shadowed(node.name,scope);
+ return node?.type==='MemberExpression'&&['globalThis','window','self','global'].some(name=>staticProperty(node,name))&&globalObject(node.object,scope,depth+1);
 }
 // Explicit global members bypass a shadowed document/localStorage name.
 function explicitGlobal(node,object,property,scope){
@@ -164,6 +210,45 @@ function builtinReference(node,name,scope,position){
  return (identifier(node,name)&&!shadowed(name,scope))||
   globalBuiltin(node,name,scope)||
   (node?.type==='Identifier'&&aliasAt(node.name,scope,position)?.origin===name);
+}
+// Narrow straight-line evidence only; never suppress a possible builtin call.
+// Stop at the first unsupported statement or effect. An assignment can fail
+// at runtime (e.g. a non-writable global), so this is confidence evidence only.
+function replacementEvidence(tree){
+ const marked=new WeakSet(), replaced=new Set(), captures=new Map();
+ const names=['eval','Function'];
+ const scope=createScope(tree,null);
+ const direct=(n,name)=>globalBuiltin(n,name,scope)||
+   (identifier(n,name)&&!shadowed(name,scope));
+ const known=(n,name)=>n?.type==='Identifier'&&captures.has(n.name)
+   ?captures.get(n.name)===name:direct(n,name)&&replaced.has(name);
+ for(const stmt of tree.body){
+  if(stmt.type==='EmptyStatement')continue;
+  if(stmt.type==='VariableDeclaration'&&stmt.kind==='const'&&stmt.declarations.length===1){
+   const d=stmt.declarations[0];
+   if(d.id.type==='Identifier'&&names.some(n=>direct(d.init,n)||d.init?.type==='Identifier'&&captures.has(d.init.name))){
+    captures.set(d.id.name,names.find(n=>known(d.init,n))||null);continue;
+   }
+   if(d.id.type==='ObjectPattern'&&identifier(d.init,'globalThis')&&!shadowed('globalThis',scope)&&d.id.properties.length===1){
+    const p=d.id.properties[0],name=p.key?.name;
+    if(p.type==='Property'&&!p.computed&&p.value?.type==='Identifier'&&names.includes(name)){
+     captures.set(p.value.name,replaced.has(name)?name:null);continue;
+    }
+   }
+   break;
+  }
+  const e=stmt.type==='ExpressionStatement'?stmt.expression:null;
+  if(e?.type==='AssignmentExpression'&&e.operator==='='&&
+    ['FunctionExpression','ArrowFunctionExpression'].includes(e.right?.type)&&
+    identifier(e.left?.object,'globalThis')&&!shadowed('globalThis',scope)){
+   const name=names.find(n=>staticProperty(e.left,n));
+   if(name){replaced.add(name);continue;}
+  }
+  if(['CallExpression','NewExpression'].includes(e?.type)&&
+     names.some(n=>known(e.callee,n)))marked.add(e);
+  break;
+ }
+ return marked;
 }
 function walk(node,visit,parent=null,scope=null,uncertain=false){
  if(!node||typeof node!=='object')return;
@@ -241,15 +326,23 @@ export function analyzeAST(file,source){
   }
   if(!tree)return {file,parser:'acorn-ast',findings:[...scanSecretHeaders(file,source),syntaxError(file,source,lastError)],imports:[],functions:[],calls:[],parsed:false};
   const findings=scanSecretHeaders(file,source),imports=[],functions=[],calls=[];
+  const replacementHints=replacementEvidence(tree);
+  const builtinConfidence=node=>replacementHints.has(node)?'medium':'high';
   // C12: explicit per-origin states. Only a proven straight-line replacement
   // suppresses a finding; unknown flow keeps the potentially original method.
   const states=new Map(['document','localStorage'].map(name=>
     [name,{kind:'original',at:0,possibleAt:Infinity}]));
   const state=origin=>states.get(origin);
+  // A global rebinding separates old captures from future reads. Until
+  // identity is proven again, never transfer a replacement across captures.
+  const identityUncertain=new Set();
+  const loseIdentity=origin=>{identityUncertain.add(origin);invalidate(origin);};
+  const loseAllIdentity=()=>{for(const name of states.keys())loseIdentity(name);};
   // C14: each definitive state transition starts a fresh confidence epoch.
   // A prior maybe-write cannot keep lowering confidence after a full replacement
   // or an unknown call has invalidated that earlier branch history.
   const replace=(origin,at)=>{
+    if(identityUncertain.has(origin))return;
     const s=state(origin);s.kind='replaced';s.at=at;s.possibleAt=Infinity;
   };
   const invalidate=origin=>{
@@ -447,14 +540,14 @@ export function analyzeAST(file,source){
     // Unknown flow retains potential findings rather than suppressing them.
     const rebinding=node.type==='AssignmentExpression'?node.left:
       node.type==='UpdateExpression'||(node.type==='UnaryExpression'&&node.operator==='delete')?node.argument:null;
-    if(!uncertain&&rebinding){
+    if(rebinding){
       if(rebinding.type==='Identifier'&&!shadowed(rebinding.name,scope)){
-        if(states.has(rebinding.name))invalidate(rebinding.name);
-        if(['window','self','globalThis'].includes(rebinding.name))invalidateAll();
+        if(states.has(rebinding.name))loseIdentity(rebinding.name);
+        if(['window','self','globalThis','global'].includes(rebinding.name))loseAllIdentity();
       }else if(rebinding.type==='MemberExpression'&&globalObject(rebinding.object,scope)){
-        if(rebinding.computed&&rebinding.property?.type!=='Literal')invalidateAll();
-        else for(const name of states.keys())if(staticProperty(rebinding,name))invalidate(name);
-        if(['window','self','globalThis'].some(name=>staticProperty(rebinding,name)))invalidateAll();
+        if(rebinding.computed&&rebinding.property?.type!=='Literal'&&literalTemplate(rebinding.property)===null)loseAllIdentity();
+        else for(const name of states.keys())if(staticProperty(rebinding,name))loseIdentity(name);
+        if(['window','self','globalThis','global'].some(name=>staticProperty(rebinding,name)))loseAllIdentity();
       }
     }
     // C20: an unknown computed property can designate the monitored method.
@@ -465,7 +558,7 @@ export function analyzeAST(file,source){
       const object=mutation.object;
       const origin=aliasOrigin(object,scope)||
         (object?.type==='Identifier'?aliasAt(object.name,scope,node.start)?.origin:null);
-      const unknownProperty=mutation.computed&&mutation.property?.type!=='Literal';
+      const unknownProperty=mutation.computed&&mutation.property?.type!=='Literal'&&literalTemplate(mutation.property)===null;
       const exactFresh=node.type==='AssignmentExpression'&&
         provenReplacement(node)&&!unknownProperty;
       if(!exactFresh&&origin==='document'&&
@@ -499,22 +592,24 @@ export function analyzeAST(file,source){
            eagerEffects(node.callee.property))))invalidateAll();
       const name=describeCall(node.callee);
       if(name)calls.push({name,...loc(node)});
-      if(builtinReference(node.callee,'Function',scope,node.start))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
-      if(builtinReference(node.callee,'eval',scope,node.start))report('AST001','high',node,'Möglicher eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.');
+      if(builtinReference(node.callee,'Function',scope,node.start))report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.',builtinConfidence(node));
+      if(builtinReference(node.callee,'eval',scope,node.start))report('AST001','high',node,'Möglicher eval()-Aufruf','Unvertrauenswürdige Eingaben nicht als JavaScript ausführen.',builtinConfidence(node));
       if((bound?.origin==='localStorage'&&bound.originalPossible)||
          (member(target,'localStorage','clear')&&!shadowed('localStorage',scope))||
         explicitGlobal(target,'localStorage','clear',scope)||
         (staticProperty(target,'clear')&&target.object?.type==='Identifier'&&
-         aliasAt(target.object.name,scope,node.start)?.origin==='localStorage'&&
-         stillKnown('localStorage',node.start,uncertain)))
+         (aliasAt(target.object.name,scope,node.start)?.origin==='localStorage'&&
+         stillKnown('localStorage',node.start,uncertain)||
+         aliasAt(target.object.name,scope,node.start)?.origin==='localStorage-nullable')))
         report('AST004','high',node,'Löscht gesamten localStorage','Nur gezielte eigene Schlüssel entfernen.',
           confidenceFor('localStorage',node.start));
       if((bound?.origin==='document'&&bound.originalPossible)||
          (member(target,'document','write')&&!shadowed('document',scope))||
         explicitGlobal(target,'document','write',scope)||
         (staticProperty(target,'write')&&target.object?.type==='Identifier'&&
-         aliasAt(target.object.name,scope,node.start)?.origin==='document'&&
-         stillKnown('document',node.start,uncertain)))
+         (aliasAt(target.object.name,scope,node.start)?.origin==='document'&&
+         stillKnown('document',node.start,uncertain)||
+         aliasAt(target.object.name,scope,node.start)?.origin==='document-nullable')))
         report('AST005','medium',node,'document.write()-Aufruf','Sichere DOM-Methoden einsetzen.',
           confidenceFor('document',node.start));
     }
@@ -524,10 +619,17 @@ export function analyzeAST(file,source){
       invalidateAll();
     }
     if(node.type==='NewExpression'&&(builtinReference(node.callee,'Function',scope,node.start)))
-      report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.');
-    if(node.type==='AssignmentExpression'&&(staticProperty(node.left,'innerHTML')||
-      (node.left?.type==='MemberExpression'&&node.left.computed&&constantString(node.left.property,scope,node.start)==='innerHTML')))
-      report('AST003','medium',node,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
+      report('AST002','high',node,'Dynamische Function-Kompilierung','Statischen Parser statt dynamischer Kompilierung verwenden.',builtinConfidence(node));
+    if(node.type==='AssignmentExpression'){
+      for(const target of assignmentTargets(node.left)){
+        if(staticProperty(target,'innerHTML')||
+          (target.type==='MemberExpression'&&target.computed&&constantString(target.property,scope,target.start)==='innerHTML'))
+          report('AST003','medium',target,'Zuweisung an innerHTML','Fremde Inhalte mit textContent darstellen oder sicher sanitizen.');
+      }
+      // A pattern can overwrite a monitored method or global binding. Never
+      // retain a proven replacement across an unmodelled pattern write.
+      if(!uncertain&&['ArrayPattern','ObjectPattern'].includes(node.left.type))invalidateAll();
+    }
     // Reference scans the actual original text, including strings, below.
   });
   findings.sort((a,b)=>ranks[a.severity]-ranks[b.severity]||a.line-b.line||a.column-b.column||a.rule.localeCompare(b.rule));

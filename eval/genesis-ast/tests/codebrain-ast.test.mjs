@@ -298,3 +298,164 @@ test('named class expression scope',()=>{
   assert.deepEqual(rules(`const C=class ${g}{}; ${g}.${expr};`),[rule]);
  }
 });
+
+// NERYX follow-up regression suites (known synthetic cases, not independent holdout).
+
+test('NERYX follow-up: test-destructuring',()=>{
+let count=0;
+function check(s,w){assert.deepEqual([...new Set(analyzeAST('fixture.cjs',s).findings.map(f=>f.rule))].sort(),w,s);count++;}
+for(const g of ['globalThis','window','self']) for(const [name,call,rule] of [['eval','a(input)','AST001'],['Function','new a(input)','AST002'],['localStorage','a.clear()','AST004'],['document','a.write(input)','AST005']]){
+ check(`const {${name}:a}=${g}; ${call};`,[rule]);
+ check(`function f(${g}){const {${name}:a}=${g}; ${call};}`,[]);
+ check(`const {${name}:a}=other; ${call};`,[]);
+ check(`let {${name}:a}=${g}; ${call};`,[]);
+ check(`const {${name}:a=other}=${g}; ${call};`,[]);
+ check(`const {["${name}"]:a}=${g}; ${call};`,[]);
+ check(`const {${name}:a}=${g}; function f(a){${call};}`,[]);
+ check(`${call}; const {${name}:a}=${g};`,[]);
+}
+});
+
+test('NERYX follow-up: test-global',()=>{
+let count=0;
+function check(s,w,file){const r=analyzeAST(file,s);assert.equal(r.parsed,true,s);assert.deepEqual([...new Set(r.findings.map(f=>f.rule))].sort(),w,s);count++;}
+for(const file of ['fixture.cjs','fixture.mjs','fixture.js'])for(const [name,tail,aliasCall,rule] of [['eval','(input)','a(input)','AST001'],['Function','(input)','new a(input)','AST002'],['localStorage','.clear()','a.clear()','AST004'],['document','.write(input)','a.write(input)','AST005']]){
+check(`global.${name}${tail};`,[rule],file);
+check(`global[\`${name}\`]${tail};`,[rule],file);
+check(`const a=global.${name}; ${aliasCall};`,[rule],file);
+check(`const {${name}:a}=global; ${aliasCall};`,[rule],file);
+check(`function f(global){global.${name}${tail};}`,[],file);
+check(`const global={}; global.${name}${tail};`,[],file);
+check(`function f(global){const {${name}:a}=global; ${aliasCall};}`,[],file);
+check(`function f(){global.${name}${tail}; const global={};}`,[],file);
+}
+for(const file of ['fixture.cjs','fixture.mjs','fixture.js']){
+check('document.write=()=>{}; global=other; document.write(input);',['AST005'],file);
+check('localStorage.clear=()=>{}; globalThis.global=other; localStorage.clear();',['AST004'],file);
+}
+});
+
+test('NERYX follow-up: test-identity',()=>{
+const rows=[];
+for(const [obj,method,rule] of [['localStorage','clear','AST004'],['document','write','AST005']]){
+ for(const global of ['globalThis','window','self','global']){
+ for(const rebind of [`${global}.${obj}=other;`,`if(flag) ${global}.${obj}=other;`,`function swap(){${global}.${obj}=other;}`]){
+ const source=`const s=${obj}; ${rebind} s.${method}=()=>{}; const t=${obj}; t.${method}(input);`;
+ const run=f=>f('fixture.cjs',source).findings.some(x=>x.rule===rule);
+ const actual=run(analyzeAST);assert.equal(actual,true,source);rows.push({source,rule,actual});
+ }
+ }
+ const source=`const s=${obj}; s.${method}=()=>{}; s.${method}(input);`;
+ assert.equal(analyzeAST('fixture.cjs',source).findings.some(x=>x.rule===rule),false);rows.push({source,rule,actual:false});
+}
+});
+
+test('NERYX follow-up: test-origin',()=>{
+let count=0;
+function check(source,expected,file){const r=analyzeAST(file,source);assert.equal(r.parsed,true,source);assert.deepEqual([...new Set(r.findings.map(f=>f.rule))].sort(),expected,source);count++;}
+for(const file of ['fixture.js','fixture.cjs','fixture.mjs']){
+ for(const [name,method,rule] of [['localStorage','clear','AST004'],['document','write','AST005']]){
+  for(const root of ['window.self','globalThis.window','self.globalThis','window[`self`]']){
+   check(`${root}.${name}.${method}();`,[rule],file);
+   check(`const x=${root}.${name}; x.${method}();`,[rule],file);
+   check(`function f(${root.split(/[.\[]/)[0]}){${root}.${name}.${method}();}`,[],file);
+  }
+  check(`const x=globalThis.${name} ?? null; x?.${method}();`,[rule],file);
+  check(`const x=globalThis.${name} ?? null; const y=x; y?.${method}();`,[rule],file);
+  check(`function f(globalThis){const x=globalThis.${name} ?? null; x?.${method}();}`,[],file);
+  check(`const x=other.${name} ?? null; x?.${method}();`,[],file);
+  check(`const x=globalThis.${name} ?? null; function f(x){x?.${method}();}`,[],file);
+  check(`other.self.${name}.${method}();`,[],file);
+  check(`window[unknown].${name}.${method}();`,[],file);
+  check(`window.other.${name}.${method}();`,[],file);
+  check(`const x=globalThis.${name} ?? null; void x.${method};`,[],file);
+  check(`const x=globalThis.${name} ?? null; x.other();`,[],file);
+ }
+}
+});
+
+test('NERYX follow-up: test-replacement',()=>{
+const rows=[];
+for(const file of ['fixture.js','fixture.cjs','fixture.mjs'])for(const [name,rule,call] of [['eval','AST001',x=>`${x}(input)`],['Function','AST002',x=>`new ${x}(input)`]]){
+ const assignment=`globalThis.${name}=function(x){return x};`;
+ for(const [source,confidence] of [
+ [assignment+call(name),'medium'],[assignment+call(`globalThis.${name}`),'medium'],[assignment+`const a=globalThis.${name};`+call('a'),'medium'],[assignment+`const {${name}:a}=globalThis;`+call('a'),'medium'],[`const a=globalThis.${name};`+assignment+call('a'),'high'],[`if(flag){${assignment}}`+call(name),'high'],[assignment+'unknown();'+call(name),'high'],[assignment+`globalThis.${name}=other;`+call(name),'high'],[`function f(){${assignment}}`+call(name),'high'],[assignment+`const a=globalThis.${name};const b=a;`+call('b'),'medium']]){
+  const r=analyzeAST(file,source);assert.equal(r.parsed,true,source);const found=r.findings.filter(x=>x.rule===rule);assert.equal(found.length,1,source);assert.equal(found[0].confidence,confidence,source);rows.push({file,source,rule,confidence});
+ }
+}
+});
+
+test('NERYX follow-up: test-targets',()=>{
+let count=0;
+const positive=[
+'[el.innerHTML]=xs;',
+'({html:el.innerHTML}=data);',
+'({a:[,{b:el.innerHTML}]}=data);',
+'[el.innerHTML=defaultValue]=xs;',
+'[...el.innerHTML]=xs;',
+'({...el.innerHTML}=data);',
+'([el["innerHTML"]]=xs);',
+'[el[`innerHTML`]]=xs;',
+'const k="innerHTML"; [el[k]]=xs;',
+'({a:el["inner"+"HTML"]}=data);',
+'[el.innerHTML,other.innerHTML]=xs;',
+'function f(){[el.innerHTML]=xs;}',
+'el.innerHTML += x;',
+'({[key]: el.innerHTML}=data);',
+'[el.innerHTML = other.innerHTML]=xs;',
+];
+const negative=[
+'const [x]=el.innerHTML;',
+'const {innerHTML}=el;',
+'({innerHTML:x}=data);',
+'({[el.innerHTML]:x}=data);',
+'[x=el.innerHTML]=xs;',
+'[el[unknown]]=xs;',
+'[el.innerHTMLCache]=xs;',
+'[el.innerHTML.child]=xs;',
+'[el[other.innerHTML]]=xs;',
+'[,,x]=xs;',
+'const k="innerHTMLCache"; [el[k]]=xs;',
+'const x=[el.innerHTML];',
+'({a:[x=el.innerHTML]}=data);',
+'function f(k){[el[k]]=xs;}',
+'const innerHTML="x"; let a; [a]=[innerHTML];',
+];
+for(const file of ['fixture.js','fixture.cjs','fixture.mjs']){
+ for(const [cases,expected] of [[positive,['AST003']],[negative,[]]])for(const source of cases){
+ const r=analyzeAST(file,source);assert.equal(r.parsed,true,source);assert.deepEqual([...new Set(r.findings.map(f=>f.rule))].sort(),expected,source);count++;
+ }
+ for(const [obj,method,rule] of [['document','write','AST005'],['localStorage','clear','AST004']]){
+ const source=`const a=${obj}; a.${method}=()=>{}; [a.${method}]=xs; a.${method}();`;
+ const r=analyzeAST(file,source);assert.equal(r.parsed,true);assert.ok(r.findings.some(f=>f.rule===rule),source);count++;
+ }
+}
+});
+
+test('NERYX follow-up: test-template',()=>{
+let count=0;
+function check(s,w){const r=analyzeAST('fixture.mjs',s);assert.equal(r.parsed,true,s);assert.deepEqual([...new Set(r.findings.map(f=>f.rule))].sort(),w,s);count++;}
+for(const g of ['globalThis','window','self'])for(const [name,call,rule] of [['eval','(input)','AST001'],['Function','(input)','AST002'],['localStorage','[`clear`] ()','AST004'],['document','[`write`](input)','AST005']]){
+ check(`${g}[\`${name}\`]${call};`,[rule]);
+ check(`function f(${g}){${g}[\`${name}\`]${call};}`,[]);
+ check(`${g}[\`other${name}\`]${call};`,[]);
+ check(`${g}[\`\${key}\`]${call};`,[]);
+}
+for(const [obj,method,rule] of [['localStorage','clear','AST004'],['document','write','AST005']]){
+ check(`${obj}[\`${method}\`](input);`,[rule]);
+ check(`const a=${obj}; a[\`${method}\`](input);`,[rule]);
+ check(`const ${obj}={}; ${obj}[\`${method}\`](input);`,[]);
+ check(`${obj}[\`\${key}\`](input);`,[]);
+ check(`${obj}[\`other\`](input);`,[]);
+}
+check('el[`innerHTML`]=input;',['AST003']);
+check('el[`innerHTML`]+=input;',['AST003']);
+check('el[`innerHTML`];',[]);
+check('el[`innerHTMLCache`]=input;',[]);
+check('el[`${key}`]=input;',[]);
+check('el[`inner\\u0048TML`]=input;',['AST003']);
+check('const k=`innerHTML`; el[k]=input;',['AST003']);
+check('const k=`innerHTMLCache`; el[k]=input;',[]);
+check('el[tag`innerHTML`]=input;',[]);
+check('const t=`localStorage.clear()`;',[]);
+});
