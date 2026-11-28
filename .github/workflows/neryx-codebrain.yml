@@ -1,0 +1,55 @@
+name: NERYX CodeBrain 1.0 read-only manual review
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Open PR targeting main'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  codebrain-manual:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted main only
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Setup pinned Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Test trusted scanner without external API
+        run: node --test eval/tests/codebrain.test.mjs
+      - name: Install pinned Acorn on trusted main (no lifecycle scripts)
+        working-directory: eval/genesis-ast
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test existing AST adapter on trusted source
+        working-directory: eval/genesis-ast
+        run: npm test
+      - name: Prepare pinned sandbox images and minimal trusted parser stage
+        run: |
+          set -euo pipefail
+          docker pull --platform linux/amd64 python@sha256:a61cbd76a882645de7f91423329fe43a67eed60d7da24f9e5331414bb3618b20
+          docker pull --platform linux/amd64 ruby@sha256:a9ec8f8f22bdcfff3747e9080fedce2b86f487bdec856ca56464ec63603e49c9
+          docker pull --platform linux/amd64 node@sha256:12f54cafa58d0e96554ae05871e29663ff7241836377dc9a7916449b8adb062c
+          stage="$(mktemp -d "$RUNNER_TEMP/neryx-manual.XXXXXX")"
+          chmod 755 "$stage"
+          cp .github/scripts/{neryx-python-syntax.py,neryx-yaml-syntax.rb} "$stage/"
+          cp eval/genesis-ast/{analyzer.mjs,codebrain-worker.mjs} "$stage/"
+          mkdir "$stage/node_modules"
+          cp -R eval/genesis-ast/node_modules/acorn "$stage/node_modules/"
+          chmod -R a+rX "$stage"
+          printf 'CODEBRAIN_SANDBOX_STAGE=%s\n' "$stage" >> "$GITHUB_ENV"
+      - name: Scan PR source as inert Git blobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: node .github/scripts/neryx-codebrain.mjs

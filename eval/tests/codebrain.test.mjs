@@ -1,0 +1,482 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const blobHash=content=>createHash('sha1').update('blob '+Buffer.byteLength(content)+'\0').update(content).digest('hex');
+import {inspect,render,parserEnv,runParser} from '../../.github/scripts/neryx-codebrain.mjs';
+
+const SHA='a'.repeat(40);
+function mock(files,contents={},changed=files.length){
+ const blobs=new Map();
+ files=files.map(f=>{
+  const content=contents[f.sha]??'const value = 1;';
+  const sha=blobHash(content);
+  blobs.set(sha,content);
+  return {...f,sha};
+ });
+ const pr={state:'open',base:{ref:'main'},head:{sha:SHA},changed_files:changed};
+ const request=async url=>{
+  let data;
+  if(url.endsWith('/pulls/94'))data=pr;
+  else if(url.includes('/files?'))data=files;
+  else if(url.includes('/git/blobs/')){
+   const content=blobs.get(url.split('/').at(-1));
+   if(content===undefined)throw Error('unexpected blob');
+   data={encoding:'base64',size:Buffer.byteLength(content),content:Buffer.from(content).toString('base64')};
+  }else throw Error('unexpected URL');
+  return {ok:true,json:async()=>data};
+ };
+ return {repo:'example/repo',number:94,token:'secret-never-print',request};
+}
+const entry=(file,sha=SHA)=>({filename:file,status:'modified',sha});
+test('flags are heuristic and never show source or token',async()=>{
+ const opts=mock([entry('a.js')],{[SHA]:'eval("PRIVATE-INPUT-DO-NOT-LOG")'});
+ const result=await inspect(opts);
+ assert.equal(result.complete,true);
+ assert.equal(result.rows[0].findings[0].rule,'JS001');
+ const text=render(result);
+ assert.doesNotMatch(text,/PRIVATE-INPUT|secret-never-print/);
+ assert.match(text,/heuristisch|Heuristischer|Heuristik/i);
+});
+test('source is never evaluated',async()=>{
+ globalThis.codeBrainProbe=0;
+ const opts=mock([entry('a.js')],{[SHA]:'globalThis.codeBrainProbe=5;'});
+ await inspect(opts);
+ assert.equal(globalThis.codeBrainProbe,0);
+ delete globalThis.codeBrainProbe;
+});
+test('unsupported files and dangerous names make coverage incomplete',async()=>{
+ const opts=mock([entry('readme.md'),entry('../attack.js'),entry('bad\n::error::hi.js')]);
+ const r=await inspect(opts);
+ assert.equal(r.complete,false);
+ assert.equal(r.checked,0);
+ assert.doesNotMatch(render(r),/::error::hi/);
+});
+test('ES module syntax is not incorrectly confirmed as error by vm.Script',async()=>{
+ const opts=mock([entry('module.mjs')],{[SHA]:'export const x = 1;'});
+ const r=await inspect(opts);
+ assert.equal(r.rows[0].findings.filter(f=>f.rule==='JS000').length,0);
+});
+test('analyzer errors cannot pass as a clean check',async()=>{
+ const opts=mock([entry('a.js')]);
+ const r=await inspect({...opts,analyze:()=>{throw Error('API-KEY-DO-NOT-PRINT')}});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.doesNotMatch(render(r),/API-KEY/);
+});
+test('truncated API list must fail closed',async()=>{
+ const opts=mock([entry('a.js')],{},2);
+ await assert.rejects(()=>inspect(opts),/Unvollständige/);
+});
+test('no Gemini dependency; network failures are not concealed',async()=>{
+ const opts=mock([entry('a.js')]);
+ const r=await inspect(opts);
+ assert.equal(r.complete,true);
+ await assert.rejects(()=>inspect({...opts,request:async()=>({ok:false,status:503})}),/GitHub HTTP 503/);
+});
+
+test('truncated findings fail closed rather than claim full coverage',async()=>{
+ const opts=mock([entry('a.js')]);
+ const r=await inspect({...opts,analyze:()=>Array.from({length:41},()=>({rule:'JS001',line:1}))});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'skipped');
+ assert.equal(r.rows[0].reason,'findings-truncated');
+ assert.match(render(r),/UNVOLLSTÄNDIG/);
+});
+test('markdown injection in PR filenames cannot forge headings or links',async()=>{
+ const opts=mock([entry('[approved](https:evil).js'),entry('**all green**.js')]);
+ const r=await inspect(opts);
+ const report=render(r);
+ assert.doesNotMatch(report,/\[approved\]\(|\*\*all green\*\*/);
+ assert.equal(r.complete,true);
+});
+test('empty PR file lists do not produce successful reviews',async()=>{
+ const opts=mock([]);
+ await assert.rejects(()=>inspect(opts),/Leere oder zu große/);
+});
+
+test('valid JSON is checked and invalid JSON is reported as confirmed syntax',async()=>{
+ const valid=await inspect(mock([entry('data.json')],{[SHA]:'{"ok":true}'}));
+ assert.equal(valid.complete,true);
+ assert.equal(valid.rows[0].findings.length,0);
+ const broken=await inspect(mock([entry('data.json')],{[SHA]:'{"ok":'}));
+ assert.equal(broken.rows[0].findings[0].rule,'JSON000');
+ assert.equal(broken.rows[0].findings[0].kind,'confirmed');
+ assert.equal(broken.blocking,true);
+ assert.doesNotMatch(render(broken),/\{"ok"/);
+});
+test('YAML syntax is parsed and security warnings remain heuristic',async()=>{
+ const r=await inspect(mock([entry('ci.yml')],{[SHA]:'on:\n  pull_request_target:\npermissions:\n  contents: write'}));
+ assert.equal(r.rows[0].reason,'yaml-ast-parse');
+ assert.equal(r.rows[0].status,'checked');
+ assert.equal(r.complete,true);
+ assert.equal(r.rows[0].findings.length,2);
+ assert.match(render(r),/heuristische Warnung/);
+});
+test('AST adapter produces confirmed parse errors without echoing untrusted source',async()=>{
+ const r=await inspect({...mock([entry('broken.mjs')]),ast:()=>({parsed:false,findings:[{rule:'AST000',line:2,message:'API-KEY-SHOULD-NOT-PRINT'}]})});
+ assert.equal(r.rows[0].findings[0].kind,'confirmed');
+ assert.equal(r.blocking,true);
+ assert.match(render(r),/bestätigter Syntaxfehler/);
+ assert.doesNotMatch(render(r),/API-KEY-SHOULD-NOT-PRINT/);
+});
+test('AST exceptions fail closed',async()=>{
+ const r=await inspect({...mock([entry('broken.mjs')]),ast:()=>{throw Error('SECRET-NEVER-ECHO')}});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.doesNotMatch(render(r),/SECRET-NEVER-ECHO/);
+});
+
+test('a real syntax error is a blocking result even when file coverage is complete',async()=>{
+ const r=await inspect({...mock([entry('invalid.mjs')]),ast:()=>({parsed:false,findings:[{rule:'AST000',line:1}]})});
+ assert.equal(r.complete,true);
+ assert.equal(r.blocking,true);
+ assert.match(render(r),/Prüfung nicht bestanden/);
+});
+test('valid YAML without known risk is syntax-checked but not security-certified',async()=>{
+ const r=await inspect(mock([entry('safe.yml')],{[SHA]:'name: example\njobs: {}'}));
+ assert.equal(r.rows[0].findings.length,0);
+ assert.equal(r.rows[0].status,'checked');
+ assert.equal(r.complete,true);
+});
+
+test('anonymous public mode never sends an Authorization header',async()=>{
+ const headers=[];
+ const opts=mock([entry('public.js')]);
+ const r=await inspect({...opts,token:undefined,anonymous:true,request:async(url,options)=>{
+  headers.push(options.headers);
+  return opts.request(url,options);
+ }});
+ assert.equal(r.complete,true);
+ assert.ok(headers.length>=3);
+ assert.ok(headers.every(h=>!Object.hasOwn(h,'Authorization')));
+});
+test('no-token requests remain rejected without explicit anonymous mode',async()=>{
+ const opts=mock([entry('public.js')]);
+ await assert.rejects(()=>inspect({...opts,token:undefined}),/Ungültiger Auftrag/);
+});
+
+test('Python syntax checker labels confirmed syntax errors without source leakage',async()=>{
+ const src='def f(:\n SECRET_IN_PYTHON = "hide"';
+ const result=await inspect({...mock([entry('broken.py')],{[SHA]:src}),pythonSyntax:()=>({parsed:false,line:1})});
+ assert.equal(result.complete,true);
+ assert.equal(result.blocking,true);
+ assert.equal(result.rows[0].findings[0].rule,'PY000');
+ assert.equal(result.rows[0].findings[0].kind,'confirmed');
+ assert.doesNotMatch(render(result),/SECRET_IN_PYTHON/);
+});
+test('Python valid parse is a checked file, never a code execution',async()=>{
+ const result=await inspect({...mock([entry('safe.py')],{[SHA]:'open("unsafe-file","w").write("NO")'}),pythonSyntax:()=>({parsed:true,line:null})});
+ assert.equal(result.complete,true);
+ assert.equal(result.rows[0].reason,'python-ast-parse');
+ assert.equal(result.rows[0].findings.length,0);
+});
+test('Python checker failures remain non-green and do not leak exception text',async()=>{
+ const result=await inspect({...mock([entry('safe.py')]),pythonSyntax:()=>{throw Error('FAKE-SECRET')}});
+ assert.equal(result.complete,false);
+ assert.equal(result.rows[0].status,'error');
+ assert.doesNotMatch(render(result),/FAKE-SECRET/);
+});
+
+test('real isolated Python AST parsing does not execute the submitted script',async()=>{
+ const source='raise RuntimeError("THIS MUST NEVER EXECUTE")\n';
+ const result=await inspect(mock([entry('real.py')],{[SHA]:source}));
+ assert.equal(result.complete,true);
+ assert.equal(result.blocking,false);
+ assert.equal(result.rows[0].findings.length,0);
+});
+test('real isolated Python AST parsing catches malformed code',async()=>{
+ const result=await inspect(mock([entry('real.py')],{[SHA]:'def invalid(:\n pass'}));
+ assert.equal(result.complete,true);
+ assert.equal(result.blocking,true);
+ assert.equal(result.rows[0].findings[0].rule,'PY000');
+});
+
+test('real YAML parser confirms malformed syntax without disclosing source',async()=>{
+ const r=await inspect(mock([entry('broken.yaml')],{[SHA]:'name: [never-closed\nSECRET-NEVER-SHOWN: yes'}));
+ assert.equal(r.complete,true);
+ assert.equal(r.blocking,true);
+ assert.equal(r.rows[0].findings[0].rule,'YAML000');
+ assert.equal(r.rows[0].findings[0].kind,'confirmed');
+ assert.doesNotMatch(render(r),/SECRET-NEVER-SHOWN/);
+});
+test('YAML tags are never deserialized into Ruby objects',async()=>{
+ const r=await inspect(mock([entry('tagged.yml')],{[SHA]:'--- !ruby/object:Exploit\nfield: unsafe\n'}));
+ assert.equal(r.complete,true);
+ assert.equal(r.rows[0].status,'checked');
+ assert.equal(r.blocking,false);
+});
+test('YAML parser crash fails closed with no exception leakage',async()=>{
+ const r=await inspect({...mock([entry('a.yaml')]),yamlSyntax:()=>{throw Error('DO-NOT-LOG-YAML-SECRET')}});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.doesNotMatch(render(r),/DO-NOT-LOG-YAML-SECRET/);
+});
+
+test('PR head changed during review must be rejected',async()=>{
+ const opts=mock([entry('safe.js')]);
+ let calls=0;
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  if(u.endsWith('/pulls/94')&&++calls===2)
+   return {ok:true,json:async()=>({state:'open',base:{ref:'main'},head:{sha:'b'.repeat(40)},changed_files:1})};
+  return opts.request(u,o);
+ }}),/PR changed during review/);
+});
+test('oversized encoded Git blob is skipped before decoding',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({encoding:'base64',size:100,content:'A'.repeat(96001)})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].reason,'size-or-encoding');
+});
+
+test('parser subprocess environment excludes GitHub credentials',()=>{
+ const env=parserEnv();
+ assert.deepEqual(Object.keys(env).sort(),['LANG','PATH']);
+ assert.equal(Object.hasOwn(env,'GH_TOKEN'),false);
+ assert.equal(Object.hasOwn(env,'GITHUB_TOKEN'),false);
+ assert.equal(Object.hasOwn(env,'NODE_OPTIONS'),false);
+});
+test('AST parse failure without diagnostic cannot count as checked',async()=>{
+ const opts=mock([entry('malformed.mjs')]);
+ const r=await inspect({...opts,ast:()=>({parsed:false,findings:[]})});
+ assert.equal(r.rows[0].status,'error');
+ assert.equal(r.complete,false);
+});
+
+test('malformed base64 does not silently decode as verified Git content',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({encoding:'base64',size:1,content:'YQ==::untrusted'})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+ assert.equal(r.rows[0].reason,'fetch-or-analyzer-error');
+});
+test('Git blob response SHA mismatch fails closed',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({sha:'b'.repeat(40),encoding:'base64',size:1,content:'YQ=='})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+});
+test('canonical base64 with Git blob SHA stays supported',async()=>{
+ const opts=mock([entry('safe.js')],{[SHA]:'a'});
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({sha:blobHash('a'),encoding:'base64',size:1,content:'YQ==\n'})};
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,true);
+ assert.equal(r.rows[0].status,'checked');
+});
+
+test('real Response streams are parsed within bounded API body limits',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  const data=await (await opts.request(u,o)).json();
+  return new Response(JSON.stringify(data),{status:200,headers:{'content-type':'application/json'}});
+ }});
+ assert.equal(r.complete,true);
+ assert.equal(r.checked,1);
+});
+test('oversized streamed PR metadata fails closed before JSON parsing',async()=>{
+ const opts=mock([entry('safe.js')]);
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  if(u.endsWith('/pulls/94'))return new Response(' '.repeat(65537),{status:200});
+  return opts.request(u,o);
+ }}),/GitHub response too large/);
+});
+test('oversized streamed blob is marked as an error, never checked',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const r=await inspect({...opts,request:async(u,o)=>{
+  if(u.includes('/git/blobs/'))return new Response(' '.repeat(98305),{status:200});
+  return opts.request(u,o);
+ }});
+ assert.equal(r.complete,false);
+ assert.equal(r.rows[0].status,'error');
+});
+test('oversized declared Content-Length fails before accessing API JSON',async()=>{
+ const opts=mock([entry('safe.js')]);
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  if(u.endsWith('/pulls/94'))return {
+   ok:true,
+   headers:{get:key=>key==='content-length'?'65537':null},
+   json:async()=>{throw Error('Must not parse oversized body');}
+  };
+  return opts.request(u,o);
+ }}),/GitHub response too large/);
+});
+
+test('every GitHub API request carries a finite 15-second abort signal',async()=>{
+ const opts=mock([entry('safe.js')]);
+ const signals=[];
+ const r=await inspect({...opts,request:async(url,options)=>{
+  assert.ok(options.signal instanceof AbortSignal);
+  assert.equal(options.signal.aborted,false);
+  signals.push(options.signal);
+  return opts.request(url,options);
+ }});
+ assert.equal(r.complete,true);
+ assert.equal(signals.length,4);
+ assert.equal(new Set(signals).size,4);
+ assert.match(render(r),/# NERYX CodeBrain 1\.4/);
+});
+
+test('AST result contract rejects malformed, unknown and contradictory findings',async()=>{
+ const invalid=[
+  {parsed:true,findings:[{rule:'AST001',line:0}]},
+  {parsed:true,findings:[{rule:'AST001',line:'1'}]},
+  {parsed:true,findings:[{rule:'AST999',line:1}]},
+  {parsed:true,findings:[{rule:'AST000',line:1}]},
+  {parsed:false,findings:[{rule:'AST001',line:1}]},
+  {parsed:false,findings:[{rule:'AST000',line:1},{rule:'AST001',line:1}]},
+  {parsed:true,findings:Array.from({length:42},()=>({rule:'AST001',line:1}))}
+ ];
+ for(const data of invalid){
+  const r=await inspect({...mock([entry('invalid.mjs')]),ast:()=>data});
+  assert.equal(r.complete,false);
+  assert.equal(r.rows[0].status,'error');
+  assert.equal(r.rows[0].reason,'fetch-or-analyzer-error');
+ }
+});
+test('AST result contract retains valid findings and overflow sentinel',async()=>{
+ const r=await inspect({...mock([entry('many.mjs')]),ast:()=>({
+  parsed:true,findings:Array.from({length:41},(_,i)=>({rule:'AST001',line:i+1}))
+ })});
+ assert.equal(r.rows[0].reason,'findings-truncated');
+ assert.equal(r.complete,false);
+ const clean=await inspect({...mock([entry('valid.mjs')]),ast:()=>({parsed:true,findings:[{rule:'AST003',line:1}]})});
+ assert.equal(clean.complete,true);
+ assert.equal(clean.rows[0].findings[0].kind,'heuristic');
+});
+
+test('C37 API scanner independently checks bytes even if response SHA claims to match',async()=>{
+ const opts=mock([entry('safe.js')],{[SHA]:'const x=1;'});
+ for(const includeSha of [true,false]){
+  let calls=0;
+  const r=await inspect({...opts,request:async(u,o)=>{
+   if(u.includes('/git/blobs/'))return {ok:true,json:async()=>({...(includeSha?{sha:u.split('/').at(-1)}:{}),encoding:'base64',size:10,content:Buffer.from('const x=2;').toString('base64')})};
+   return opts.request(u,o);
+  },ast:()=>{calls++;return {parsed:true,findings:[]};}});
+  assert.equal(calls,0);assert.equal(r.complete,false);assert.equal(r.rows[0].status,'error');
+ }
+});
+
+test('C38 duplicate API paths cannot inflate file coverage',async()=>{
+ const opts=mock([entry('safe.js'),entry('safe.js')]);
+ await assert.rejects(()=>inspect(opts),/Invalid or duplicate file inventory/);
+});
+test('C38 rename, copy and changed targets are scanned; unknown statuses stay incomplete',async()=>{
+ for(const status of ['renamed','copied','changed','removed','unknown']){
+  const r=await inspect(mock([{...entry('safe.js'),status}]));
+  assert.equal(r.complete,['renamed','copied','changed'].includes(status),status);
+  if(status==='unknown')assert.equal(r.rows[0].reason,'unsupported-change-status');
+  if(status==='removed')assert.equal(r.rows[0].reason,'not-added-or-modified');
+ }
+});
+test('C38 changed file count or base commit during review invalidates the report',async()=>{
+ for(const change of [{changed_files:2},{base:{ref:'main',sha:'c'.repeat(40)}}]){
+  const opts=mock([entry('safe.js')]);let reads=0;
+  await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+   if(!u.endsWith('/pulls/94'))return opts.request(u,o);
+   const data=structuredClone(await (await opts.request(u,o)).json());
+   data.base.sha='b'.repeat(40);
+   if(++reads===2)Object.assign(data,change);
+   return {ok:true,json:async()=>data};
+  }}),/PR changed during review/);
+ }
+});
+
+test('C38 initial metadata remains pinned even when an adapter reuses mutable response objects',async()=>{
+ const opts=mock([entry('safe.js')]);let reads=0;
+ await assert.rejects(()=>inspect({...opts,request:async(u,o)=>{
+  const response=await opts.request(u,o);
+  if(!u.endsWith('/pulls/94'))return response;
+  const data=await response.json();
+  if(++reads===2)data.changed_files=2;
+  return {ok:true,json:async()=>data};
+ }}),/PR changed during review/);
+});
+
+test('C39 exact per-file byte boundary including multibyte UTF8',async()=>{
+ for(const size of [69999,70000,70001]){
+  const source='// '+'ä'.repeat(Math.floor((size-3)/2))+' '.repeat((size-3)%2);
+  assert.equal(Buffer.byteLength(source),size);
+  let calls=0;
+  const opts=mock([entry('boundary.js')],{[SHA]:source});
+  const result=await inspect({...opts,ast:(file,actual)=>{
+   calls++;assert.equal(actual,source);return {parsed:true,findings:[]};
+  }});
+  assert.equal(calls,size<=70000?1:0);
+  assert.equal(result.complete,size<=70000);
+  if(size>70000)assert.equal(result.rows[0].reason,'size-or-encoding');
+ }
+});
+test('C39 total byte budget includes repeated blobs and failed analyzers',async()=>{
+ for(const extra of [0,1]){
+  const files=Array.from({length:8},(_,i)=>entry('f'+i+'.js',i===7?'b'.repeat(40):SHA));
+  const opts=mock(files,{[SHA]:'//'+ ' '.repeat(69998),['b'.repeat(40)]:'//'+ ' '.repeat(9998+extra)});
+  let calls=0;
+  const result=await inspect({...opts,ast:()=>{
+   calls++;if(calls===1)throw Error('simulated parser failure');return {parsed:true,findings:[]};
+  }});
+  assert.equal(calls,extra?7:8);
+  assert.equal(result.complete,false);
+  assert.equal(result.rows[0].status,'error');
+  assert.equal(result.rows[7].status,extra?'skipped':'checked');
+  if(extra)assert.equal(result.rows[7].reason,'size-or-encoding');
+ }
+});
+test('C39 thirty changed files accepted, thirty-one rejected before fetching inventory',async()=>{
+ for(const count of [30,31]){
+  const opts=mock(Array.from({length:count},(_,i)=>entry('f'+i+'.js')));
+  let requests=0;
+  const args={...opts,request:async(u,o)=>{requests++;return opts.request(u,o);},ast:()=>({parsed:true,findings:[]})};
+  if(count===30){const result=await inspect(args);assert.equal(result.checked,30);assert.equal(result.complete,true);assert.equal(requests,33);}
+  else{await assert.rejects(()=>inspect(args),/Leere oder zu große/);assert.equal(requests,1);}
+ }
+});
+test('C39 findings boundary distinguishes forty from forty-one',async()=>{
+ for(const count of [40,41]){
+  const result=await inspect({...mock([entry('boundary.js')]),ast:()=>({parsed:true,findings:Array.from({length:count},(_,i)=>({rule:'AST001',line:i+1}))})});
+  assert.equal(result.rows[0].findings.length,40);
+  assert.equal(result.complete,count===40);
+  assert.equal(result.rows[0].reason,count===40?'ast':'findings-truncated');
+ }
+});
+
+// P1a: transport and real parser limits agree; limits are not syntax findings.
+test('real Python and YAML parsers accept valid UTF-8 at the scanner byte boundary',async()=>{
+ for(const extension of ['py','yaml']){
+  for(const size of [60000,60001,69999,70000,70001]){
+   const prefix=extension==='py'?'x = 1\n#':'x: 1\n#';
+   const remaining=size-Buffer.byteLength(prefix);
+   const source=prefix+'ä'.repeat(Math.floor(remaining/2))+' '.repeat(remaining%2);
+   assert.equal(Buffer.byteLength(source),size);
+   const r=await inspect(mock([entry('boundary.'+extension)],{[SHA]:source}));
+   assert.equal(r.complete,size<=70000,extension+' '+size);
+   assert.equal(r.blocking,false);
+   assert.equal(r.rows[0].findings.length,0);
+   assert.equal(r.rows[0].status,size<=70000?'checked':'skipped');
+   if(size>70000)assert.equal(r.rows[0].reason,'size-or-encoding');
+  }
+ }
+});
+
+// A trusted synthetic worker deliberately ignores SIGTERM. The same launcher
+// used by every real parser must enforce its deadline with SIGKILL instead.
+test('parser deadline kills a direct child that ignores SIGTERM',{timeout:15000,skip:process.platform==='win32'},()=>{
+ const start=performance.now();
+ assert.throws(()=>runParser(process.execPath,['-e',"process.on('SIGTERM',()=>{}); process.stdout.write('ready'); setTimeout(()=>{},30000);"],'',4096),err=>{
+  assert.equal(err.code,'ETIMEDOUT');
+  assert.equal(err.signal,'SIGKILL');
+  assert.equal(String(err.stdout),'ready');
+  return true;
+ });
+ const elapsed=performance.now()-start;
+ assert.ok(elapsed>=4500&&elapsed<12000,'deadline elapsed: '+elapsed);
+});
