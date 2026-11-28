@@ -23,6 +23,8 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -30,19 +32,13 @@ jobs:
           import os
           import urllib.request
 
-          head = os.environ["HEAD_REF"]
-          if not head.startswith("neryx/auto/"):
-              print("Ordinary PR: auto-candidate path restriction does not apply.")
-              print("Human PR review and other required CI checks remain necessary.")
-              raise SystemExit(0)
-
           repository = os.environ["REPOSITORY"]
           number = int(os.environ["PR_NUMBER"])
           api = os.environ["API_URL"].rstrip("/")
           token = os.environ["GH_TOKEN"]
-          paths = []
-          for page in range(1, 32):
-              url = f"{api}/repos/{repository}/pulls/{number}/files?per_page=100&page={page}"
+          root = f"{api}/repos/{repository}/pulls/{number}"
+
+          def get(url):
               request = urllib.request.Request(url, headers={
                   "Authorization": f"Bearer {token}",
                   "Accept": "application/vnd.github+json",
@@ -50,22 +46,63 @@ jobs:
                   "User-Agent": "GENESIS-X-readonly-policy"
               })
               with urllib.request.urlopen(request, timeout=15) as response:
-                  files = json.load(response)
-              if not isinstance(files, list):
-                  raise RuntimeError("Invalid GitHub PR files response")
-              for file in files:
-                  paths.append(file["filename"])
-                  if file.get("previous_filename"):
-                      paths.append(file["previous_filename"])
-              if len(files) < 100:
-                  break
-          else:
-              raise RuntimeError("Too many files to verify safely")
+                  return json.load(response)
 
-          if not paths:
-              raise RuntimeError("Empty auto-candidate PR not permitted")
-          for path in paths:
-              if not (path.startswith("candidates/") or path.startswith("eval/candidates/")):
-                  raise RuntimeError(f"DENIED: auto-candidate attempted disallowed path: {path}")
-          print(f"PASS: {len(paths)} candidate file paths allowed; no PR code executed")
+          def snapshot():
+              pr = get(root)
+              if (pr["state"] != "open"
+                  or pr["head"]["sha"] != os.environ["EXPECTED_HEAD"]
+                  or pr["base"]["sha"] != os.environ["EXPECTED_BASE"]
+                  or pr["head"]["ref"] != os.environ["HEAD_REF"]):
+                  raise RuntimeError("PR identity changed; rerun required")
+              count = pr["changed_files"]
+              if type(count) is not int or not 1 <= count <= 3000:
+                  raise RuntimeError("Invalid or unsupported PR file count")
+              return count
+
+          def valid_path(path):
+              return (isinstance(path, str) and bool(path)
+                      and not any(ord(c) < 32 or ord(c) == 127 or c == chr(92) for c in path)
+                      and all(part not in ("", ".", "..") for part in path.split("/")))
+
+          count = snapshot()
+          paths = []
+          seen = set()
+          for page in range(1, (count + 99) // 100 + 1):
+              files = get(f"{root}/files?per_page=100&page={page}")
+              if not isinstance(files, list) or len(files) != min(100, count - len(seen)):
+                  raise RuntimeError("Incomplete PR file inventory")
+              for file in files:
+                  path = file["filename"]
+                  if not valid_path(path) or path in seen:
+                      raise RuntimeError("Invalid or duplicate PR filename")
+                  seen.add(path)
+                  paths.append(path)
+                  status = file["status"]
+                  if status not in ("added", "removed", "modified", "renamed", "copied", "changed", "unchanged"):
+                      raise RuntimeError("Unknown PR file status")
+                  if status in ("renamed", "copied") and not file.get("previous_filename"):
+                      raise RuntimeError("Missing rename or copy origin")
+                  if "previous_filename" in file:
+                      previous = file["previous_filename"]
+                      if not valid_path(previous):
+                          raise RuntimeError("Invalid previous filename")
+                      paths.append(previous)
+          if len(seen) != count or snapshot() != count:
+              raise RuntimeError("PR inventory changed; rerun required")
+
+          def sensitive(path):
+              return (path.startswith((".github/", "eval/", "docs/NERYX_REVIEWER_"))
+                      or path in ("CODEOWNERS", "docs/CODEOWNERS"))
+
+          if os.environ["HEAD_REF"].startswith("neryx/auto/"):
+              if any(not p.startswith(("candidates/", "eval/candidates/")) for p in paths):
+                  raise RuntimeError("Auto-candidate attempted disallowed path")
+              print(f"PASS: {len(paths)} candidate file paths allowed; no PR code executed")
+          else:
+              critical = sum(sensitive(p) for p in paths)
+              print(f"Verified inventory: {count} files; {critical} sensitive path entries")
+              if critical:
+                  print("::warning::Sensitive changes require independent human review; this gate is inventory only")
+              print("Ordinary PR: inventory complete, NOT an independent approval")
           PY

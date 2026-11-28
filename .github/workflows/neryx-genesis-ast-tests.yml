@@ -23,6 +23,8 @@ jobs:
       - name: Test AST analysis in read-only mode
         working-directory: eval/genesis-ast
         run: npm test
+      - name: Test trusted gate using mocked API responses (candidate CI, no secrets)
+        run: python3 -m unittest discover -s eval/tests -p test_neryx_trusted_gate.py -v
       - name: AST smoke on existing source (no writeback)
         working-directory: eval/genesis-ast
         run: node analyzer.mjs analyzer.mjs > /dev/null

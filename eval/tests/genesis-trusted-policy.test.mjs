@@ -16,11 +16,13 @@ test('candidate guard runs from protected base without checking out PR code',()=
   assert.match(workflow,/name:\s*genesis-candidate-paths-trusted/);
 });
 test('bot branch changes are constrained, including renames and pagination',()=>{
-  assert.match(workflow,/head\.startswith\("neryx\/auto\/"\)/);
-  assert.match(workflow,/file\.get\("previous_filename"\)/);
-  assert.match(workflow,/candidates\//);
-  assert.match(workflow,/eval\/candidates\//);
-  assert.match(workflow,/DENIED:/);
+  assert.match(workflow,/if os\.environ\["HEAD_REF"\]\.startswith\("neryx\/auto\/"\):/);
+  assert.match(workflow,/status in \("renamed", "copied"\) and not file\.get\("previous_filename"\)/);
+  assert.match(workflow,/paths\.append\(previous\)/);
+  assert.match(workflow,/if any\(not p\.startswith\(\("candidates\/", "eval\/candidates\/"\)\) for p in paths\):\s+raise RuntimeError\("Auto-candidate attempted disallowed path"\)/);
   assert.match(workflow,/files\?per_page=100&page=/);
-  assert.match(workflow,/Too many files to verify safely/);
+  assert.match(workflow,/not 1 <= count <= 3000/);
+  assert.match(workflow,/len\(seen\) != count or snapshot\(\) != count/);
+  assert.match(workflow,/pr\["head"\]\["sha"\] != os\.environ\["EXPECTED_HEAD"\]/);
+  assert.match(workflow,/pr\["base"\]\["sha"\] != os\.environ\["EXPECTED_BASE"\]/);
 });
